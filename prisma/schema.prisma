@@ -1,0 +1,194 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Specifies the generator for the Prisma Client
+generator client {
+  provider = "prisma-client-js"
+}
+
+// Defines the database connection
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// --- CENTRAL MODEL: THE CLUB ---
+// Represents a single Padel Club in the system
+model Club {
+  id               String    @id @default(cuid())
+  name             String
+  address          String?
+  logoUrl          String?
+  
+  // Subscription details for the SaaS model
+  subscriptionTier String    @default("essential") // e.g., "essential", "growth", "performance"
+  stripeCustomerId String?   @unique // For managing payments with Stripe
+
+  // Relationships
+  admins           User[]
+  courts           Court[]
+  leagues          League[]
+  bookings         Booking[]
+}
+
+// --- USER AND AUTHENTICATION MODELS ---
+// Represents a user, who can be an admin or a player
+model User {
+  id               String    @id @default(cuid())
+  name             String?
+  email            String?   @unique
+  emailVerified    DateTime?
+  image            String?
+  
+  // Role and relationship to a club
+  // An admin user is directly linked to a club
+  clubId           String?
+  club             Club?     @relation(fields: [clubId], references: [id])
+  
+  // Auth relationships
+  accounts         Account[]
+  sessions         Session[]
+  
+  // Business logic relationships
+  teamsAsPlayer1   Team[]    @relation("Player1OfTeams")
+  teamsAsPlayer2   Team[]    @relation("Player2OfTeams")
+  bookings         Booking[]
+}
+
+// NextAuth model for OAuth accounts
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+// NextAuth model for sessions
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// NextAuth model for verification tokens (e.g., for email sign-in)
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+
+// --- BOOKING AND COURTS MODULE ---
+// Represents a physical court in a club
+model Court {
+  id      String    @id @default(cuid())
+  name    String // e.g., "Court 1", "Center Court"
+  type    String    @default("Indoor") // e.g., "Indoor", "Outdoor"
+  
+  clubId  String
+  club    Club      @relation(fields: [clubId], references: [id], onDelete: Cascade)
+  
+  bookings Booking[]
+}
+
+// Represents a single booking of a court
+model Booking {
+  id          String    @id @default(cuid())
+  startTime   DateTime
+  endTime     DateTime
+  totalPrice  Float
+  status      String    @default("confirmed") // e.g., "confirmed", "cancelled"
+  
+  courtId     String
+  court       Court     @relation(fields: [courtId], references: [id])
+  
+  // The user who made the booking
+  userId      String 
+  user        User      @relation(fields: [userId], references: [id])
+  
+  // The club this booking belongs to
+  clubId      String
+  club        Club      @relation(fields: [clubId], references: [id], onDelete: Cascade)
+
+  @@unique([courtId, startTime]) // Prevents double booking
+}
+
+
+// --- LEAGUES AND COMPETITION MODULE ---
+// Represents a league or tournament within a club
+model League {
+  id          String    @id @default(cuid())
+  name        String
+  inviteCode  String    @unique @default(cuid())
+  
+  clubId      String
+  club        Club      @relation(fields: [clubId], references: [id], onDelete: Cascade)
+  
+  teams       Team[]
+  matches     Match[]
+}
+
+// Represents a pair of players in a league
+model Team {
+  id          String   @id @default(cuid())
+  name        String
+  
+  // The two players forming the team
+  player1Id   String
+  player1     User     @relation("Player1OfTeams", fields: [player1Id], references: [id], onDelete: Cascade)
+  player2Id   String
+  player2     User     @relation("Player2OfTeams", fields: [player2Id], references: [id], onDelete: Cascade)
+  
+  leagueId    String
+  league      League   @relation(fields: [leagueId], references: [id], onDelete: Cascade)
+  
+  // Stats for the league table
+  points      Int      @default(0)
+  played      Int      @default(0)
+  won         Int      @default(0)
+  lost        Int      @default(0)
+  setsFor     Int      @default(0)
+  setsAgainst Int      @default(0)
+  gamesFor    Int      @default(0)
+  gamesAgainst Int   @default(0)
+
+  // Back-relations to matches where this team played
+  matchesAsTeam1 Match[] @relation("MatchesAsTeam1")
+  matchesAsTeam2 Match[] @relation("MatchesAsTeam2")
+
+  @@unique([leagueId, player1Id, player2Id]) // A team can't be twice in the same league
+}
+
+// Represents a single match between two teams
+model Match {
+  id          String   @id @default(cuid())
+  round       Int
+  result      String?  // e.g., "6-4, 6-2"
+  winnerId    String?  // The ID of the winning Team
+  summaryAI   String?  @db.Text
+  
+  // The two teams facing each other
+  team1Id     String
+  team1       Team     @relation("MatchesAsTeam1", fields: [team1Id], references: [id], onDelete:NoAction)
+  team2Id     String
+  team2       Team     @relation("MatchesAsTeam2", fields: [team2Id], references: [id], onDelete:NoAction)
+  
+  leagueId    String
+  league      League   @relation(fields: [leagueId], references: [id], onDelete: Cascade)
+}

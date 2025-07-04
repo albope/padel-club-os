@@ -6,14 +6,9 @@ import dayGridPlugin from '@fullcalendar/daygrid';
 import timeGridPlugin from '@fullcalendar/timegrid';
 import interactionPlugin from '@fullcalendar/interaction';
 
-// --- FullCalendar Styles ---
-// It's a best practice to import the component's styles directly within it.
-import '@fullcalendar/core/main.css';
-import '@fullcalendar/daygrid/main.css';
-import '@fullcalendar/timegrid/main.css';
-
 // --- Custom Styles Component for Dark Theme ---
-// This component injects CSS to override FullCalendar's default styles.
+// We will rely on this component to style the calendar,
+// as direct CSS imports from the package are no longer supported in this way.
 const CalendarStyles = () => {
   return (
     <style>{`
@@ -40,7 +35,7 @@ const CalendarStyles = () => {
       }
 
       /* Calendar Borders */
-      .fc-theme-standard td, .fc-theme-standard th, .fc-scrollgrid {
+      .fc-theme-standard td, .fc-theme-standard th, .fc-scrollgrid, .fc-view {
         border-color: #374151; /* Gray-700 */
       }
 
@@ -64,6 +59,11 @@ const CalendarStyles = () => {
       .fc-day-today {
         background-color: rgba(79, 70, 229, 0.1) !important;
       }
+
+      /* Event background and border */
+      .fc-event {
+        border: 1px solid rgba(0,0,0,0.3);
+      }
     `}</style>
   );
 };
@@ -71,9 +71,9 @@ const CalendarStyles = () => {
 
 // Mock data for initial events. We will replace this with real data from the database.
 const mockEvents = [
-  { id: '1', title: 'Reserva - Pista 1', start: '2025-07-04T18:00:00', end: '2025-07-04T19:30:00', backgroundColor: '#3b82f6', borderColor: '#3b82f6' },
-  { id: '2', title: 'Clase Particular - Pista 2', start: '2025-07-05T10:00:00', end: '2025-07-05T11:00:00', backgroundColor: '#10b981', borderColor: '#10b981' },
-  { id: '3', title: 'Torneo Interno - Pista 3', start: '2025-07-06T09:00:00', end: '2025-07-06T13:00:00', backgroundColor: '#ef4444', borderColor: '#ef4444' },
+  { id: '1', title: 'Reserva - Pista 1', start: '2025-07-04T18:00:00', end: '2025-07-04T19:30:00', backgroundColor: '#3b82f6', borderColor: '#2563eb' },
+  { id: '2', title: 'Clase Particular - Pista 2', start: '2025-07-05T10:00:00', end: '2025-07-05T11:00:00', backgroundColor: '#10b981', borderColor: '#059669' },
+  { id: '3', title: 'Torneo Interno - Pista 3', start: '2025-07-06T09:00:00', end: '2025-07-06T13:00:00', backgroundColor: '#ef4444', borderColor: '#dc2626' },
 ];
 
 const CalendarView = () => {

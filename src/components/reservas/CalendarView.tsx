@@ -19,19 +19,18 @@ const CalendarStyles = () => {
     <style>{`
       /* Toolbar Buttons */
       .fc-button-primary {
-        background-color: #4f46e5 !important; /* Indigo */
+        background-color: #4f46e5 !important; /* Indigo-600 */
         border-color: #4f46e5 !important;
         transition: background-color 0.3s;
       }
       .fc-button-primary:hover {
-        background-color: #4338ca !important;
+        background-color: #4338ca !important; /* Indigo-700 */
       }
       .fc-button-primary:disabled {
-        background-color: #4b5563 !important;
-        border-color: #4b5563 !important;
+        background-color: #4b5563 !important; /* Gray-600 */
       }
       .fc-button-active {
-        background-color: #3730a3 !important;
+        background-color: #3730a3 !important; /* Indigo-800 */
         border-color: #3730a3 !important;
       }
       
@@ -41,7 +40,7 @@ const CalendarStyles = () => {
       }
 
       /* Calendar Borders */
-      .fc-theme-standard td, .fc-theme-standard th {
+      .fc-theme-standard td, .fc-theme-standard th, .fc-scrollgrid {
         border-color: #374151; /* Gray-700 */
       }
 
@@ -59,7 +58,11 @@ const CalendarStyles = () => {
       /* General text color for events */
       :root {
         --fc-event-text-color: #ffffff;
-        --fc-list-event-title-color: #ffffff;
+      }
+
+      /* Today's date background */
+      .fc-day-today {
+        background-color: rgba(79, 70, 229, 0.1) !important;
       }
     `}</style>
   );
@@ -68,9 +71,9 @@ const CalendarStyles = () => {
 
 // Mock data for initial events. We will replace this with real data from the database.
 const mockEvents = [
-  { id: '1', title: 'Reserva - Pista 1', start: '2025-07-03T18:00:00', end: '2025-07-03T19:30:00', backgroundColor: '#3b82f6' },
-  { id: '2', title: 'Clase Particular - Pista 2', start: '2025-07-04T10:00:00', end: '2025-07-04T11:00:00', backgroundColor: '#10b981' },
-  { id: '3', title: 'Torneo Interno - Pista 3', start: '2025-07-05T09:00:00', end: '2025-07-05T13:00:00', backgroundColor: '#ef4444' },
+  { id: '1', title: 'Reserva - Pista 1', start: '2025-07-04T18:00:00', end: '2025-07-04T19:30:00', backgroundColor: '#3b82f6', borderColor: '#3b82f6' },
+  { id: '2', title: 'Clase Particular - Pista 2', start: '2025-07-05T10:00:00', end: '2025-07-05T11:00:00', backgroundColor: '#10b981', borderColor: '#10b981' },
+  { id: '3', title: 'Torneo Interno - Pista 3', start: '2025-07-06T09:00:00', end: '2025-07-06T13:00:00', backgroundColor: '#ef4444', borderColor: '#ef4444' },
 ];
 
 const CalendarView = () => {
@@ -98,16 +101,15 @@ const CalendarView = () => {
           right: 'dayGridMonth,timeGridWeek,timeGridDay',
         }}
         events={mockEvents}
-        editable={true} // Allows dragging and resizing events
-        selectable={true} // Allows selecting time slots
+        editable={true}
+        selectable={true}
         dateClick={handleDateClick}
         eventClick={handleEventClick}
-        // Customizing the look and feel to match our dark theme
-        allDaySlot={false} // We don't need the "all-day" slot for court bookings
-        slotMinTime="08:00:00" // Earliest time slot
-        slotMaxTime="23:00:00" // Latest time slot
-        height="75vh" // Set a good height for the calendar
-        locale="es" // Set language to Spanish
+        allDaySlot={false}
+        slotMinTime="08:00:00"
+        slotMaxTime="23:00:00"
+        height="75vh"
+        locale="es"
         buttonText={{
           today: 'Hoy',
           month: 'Mes',

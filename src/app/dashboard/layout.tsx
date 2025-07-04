@@ -1,7 +1,9 @@
 import React from 'react';
+import Header from '@/components/layout/Header'; // Corrected: H is now uppercase
+import Sidebar from '@/components/layout/Sidebar';
 
 // This is the main layout for the entire authenticated section.
-// It's kept simple to ensure stability.
+// It combines the Sidebar, Header, and the main content area.
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -9,10 +11,15 @@ interface DashboardLayoutProps {
 
 const DashboardLayout = ({ children }: DashboardLayoutProps) => {
   return (
-    <div className="bg-gray-900 min-h-screen text-white">
-      {/* We will add the Sidebar and Header back here later, once the core is stable */}
-      <div className="p-4 sm:p-6 lg:p-8">
-        {children}
+    <div className="flex h-screen bg-gray-900 text-gray-100">
+      <Sidebar />
+      <div className="flex-1 flex flex-col overflow-hidden">
+        <Header />
+        <main className="flex-1 overflow-x-hidden overflow-y-auto">
+          <div className="container mx-auto px-6 py-8">
+            {children}
+          </div>
+        </main>
       </div>
     </div>
   );

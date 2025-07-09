@@ -3,7 +3,7 @@ import { db } from '@/lib/db';
 import { authOptions } from '@/lib/auth';
 import { getServerSession } from 'next-auth';
 import { redirect } from 'next/navigation';
-import { Users, PlusCircle, Mail, Phone } from 'lucide-react';
+import { Users, PlusCircle, Mail, Phone, Pencil, ShieldCheck } from 'lucide-react';
 import Link from 'next/link';
 
 const SociosPage = async () => {
@@ -36,21 +36,50 @@ const SociosPage = async () => {
         <div className="p-6">
           {users.length > 0 ? (
             <ul className="divide-y divide-gray-700">
-              {users.map((user) => (
-                <li key={user.id} className="flex items-center justify-between py-4">
-                  <div className="flex items-center gap-4">
-                    <img 
-                      src={user.image || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name || 'S')}&background=random&color=fff`}
-                      alt="Avatar"
-                      className="h-10 w-10 rounded-full"
-                    />
-                    <div>
-                      <p className="font-semibold text-white">{user.name}</p>
-                      <p className="text-sm text-gray-400 flex items-center gap-2"><Mail className="h-4 w-4" />{user.email}</p>
+              {users.map((user) => {
+                const isAdmin = user.id === session.user.id;
+                return (
+                  <li key={user.id} className="group flex items-center justify-between py-3">
+                    <div className="flex items-center gap-4">
+                      <img 
+                        src={user.image || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name || 'S')}&background=random&color=fff`}
+                        alt="Avatar"
+                        className="h-10 w-10 rounded-full"
+                      />
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <p className="font-semibold text-white">{user.name}</p>
+                          {isAdmin && (
+                            <span className="flex items-center gap-1 text-xs font-medium text-indigo-300 bg-indigo-500/20 px-2 py-0.5 rounded-full">
+                              <ShieldCheck className="h-3 w-3" />
+                              Admin
+                            </span>
+                          )}
+                        </div>
+                        <div className="flex flex-col sm:flex-row sm:items-center sm:gap-4 text-sm text-gray-400">
+                          <span className="flex items-center gap-2"><Mail className="h-4 w-4" />{user.email}</span>
+                          {user.phone && (
+                            <span className="flex items-center gap-2 mt-1 sm:mt-0"><Phone className="h-4 w-4" />{user.phone}</span>
+                          )}
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                </li>
-              ))}
+                    {isAdmin ? (
+                      <span className="flex items-center gap-2 px-3 py-1 text-sm text-gray-600 cursor-not-allowed" title="No puedes editar tu propia cuenta desde aquí">
+                        <Pencil className="h-4 w-4" />
+                        Editar
+                      </span>
+                    ) : (
+                      <Link href={`/dashboard/socios/${user.id}`}>
+                        <span className="flex items-center gap-2 px-3 py-1 text-sm text-gray-400 opacity-0 group-hover:opacity-100 hover:bg-gray-700 rounded-md transition-opacity">
+                          <Pencil className="h-4 w-4" />
+                          Editar
+                        </span>
+                      </Link>
+                    )}
+                  </li>
+                );
+              })}
             </ul>
           ) : (
             <div className="text-center py-12">

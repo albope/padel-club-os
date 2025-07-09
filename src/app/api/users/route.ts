@@ -16,7 +16,7 @@ export async function POST(req: Request) {
     }
 
     const body = await req.json();
-    const { email, name, password } = body;
+    const { email, name, password, phone } = body; // Added phone
 
     if (!email || !name || !password) {
       return new NextResponse("Faltan campos requeridos", { status: 400 });
@@ -35,7 +35,8 @@ export async function POST(req: Request) {
         email,
         name,
         password: hashedPassword,
-        clubId: session.user.clubId, // Associate the new user with the admin's club
+        phone, // Added phone
+        clubId: session.user.clubId,
       },
     });
 

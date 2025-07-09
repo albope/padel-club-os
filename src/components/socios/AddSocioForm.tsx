@@ -11,6 +11,7 @@ const SocioSchema = z.object({
   name: z.string().min(3, "El nombre es requerido."),
   email: z.string().email("El email no es válido."),
   password: z.string().min(8, "La contraseña debe tener al menos 8 caracteres."),
+  phone: z.string().optional(), // Added phone field
 });
 
 const AddSocioForm = () => {
@@ -55,6 +56,10 @@ const AddSocioForm = () => {
         <label htmlFor="email" className="block text-sm font-medium text-gray-300">Email</label>
         <input id="email" type="email" {...form.register('email')} className="mt-1 block w-full bg-gray-700 text-white rounded-md p-3" />
         {form.formState.errors.email && <p className="mt-1 text-sm text-red-400">{form.formState.errors.email.message}</p>}
+      </div>
+      <div>
+        <label htmlFor="phone" className="block text-sm font-medium text-gray-300">Teléfono (Opcional)</label>
+        <input id="phone" type="tel" {...form.register('phone')} className="mt-1 block w-full bg-gray-700 text-white rounded-md p-3" />
       </div>
       <div>
         <label htmlFor="password" className="block text-sm font-medium text-gray-300">Contraseña Temporal</label>

@@ -1,5 +1,5 @@
 import { PrismaAdapter } from "@auth/prisma-adapter";
-import { NextAuthOptions, User, Session } from "next-auth";
+import { NextAuthOptions, User } from "next-auth";
 import { Adapter } from "next-auth/adapters";
 import { JWT } from "next-auth/jwt";
 import GoogleProvider from "next-auth/providers/google";
@@ -15,7 +15,7 @@ export const authOptions: NextAuthOptions = {
   },
   pages: {
     signIn: "/login",
-    error: "/auth/error", // <-- AÑADIDO: Le decimos a NextAuth que use nuestra página de error
+    error: "/auth/error",
   },
   providers: [
     GoogleProvider({
@@ -29,12 +29,7 @@ export const authOptions: NextAuthOptions = {
         password: { label: "Password", type: "password" }
       },
       async authorize(credentials) {
-        // Los console.log se mantienen aquí. Si no aparecen en la TERMINAL,
-        // significa que la función authorize no se está ejecutando.
-        console.log("[AUTHORIZE_START] Intentando autorizar con:", { email: credentials?.email });
-
         if (!credentials?.email || !credentials?.password) {
-          console.log("[AUTHORIZE_FAIL] Faltan credenciales.");
           return null;
         }
 
@@ -42,46 +37,55 @@ export const authOptions: NextAuthOptions = {
           where: { email: credentials.email }
         });
 
-        if (!existingUser) {
-          console.log(`[AUTHORIZE_FAIL] Usuario no encontrado para el email: ${credentials.email}`);
+        if (!existingUser || !existingUser.password) {
           return null;
         }
         
-        if (!existingUser.password) {
-            console.log("[AUTHORIZE_FAIL] El usuario existe pero no tiene contraseña (¿inicio de sesión social?).");
-            return null;
-        }
-
-        console.log("[AUTHORIZE_DEBUG] Comparando contraseñas...");
         const passwordMatch = await compare(credentials.password, existingUser.password);
-        console.log(`[AUTHORIZE_DEBUG] ¿Las contraseñas coinciden?: ${passwordMatch}`);
 
         if (!passwordMatch) {
-          console.log("[AUTHORIZE_FAIL] La contraseña no coincide.");
           return null;
         }
 
-        console.log("[AUTHORIZE_SUCCESS] Usuario autenticado correctamente.");
         return {
           id: existingUser.id,
           name: existingUser.name,
           email: existingUser.email,
+          image: existingUser.image,
+          clubId: existingUser.clubId,
         };
       }
     })
   ],
   callbacks: {
     async jwt({ token, user }) {
+      // On sign in, add user properties to the token
       if (user) {
-        return { ...token, id: user.id };
+        token.id = user.id;
+        token.clubId = (user as any).clubId;
       }
+
+      // --- NEW LOGIC ---
+      // On subsequent requests, if clubId is missing from the token,
+      // try to fetch it from the database.
+      if (token.id && !token.clubId) {
+        const dbUser = await db.user.findUnique({
+          where: { id: token.id },
+        });
+        if (dbUser?.clubId) {
+          token.clubId = dbUser.clubId;
+        }
+      }
+      // --- END OF NEW LOGIC ---
+
       return token;
     },
     async session({ session, token }) {
-      return {
-        ...session,
-        user: { ...session.user, id: token.id },
-      };
+      if (token) {
+        session.user.id = token.id;
+        session.user.clubId = token.clubId as string | null;
+      }
+      return session;
     }
   }
 };

@@ -2,13 +2,14 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, Calendar, Trophy, Users, BarChart } from 'lucide-react';
+import { LayoutDashboard, Calendar, Trophy, Users, BarChart, Fence } from 'lucide-react'; // Added Fence icon
 import React from 'react';
 
 // Navigation items for the sidebar
 const navItems = [
   { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
   { name: 'Reservas', href: '/dashboard/reservas', icon: Calendar },
+  { name: 'Pistas', href: '/dashboard/pistas', icon: Fence }, // <-- NUEVA SECCIÓN AÑADIDA
   { name: 'Ligas', href: '/dashboard/ligas', icon: Trophy },
   { name: 'Socios', href: '/dashboard/socios', icon: Users },
   { name: 'Informes', href: '/dashboard/informes', icon: BarChart },

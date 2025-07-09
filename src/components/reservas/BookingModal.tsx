@@ -9,10 +9,12 @@ import { Court, User } from '@prisma/client';
 import { useRouter } from 'next/navigation';
 import { BookingWithDetails } from './CalendarView'; // Import the type
 
-// Validation schema
+// Validation schema now includes both date and time
 const BookingSchema = z.object({
   courtId: z.string().min(1, "Debes seleccionar una pista."),
   userId: z.string().min(1, "Debes seleccionar un socio."),
+  startDate: z.string().min(1, "Debes seleccionar una fecha."),
+  startTime: z.string().min(1, "Debes seleccionar una hora."),
 });
 type BookingFormValues = z.infer<typeof BookingSchema>;
 
@@ -31,48 +33,49 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, selectedIn
 
   const isEditMode = selectedInfo !== null && !(selectedInfo instanceof Date);
   const bookingData = isEditMode ? selectedInfo as BookingWithDetails : null;
-  const dateData = isEditMode ? new Date(bookingData!.startTime) : selectedInfo as Date;
-
+  
   const form = useForm<BookingFormValues>({
     resolver: zodResolver(BookingSchema),
-    defaultValues: {
-      courtId: '',
-      userId: '',
-    }
   });
 
-  // Pre-fill form if in edit mode
+  // Pre-fill form when the modal opens or the selected data changes
   useEffect(() => {
-    if (isEditMode && bookingData) {
+    if (selectedInfo) {
+      const initialDate = isEditMode ? new Date(bookingData!.startTime) : selectedInfo as Date;
+      
+      // Helper to format date to YYYY-MM-DD for the input
+      const yyyy_mm_dd = initialDate.toISOString().split('T')[0];
+
       form.reset({
-        courtId: bookingData.courtId,
-        userId: bookingData.userId,
-      });
-    } else {
-      form.reset({
-        courtId: '',
-        userId: '',
+        courtId: isEditMode ? bookingData!.courtId : '',
+        userId: isEditMode ? bookingData!.userId : '',
+        startDate: yyyy_mm_dd,
+        startTime: initialDate.toTimeString().slice(0, 5),
       });
     }
-  }, [bookingData, isEditMode, form]);
+  }, [selectedInfo, isEditMode, bookingData, form]);
 
 
   const handleFormSubmit = async (data: BookingFormValues) => {
     setIsLoading(true);
     setError(null);
     
+    // Construct the new start time from the form's date and time
+    const newStartTime = new Date(`${data.startDate}T${data.startTime}`);
+    const newEndTime = new Date(newStartTime.getTime() + 90 * 60000); // Assume 90 minute slots
+
     const url = isEditMode ? `/api/bookings/${bookingData!.id}` : '/api/bookings';
     const method = isEditMode ? 'PATCH' : 'POST';
-    const bookingEndTime = new Date(dateData.getTime() + 90 * 60000);
 
     try {
       const response = await fetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          ...data,
-          startTime: dateData.toISOString(),
-          endTime: bookingEndTime.toISOString(),
+          courtId: data.courtId,
+          userId: data.userId,
+          startTime: newStartTime.toISOString(),
+          endTime: newEndTime.toISOString(),
         }),
       });
       if (!response.ok) throw new Error(`No se pudo ${isEditMode ? 'actualizar' : 'crear'} la reserva.`);
@@ -87,7 +90,7 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, selectedIn
 
   const onDelete = async () => {
     if (!isEditMode || !bookingData) return;
-    if (!window.confirm("¿Estás seguro de que quieres eliminar esta reserva?")) return;
+    if (!window.confirm(`¿Estás seguro de que quieres eliminar esta reserva?`)) return;
 
     setIsLoading(true);
     setError(null);
@@ -110,9 +113,31 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, selectedIn
       <div className="bg-gray-800 rounded-xl shadow-lg p-8 w-full max-w-md relative">
         <button onClick={onClose} className="absolute top-4 right-4 text-gray-400 hover:text-white"><X /></button>
         <h2 className="text-2xl font-bold text-white mb-6">{isEditMode ? 'Editar Reserva' : 'Nueva Reserva'}</h2>
-        <p className="text-indigo-400 mb-4">{dateData.toLocaleString('es-ES', { dateStyle: 'long', timeStyle: 'short' })}</p>
-
+        
         <form onSubmit={form.handleSubmit(handleFormSubmit)} className="space-y-4">
+          {/* Date and Time Fields */}
+          <div className="flex gap-4">
+            <div className="flex-1">
+              <label htmlFor="startDate" className="block text-sm font-medium text-gray-300">Fecha</label>
+              <input 
+                type="date" 
+                id="startDate"
+                {...form.register('startDate')}
+                className="mt-1 block w-full bg-gray-700 border-gray-600 text-white rounded-md p-2"
+              />
+            </div>
+            <div>
+              <label htmlFor="startTime" className="block text-sm font-medium text-gray-300">Hora</label>
+              <input 
+                type="time" 
+                id="startTime"
+                {...form.register('startTime')}
+                step="1800" // 30 minute steps
+                className="mt-1 block w-full bg-gray-700 border-gray-600 text-white rounded-md p-2"
+              />
+            </div>
+          </div>
+
           {/* Form fields */}
           <div>
             <label htmlFor="courtId" className="block text-sm font-medium text-gray-300">Pista</label>

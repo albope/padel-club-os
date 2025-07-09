@@ -11,13 +11,17 @@ export async function POST(
 ) {
   try {
     const session = await getServerSession(authOptions);
+    const body = await req.json();
+    const { startDate } = body; // Expect a start date from the request
 
-    // Security checks
+    // Security and validation checks
     if (!session?.user?.clubId) {
       return new NextResponse("Unauthorized", { status: 401 });
     }
+    if (!startDate) {
+      return new NextResponse("Se requiere una fecha de inicio.", { status: 400 });
+    }
 
-    // Get all teams for the league
     const teams = await db.team.findMany({
       where: { leagueId: params.leagueId },
     });
@@ -34,17 +38,18 @@ export async function POST(
           team1Id: teams[i].id,
           team2Id: teams[j].id,
           leagueId: params.leagueId,
-          round: 0, // We can implement rounds later
+          round: 1, // Let's start with round 1
+          matchDate: new Date(startDate), // Assign the provided date to all matches
         });
       }
     }
 
-    // Delete existing matches for this league to prevent duplicates
+    // Delete existing matches to prevent duplicates if regenerating
     await db.match.deleteMany({
       where: { leagueId: params.leagueId },
     });
     
-    // Create all matches in a single transaction
+    // Create all new matches
     await db.match.createMany({
       data: matchesToCreate,
     });

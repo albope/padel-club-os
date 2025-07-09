@@ -184,6 +184,7 @@ model Match {
   result      String?  // e.g., "6-4, 6-2"
   winnerId    String?  // The ID of the winning Team
   summaryAI   String?  @db.Text
+  matchDate  DateTime?
   
   // The two teams facing each other
   team1Id     String

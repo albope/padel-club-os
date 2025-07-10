@@ -183,6 +183,7 @@ model Match {
   id          String   @id @default(cuid())
   round       Int
   result      String?  // e.g., "6-4, 6-2"
+  jornada     Int?
   winnerId    String?  // The ID of the winning Team
   summaryAI   String?  @db.Text
   matchDate  DateTime?

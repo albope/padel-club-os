@@ -151,30 +151,31 @@ model Team {
   id          String   @id @default(cuid())
   name        String
   
-  // The two players forming the team
+  // Players
   player1Id   String
   player1     User     @relation("Player1OfTeams", fields: [player1Id], references: [id], onDelete: Cascade)
   player2Id   String
   player2     User     @relation("Player2OfTeams", fields: [player2Id], references: [id], onDelete: Cascade)
   
+  // League
   leagueId    String
   league      League   @relation(fields: [leagueId], references: [id], onDelete: Cascade)
   
-  // Stats for the league table
+  // --- DETAILED STATS ---
   points      Int      @default(0)
   played      Int      @default(0)
   won         Int      @default(0)
   lost        Int      @default(0)
-  setsFor     Int      @default(0)
-  setsAgainst Int      @default(0)
-  gamesFor    Int      @default(0)
-  gamesAgainst Int   @default(0)
+  setsFor     Int      @default(0) // Sets a favor
+  setsAgainst Int      @default(0) // Sets en contra
+  gamesFor    Int      @default(0) // Juegos a favor
+  gamesAgainst Int   @default(0) // Juegos en contra
 
-  // Back-relations to matches where this team played
+  // Back-relations to matches
   matchesAsTeam1 Match[] @relation("MatchesAsTeam1")
   matchesAsTeam2 Match[] @relation("MatchesAsTeam2")
 
-  @@unique([leagueId, player1Id, player2Id]) // A team can't be twice in the same league
+  @@unique([leagueId, player1Id, player2Id])
 }
 
 // Represents a single match between two teams

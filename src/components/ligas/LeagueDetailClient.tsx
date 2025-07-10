@@ -2,8 +2,9 @@
 
 import React, { useState, useEffect } from 'react';
 import { League, Team, User, Match } from '@prisma/client';
-import { PlusCircle, Zap, Loader2, Pencil, Save } from 'lucide-react';
+import { PlusCircle, Zap, Loader2, Pencil, Save, Edit } from 'lucide-react';
 import AddTeamModal from './AddTeamModal';
+import AddResultModal from './AddResultModal';
 import { useRouter } from 'next/navigation';
 
 // Define the shape of the props
@@ -18,9 +19,11 @@ interface LeagueDetailClientProps {
 
 const LeagueDetailClient: React.FC<LeagueDetailClientProps> = ({ league, users }) => {
   const router = useRouter();
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isTeamModalOpen, setIsTeamModalOpen] = useState(false);
+  const [isResultModalOpen, setIsResultModalOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [editingTeam, setEditingTeam] = useState<Team | null>(null);
+  const [editingMatch, setEditingMatch] = useState<MatchWithTeams | null>(null);
   const [scheduleDate, setScheduleDate] = useState<string>('');
   const [matchDates, setMatchDates] = useState<{ [matchId: string]: string }>({});
 
@@ -59,14 +62,14 @@ const LeagueDetailClient: React.FC<LeagueDetailClientProps> = ({ league, users }
     }
   };
 
-  const handleOpenModal = (team: Team | null = null) => {
+  const handleOpenTeamModal = (team: Team | null = null) => {
     setEditingTeam(team);
-    setIsModalOpen(true);
+    setIsTeamModalOpen(true);
   };
-
-  const handleCloseModal = () => {
-    setIsModalOpen(false);
-    setEditingTeam(null);
+  
+  const handleOpenResultModal = (match: MatchWithTeams) => {
+    setEditingMatch(match);
+    setIsResultModalOpen(true);
   };
 
   const handleGenerateSchedule = async () => {
@@ -93,19 +96,14 @@ const LeagueDetailClient: React.FC<LeagueDetailClientProps> = ({ league, users }
 
   return (
     <>
-      <AddTeamModal 
-        isOpen={isModalOpen}
-        onClose={handleCloseModal}
-        leagueId={league.id}
-        users={users}
-        teamToEdit={editingTeam}
-      />
+      <AddTeamModal isOpen={isTeamModalOpen} onClose={() => setIsTeamModalOpen(false)} leagueId={league.id} users={users} teamToEdit={editingTeam} />
+      {editingMatch && <AddResultModal isOpen={isResultModalOpen} onClose={() => setIsResultModalOpen(false)} match={editingMatch} />}
       
-      {/* Left Column: Teams List */}
+      {/* Teams List Column */}
       <div className="lg:col-span-1 bg-gray-800 p-6 rounded-xl shadow-lg self-start">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-xl font-semibold text-white">Equipos</h2>
-          <button onClick={() => handleOpenModal()} className="flex items-center gap-2 px-3 py-1.5 text-sm font-semibold text-white bg-indigo-600 rounded-lg hover:bg-indigo-500"><PlusCircle className="h-4 w-4" />Añadir</button>
+          <button onClick={() => handleOpenTeamModal()} className="flex items-center gap-2 px-3 py-1.5 text-sm font-semibold text-white bg-indigo-600 rounded-lg hover:bg-indigo-500"><PlusCircle className="h-4 w-4" />Añadir</button>
         </div>
         {league.teams.length > 0 ? (
           <ul className="divide-y divide-gray-700">
@@ -115,7 +113,7 @@ const LeagueDetailClient: React.FC<LeagueDetailClientProps> = ({ league, users }
                   <p className="font-medium text-white">{team.name}</p>
                   <p className="text-sm text-gray-400">{team.player1.name} / {team.player2.name}</p>
                 </div>
-                <button onClick={() => handleOpenModal(team)} className="opacity-0 group-hover:opacity-100 text-gray-400 hover:text-white transition-opacity">
+                <button onClick={() => handleOpenTeamModal(team)} className="opacity-0 group-hover:opacity-100 text-gray-400 hover:text-white transition-opacity">
                   <Pencil className="h-4 w-4" />
                 </button>
               </li>
@@ -124,7 +122,7 @@ const LeagueDetailClient: React.FC<LeagueDetailClientProps> = ({ league, users }
         ) : <p className="text-gray-500 text-center py-8">Aún no hay equipos.</p>}
       </div>
 
-      {/* Right Column: Calendar and Standings */}
+      {/* Right Column */}
       <div className="lg:col-span-2 space-y-8">
         <div className="bg-gray-800 p-6 rounded-xl shadow-lg">
           <div className="flex flex-wrap justify-between items-center gap-4 mb-4">
@@ -146,16 +144,14 @@ const LeagueDetailClient: React.FC<LeagueDetailClientProps> = ({ league, users }
             <div>
               <ul className="divide-y divide-gray-700">
                 {league.matches.map(match => (
-                  <li key={match.id} className="py-3 flex justify-between items-center">
-                    <p className="text-white">{match.team1.name} vs {match.team2.name}</p>
+                  <li key={match.id} className="py-3 flex flex-wrap justify-between items-center gap-3">
+                    <p className="text-white flex-1">{match.team1.name} vs {match.team2.name}</p>
                     <div className="flex items-center gap-2">
-                      <input 
-                        type="date"
-                        value={matchDates[match.id] || ''}
-                        onChange={(e) => handleDateChange(match.id, e.target.value)}
-                        className="bg-gray-700 text-white rounded-lg px-3 py-1.5 text-sm border-gray-600 focus:ring-indigo-500 focus:border-indigo-500"
-                      />
-                      <span className="text-xs text-gray-400 bg-gray-700 px-2 py-1 rounded-full">Pendiente</span>
+                      <input type="date" value={matchDates[match.id] || ''} onChange={(e) => handleDateChange(match.id, e.target.value)} className="bg-gray-700 text-white rounded-lg px-3 py-1.5 text-sm" />
+                      <button onClick={() => handleOpenResultModal(match)} className="flex items-center gap-2 px-3 py-1.5 text-sm text-indigo-300 bg-indigo-500/20 hover:bg-indigo-500/40 rounded-lg">
+                        <Edit className="h-4 w-4" />
+                        <span>{match.result || 'Resultado'}</span>
+                      </button>
                     </div>
                   </li>
                 ))}
@@ -167,27 +163,47 @@ const LeagueDetailClient: React.FC<LeagueDetailClientProps> = ({ league, users }
                 </button>
               </div>
             </div>
-          ) : <p className="text-gray-500 text-center py-12">Selecciona una fecha y genera el calendario.</p>}
+          ) : <p className="text-gray-500 text-center py-12">Genera el calendario para ver los partidos.</p>}
         </div>
         <div className="bg-gray-800 p-6 rounded-xl shadow-lg">
           <h2 className="text-xl font-semibold text-white mb-4">Clasificación</h2>
           {league.teams.length > 0 ? (
-            <table className="w-full text-left">
-              <thead>
-                <tr className="border-b border-gray-700"><th className="py-2 text-gray-400 font-medium">Equipo</th><th className="py-2 text-gray-400 font-medium text-center">PJ</th><th className="py-2 text-gray-400 font-medium text-center">PG</th><th className="py-2 text-gray-400 font-medium text-center">PP</th><th className="py-2 text-gray-400 font-medium text-center">Ptos</th></tr>
-              </thead>
-              <tbody>
-                {league.teams.map(team => (
-                  <tr key={team.id} className="border-b border-gray-700 last:border-b-0">
-                    <td className="py-3 text-white font-semibold">{team.name}</td>
-                    <td className="py-3 text-center text-gray-300">{team.played}</td>
-                    <td className="py-3 text-center text-gray-300">{team.won}</td>
-                    <td className="py-3 text-center text-gray-300">{team.lost}</td>
-                    <td className="py-3 text-center text-white font-bold">{team.points}</td>
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-sm">
+                <thead className="text-xs text-gray-400 uppercase bg-gray-700/50">
+                  <tr>
+                    <th className="px-4 py-3">Equipo</th>
+                    <th className="px-2 py-3 text-center" title="Partidos Jugados">PJ</th>
+                    <th className="px-2 py-3 text-center" title="Partidos Ganados">PG</th>
+                    <th className="px-2 py-3 text-center" title="Partidos Perdidos">PP</th>
+                    <th className="px-2 py-3 text-center" title="Sets a Favor">SF</th>
+                    <th className="px-2 py-3 text-center" title="Sets en Contra">SC</th>
+                    <th className="px-2 py-3 text-center" title="Diferencia de Sets">DS</th>
+                    <th className="px-2 py-3 text-center" title="Juegos a Favor">JF</th>
+                    <th className="px-2 py-3 text-center" title="Juegos en Contra">JC</th>
+                    <th className="px-2 py-3 text-center" title="Diferencia de Juegos">DJ</th>
+                    <th className="px-2 py-3 text-center" title="Puntos">Ptos</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {league.teams.map(team => (
+                    <tr key={team.id} className="border-b border-gray-700">
+                      <td className="px-4 py-3 font-medium text-white">{team.name}</td>
+                      <td className="px-2 py-3 text-center">{team.played}</td>
+                      <td className="px-2 py-3 text-center text-green-400">{team.won}</td>
+                      <td className="px-2 py-3 text-center text-red-400">{team.lost}</td>
+                      <td className="px-2 py-3 text-center">{team.setsFor}</td>
+                      <td className="px-2 py-3 text-center">{team.setsAgainst}</td>
+                      <td className="px-2 py-3 text-center font-medium">{team.setsFor - team.setsAgainst}</td>
+                      <td className="px-2 py-3 text-center">{team.gamesFor}</td>
+                      <td className="px-2 py-3 text-center">{team.gamesAgainst}</td>
+                      <td className="px-2 py-3 text-center font-medium">{team.gamesFor - team.gamesAgainst}</td>
+                      <td className="px-2 py-3 text-center font-bold text-lg text-indigo-400">{team.points}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           ) : <p className="text-gray-500 text-center py-12">La clasificación aparecerá aquí.</p>}
         </div>
       </div>

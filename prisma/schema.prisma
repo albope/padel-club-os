@@ -19,6 +19,8 @@ model Club {
   name             String
   address          String?
   logoUrl          String?
+  openingTime      String?   @default("09:00") 
+  closingTime      String?   @default("23:00") 
   
   // Subscription details for the SaaS model
   subscriptionTier String    @default("essential") // e.g., "essential", "growth", "performance"

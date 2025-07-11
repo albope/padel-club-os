@@ -2,17 +2,18 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, Calendar, Trophy, Users, BarChart, Fence } from 'lucide-react'; // Added Fence icon
+import { LayoutDashboard, Calendar, Trophy, Users, BarChart, Fence, Settings } from 'lucide-react'; // Added Settings icon
 import React from 'react';
 
 // Navigation items for the sidebar
 const navItems = [
   { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
   { name: 'Reservas', href: '/dashboard/reservas', icon: Calendar },
-  { name: 'Pistas', href: '/dashboard/pistas', icon: Fence }, // <-- NUEVA SECCIÓN AÑADIDA
+  { name: 'Pistas', href: '/dashboard/pistas', icon: Fence },
   { name: 'Ligas', href: '/dashboard/ligas', icon: Trophy },
   { name: 'Socios', href: '/dashboard/socios', icon: Users },
   { name: 'Informes', href: '/dashboard/informes', icon: BarChart },
+  { name: 'Ajustes', href: '/dashboard/ajustes', icon: Settings }, // <-- NUEVA SECCIÓN AÑADIDA
 ];
 
 const Sidebar = () => {

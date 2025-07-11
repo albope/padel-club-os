@@ -2,12 +2,12 @@
 
 import React from 'react';
 import { User } from 'next-auth';
-import { PlusCircle, Calendar, Users, BarChart, Trophy, Clock, ArrowRight } from 'lucide-react';
+import { PlusCircle, Calendar, Users, BarChart, Trophy, Clock, ArrowRight, Info } from 'lucide-react';
 import Link from 'next/link';
 import { Booking, Court } from '@prisma/client';
 
 // --- Reusable UI Components ---
-const StatCard = ({ title, value, icon: Icon, color }: { title: string, value: string, icon: React.ElementType, color: string }) => {
+const StatCard = ({ title, value, icon: Icon, color, tooltipText }: { title: string, value: string, icon: React.ElementType, color: string, tooltipText?: string }) => {
     const colorVariants: { [key: string]: string } = {
         blue: 'border-blue-500 text-blue-400',
         green: 'border-green-500 text-green-400',
@@ -15,19 +15,27 @@ const StatCard = ({ title, value, icon: Icon, color }: { title: string, value: s
         yellow: 'border-yellow-500 text-yellow-400',
     };
     return (
-        <div className={`p-6 bg-gray-800 rounded-xl shadow-lg border-l-4 ${colorVariants[color]}`}>
+        <div className={`relative group p-6 bg-gray-800 rounded-xl shadow-lg border-l-4 ${colorVariants[color]}`}>
             <div className="flex items-center justify-between">
                 <div>
-                    <p className="text-sm font-medium text-gray-400">{title}</p>
+                    <div className="flex items-center gap-2">
+                      <p className="text-sm font-medium text-gray-400">{title}</p>
+                      {tooltipText && <Info className="h-4 w-4 text-gray-500" />}
+                    </div>
                     <p className="text-3xl font-bold text-white">{value}</p>
                 </div>
                 <Icon className={`h-8 w-8 ${colorVariants[color]}`} />
             </div>
+            {tooltipText && (
+              <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-max max-w-xs p-2 text-xs text-white bg-gray-900 border border-gray-700 rounded-lg shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10">
+                {tooltipText}
+              </div>
+            )}
         </div>
     );
 };
 
-// New component for the upcoming booking list item
+// Component for the upcoming booking list item
 type UpcomingBooking = Booking & { user: { name: string | null }, court: { name: string } };
 const UpcomingBookingItem = ({ booking }: { booking: UpcomingBooking }) => {
   const startTime = new Date(booking.startTime).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
@@ -57,6 +65,7 @@ interface DashboardClientProps {
     bookingsToday: number;
     activeMembers: number;
     activeLeagues: number;
+    occupancyRate: number;
   };
 }
 
@@ -85,11 +94,17 @@ const DashboardClient: React.FC<DashboardClientProps> = ({ user, upcomingBooking
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           <StatCard title="Reservas de Hoy" value={stats.bookingsToday.toString()} icon={Calendar} color="blue" />
           <StatCard title="Socios Activos" value={stats.activeMembers.toString()} icon={Users} color="green" />
-          <StatCard title="Ocupación Media" value="78%" icon={BarChart} color="purple" />
+          <StatCard 
+            title="Ocupación (Hoy)" 
+            value={`${stats.occupancyRate}%`} 
+            icon={BarChart} 
+            color="purple"
+            tooltipText="Porcentaje de horas reservadas sobre el total de horas disponibles hoy."
+          />
           <StatCard title="Ligas Activas" value={stats.activeLeagues.toString()} icon={Trophy} color="yellow" />
         </div>
 
-        {/* NEW: Upcoming Bookings Section */}
+        {/* Upcoming Bookings Section */}
         <div className="mt-8 bg-gray-800 p-6 rounded-xl shadow-lg">
           <h2 className="text-xl font-semibold text-white mb-4">Próximas Reservas</h2>
           {upcomingBookings.length > 0 ? (

@@ -5,7 +5,7 @@ import DashboardClient from '@/components/dashboard/DashboardClient';
 import { User } from 'next-auth';
 import { db } from '@/lib/db';
 
-// This function now fetches all necessary data for the dashboard, including a dynamic occupancy rate.
+// This function now fetches all necessary data for the dashboard, including all upcoming bookings.
 const getDashboardData = async (clubId: string) => {
   try {
     const startOfDay = new Date();
@@ -17,22 +17,23 @@ const getDashboardData = async (clubId: string) => {
     const [upcomingBookings, bookingsToday, activeMembers, activeLeagues, club] = await Promise.all([
       db.booking.findMany({
         where: { clubId, startTime: { gte: new Date() } },
-        take: 5,
         orderBy: { startTime: 'asc' },
-        include: { user: { select: { name: true } }, court: { select: { name: true } } }
+        include: { 
+          user: { select: { name: true } }, 
+          court: { select: { name: true } } 
+        }
       }),
       db.booking.findMany({
         where: { clubId, startTime: { gte: startOfDay, lte: endOfDay } }
       }),
       db.user.count({ where: { clubId } }),
       db.league.count({ where: { clubId } }),
-      db.club.findUnique({ // Fetch the club details to get opening hours
+      db.club.findUnique({
         where: { id: clubId },
         select: { courts: { select: { id: true } }, openingTime: true, closingTime: true }
       })
     ]);
     
-    // --- Calculate Occupancy Rate for Today ---
     let occupancyRate = 0;
     if (club && club.courts.length > 0 && club.openingTime && club.closingTime) {
       const openingHour = parseInt(club.openingTime.split(':')[0]);

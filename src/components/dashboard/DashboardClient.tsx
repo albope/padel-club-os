@@ -1,10 +1,10 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { User } from 'next-auth';
-import { PlusCircle, Calendar, Users, BarChart, Trophy, Clock, ArrowRight, Info } from 'lucide-react';
+import { PlusCircle, Calendar, Users, BarChart, Trophy, Clock, ArrowRight, ChevronLeft, ChevronRight, Info } from 'lucide-react';
 import Link from 'next/link';
-import { Booking, Court } from '@prisma/client';
+import { Booking } from '@prisma/client';
 
 // --- Reusable UI Components ---
 const StatCard = ({ title, value, icon: Icon, color, tooltipText }: { title: string, value: string, icon: React.ElementType, color: string, tooltipText?: string }) => {
@@ -35,10 +35,22 @@ const StatCard = ({ title, value, icon: Icon, color, tooltipText }: { title: str
     );
 };
 
-// Component for the upcoming booking list item
-type UpcomingBooking = Booking & { user: { name: string | null }, court: { name: string } };
+// Corrected type to handle guest bookings where user is null
+type UpcomingBooking = Booking & { 
+  user: { name: string | null } | null; 
+  court: { name: string }; 
+};
+
 const UpcomingBookingItem = ({ booking }: { booking: UpcomingBooking }) => {
+  // Format start and end times
   const startTime = new Date(booking.startTime).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+  const endTime = new Date(booking.endTime).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+  const timeRange = `${startTime} - ${endTime}`;
+
+  // Determine display name and user type
+  const displayName = booking.user?.name || booking.guestName || 'Invitado';
+  const userType = booking.user ? 'Socio' : 'Invitado';
+
   return (
     <li className="flex items-center space-x-4 py-3 border-b border-gray-700 last:border-b-0 group cursor-pointer hover:bg-gray-700/50 -mx-6 px-6 transition-colors">
       <div className="p-2 bg-gray-700 rounded-full">
@@ -46,16 +58,20 @@ const UpcomingBookingItem = ({ booking }: { booking: UpcomingBooking }) => {
       </div>
       <div className="flex-1">
         <p className="text-sm font-semibold text-white">{booking.court.name}</p>
-        <p className="text-xs text-gray-400">{booking.user.name || 'Socio'}</p>
+        <div className="flex items-center gap-2">
+          <p className="text-xs text-gray-400">{displayName}</p>
+          <span className={`text-xs px-1.5 py-0.5 rounded-full ${userType === 'Socio' ? 'bg-green-500/20 text-green-300' : 'bg-yellow-500/20 text-yellow-300'}`}>
+            {userType}
+          </span>
+        </div>
       </div>
       <div className="text-right">
-        <p className="text-sm font-medium text-white">{startTime}</p>
+        <p className="text-sm font-medium text-white">{timeRange}</p>
       </div>
       <ArrowRight className="h-5 w-5 text-gray-600 group-hover:text-white transition-colors" />
     </li>
   );
 };
-
 
 // --- Main Client Component ---
 interface DashboardClientProps {
@@ -70,6 +86,29 @@ interface DashboardClientProps {
 }
 
 const DashboardClient: React.FC<DashboardClientProps> = ({ user, upcomingBookings, stats }) => {
+  // --- PAGINATION STATE ---
+  const [currentPage, setCurrentPage] = useState(1);
+  const bookingsPerPage = 10;
+
+  // --- PAGINATION LOGIC ---
+  const indexOfLastBooking = currentPage * bookingsPerPage;
+  const indexOfFirstBooking = indexOfLastBooking - bookingsPerPage;
+  const currentBookings = upcomingBookings.slice(indexOfFirstBooking, indexOfLastBooking);
+  const totalPages = Math.ceil(upcomingBookings.length / bookingsPerPage);
+
+  const handleNextPage = () => {
+    if (currentPage < totalPages) {
+      setCurrentPage(currentPage + 1);
+    }
+  };
+
+  const handlePrevPage = () => {
+    if (currentPage > 1) {
+      setCurrentPage(currentPage - 1);
+    }
+  };
+
+
   return (
     <div className="space-y-8">
       {/* Welcome Message and Main Action Button */}
@@ -90,7 +129,7 @@ const DashboardClient: React.FC<DashboardClientProps> = ({ user, upcomingBooking
 
       {/* Main Content */}
       <main>
-        {/* Stats Grid - Now with dynamic data */}
+        {/* Stats Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           <StatCard title="Reservas de Hoy" value={stats.bookingsToday.toString()} icon={Calendar} color="blue" />
           <StatCard title="Socios Activos" value={stats.activeMembers.toString()} icon={Users} color="green" />
@@ -105,16 +144,43 @@ const DashboardClient: React.FC<DashboardClientProps> = ({ user, upcomingBooking
         </div>
 
         {/* Upcoming Bookings Section */}
-        <div className="mt-8 bg-gray-800 p-6 rounded-xl shadow-lg">
-          <h2 className="text-xl font-semibold text-white mb-4">Próximas Reservas</h2>
-          {upcomingBookings.length > 0 ? (
-            <ul>
-              {upcomingBookings.map(booking => (
-                <UpcomingBookingItem key={booking.id} booking={booking} />
-              ))}
-            </ul>
-          ) : (
-            <p className="text-gray-500 text-center py-12">No hay próximas reservas.</p>
+        <div className="mt-8 bg-gray-800 rounded-xl shadow-lg">
+          <div className="p-6">
+            <h2 className="text-xl font-semibold text-white mb-4">Próximas Reservas</h2>
+            {upcomingBookings.length > 0 ? (
+              <ul>
+                {currentBookings.map(booking => (
+                  <UpcomingBookingItem key={booking.id} booking={booking} />
+                ))}
+              </ul>
+            ) : (
+              <p className="text-gray-500 text-center py-12">No hay próximas reservas.</p>
+            )}
+          </div>
+          
+          {/* --- PAGINATION CONTROLS --- */}
+          {totalPages > 1 && (
+            <div className="flex items-center justify-between border-t border-gray-700 px-6 py-3">
+              <button 
+                onClick={handlePrevPage}
+                disabled={currentPage === 1}
+                className="flex items-center gap-2 px-3 py-1 text-sm text-gray-300 rounded-md hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <ChevronLeft className="h-4 w-4" />
+                Anterior
+              </button>
+              <span className="text-sm text-gray-400">
+                Página {currentPage} de {totalPages}
+              </span>
+              <button 
+                onClick={handleNextPage}
+                disabled={currentPage === totalPages}
+                className="flex items-center gap-2 px-3 py-1 text-sm text-gray-300 rounded-md hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Siguiente
+                <ChevronRight className="h-4 w-4" />
+              </button>
+            </div>
           )}
         </div>
       </main>

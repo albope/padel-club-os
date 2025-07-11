@@ -17,9 +17,12 @@ const BookingSchema = z.object({
   endTime: z.string(),
   userId: z.string().optional(),
   guestName: z.string().optional(),
+}).refine(data => data.startTime < data.endTime, {
+  message: "La hora de fin debe ser posterior a la de inicio.",
+  path: ["endTime"],
 }).refine(data => !!data.userId || (!!data.guestName && data.guestName.length > 0), {
   message: "Debes seleccionar un socio o introducir el nombre de un invitado.",
-  path: ["guestName"], // Attach error to the input field
+  path: ["guestName"],
 });
 
 type BookingFormValues = z.infer<typeof BookingSchema>;
@@ -58,7 +61,6 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, selectedIn
         startTime: initialDate.toTimeString().slice(0, 5),
         endTime: endDate.toTimeString().slice(0, 5),
       });
-      // Set the initial search term based on existing data
       setSearchTerm(isEditMode ? bookingData!.user?.name || bookingData!.guestName || '' : '');
     }
   }, [selectedInfo, isEditMode, bookingData, form]);
@@ -86,8 +88,12 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, selectedIn
         }),
       });
       if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(errorText || `No se pudo ${isEditMode ? 'actualizar' : 'crear'} la reserva.`);
+        // This logic handles the specific conflict error from the API
+        if (response.status === 409) {
+          const errorMessage = await response.text();
+          throw new Error(errorMessage);
+        }
+        throw new Error(`No se pudo ${isEditMode ? 'actualizar' : 'crear'} la reserva.`);
       }
       onClose();
       router.refresh();
@@ -104,7 +110,7 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, selectedIn
     setIsLoading(true);
     setError(null);
     try {
-      await fetch(`/api/bookings/${bookingData.id}`, { method: 'DELETE' });
+      await fetch(`/api/bookings/${bookingData!.id}`, { method: 'DELETE' });
       onClose();
       router.refresh();
     } catch (err: any) {
@@ -120,7 +126,7 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, selectedIn
 
   const selectUser = (user: User) => {
     form.setValue('userId', user.id);
-    form.setValue('guestName', ''); // Clear guest name when a user is selected
+    form.setValue('guestName', '');
     setSearchTerm(user.name || '');
     setShowUserList(false);
   };
@@ -138,34 +144,18 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, selectedIn
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="md:col-span-1">
               <label htmlFor="startDate" className="block text-sm font-medium text-gray-300">Fecha</label>
-              <input 
-                type="date" 
-                id="startDate"
-                {...form.register('startDate')}
-                className="mt-1 block w-full bg-gray-700 border-gray-600 text-white rounded-md p-2"
-              />
+              <input type="date" id="startDate" {...form.register('startDate')} className="mt-1 block w-full bg-gray-700 border-gray-600 text-white rounded-md p-2" />
             </div>
             <div>
               <label htmlFor="startTime" className="block text-sm font-medium text-gray-300">Hora Inicio</label>
-              <input 
-                type="time" 
-                id="startTime"
-                {...form.register('startTime')}
-                step="1800" // 30 minute steps
-                className="mt-1 block w-full bg-gray-700 border-gray-600 text-white rounded-md p-2"
-              />
+              <input type="time" id="startTime" {...form.register('startTime')} step="1800" className="mt-1 block w-full bg-gray-700 border-gray-600 text-white rounded-md p-2" />
             </div>
              <div>
               <label htmlFor="endTime" className="block text-sm font-medium text-gray-300">Hora Fin</label>
-              <input 
-                type="time" 
-                id="endTime"
-                {...form.register('endTime')}
-                step="1800" // 30 minute steps
-                className="mt-1 block w-full bg-gray-700 border-gray-600 text-white rounded-md p-2"
-              />
+              <input type="time" id="endTime" {...form.register('endTime')} step="1800" className="mt-1 block w-full bg-gray-700 border-gray-600 text-white rounded-md p-2" />
             </div>
           </div>
+          {form.formState.errors.endTime && <p className="text-sm text-red-400">{form.formState.errors.endTime.message}</p>}
           
           {/* Court Selection */}
           <div>
@@ -176,7 +166,7 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, selectedIn
             </select>
           </div>
 
-          {/* --- NEW SEARCHABLE USER/GUEST INPUT --- */}
+          {/* Searchable User/Guest Input */}
           <div>
             <label htmlFor="user-search" className="block text-sm font-medium text-gray-300">Socio o Invitado</label>
             <div className="relative">
@@ -186,12 +176,12 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, selectedIn
                 value={searchTerm}
                 onChange={(e) => {
                   setSearchTerm(e.target.value);
-                  form.setValue('guestName', e.target.value); // Set as guest name by default
-                  form.setValue('userId', ''); // Clear userId when typing
+                  form.setValue('guestName', e.target.value);
+                  form.setValue('userId', '');
                   setShowUserList(true);
                 }}
                 onFocus={() => setShowUserList(true)}
-                onBlur={() => setTimeout(() => setShowUserList(false), 200)} // Delay to allow click on list
+                onBlur={() => setTimeout(() => setShowUserList(false), 200)}
                 className="mt-1 block w-full bg-gray-700 text-white rounded-md p-2"
                 placeholder="Busca un socio o escribe un nombre..."
                 autoComplete="off"
@@ -200,11 +190,7 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, selectedIn
                 <ul className="absolute z-10 w-full bg-gray-700 border border-gray-600 rounded-md mt-1 max-h-40 overflow-y-auto">
                   {filteredUsers.length > 0 ? (
                     filteredUsers.map(user => (
-                      <li 
-                        key={user.id} 
-                        onMouseDown={() => selectUser(user)} // Use onMouseDown to fire before onBlur
-                        className="px-3 py-2 text-white hover:bg-indigo-600 cursor-pointer"
-                      >
+                      <li key={user.id} onMouseDown={() => selectUser(user)} className="px-3 py-2 text-white hover:bg-indigo-600 cursor-pointer">
                         {user.name}
                       </li>
                     ))
@@ -216,6 +202,8 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, selectedIn
             </div>
             {form.formState.errors.guestName && <p className="text-sm text-red-400 mt-1">{form.formState.errors.guestName.message}</p>}
           </div>
+          
+          {error && <p className="text-sm text-center text-red-400 pt-2">{error}</p>}
 
           {/* Action Buttons */}
           <div className="flex justify-between items-center pt-4">

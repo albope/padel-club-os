@@ -2,7 +2,6 @@ import { PrismaAdapter } from "@auth/prisma-adapter";
 import { NextAuthOptions, User } from "next-auth";
 import { Adapter } from "next-auth/adapters";
 import { JWT } from "next-auth/jwt";
-import GoogleProvider from "next-auth/providers/google";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { db } from "./db";
 import { compare } from "bcrypt";
@@ -18,10 +17,7 @@ export const authOptions: NextAuthOptions = {
     error: "/auth/error",
   },
   providers: [
-    GoogleProvider({
-      clientId: process.env.GOOGLE_CLIENT_ID!,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
-    }),
+    // GoogleProvider has been removed from this array.
     CredentialsProvider({
       name: "Credentials",
       credentials: {
@@ -59,15 +55,10 @@ export const authOptions: NextAuthOptions = {
   ],
   callbacks: {
     async jwt({ token, user }) {
-      // On sign in, add user properties to the token
       if (user) {
         token.id = user.id;
         token.clubId = (user as any).clubId;
       }
-
-      // --- NEW LOGIC ---
-      // On subsequent requests, if clubId is missing from the token,
-      // try to fetch it from the database.
       if (token.id && !token.clubId) {
         const dbUser = await db.user.findUnique({
           where: { id: token.id },
@@ -76,8 +67,6 @@ export const authOptions: NextAuthOptions = {
           token.clubId = dbUser.clubId;
         }
       }
-      // --- END OF NEW LOGIC ---
-
       return token;
     },
     async session({ session, token }) {

@@ -7,18 +7,19 @@ import * as z from 'zod';
 import { X, Loader2, Trash2 } from 'lucide-react';
 import { Court, User } from '@prisma/client';
 import { useRouter } from 'next/navigation';
-import { BookingWithDetails } from './CalendarView'; // Import the type
+import { BookingWithDetails } from './CalendarView';
 
-// Validation schema now includes start and end times
+// Validation schema now handles either a userId or a guestName
 const BookingSchema = z.object({
   courtId: z.string().min(1, "Debes seleccionar una pista."),
-  userId: z.string().min(1, "Debes seleccionar un socio."),
-  startDate: z.string().min(1, "Debes seleccionar una fecha."),
-  startTime: z.string().min(1, "Debes seleccionar una hora de inicio."),
-  endTime: z.string().min(1, "Debes seleccionar una hora de fin."),
-}).refine(data => data.startTime < data.endTime, {
-  message: "La hora de fin debe ser posterior a la de inicio.",
-  path: ["endTime"],
+  startDate: z.string(),
+  startTime: z.string(),
+  endTime: z.string(),
+  userId: z.string().optional(),
+  guestName: z.string().optional(),
+}).refine(data => !!data.userId || (!!data.guestName && data.guestName.length > 0), {
+  message: "Debes seleccionar un socio o introducir el nombre de un invitado.",
+  path: ["guestName"], // Attach error to the input field
 });
 
 type BookingFormValues = z.infer<typeof BookingSchema>;
@@ -35,6 +36,8 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, selectedIn
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [showUserList, setShowUserList] = useState(false);
 
   const isEditMode = selectedInfo !== null && !(selectedInfo instanceof Date);
   const bookingData = isEditMode ? selectedInfo as BookingWithDetails : null;
@@ -43,31 +46,27 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, selectedIn
     resolver: zodResolver(BookingSchema),
   });
 
-  // Pre-fill form when the modal opens or the selected data changes
   useEffect(() => {
     if (selectedInfo) {
       const initialDate = isEditMode ? new Date(bookingData!.startTime) : selectedInfo as Date;
-      // For a new booking, default to a 90-minute slot. For an existing one, use its actual end time.
       const endDate = isEditMode ? new Date(bookingData!.endTime) : new Date(initialDate.getTime() + 90 * 60000);
-
-      const yyyy_mm_dd = initialDate.toISOString().split('T')[0];
-
       form.reset({
         courtId: isEditMode ? bookingData!.courtId : '',
-        userId: isEditMode ? bookingData!.userId : '',
-        startDate: yyyy_mm_dd,
+        userId: isEditMode ? bookingData!.userId || '' : '',
+        guestName: isEditMode ? bookingData!.guestName || '' : '',
+        startDate: initialDate.toISOString().split('T')[0],
         startTime: initialDate.toTimeString().slice(0, 5),
         endTime: endDate.toTimeString().slice(0, 5),
       });
+      // Set the initial search term based on existing data
+      setSearchTerm(isEditMode ? bookingData!.user?.name || bookingData!.guestName || '' : '');
     }
   }, [selectedInfo, isEditMode, bookingData, form]);
-
 
   const handleFormSubmit = async (data: BookingFormValues) => {
     setIsLoading(true);
     setError(null);
     
-    // Construct the new start and end times from the form's data
     const newStartTime = new Date(`${data.startDate}T${data.startTime}`);
     const newEndTime = new Date(`${data.startDate}T${data.endTime}`);
 
@@ -81,17 +80,14 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, selectedIn
         body: JSON.stringify({
           courtId: data.courtId,
           userId: data.userId,
+          guestName: data.guestName,
           startTime: newStartTime.toISOString(),
           endTime: newEndTime.toISOString(),
         }),
       });
       if (!response.ok) {
-        // Handle specific conflict error from the API
-        if (response.status === 409) {
-          const errorMessage = await response.text();
-          throw new Error(errorMessage);
-        }
-        throw new Error(`No se pudo ${isEditMode ? 'actualizar' : 'crear'} la reserva.`);
+        const errorText = await response.text();
+        throw new Error(errorText || `No se pudo ${isEditMode ? 'actualizar' : 'crear'} la reserva.`);
       }
       onClose();
       router.refresh();
@@ -105,7 +101,6 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, selectedIn
   const onDelete = async () => {
     if (!isEditMode || !bookingData) return;
     if (!window.confirm(`¿Estás seguro de que quieres eliminar esta reserva?`)) return;
-
     setIsLoading(true);
     setError(null);
     try {
@@ -119,6 +114,17 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, selectedIn
     }
   };
 
+  const filteredUsers = searchTerm
+    ? users.filter(user => user.name?.toLowerCase().includes(searchTerm.toLowerCase()))
+    : [];
+
+  const selectUser = (user: User) => {
+    form.setValue('userId', user.id);
+    form.setValue('guestName', ''); // Clear guest name when a user is selected
+    setSearchTerm(user.name || '');
+    setShowUserList(false);
+  };
+
   if (!isOpen) return null;
 
   return (
@@ -128,21 +134,40 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, selectedIn
         <h2 className="text-2xl font-bold text-white mb-6">{isEditMode ? 'Editar Reserva' : 'Nueva Reserva'}</h2>
         
         <form onSubmit={form.handleSubmit(handleFormSubmit)} className="space-y-4">
+          {/* Date and Time Fields */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="md:col-span-1">
               <label htmlFor="startDate" className="block text-sm font-medium text-gray-300">Fecha</label>
-              <input type="date" id="startDate" {...form.register('startDate')} className="mt-1 block w-full bg-gray-700 border-gray-600 text-white rounded-md p-2" />
+              <input 
+                type="date" 
+                id="startDate"
+                {...form.register('startDate')}
+                className="mt-1 block w-full bg-gray-700 border-gray-600 text-white rounded-md p-2"
+              />
             </div>
             <div>
               <label htmlFor="startTime" className="block text-sm font-medium text-gray-300">Hora Inicio</label>
-              <input type="time" id="startTime" {...form.register('startTime')} step="1800" className="mt-1 block w-full bg-gray-700 border-gray-600 text-white rounded-md p-2" />
+              <input 
+                type="time" 
+                id="startTime"
+                {...form.register('startTime')}
+                step="1800" // 30 minute steps
+                className="mt-1 block w-full bg-gray-700 border-gray-600 text-white rounded-md p-2"
+              />
             </div>
              <div>
               <label htmlFor="endTime" className="block text-sm font-medium text-gray-300">Hora Fin</label>
-              <input type="time" id="endTime" {...form.register('endTime')} step="1800" className="mt-1 block w-full bg-gray-700 border-gray-600 text-white rounded-md p-2" />
+              <input 
+                type="time" 
+                id="endTime"
+                {...form.register('endTime')}
+                step="1800" // 30 minute steps
+                className="mt-1 block w-full bg-gray-700 border-gray-600 text-white rounded-md p-2"
+              />
             </div>
           </div>
-          {form.formState.errors.endTime && <p className="text-sm text-red-400">{form.formState.errors.endTime.message}</p>}
+          
+          {/* Court Selection */}
           <div>
             <label htmlFor="courtId" className="block text-sm font-medium text-gray-300">Pista</label>
             <select id="courtId" {...form.register('courtId')} className="mt-1 block w-full bg-gray-700 text-white rounded-md p-2">
@@ -150,14 +175,49 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, selectedIn
               {courts.map(court => <option key={court.id} value={court.id}>{court.name}</option>)}
             </select>
           </div>
+
+          {/* --- NEW SEARCHABLE USER/GUEST INPUT --- */}
           <div>
-            <label htmlFor="userId" className="block text-sm font-medium text-gray-300">Socio</label>
-            <select id="userId" {...form.register('userId')} className="mt-1 block w-full bg-gray-700 text-white rounded-md p-2">
-              <option value="">Selecciona un socio</option>
-              {users.map(user => <option key={user.id} value={user.id}>{user.name}</option>)}
-            </select>
+            <label htmlFor="user-search" className="block text-sm font-medium text-gray-300">Socio o Invitado</label>
+            <div className="relative">
+              <input 
+                id="user-search"
+                type="text"
+                value={searchTerm}
+                onChange={(e) => {
+                  setSearchTerm(e.target.value);
+                  form.setValue('guestName', e.target.value); // Set as guest name by default
+                  form.setValue('userId', ''); // Clear userId when typing
+                  setShowUserList(true);
+                }}
+                onFocus={() => setShowUserList(true)}
+                onBlur={() => setTimeout(() => setShowUserList(false), 200)} // Delay to allow click on list
+                className="mt-1 block w-full bg-gray-700 text-white rounded-md p-2"
+                placeholder="Busca un socio o escribe un nombre..."
+                autoComplete="off"
+              />
+              {showUserList && searchTerm && (
+                <ul className="absolute z-10 w-full bg-gray-700 border border-gray-600 rounded-md mt-1 max-h-40 overflow-y-auto">
+                  {filteredUsers.length > 0 ? (
+                    filteredUsers.map(user => (
+                      <li 
+                        key={user.id} 
+                        onMouseDown={() => selectUser(user)} // Use onMouseDown to fire before onBlur
+                        className="px-3 py-2 text-white hover:bg-indigo-600 cursor-pointer"
+                      >
+                        {user.name}
+                      </li>
+                    ))
+                  ) : (
+                    <li className="px-3 py-2 text-gray-400">No se encontraron socios. Pulsa Enter para añadir como invitado.</li>
+                  )}
+                </ul>
+              )}
+            </div>
+            {form.formState.errors.guestName && <p className="text-sm text-red-400 mt-1">{form.formState.errors.guestName.message}</p>}
           </div>
-          {error && <p className="text-sm text-center text-red-400 pt-2">{error}</p>}
+
+          {/* Action Buttons */}
           <div className="flex justify-between items-center pt-4">
             {isEditMode && (
               <button type="button" onClick={onDelete} disabled={isLoading} className="flex items-center px-4 py-2 text-sm text-red-400 hover:bg-red-500/10 rounded-lg">

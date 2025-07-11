@@ -3,7 +3,7 @@ import { authOptions } from "@/lib/auth";
 import { getServerSession } from "next-auth";
 import { NextResponse } from "next/server";
 
-// GET function to fetch all bookings
+// GET function to fetch all bookings for the logged-in admin's club
 export async function GET() {
   try {
     const session = await getServerSession(authOptions);
@@ -15,6 +15,9 @@ export async function GET() {
       include: {
         user: { select: { name: true } },
         court: { select: { name: true } },
+      },
+      orderBy: {
+        startTime: 'asc'
       }
     });
     return NextResponse.json(bookings, { status: 200 });
@@ -24,7 +27,7 @@ export async function GET() {
   }
 }
 
-// POST function to create a new booking with overlap check
+// POST function to create a new booking with guest logic and overlap check
 export async function POST(req: Request) {
   try {
     const session = await getServerSession(authOptions);
@@ -33,10 +36,11 @@ export async function POST(req: Request) {
     }
 
     const body = await req.json();
-    const { courtId, userId, startTime, endTime } = body;
+    const { courtId, userId, guestName, startTime, endTime } = body;
 
-    if (!courtId || !userId || !startTime || !endTime) {
-      return new NextResponse("Missing required fields", { status: 400 });
+    // Validation: at least a userId or a guestName must be provided
+    if (!courtId || (!userId && !guestName) || !startTime || !endTime) {
+      return new NextResponse("Faltan campos requeridos.", { status: 400 });
     }
 
     const newStartTime = new Date(startTime);
@@ -61,10 +65,11 @@ export async function POST(req: Request) {
     const newBooking = await db.booking.create({
       data: {
         courtId,
-        userId,
+        userId: userId || null, // Use userId if provided, otherwise null
+        guestName: guestName || null, // Use guestName if provided
         startTime: newStartTime,
         endTime: newEndTime,
-        totalPrice: 20.0,
+        totalPrice: 20.0, // We'll use a fixed price for now
         status: "confirmed",
         clubId: session.user.clubId,
       },

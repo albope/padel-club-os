@@ -123,8 +123,9 @@ model Booking {
   court       Court     @relation(fields: [courtId], references: [id])
   
   // The user who made the booking
-  userId      String 
-  user        User      @relation(fields: [userId], references: [id])
+  userId      String?   // User is now optional
+  user        User?     @relation(fields: [userId], references: [id])
+  guestName   String?   // New field for non-member bookings
   
   // The club this booking belongs to
   clubId      String

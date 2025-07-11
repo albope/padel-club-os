@@ -2,8 +2,9 @@
 
 import React from 'react';
 import { User } from 'next-auth';
-import { PlusCircle, Calendar, Users, BarChart, Trophy } from 'lucide-react';
+import { PlusCircle, Calendar, Users, BarChart, Trophy, Clock, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
+import { Booking, Court } from '@prisma/client';
 
 // --- Reusable UI Components ---
 const StatCard = ({ title, value, icon: Icon, color }: { title: string, value: string, icon: React.ElementType, color: string }) => {
@@ -26,17 +27,42 @@ const StatCard = ({ title, value, icon: Icon, color }: { title: string, value: s
     );
 };
 
+// New component for the upcoming booking list item
+type UpcomingBooking = Booking & { user: { name: string | null }, court: { name: string } };
+const UpcomingBookingItem = ({ booking }: { booking: UpcomingBooking }) => {
+  const startTime = new Date(booking.startTime).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+  return (
+    <li className="flex items-center space-x-4 py-3 border-b border-gray-700 last:border-b-0 group cursor-pointer hover:bg-gray-700/50 -mx-6 px-6 transition-colors">
+      <div className="p-2 bg-gray-700 rounded-full">
+        <Clock className="h-5 w-5 text-gray-400" />
+      </div>
+      <div className="flex-1">
+        <p className="text-sm font-semibold text-white">{booking.court.name}</p>
+        <p className="text-xs text-gray-400">{booking.user.name || 'Socio'}</p>
+      </div>
+      <div className="text-right">
+        <p className="text-sm font-medium text-white">{startTime}</p>
+      </div>
+      <ArrowRight className="h-5 w-5 text-gray-600 group-hover:text-white transition-colors" />
+    </li>
+  );
+};
+
+
 // --- Main Client Component ---
 interface DashboardClientProps {
   user: User;
+  upcomingBookings: UpcomingBooking[];
+  stats: {
+    bookingsToday: number;
+    activeMembers: number;
+    activeLeagues: number;
+  };
 }
 
-const DashboardClient: React.FC<DashboardClientProps> = ({ user }) => {
+const DashboardClient: React.FC<DashboardClientProps> = ({ user, upcomingBookings, stats }) => {
   return (
     <div className="space-y-8">
-      {/* The redundant Header section has been removed. */}
-      {/* The main Header is now handled by the layout.tsx file. */}
-      
       {/* Welcome Message and Main Action Button */}
       <div className="flex flex-wrap justify-between items-center gap-4">
         <div>
@@ -55,18 +81,26 @@ const DashboardClient: React.FC<DashboardClientProps> = ({ user }) => {
 
       {/* Main Content */}
       <main>
-        {/* Stats Grid */}
+        {/* Stats Grid - Now with dynamic data */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          <StatCard title="Reservas de Hoy" value="12" icon={Calendar} color="blue" />
-          <StatCard title="Socios Activos" value="152" icon={Users} color="green" />
+          <StatCard title="Reservas de Hoy" value={stats.bookingsToday.toString()} icon={Calendar} color="blue" />
+          <StatCard title="Socios Activos" value={stats.activeMembers.toString()} icon={Users} color="green" />
           <StatCard title="Ocupación Media" value="78%" icon={BarChart} color="purple" />
-          <StatCard title="Ligas Activas" value="3" icon={Trophy} color="yellow" />
+          <StatCard title="Ligas Activas" value={stats.activeLeagues.toString()} icon={Trophy} color="yellow" />
         </div>
 
-        {/* Placeholder for future components like the calendar */}
+        {/* NEW: Upcoming Bookings Section */}
         <div className="mt-8 bg-gray-800 p-6 rounded-xl shadow-lg">
-            <h2 className="text-xl font-semibold text-white mb-4">Calendario de Reservas</h2>
-            <p className="text-gray-500 text-center py-12">Próximamente aquí verás el calendario interactivo de reservas...</p>
+          <h2 className="text-xl font-semibold text-white mb-4">Próximas Reservas</h2>
+          {upcomingBookings.length > 0 ? (
+            <ul>
+              {upcomingBookings.map(booking => (
+                <UpcomingBookingItem key={booking.id} booking={booking} />
+              ))}
+            </ul>
+          ) : (
+            <p className="text-gray-500 text-center py-12">No hay próximas reservas.</p>
+          )}
         </div>
       </main>
     </div>

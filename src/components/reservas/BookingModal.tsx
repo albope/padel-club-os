@@ -9,13 +9,18 @@ import { Court, User } from '@prisma/client';
 import { useRouter } from 'next/navigation';
 import { BookingWithDetails } from './CalendarView'; // Import the type
 
-// Validation schema now includes both date and time
+// Validation schema now includes start and end times
 const BookingSchema = z.object({
   courtId: z.string().min(1, "Debes seleccionar una pista."),
   userId: z.string().min(1, "Debes seleccionar un socio."),
   startDate: z.string().min(1, "Debes seleccionar una fecha."),
-  startTime: z.string().min(1, "Debes seleccionar una hora."),
+  startTime: z.string().min(1, "Debes seleccionar una hora de inicio."),
+  endTime: z.string().min(1, "Debes seleccionar una hora de fin."),
+}).refine(data => data.startTime < data.endTime, {
+  message: "La hora de fin debe ser posterior a la de inicio.",
+  path: ["endTime"],
 });
+
 type BookingFormValues = z.infer<typeof BookingSchema>;
 
 interface BookingModalProps {
@@ -42,8 +47,9 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, selectedIn
   useEffect(() => {
     if (selectedInfo) {
       const initialDate = isEditMode ? new Date(bookingData!.startTime) : selectedInfo as Date;
-      
-      // Helper to format date to YYYY-MM-DD for the input
+      // For a new booking, default to a 90-minute slot. For an existing one, use its actual end time.
+      const endDate = isEditMode ? new Date(bookingData!.endTime) : new Date(initialDate.getTime() + 90 * 60000);
+
       const yyyy_mm_dd = initialDate.toISOString().split('T')[0];
 
       form.reset({
@@ -51,6 +57,7 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, selectedIn
         userId: isEditMode ? bookingData!.userId : '',
         startDate: yyyy_mm_dd,
         startTime: initialDate.toTimeString().slice(0, 5),
+        endTime: endDate.toTimeString().slice(0, 5),
       });
     }
   }, [selectedInfo, isEditMode, bookingData, form]);
@@ -60,9 +67,9 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, selectedIn
     setIsLoading(true);
     setError(null);
     
-    // Construct the new start time from the form's date and time
+    // Construct the new start and end times from the form's data
     const newStartTime = new Date(`${data.startDate}T${data.startTime}`);
-    const newEndTime = new Date(newStartTime.getTime() + 90 * 60000); // Assume 90 minute slots
+    const newEndTime = new Date(`${data.startDate}T${data.endTime}`);
 
     const url = isEditMode ? `/api/bookings/${bookingData!.id}` : '/api/bookings';
     const method = isEditMode ? 'PATCH' : 'POST';
@@ -95,8 +102,7 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, selectedIn
     setIsLoading(true);
     setError(null);
     try {
-      const response = await fetch(`/api/bookings/${bookingData.id}`, { method: 'DELETE' });
-      if (!response.ok) throw new Error('No se pudo eliminar la reserva.');
+      await fetch(`/api/bookings/${bookingData.id}`, { method: 'DELETE' });
       onClose();
       router.refresh();
     } catch (err: any) {
@@ -110,14 +116,14 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, selectedIn
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50">
-      <div className="bg-gray-800 rounded-xl shadow-lg p-8 w-full max-w-md relative">
+      <div className="bg-gray-800 rounded-xl shadow-lg p-8 w-full max-w-lg relative">
         <button onClick={onClose} className="absolute top-4 right-4 text-gray-400 hover:text-white"><X /></button>
         <h2 className="text-2xl font-bold text-white mb-6">{isEditMode ? 'Editar Reserva' : 'Nueva Reserva'}</h2>
         
         <form onSubmit={form.handleSubmit(handleFormSubmit)} className="space-y-4">
           {/* Date and Time Fields */}
-          <div className="flex gap-4">
-            <div className="flex-1">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="md:col-span-1">
               <label htmlFor="startDate" className="block text-sm font-medium text-gray-300">Fecha</label>
               <input 
                 type="date" 
@@ -127,11 +133,21 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, selectedIn
               />
             </div>
             <div>
-              <label htmlFor="startTime" className="block text-sm font-medium text-gray-300">Hora</label>
+              <label htmlFor="startTime" className="block text-sm font-medium text-gray-300">Hora Inicio</label>
               <input 
                 type="time" 
                 id="startTime"
                 {...form.register('startTime')}
+                step="1800" // 30 minute steps
+                className="mt-1 block w-full bg-gray-700 border-gray-600 text-white rounded-md p-2"
+              />
+            </div>
+             <div>
+              <label htmlFor="endTime" className="block text-sm font-medium text-gray-300">Hora Fin</label>
+              <input 
+                type="time" 
+                id="endTime"
+                {...form.register('endTime')}
                 step="1800" // 30 minute steps
                 className="mt-1 block w-full bg-gray-700 border-gray-600 text-white rounded-md p-2"
               />

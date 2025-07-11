@@ -85,7 +85,14 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, selectedIn
           endTime: newEndTime.toISOString(),
         }),
       });
-      if (!response.ok) throw new Error(`No se pudo ${isEditMode ? 'actualizar' : 'crear'} la reserva.`);
+      if (!response.ok) {
+        // Handle specific conflict error from the API
+        if (response.status === 409) {
+          const errorMessage = await response.text();
+          throw new Error(errorMessage);
+        }
+        throw new Error(`No se pudo ${isEditMode ? 'actualizar' : 'crear'} la reserva.`);
+      }
       onClose();
       router.refresh();
     } catch (err: any) {
@@ -121,40 +128,21 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, selectedIn
         <h2 className="text-2xl font-bold text-white mb-6">{isEditMode ? 'Editar Reserva' : 'Nueva Reserva'}</h2>
         
         <form onSubmit={form.handleSubmit(handleFormSubmit)} className="space-y-4">
-          {/* Date and Time Fields */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="md:col-span-1">
               <label htmlFor="startDate" className="block text-sm font-medium text-gray-300">Fecha</label>
-              <input 
-                type="date" 
-                id="startDate"
-                {...form.register('startDate')}
-                className="mt-1 block w-full bg-gray-700 border-gray-600 text-white rounded-md p-2"
-              />
+              <input type="date" id="startDate" {...form.register('startDate')} className="mt-1 block w-full bg-gray-700 border-gray-600 text-white rounded-md p-2" />
             </div>
             <div>
               <label htmlFor="startTime" className="block text-sm font-medium text-gray-300">Hora Inicio</label>
-              <input 
-                type="time" 
-                id="startTime"
-                {...form.register('startTime')}
-                step="1800" // 30 minute steps
-                className="mt-1 block w-full bg-gray-700 border-gray-600 text-white rounded-md p-2"
-              />
+              <input type="time" id="startTime" {...form.register('startTime')} step="1800" className="mt-1 block w-full bg-gray-700 border-gray-600 text-white rounded-md p-2" />
             </div>
              <div>
               <label htmlFor="endTime" className="block text-sm font-medium text-gray-300">Hora Fin</label>
-              <input 
-                type="time" 
-                id="endTime"
-                {...form.register('endTime')}
-                step="1800" // 30 minute steps
-                className="mt-1 block w-full bg-gray-700 border-gray-600 text-white rounded-md p-2"
-              />
+              <input type="time" id="endTime" {...form.register('endTime')} step="1800" className="mt-1 block w-full bg-gray-700 border-gray-600 text-white rounded-md p-2" />
             </div>
           </div>
-
-          {/* Form fields */}
+          {form.formState.errors.endTime && <p className="text-sm text-red-400">{form.formState.errors.endTime.message}</p>}
           <div>
             <label htmlFor="courtId" className="block text-sm font-medium text-gray-300">Pista</label>
             <select id="courtId" {...form.register('courtId')} className="mt-1 block w-full bg-gray-700 text-white rounded-md p-2">
@@ -169,8 +157,7 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, selectedIn
               {users.map(user => <option key={user.id} value={user.id}>{user.name}</option>)}
             </select>
           </div>
-
-          {/* Action Buttons */}
+          {error && <p className="text-sm text-center text-red-400 pt-2">{error}</p>}
           <div className="flex justify-between items-center pt-4">
             {isEditMode && (
               <button type="button" onClick={onDelete} disabled={isLoading} className="flex items-center px-4 py-2 text-sm text-red-400 hover:bg-red-500/10 rounded-lg">

@@ -3,9 +3,7 @@ import { authOptions } from "@/lib/auth";
 import { getServerSession } from "next-auth";
 import { NextResponse } from "next/server";
 
-// API route to handle specific bookings by their ID
-
-// PATCH function to update a booking
+// PATCH function to update a booking with overlap check
 export async function PATCH(
   req: Request,
   { params }: { params: { bookingId: string } }
@@ -15,25 +13,33 @@ export async function PATCH(
     const body = await req.json();
     const { courtId, userId, startTime, endTime } = body;
 
-    if (!session?.user?.clubId) {
-      return new NextResponse("Unauthorized", { status: 401 });
+    if (!session?.user?.clubId || !params.bookingId) {
+      return new NextResponse("Unauthorized or Missing ID", { status: 401 });
     }
+    
+    const newStartTime = new Date(startTime);
+    const newEndTime = new Date(endTime);
 
-    if (!params.bookingId) {
-      return new NextResponse("Booking ID is required", { status: 400 });
+    // --- OVERLAP CHECK ---
+    const overlappingBooking = await db.booking.findFirst({
+      where: {
+        courtId: courtId,
+        id: { not: params.bookingId }, // Exclude the current booking from the check
+        AND: [
+          { startTime: { lt: newEndTime } },
+          { endTime: { gt: newStartTime } },
+        ],
+      },
+    });
+
+    if (overlappingBooking) {
+      return new NextResponse("El nuevo horario se solapa con otra reserva existente.", { status: 409 });
     }
+    // --- END OF OVERLAP CHECK ---
 
     const updatedBooking = await db.booking.update({
-      where: {
-        id: params.bookingId,
-        clubId: session.user.clubId, // Security check
-      },
-      data: {
-        courtId,
-        userId,
-        startTime: new Date(startTime),
-        endTime: new Date(endTime),
-      },
+      where: { id: params.bookingId, clubId: session.user.clubId },
+      data: { courtId, userId, startTime: newStartTime, endTime: newEndTime },
     });
 
     return NextResponse.json(updatedBooking);
@@ -51,12 +57,8 @@ export async function DELETE(
   try {
     const session = await getServerSession(authOptions);
 
-    if (!session?.user?.clubId) {
-      return new NextResponse("Unauthorized", { status: 401 });
-    }
-
-    if (!params.bookingId) {
-      return new NextResponse("Booking ID is required", { status: 400 });
+    if (!session?.user?.clubId || !params.bookingId) {
+      return new NextResponse("Unauthorized or Missing ID", { status: 401 });
     }
 
     await db.booking.delete({

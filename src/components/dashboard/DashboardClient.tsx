@@ -2,26 +2,25 @@
 
 import React from 'react';
 import { User } from 'next-auth';
-import { signOut } from 'next-auth/react';
-import { LogOut, PlusCircle, Calendar, Users, BarChart, Trophy } from 'lucide-react';
+import { PlusCircle, Calendar, Users, BarChart, Trophy } from 'lucide-react';
 import Link from 'next/link';
 
 // --- Reusable UI Components ---
 const StatCard = ({ title, value, icon: Icon, color }: { title: string, value: string, icon: React.ElementType, color: string }) => {
     const colorVariants: { [key: string]: string } = {
-        blue: 'bg-blue-500',
-        green: 'bg-green-500',
-        purple: 'bg-purple-500',
-        yellow: 'bg-yellow-500',
+        blue: 'border-blue-500 text-blue-400',
+        green: 'border-green-500 text-green-400',
+        purple: 'border-purple-500 text-purple-400',
+        yellow: 'border-yellow-500 text-yellow-400',
     };
     return (
-        <div className={`p-6 bg-gray-800 rounded-xl shadow-lg border-l-4 border-${color}-500`}>
+        <div className={`p-6 bg-gray-800 rounded-xl shadow-lg border-l-4 ${colorVariants[color]}`}>
             <div className="flex items-center justify-between">
                 <div>
                     <p className="text-sm font-medium text-gray-400">{title}</p>
                     <p className="text-3xl font-bold text-white">{value}</p>
                 </div>
-                <Icon className={`h-8 w-8 text-${color}-400`} />
+                <Icon className={`h-8 w-8 ${colorVariants[color]}`} />
             </div>
         </div>
     );
@@ -35,30 +34,24 @@ interface DashboardClientProps {
 const DashboardClient: React.FC<DashboardClientProps> = ({ user }) => {
   return (
     <div className="space-y-8">
-      {/* Header Section */}
-      <header className="flex flex-wrap justify-between items-center gap-4">
+      {/* The redundant Header section has been removed. */}
+      {/* The main Header is now handled by the layout.tsx file. */}
+      
+      {/* Welcome Message and Main Action Button */}
+      <div className="flex flex-wrap justify-between items-center gap-4">
         <div>
           <h1 className="text-3xl font-bold text-white">
             Bienvenido, {user.name}
           </h1>
           <p className="mt-1 text-gray-400">Resumen del club PadelClub OS.</p>
         </div>
-        <div className="flex items-center gap-4">
-            <Link href="/dashboard/reservas/nueva">
-              <span className="flex items-center gap-2 px-4 py-2 font-semibold text-white bg-indigo-600 rounded-lg shadow-md hover:bg-indigo-500 transition-colors duration-300 cursor-pointer">
-                <PlusCircle className="h-5 w-5" />
-                Nueva Reserva
-              </span>
-            </Link>
-            <button
-              onClick={() => signOut({ callbackUrl: '/login' })}
-              className="p-2 rounded-lg bg-gray-800 hover:bg-red-500/20 text-gray-400 hover:text-red-400 transition-colors"
-              title="Cerrar Sesión"
-            >
-              <LogOut className="h-5 w-5" />
-            </button>
-        </div>
-      </header>
+        <Link href="/dashboard/reservas/nueva">
+          <span className="flex items-center gap-2 px-4 py-2 font-semibold text-white bg-indigo-600 rounded-lg shadow-md hover:bg-indigo-500 transition-colors duration-300 cursor-pointer">
+            <PlusCircle className="h-5 w-5" />
+            Nueva Reserva
+          </span>
+        </Link>
+      </div>
 
       {/* Main Content */}
       <main>

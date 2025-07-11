@@ -44,7 +44,7 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, selectedIn
 
   const isEditMode = selectedInfo !== null && !(selectedInfo instanceof Date);
   const bookingData = isEditMode ? selectedInfo as BookingWithDetails : null;
-  
+
   const form = useForm<BookingFormValues>({
     resolver: zodResolver(BookingSchema),
   });
@@ -68,7 +68,7 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, selectedIn
   const handleFormSubmit = async (data: BookingFormValues) => {
     setIsLoading(true);
     setError(null);
-    
+
     const newStartTime = new Date(`${data.startDate}T${data.startTime}`);
     const newEndTime = new Date(`${data.startDate}T${data.endTime}`);
 
@@ -138,7 +138,7 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, selectedIn
       <div className="bg-gray-800 rounded-xl shadow-lg p-8 w-full max-w-lg relative">
         <button onClick={onClose} className="absolute top-4 right-4 text-gray-400 hover:text-white"><X /></button>
         <h2 className="text-2xl font-bold text-white mb-6">{isEditMode ? 'Editar Reserva' : 'Nueva Reserva'}</h2>
-        
+
         <form onSubmit={form.handleSubmit(handleFormSubmit)} className="space-y-4">
           {/* Date and Time Fields */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -150,27 +150,33 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, selectedIn
               <label htmlFor="startTime" className="block text-sm font-medium text-gray-300">Hora Inicio</label>
               <input type="time" id="startTime" {...form.register('startTime')} step="1800" className="mt-1 block w-full bg-gray-700 border-gray-600 text-white rounded-md p-2" />
             </div>
-             <div>
+            <div>
               <label htmlFor="endTime" className="block text-sm font-medium text-gray-300">Hora Fin</label>
               <input type="time" id="endTime" {...form.register('endTime')} step="1800" className="mt-1 block w-full bg-gray-700 border-gray-600 text-white rounded-md p-2" />
             </div>
           </div>
           {form.formState.errors.endTime && <p className="text-sm text-red-400">{form.formState.errors.endTime.message}</p>}
-          
+
           {/* Court Selection */}
           <div>
             <label htmlFor="courtId" className="block text-sm font-medium text-gray-300">Pista</label>
             <select id="courtId" {...form.register('courtId')} className="mt-1 block w-full bg-gray-700 text-white rounded-md p-2">
               <option value="">Selecciona una pista</option>
-              {courts.map(court => <option key={court.id} value={court.id}>{court.name}</option>)}
+
+              {/* --- MODIFICADO ---: Añadimos una comprobación para asegurar que 'courts' es un array */}
+              {Array.isArray(courts) && courts.map(court => (
+                <option key={court.id} value={court.id}>{court.name}</option>
+              ))}
+
             </select>
+            {form.formState.errors.courtId && <p className="text-sm text-red-400 mt-1">{form.formState.errors.courtId.message}</p>}
           </div>
 
           {/* Searchable User/Guest Input */}
           <div>
             <label htmlFor="user-search" className="block text-sm font-medium text-gray-300">Socio o Invitado</label>
             <div className="relative">
-              <input 
+              <input
                 id="user-search"
                 type="text"
                 value={searchTerm}
@@ -202,7 +208,7 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, selectedIn
             </div>
             {form.formState.errors.guestName && <p className="text-sm text-red-400 mt-1">{form.formState.errors.guestName.message}</p>}
           </div>
-          
+
           {error && <p className="text-sm text-center text-red-400 pt-2">{error}</p>}
 
           {/* Action Buttons */}

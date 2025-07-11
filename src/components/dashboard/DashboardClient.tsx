@@ -1,12 +1,16 @@
 'use client';
 
 import React, { useState } from 'react';
-import { User } from 'next-auth';
-import { PlusCircle, Calendar, Users, BarChart, Trophy, Clock, ArrowRight, ChevronLeft, ChevronRight, Info } from 'lucide-react';
-import Link from 'next/link';
-import { Booking } from '@prisma/client';
+import { User } from 'next-auth'; // Este es el User de la sesión (NextAuth)
 
-// --- Reusable UI Components ---
+// --- AÑADIDO ---: Importamos los tipos de Prisma, usando un alias para User.
+import { Booking, Court, type User as PrismaUser } from '@prisma/client'; 
+
+import BookingModal from '@/components/reservas/BookingModal';
+import { PlusCircle, Calendar, Users, BarChart, Trophy, Clock, ArrowRight, ChevronLeft, ChevronRight, Info } from 'lucide-react';
+
+// ... (El código de StatCard y UpcomingBookingItem no cambia) ...
+
 const StatCard = ({ title, value, icon: Icon, color, tooltipText }: { title: string, value: string, icon: React.ElementType, color: string, tooltipText?: string }) => {
     const colorVariants: { [key: string]: string } = {
         blue: 'border-blue-500 text-blue-400',
@@ -35,19 +39,15 @@ const StatCard = ({ title, value, icon: Icon, color, tooltipText }: { title: str
     );
 };
 
-// Corrected type to handle guest bookings where user is null
-type UpcomingBooking = Booking & { 
-  user: { name: string | null } | null; 
-  court: { name: string }; 
+type UpcomingBooking = Booking & {
+  user: { name: string | null } | null;
+  court: { name: string };
 };
 
 const UpcomingBookingItem = ({ booking }: { booking: UpcomingBooking }) => {
-  // Format start and end times
   const startTime = new Date(booking.startTime).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
   const endTime = new Date(booking.endTime).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
   const timeRange = `${startTime} - ${endTime}`;
-
-  // Determine display name and user type
   const displayName = booking.user?.name || booking.guestName || 'Invitado';
   const userType = booking.user ? 'Socio' : 'Invitado';
 
@@ -73,9 +73,9 @@ const UpcomingBookingItem = ({ booking }: { booking: UpcomingBooking }) => {
   );
 };
 
-// --- Main Client Component ---
+
 interface DashboardClientProps {
-  user: User;
+  user: User; // <-- Este es User de NextAuth, se queda igual.
   upcomingBookings: UpcomingBooking[];
   stats: {
     bookingsToday: number;
@@ -83,108 +83,119 @@ interface DashboardClientProps {
     activeLeagues: number;
     occupancyRate: number;
   };
+  courts: Court[];
+  // --- MODIFICADO ---: Usamos el alias para el array de usuarios de Prisma.
+  users: PrismaUser[];
 }
 
-const DashboardClient: React.FC<DashboardClientProps> = ({ user, upcomingBookings, stats }) => {
-  // --- PAGINATION STATE ---
+// --- MODIFICADO ---: Usamos la interfaz actualizada.
+const DashboardClient: React.FC<DashboardClientProps> = ({ user, upcomingBookings, stats, courts, users }) => {
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedInfoForModal, setSelectedInfoForModal] = useState<Date | null>(null);
+
+  const handleOpenModal = () => {
+      setSelectedInfoForModal(new Date());
+      setIsModalOpen(true);
+  };
+  
+  const handleCloseModal = () => {
+      setIsModalOpen(false);
+      setSelectedInfoForModal(null);
+  };
+
   const [currentPage, setCurrentPage] = useState(1);
   const bookingsPerPage = 10;
-
-  // --- PAGINATION LOGIC ---
   const indexOfLastBooking = currentPage * bookingsPerPage;
   const indexOfFirstBooking = indexOfLastBooking - bookingsPerPage;
   const currentBookings = upcomingBookings.slice(indexOfFirstBooking, indexOfLastBooking);
   const totalPages = Math.ceil(upcomingBookings.length / bookingsPerPage);
-
-  const handleNextPage = () => {
-    if (currentPage < totalPages) {
-      setCurrentPage(currentPage + 1);
-    }
-  };
-
-  const handlePrevPage = () => {
-    if (currentPage > 1) {
-      setCurrentPage(currentPage - 1);
-    }
-  };
-
+  const handleNextPage = () => { if (currentPage < totalPages) setCurrentPage(currentPage + 1); };
+  const handlePrevPage = () => { if (currentPage > 1) setCurrentPage(currentPage - 1); };
 
   return (
-    <div className="space-y-8">
-      {/* Welcome Message and Main Action Button */}
-      <div className="flex flex-wrap justify-between items-center gap-4">
-        <div>
-          <h1 className="text-3xl font-bold text-white">
-            Bienvenido, {user.name}
-          </h1>
-          <p className="mt-1 text-gray-400">Resumen del club PadelClub OS.</p>
-        </div>
-        <Link href="/dashboard/reservas/nueva">
-          <span className="flex items-center gap-2 px-4 py-2 font-semibold text-white bg-indigo-600 rounded-lg shadow-md hover:bg-indigo-500 transition-colors duration-300 cursor-pointer">
+    <>
+      <div className="space-y-8">
+        <div className="flex flex-wrap justify-between items-center gap-4">
+          <div>
+            <h1 className="text-3xl font-bold text-white">
+              Bienvenido, {user.name}
+            </h1>
+            <p className="mt-1 text-gray-400">Resumen del club PadelClub OS.</p>
+          </div>
+          <button
+            onClick={handleOpenModal}
+            className="flex items-center gap-2 px-4 py-2 font-semibold text-white bg-indigo-600 rounded-lg shadow-md hover:bg-indigo-500 transition-colors duration-300 cursor-pointer"
+          >
             <PlusCircle className="h-5 w-5" />
             Nueva Reserva
-          </span>
-        </Link>
-      </div>
-
-      {/* Main Content */}
-      <main>
-        {/* Stats Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          <StatCard title="Reservas de Hoy" value={stats.bookingsToday.toString()} icon={Calendar} color="blue" />
-          <StatCard title="Socios Activos" value={stats.activeMembers.toString()} icon={Users} color="green" />
-          <StatCard 
-            title="Ocupación (Hoy)" 
-            value={`${stats.occupancyRate}%`} 
-            icon={BarChart} 
-            color="purple"
-            tooltipText="Porcentaje de horas reservadas sobre el total de horas disponibles hoy."
-          />
-          <StatCard title="Ligas Activas" value={stats.activeLeagues.toString()} icon={Trophy} color="yellow" />
+          </button>
         </div>
 
-        {/* Upcoming Bookings Section */}
-        <div className="mt-8 bg-gray-800 rounded-xl shadow-lg">
-          <div className="p-6">
-            <h2 className="text-xl font-semibold text-white mb-4">Próximas Reservas</h2>
-            {upcomingBookings.length > 0 ? (
-              <ul>
-                {currentBookings.map(booking => (
-                  <UpcomingBookingItem key={booking.id} booking={booking} />
-                ))}
-              </ul>
-            ) : (
-              <p className="text-gray-500 text-center py-12">No hay próximas reservas.</p>
+        <main>
+          {/* ... El resto del código no cambia ... */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              <StatCard title="Reservas de Hoy" value={stats.bookingsToday.toString()} icon={Calendar} color="blue" />
+              <StatCard title="Socios Activos" value={stats.activeMembers.toString()} icon={Users} color="green" />
+              <StatCard 
+                title="Ocupación (Hoy)" 
+                value={`${stats.occupancyRate}%`} 
+                icon={BarChart} 
+                color="purple"
+                tooltipText="Porcentaje de horas reservadas sobre el total de horas disponibles hoy."
+              />
+              <StatCard title="Ligas Activas" value={stats.activeLeagues.toString()} icon={Trophy} color="yellow" />
+          </div>
+
+          <div className="mt-8 bg-gray-800 rounded-xl shadow-lg">
+            <div className="p-6">
+              <h2 className="text-xl font-semibold text-white mb-4">Próximas Reservas</h2>
+              {upcomingBookings.length > 0 ? (
+                <ul>
+                  {currentBookings.map(booking => (
+                    <UpcomingBookingItem key={booking.id} booking={booking} />
+                  ))}
+                </ul>
+              ) : (
+                <p className="text-gray-500 text-center py-12">No hay próximas reservas.</p>
+              )}
+            </div>
+            
+            {totalPages > 1 && (
+              <div className="flex items-center justify-between border-t border-gray-700 px-6 py-3">
+                <button 
+                  onClick={handlePrevPage}
+                  disabled={currentPage === 1}
+                  className="flex items-center gap-2 px-3 py-1 text-sm text-gray-300 rounded-md hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                  Anterior
+                </button>
+                <span className="text-sm text-gray-400">
+                  Página {currentPage} de {totalPages}
+                </span>
+                <button 
+                  onClick={handleNextPage}
+                  disabled={currentPage === totalPages}
+                  className="flex items-center gap-2 px-3 py-1 text-sm text-gray-300 rounded-md hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Siguiente
+                  <ChevronRight className="h-4 w-4" />
+                </button>
+              </div>
             )}
           </div>
-          
-          {/* --- PAGINATION CONTROLS --- */}
-          {totalPages > 1 && (
-            <div className="flex items-center justify-between border-t border-gray-700 px-6 py-3">
-              <button 
-                onClick={handlePrevPage}
-                disabled={currentPage === 1}
-                className="flex items-center gap-2 px-3 py-1 text-sm text-gray-300 rounded-md hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <ChevronLeft className="h-4 w-4" />
-                Anterior
-              </button>
-              <span className="text-sm text-gray-400">
-                Página {currentPage} de {totalPages}
-              </span>
-              <button 
-                onClick={handleNextPage}
-                disabled={currentPage === totalPages}
-                className="flex items-center gap-2 px-3 py-1 text-sm text-gray-300 rounded-md hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                Siguiente
-                <ChevronRight className="h-4 w-4" />
-              </button>
-            </div>
-          )}
-        </div>
-      </main>
-    </div>
+        </main>
+      </div>
+      
+      {/* Esta llamada ahora es correcta porque `users` tiene el tipo PrismaUser[] */}
+      <BookingModal
+        isOpen={isModalOpen}
+        onClose={handleCloseModal}
+        selectedInfo={selectedInfoForModal}
+        courts={courts}
+        users={users}
+      />
+    </>
   );
 };
 

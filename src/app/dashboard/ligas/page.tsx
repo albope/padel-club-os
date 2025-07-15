@@ -3,7 +3,7 @@ import { db } from '@/lib/db';
 import { authOptions } from '@/lib/auth';
 import { getServerSession } from 'next-auth';
 import { redirect } from 'next/navigation';
-import { Trophy, PlusCircle, Users, Calendar } from 'lucide-react';
+import { Trophy, PlusCircle, Users } from 'lucide-react';
 import Link from 'next/link';
 
 // This Server Component fetches the leagues data for the club
@@ -16,7 +16,7 @@ const LigasPage = async () => {
 
   const leagues = await db.league.findMany({
     where: { clubId: session.user.clubId },
-    orderBy: { name: 'asc' }, // Corrected: Order by name instead of a non-existent field
+    orderBy: { name: 'asc' },
     include: {
       _count: {
         select: { teams: true },
@@ -45,26 +45,29 @@ const LigasPage = async () => {
         <div className="p-6">
           {leagues.length > 0 ? (
             <ul className="divide-y divide-gray-700">
+              {/* --- INICIO DE LA MODIFICACIÓN --- */}
               {leagues.map((league) => (
-                <li key={league.id} className="flex items-center justify-between py-4 group">
-                  <div className="flex items-center gap-4">
-                    <div className="p-3 bg-gray-700 rounded-lg">
-                      <Trophy className="h-6 w-6 text-yellow-400" />
-                    </div>
-                    <div>
-                      <p className="font-semibold text-white group-hover:text-indigo-400 transition-colors">{league.name}</p>
-                      <div className="flex items-center gap-4 text-sm text-gray-400 mt-1">
-                        <span className="flex items-center gap-1.5"><Users className="h-4 w-4" /> {league._count.teams} Equipos</span>
-                        {/* We can't display createdAt, so we remove it for now */}
+                <li key={league.id}>
+                  <Link
+                    href={`/dashboard/ligas/${league.id}`}
+                    className="group flex items-center justify-between py-4 px-2 -mx-2 rounded-lg transition-colors hover:bg-gray-700/50"
+                  >
+                    <div className="flex items-center gap-4">
+                      <div className="p-3 bg-gray-700 rounded-lg">
+                        <Trophy className="h-6 w-6 text-yellow-400" />
+                      </div>
+                      <div>
+                        <p className="font-semibold text-white group-hover:text-indigo-400 transition-colors">{league.name}</p>
+                        <div className="flex items-center gap-4 text-sm text-gray-400 mt-1">
+                          <span className="flex items-center gap-1.5"><Users className="h-4 w-4" /> {league._count.teams} Equipos</span>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                  {/* We will link to the league's detail page later */}
-                  <Link href={`/dashboard/ligas/${league.id}`}>
-                    <span className="text-sm text-gray-300 hover:text-white cursor-pointer">Gestionar</span>
+                    {}
                   </Link>
                 </li>
               ))}
+              {}
             </ul>
           ) : (
             <div className="text-center py-12">

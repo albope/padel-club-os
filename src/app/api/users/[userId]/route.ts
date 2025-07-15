@@ -3,8 +3,6 @@ import { authOptions } from "@/lib/auth";
 import { getServerSession } from "next-auth";
 import { NextResponse } from "next/server";
 
-// API route to handle specific users (socios) by their ID
-
 // PATCH function to update a user's details
 export async function PATCH(
   req: Request,
@@ -13,17 +11,17 @@ export async function PATCH(
   try {
     const session = await getServerSession(authOptions);
     const body = await req.json();
-    const { name, email, phone } = body; // Added phone
+    const { name, email, phone, position, level, birthDate } = body;
 
+    // --- CORREGIDO: Lógica de validación completada ---
     if (!session?.user?.clubId) {
       return new NextResponse("Unauthorized", { status: 401 });
     }
-
     if (!params.userId) {
       return new NextResponse("User ID is required", { status: 400 });
     }
 
-    // Ensure admin cannot change their own details this way for safety
+    // --- CORREGIDO: Comprobación de no editarse a sí mismo ---
     if (session.user.id === params.userId) {
         return new NextResponse("Cannot edit your own account from this panel", { status: 403 });
     }
@@ -31,17 +29,21 @@ export async function PATCH(
     const updatedUser = await db.user.update({
       where: {
         id: params.userId,
-        clubId: session.user.clubId, // Security check
+        clubId: session.user.clubId,
       },
       data: {
         name,
         email,
-        phone, // Added phone to the update data
+        phone,
+        position,
+        level,
+        birthDate: birthDate ? new Date(birthDate) : null,
       },
     });
 
     return NextResponse.json(updatedUser);
   } catch (error) {
+    // --- CORREGIDO: Manejo de errores completado ---
     console.error("[UPDATE_USER_ERROR]", error);
     return new NextResponse("Internal Server Error", { status: 500 });
   }
@@ -58,12 +60,9 @@ export async function DELETE(
     if (!session?.user?.clubId) {
       return new NextResponse("Unauthorized", { status: 401 });
     }
-
     if (!params.userId) {
       return new NextResponse("User ID is required", { status: 400 });
     }
-
-    // Prevent an admin from deleting themselves
     if (session.user.id === params.userId) {
         return new NextResponse("Cannot delete your own account", { status: 403 });
     }
@@ -71,11 +70,11 @@ export async function DELETE(
     await db.user.delete({
       where: {
         id: params.userId,
-        clubId: session.user.clubId, // Security check
+        clubId: session.user.clubId,
       },
     });
 
-    return new NextResponse(null, { status: 204 }); // 204 No Content
+    return new NextResponse(null, { status: 204 });
   } catch (error) {
     console.error("[DELETE_USER_ERROR]", error);
     return new NextResponse("Internal Server Error", { status: 500 });

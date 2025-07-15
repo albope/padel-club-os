@@ -43,9 +43,13 @@ model User {
   phone            String?
   emailVerified    DateTime?
   image            String?
-  
+
+  // --- AÑADIDO ---
+  position         String?   // Posición en la pista (ej: Revés, Derecha, Indiferente)
+  level            String?   // Nivel de juego (ej: 2.5, 3.0, Avanzado)
+  birthDate        DateTime? // Fecha de nacimiento
+
   // Role and relationship to a club
-  // An admin user is directly linked to a club
   clubId           String?
   club             Club?     @relation(fields: [clubId], references: [id])
   

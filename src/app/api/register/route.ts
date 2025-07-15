@@ -2,14 +2,19 @@ import { db } from "@/lib/db";
 import { hash } from "bcrypt";
 import { NextResponse } from "next/server";
 
-// This file defines the API route for user registration.
+// This API route now handles user registration AND initial club creation
 
 export async function POST(req: Request) {
   try {
     const body = await req.json();
     const { email, password, name } = body;
 
-    // 1. Check if a user with this email already exists
+    // 1. Validation
+    if (!email || !password || !name) {
+      return new NextResponse("Faltan campos requeridos.", { status: 400 });
+    }
+
+    // 2. Check if user already exists
     const existingUserByEmail = await db.user.findUnique({
       where: { email: email },
     });
@@ -21,33 +26,41 @@ export async function POST(req: Request) {
       );
     }
     
-    // 2. Hash the password for security
+    // 3. Hash the password
     const hashedPassword = await hash(password, 10);
 
-    // 3. Create the new user in the database
-    const newUser = await db.user.create({
-      data: {
-        email,
-        name,
-        password: hashedPassword,
-      },
+    // 4. Use a transaction to create the Club and the User together
+    // This ensures that if one fails, the other is rolled back.
+    const newUser = await db.$transaction(async (prisma) => {
+      // First, create the club for this new admin
+      const newClub = await prisma.club.create({
+        data: {
+          name: `${name}'s Club`,
+        },
+      });
+
+      // Then, create the user and assign them to the new club
+      const user = await prisma.user.create({
+        data: {
+          email,
+          name,
+          password: hashedPassword,
+          clubId: newClub.id, // Assign the new club's ID
+        },
+      });
+
+      return user;
     });
 
-    // Remove password from the response for security
+    // 5. Return the newly created user (without the password)
     const { password: newUserPassword, ...rest } = newUser;
-
-    // 4. Return the newly created user (without the password)
     return NextResponse.json(
-      { user: rest, message: "Usuario creado con éxito." },
+      { user: rest, message: "Usuario y club creados con éxito." },
       { status: 201 } // 201 Created
     );
+
   } catch (error) {
-    // Log the detailed error to the server console for debugging
-    console.error("[REGISTER_ERROR]", error); 
-    
-    return NextResponse.json(
-      { message: "Algo salió mal en el servidor." },
-      { status: 500 } // 500 Internal Server Error
-    );
+    console.error("[REGISTER_ERROR]", error);
+    return new NextResponse("Internal Server Error", { status: 500 });
   }
 }

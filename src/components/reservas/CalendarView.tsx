@@ -38,17 +38,26 @@ const CalendarView: React.FC<CalendarViewProps> = ({ initialBookings, courts, us
   // This state will hold either the date for a new booking, or the data of an existing one
   const [selectedInfo, setSelectedInfo] = useState<Date | BookingWithDetails | null>(null);
 
-  const events = useMemo(() => {
-    return initialBookings.map((booking) => ({
+const events = useMemo(() => {
+  // Es una buena práctica comprobar que initialBookings no sea nulo.
+  if (!initialBookings) return [];
+
+  return initialBookings.map((booking) => {
+    // --- SOLUCIÓN ---: Mueve la definición de la constante aquí DENTRO.
+    const displayName = booking.user?.name || booking.guestName || 'Invitado';
+
+    return {
       id: booking.id,
-      title: `${booking.court.name} - ${booking.user.name || 'Sin nombre'}`,
+      // Ahora 'displayName' sí existe en este contexto.
+      title: `${booking.court.name} - ${displayName}`,
       start: new Date(booking.startTime),
       end: new Date(booking.endTime),
       backgroundColor: '#3b82f6',
       borderColor: '#2563eb',
-      extendedProps: booking, // Store the full booking object here
-    }));
-  }, [initialBookings]);
+      extendedProps: booking,
+    };
+  });
+}, [initialBookings]);
 
   // Handler for creating a NEW booking
   const handleDateClick = (arg: DateClickArg) => {

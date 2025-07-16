@@ -186,8 +186,14 @@ const CompetitionDetailClient: React.FC<CompetitionDetailClientProps> = ({ compe
                   <h3 className="text-lg font-semibold text-indigo-400 mb-2 border-b border-gray-700 pb-1">{matches[0]?.roundName || `Jornada ${round}`}</h3>
                   <ul className="divide-y divide-gray-700">
                     {matches.map(match => (
+
                       <li key={match.id} className="py-3 flex flex-wrap justify-between items-center gap-3">
-                        <p className="text-white flex-1 min-w-[150px]">{match.team1?.name ?? '?'} vs {match.team2?.name ?? '?'}</p>
+                        <div className="flex-1 min-w-[200px]">
+                          <p className="font-medium text-white">{match.team1?.name ?? '?'} vs {match.team2?.name ?? '?'}</p>
+                          <p className="text-xs text-gray-400 truncate">
+                            ({match.team1?.player1?.name ?? 'S/N'} / {match.team1?.player2?.name ?? 'S/N'}) vs ({match.team2?.player1?.name ?? 'S/N'} / {match.team2?.player2?.name ?? 'S/N'})
+                          </p>
+                        </div>
                         <div className="flex items-center gap-2 flex-wrap">
                           <input type="date" value={matchDates[match.id] || ''} onChange={(e) => handleDateChange(match.id, e.target.value)} className="bg-gray-700 text-white rounded-lg px-3 py-1.5 text-sm border-gray-600 focus:ring-indigo-500" />
                           <div className="flex items-center rounded-lg bg-indigo-500/20">

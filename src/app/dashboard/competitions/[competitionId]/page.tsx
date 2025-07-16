@@ -15,6 +15,7 @@ interface CompetitionDetailPageProps {
 
 const CompetitionDetailPage = async ({ params }: CompetitionDetailPageProps) => {
   const session = await getServerSession(authOptions);
+  // La comprobación de sesión asegura que session.user.id existe más adelante.
   if (!session?.user?.clubId) {
     redirect('/dashboard');
   }
@@ -28,9 +29,6 @@ const CompetitionDetailPage = async ({ params }: CompetitionDetailPageProps) => 
           player2: { select: { name: true } },
         },
       },
-      // --- INICIO DE LA MODIFICACIÓN ---
-      // Ahora nos aseguramos de que cada partido incluya los detalles completos
-      // de los equipos, incluyendo los nombres de sus jugadores.
       matches: {
         include: {
           team1: {
@@ -48,11 +46,19 @@ const CompetitionDetailPage = async ({ params }: CompetitionDetailPageProps) => 
         },
         orderBy: { roundNumber: 'asc' },
       },
-      // --- FIN DE LA MODIFICACIÓN ---
     },
   });
 
-  const users = await db.user.findMany({ where: { clubId: session.user.clubId }, orderBy: { name: 'asc' } });
+  // --- CORREGIDO: Se filtra el admin de la lista de usuarios ---
+  const users = await db.user.findMany({ 
+    where: { 
+      clubId: session.user.clubId,
+      id: {
+        not: session.user.id // Excluye al usuario con el ID de la sesión actual
+      }
+    }, 
+    orderBy: { name: 'asc' } 
+  });
 
   if (!competition) {
     return <div><h1 className="text-white">Competición no encontrada</h1></div>;

@@ -19,7 +19,6 @@ const MatchCard: React.FC<{ match: MatchWithTeams; onMatchClick: (match: MatchWi
     return match.winnerId === teamId ? winnerStyle : loserStyle;
   };
   
-  // --- RESTAURADO: Volvemos a usar los datos reales del partido ---
   const sets = match.result && match.result !== 'BYE'
     ? match.result.split(',').map((s) => s.trim().split('-'))
     : [];
@@ -33,9 +32,16 @@ const MatchCard: React.FC<{ match: MatchWithTeams; onMatchClick: (match: MatchWi
         <table className="w-full" style={{ tableLayout: 'fixed' }}>
           <tbody>
             <tr>
-              <td className={`w-auto truncate pr-2 ${getTeamStyle(match.team1Id)}`}>
-                {match.team1?.name ?? 'Por determinar'}
+              {/* --- INICIO MODIFICACIÓN EQUIPO 1 --- */}
+              <td className={`w-auto pr-2 align-top ${getTeamStyle(match.team1Id)}`}>
+                <div>
+                    <p className="font-medium truncate">{match.team1?.name ?? 'Por determinar'}</p>
+                    <p className="text-xs text-gray-400 truncate">
+                        {match.team1?.player1?.name ?? 'S/N'} / {match.team1?.player2?.name ?? 'S/N'}
+                    </p>
+                </div>
               </td>
+              {/* --- FIN MODIFICACIÓN EQUIPO 1 --- */}
               <td className={`w-8 text-center font-mono text-lg ${getTeamStyle(match.team1Id)}`}>
                 {sets[0]?.[0] ?? ''}
               </td>
@@ -48,13 +54,20 @@ const MatchCard: React.FC<{ match: MatchWithTeams; onMatchClick: (match: MatchWi
             </tr>
 
             <tr className="h-2">
-                <td colSpan={4} className="border-b border-dashed border-gray-600 p-0"></td>
+              <td colSpan={4} className="border-b border-dashed border-gray-600 p-0"></td>
             </tr>
 
             <tr>
-              <td className={`w-auto truncate pr-2 ${getTeamStyle(match.team2Id)}`}>
-                {match.team2?.name ?? 'Por determinar'}
+              {/* --- INICIO MODIFICACIÓN EQUIPO 2 --- */}
+              <td className={`w-auto pr-2 align-top ${getTeamStyle(match.team2Id)}`}>
+                <div>
+                    <p className="font-medium truncate">{match.team2?.name ?? 'Por determinar'}</p>
+                    <p className="text-xs text-gray-400 truncate">
+                        {match.team2?.player1?.name ?? 'S/N'} / {match.team2?.player2?.name ?? 'S/N'}
+                    </p>
+                </div>
               </td>
+              {/* --- FIN MODIFICACIÓN EQUIPO 2 --- */}
               <td className={`w-8 text-center font-mono text-lg ${getTeamStyle(match.team2Id)}`}>
                 {sets[0]?.[1] ?? ''}
               </td>
@@ -80,6 +93,7 @@ const MatchCard: React.FC<{ match: MatchWithTeams; onMatchClick: (match: MatchWi
 
 
 const MatchListView: React.FC<MatchListViewProps> = ({ matches, onMatchClick }) => {
+  // ...código del componente principal sin cambios...
   const rounds = matches.reduce((acc, match) => {
     const round = match.roundNumber;
     if (!acc[round]) acc[round] = [];

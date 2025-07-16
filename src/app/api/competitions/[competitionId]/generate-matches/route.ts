@@ -6,14 +6,14 @@ import { CompetitionFormat } from "@prisma/client";
 
 // --- AÑADIDO: Función helper para nombrar las rondas dinámicamente ---
 function getRoundName(teamsInRound: number): string {
-    switch (teamsInRound) {
-        case 2: return "Final";
-        case 4: return "Semifinales";
-        case 8: return "Cuartos de Final";
-        case 16: return "Octavos de Final";
-        case 32: return "Ronda de 32";
-        default: return `Ronda de ${teamsInRound}`;
-    }
+  switch (teamsInRound) {
+    case 2: return "Final";
+    case 4: return "Semifinales";
+    case 8: return "Cuartos de Final";
+    case 16: return "Octavos de Final";
+    case 32: return "Ronda de 32";
+    default: return `Ronda de ${teamsInRound}`;
+  }
 }
 
 export async function POST(
@@ -45,12 +45,28 @@ export async function POST(
       return new NextResponse("Se necesitan al menos 2 equipos.", { status: 400 });
     }
 
-    // --- LÓGICA CONDICIONAL COMPLETA Y CORRECTA ---
+    // 1. Borramos los partidos antiguos
+    await db.match.deleteMany({ where: { competitionId: params.competitionId } });
 
+    // 2. AÑADIDO: Reseteamos las estadísticas de todos los equipos de la competición
+    await db.team.updateMany({
+      where: { competitionId: params.competitionId },
+      data: {
+        points: 0,
+        played: 0,
+        won: 0,
+        lost: 0,
+        setsFor: 0,
+        setsAgainst: 0,
+        gamesFor: 0,
+        gamesAgainst: 0,
+      }
+    });
+    // --- LÓGICA CONDICIONAL COMPLETA Y CORRECTA ---
     if (competition.format === CompetitionFormat.LEAGUE) {
       let teamIds = teams.map(t => t.id);
       if (teamIds.length % 2 !== 0) teamIds.push("dummy");
-      
+
       const numTeams = teamIds.length;
       const matchesToCreate: any[] = []; // Usamos 'any' para simplificar la creación de objetos
       const firstTeam = teamIds[0];
@@ -91,7 +107,7 @@ export async function POST(
       const participants = [...teamIds, ...Array(byes).fill(null)].sort(() => Math.random() - 0.5);
 
       const matchesToCreate: any[] = [];
-      
+
       // 1. Crear la primera ronda con el nombre correcto
       const firstRoundName = getRoundName(bracketSize);
       for (let i = 0; i < bracketSize; i += 2) {
@@ -105,7 +121,7 @@ export async function POST(
           result: participants[i + 1] === null ? "BYE" : null,
         });
       }
-      
+
       // 2. Crear las rondas siguientes vacías con nombres correctos
       let roundNumber = 2;
       let teamsInNextRound = bracketSize / 2;
@@ -117,7 +133,7 @@ export async function POST(
         teamsInNextRound /= 2;
         roundNumber++;
       }
-      
+
       await db.match.createMany({ data: matchesToCreate });
       return NextResponse.json({ message: "Bracket de torneo generado con éxito." });
 
@@ -138,7 +154,7 @@ export async function POST(
         groups[groupName] = groupTeams;
         teamUpdatePromises.push(db.team.updateMany({ where: { id: { in: groupTeams } }, data: { group: groupName } }));
       }
-      
+
       await db.$transaction(teamUpdatePromises);
       const matchesToCreate: any[] = [];
 
@@ -163,7 +179,7 @@ export async function POST(
           rotatingTeams.unshift(rotatingTeams.pop()!);
         }
       }
-      
+
       await db.match.createMany({ data: matchesToCreate });
       return NextResponse.json({ message: "Fase de grupos generada con éxito." });
     }

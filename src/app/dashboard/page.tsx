@@ -5,7 +5,6 @@ import DashboardClient from '@/components/dashboard/DashboardClient';
 import { User } from 'next-auth';
 import { db } from '@/lib/db';
 
-// --- MODIFICADO ---: La función ahora también obtiene pistas y usuarios.
 const getDashboardData = async (clubId: string) => {
   try {
     const startOfDay = new Date();
@@ -13,15 +12,14 @@ const getDashboardData = async (clubId: string) => {
     const endOfDay = new Date();
     endOfDay.setHours(23, 59, 59, 999);
 
-    // --- MODIFICADO ---: Añadimos la obtención de 'courts' y 'users' a Promise.all
     const [
       upcomingBookings,
       bookingsToday,
       activeMembers,
-      activeLeagues,
+      activeLeagues, // El nombre de la variable se mantiene por simplicidad para no afectar a DashboardClient
       club,
-      courts, // <-- AÑADIDO
-      users,  // <-- AÑADIDO
+      courts,
+      users,
     ] = await Promise.all([
       db.booking.findMany({
         where: { clubId, startTime: { gte: new Date() } },
@@ -35,7 +33,8 @@ const getDashboardData = async (clubId: string) => {
         where: { clubId, startTime: { gte: startOfDay, lte: endOfDay } },
       }),
       db.user.count({ where: { clubId } }),
-      db.league.count({ where: { clubId } }),
+      // --- CORREGIDO: Se usa db.competition.count en lugar de db.league.count ---
+      db.competition.count({ where: { clubId } }),
       db.club.findUnique({
         where: { id: clubId },
         select: {
@@ -44,12 +43,10 @@ const getDashboardData = async (clubId: string) => {
           closingTime: true,
         },
       }),
-      // --- AÑADIDO ---: Query para obtener todas las pistas del club
       db.court.findMany({
         where: { clubId },
         orderBy: { name: 'asc' },
       }),
-      // --- AÑADIDO ---: Query para obtener todos los usuarios (socios) del club
       db.user.findMany({
         where: { clubId },
         orderBy: { name: 'asc' },
@@ -85,12 +82,9 @@ const getDashboardData = async (clubId: string) => {
       occupancyRate,
     };
 
-    // --- MODIFICADO ---: Añadimos 'courts' y 'users' al objeto de retorno.
-    // Usamos JSON.parse(JSON.stringify(...)) para evitar problemas de serialización de fechas con Next.js
     return JSON.parse(JSON.stringify({ upcomingBookings, stats, courts, users }));
   } catch (error) {
     console.error('Failed to fetch dashboard data:', error);
-    // --- MODIFICADO ---: Devolvemos arrays vacíos para 'courts' y 'users' en caso de error.
     return {
       upcomingBookings: [],
       stats: {
@@ -112,12 +106,10 @@ const DashboardPage = async () => {
     redirect('/login');
   }
 
-  // --- MODIFICADO ---: Desestructuramos los nuevos datos.
   const { upcomingBookings, stats, courts, users } = await getDashboardData(
     session.user.clubId
   );
 
-  // --- MODIFICADO ---: Pasamos los nuevos datos como props a DashboardClient.
   return (
     <DashboardClient
       user={session.user}

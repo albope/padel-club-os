@@ -8,7 +8,6 @@ import { useRouter } from 'next/navigation';
 import { X, Loader2 } from 'lucide-react';
 import { Match } from '@prisma/client';
 
-// Validation schema for the result form
 const ResultSchema = z.object({
   result: z.string().regex(/^\d+-\d+(\s+\d+-\d+)*$/, "Formato inválido. Ejemplo: 6-2 6-4"),
 });
@@ -33,7 +32,8 @@ const AddResultModal: React.FC<AddResultModalProps> = ({ isOpen, onClose, match 
   const handleFormSubmit = async (data: z.infer<typeof ResultSchema>) => {
     setIsLoading(true);
     try {
-      const response = await fetch(`/api/leagues/${match.leagueId}/matches/${match.id}`, {
+      // --- MODIFICADO: La URL ahora usa /api/competitions/ y match.competitionId ---
+      const response = await fetch(`/api/competitions/${match.competitionId}/matches/${match.id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),

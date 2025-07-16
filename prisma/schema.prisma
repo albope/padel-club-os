@@ -1,69 +1,59 @@
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
-// Specifies the generator for the Prisma Client
 generator client {
   provider = "prisma-client-js"
 }
 
-// Defines the database connection
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
 // --- CENTRAL MODEL: THE CLUB ---
-// Represents a single Padel Club in the system
 model Club {
   id               String    @id @default(cuid())
   name             String
   address          String?
   logoUrl          String?
-  openingTime      String?   @default("09:00") 
-  closingTime      String?   @default("23:00") 
+  openingTime      String?   @default("09:00")
+  closingTime      String?   @default("23:00")
+  subscriptionTier String    @default("essential")
+  stripeCustomerId String?   @unique
   
-  // Subscription details for the SaaS model
-  subscriptionTier String    @default("essential") // e.g., "essential", "growth", "performance"
-  stripeCustomerId String?   @unique // For managing payments with Stripe
-
   // Relationships
-  admins           User[]
-  courts           Court[]
-  leagues          League[]
-  bookings         Booking[]
+  admins       User[]
+  courts       Court[]
+  bookings     Booking[]
+  // --- MODIFICADO: La relación ahora es con "Competition" ---
+  competitions Competition[]
 }
 
 // --- USER AND AUTHENTICATION MODELS ---
-// Represents a user, who can be an admin or a player
 model User {
-  id               String    @id @default(cuid())
-  name             String?
-  email            String?   @unique
-  password         String?
-  phone            String?
-  emailVerified    DateTime?
-  image            String?
-
-  // --- AÑADIDO ---
-  position         String?   // Posición en la pista (ej: Revés, Derecha, Indiferente)
-  level            String?   // Nivel de juego (ej: 2.5, 3.0, Avanzado)
-  birthDate        DateTime? // Fecha de nacimiento
-
-  // Role and relationship to a club
-  clubId           String?
-  club             Club?     @relation(fields: [clubId], references: [id])
+  id            String    @id @default(cuid())
+  name          String?
+  email         String?   @unique
+  password      String?
+  phone         String?
+  emailVerified DateTime?
+  image         String?
+  position      String?
+  level         String?
+  birthDate     DateTime?
   
-  // Auth relationships
-  accounts         Account[]
-  sessions         Session[]
+  clubId        String?
+  club          Club?     @relation(fields: [clubId], references: [id])
   
-  // Business logic relationships
-  teamsAsPlayer1   Team[]    @relation("Player1OfTeams")
-  teamsAsPlayer2   Team[]    @relation("Player2OfTeams")
-  bookings         Booking[]
+  accounts      Account[]
+  sessions      Session[]
+  
+  teamsAsPlayer1 Team[]    @relation("Player1OfTeams")
+  teamsAsPlayer2 Team[]    @relation("Player2OfTeams")
+  bookings      Booking[]
 }
 
-// NextAuth model for OAuth accounts
+// --- NextAuth Models (Sin Cambios) ---
 model Account {
   id                String  @id @default(cuid())
   userId            String
@@ -77,13 +67,10 @@ model Account {
   scope             String?
   id_token          String? @db.Text
   session_state     String?
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
   @@unique([provider, providerAccountId])
 }
 
-// NextAuth model for sessions
 model Session {
   id           String   @id @default(cuid())
   sessionToken String   @unique
@@ -92,115 +79,114 @@ model Session {
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
-// NextAuth model for verification tokens (e.g., for email sign-in)
 model VerificationToken {
   identifier String
   token      String   @unique
   expires    DateTime
-
   @@unique([identifier, token])
 }
 
-
-// --- BOOKING AND COURTS MODULE ---
-// Represents a physical court in a club
+// --- BOOKING AND COURTS MODULE (Sin Cambios) ---
 model Court {
-  id      String    @id @default(cuid())
-  name    String // e.g., "Court 1", "Center Court"
-  type    String    @default("Indoor") // e.g., "Indoor", "Outdoor"
-  
-  clubId  String
-  club    Club      @relation(fields: [clubId], references: [id], onDelete: Cascade)
-  
+  id       String    @id @default(cuid())
+  name     String
+  type     String    @default("Indoor")
+  clubId   String
+  club     Club      @relation(fields: [clubId], references: [id], onDelete: Cascade)
   bookings Booking[]
 }
 
-// Represents a single booking of a court
 model Booking {
-  id          String    @id @default(cuid())
-  startTime   DateTime
-  endTime     DateTime
-  totalPrice  Float
-  status      String    @default("confirmed") // e.g., "confirmed", "cancelled"
-  
-  courtId     String
-  court       Court     @relation(fields: [courtId], references: [id])
-  
-  // The user who made the booking
-  userId      String?   // User is now optional
-  user        User?     @relation(fields: [userId], references: [id])
-  guestName   String?   // New field for non-member bookings
-  
-  // The club this booking belongs to
-  clubId      String
-  club        Club      @relation(fields: [clubId], references: [id], onDelete: Cascade)
-
-  @@unique([courtId, startTime]) // Prevents double booking
+  id         String   @id @default(cuid())
+  startTime  DateTime
+  endTime    DateTime
+  totalPrice Float
+  status     String   @default("confirmed")
+  courtId    String
+  court      Court    @relation(fields: [courtId], references: [id])
+  userId     String?
+  user       User?    @relation(fields: [userId], references: [id])
+  guestName  String?
+  clubId     String
+  club       Club     @relation(fields: [clubId], references: [id], onDelete: Cascade)
+  @@unique([courtId, startTime])
 }
 
 
-// --- LEAGUES AND COMPETITION MODULE ---
-// Represents a league or tournament within a club
-model League {
-  id          String    @id @default(cuid())
-  name        String
-  inviteCode  String    @unique @default(cuid())
-  
-  clubId      String
-  club        Club      @relation(fields: [clubId], references: [id], onDelete: Cascade)
-  
-  teams       Team[]
-  matches     Match[]
+// --- UNIFIED COMPETITION MODULE ---
+
+// --- AÑADIDO: Enum para definir el formato de la competición ---
+enum CompetitionFormat {
+  LEAGUE             // Todos contra todos (Round Robin)
+  KNOCKOUT           // Eliminación directa
+  GROUP_AND_KNOCKOUT // Fase de grupos y luego eliminatoria
 }
 
-// Represents a pair of players in a league
+// --- MODIFICADO: El modelo "League" ahora es "Competition" ---
+model Competition {
+  id        String   @id @default(cuid())
+  name      String
+  clubId    String
+  club      Club     @relation(fields: [clubId], references: [id], onDelete: Cascade)
+
+  // Campos para gestionar diferentes formatos
+  format    CompetitionFormat @default(LEAGUE)
+  groupSize Int?              // Equipos por grupo (para GROUP_AND_KNOCKOUT)
+  teamsPerGroupToAdvance Int? // Cuántos equipos avanzan por grupo
+
+  teams     Team[]
+  matches   Match[]
+}
+
+// --- MODIFICADO: El modelo "Team" ahora se relaciona con "Competition" ---
 model Team {
-  id          String   @id @default(cuid())
+  id          String @id @default(cuid())
   name        String
-  
-  // Players
   player1Id   String
-  player1     User     @relation("Player1OfTeams", fields: [player1Id], references: [id], onDelete: Cascade)
+  player1     User   @relation("Player1OfTeams", fields: [player1Id], references: [id], onDelete: Cascade)
   player2Id   String
-  player2     User     @relation("Player2OfTeams", fields: [player2Id], references: [id], onDelete: Cascade)
+  player2     User   @relation("Player2OfTeams", fields: [player2Id], references: [id], onDelete: Cascade)
   
-  // League
-  leagueId    String
-  league      League   @relation(fields: [leagueId], references: [id], onDelete: Cascade)
+  // La relación ahora es con "Competition"
+  competitionId String
+  competition Competition @relation(fields: [competitionId], references: [id], onDelete: Cascade)
   
-  // --- DETAILED STATS ---
-  points      Int      @default(0)
-  played      Int      @default(0)
-  won         Int      @default(0)
-  lost        Int      @default(0)
-  setsFor     Int      @default(0) // Sets a favor
-  setsAgainst Int      @default(0) // Sets en contra
-  gamesFor    Int      @default(0) // Juegos a favor
-  gamesAgainst Int   @default(0) // Juegos en contra
+  // Campo para la fase de grupos
+  group       String? // ej: "A", "B", "C"
 
-  // Back-relations to matches
+  // Estadísticas (se mantienen por ahora, útiles para ligas y fases de grupo)
+  points      Int @default(0)
+  played      Int @default(0)
+  won         Int @default(0)
+  lost        Int @default(0)
+  setsFor     Int @default(0)
+  setsAgainst Int @default(0)
+  gamesFor    Int @default(0)
+  gamesAgainst Int @default(0)
+
   matchesAsTeam1 Match[] @relation("MatchesAsTeam1")
   matchesAsTeam2 Match[] @relation("MatchesAsTeam2")
 
-  @@unique([leagueId, player1Id, player2Id])
+  @@unique([competitionId, player1Id, player2Id])
 }
 
-// Represents a single match between two teams
+// El modelo "Match" ahora se relaciona con "Competition" ---
 model Match {
-  id          String   @id @default(cuid())
-  round       Int
-  result      String?  // e.g., "6-4, 6-2"
-  jornada     Int?
-  winnerId    String?  // The ID of the winning Team
-  summaryAI   String?  @db.Text
-  matchDate  DateTime?
+  id        String    @id @default(cuid())
+  result    String?
+  matchDate DateTime?
   
-  // The two teams facing each other
-  team1Id     String
-  team1       Team     @relation("MatchesAsTeam1", fields: [team1Id], references: [id], onDelete:NoAction)
-  team2Id     String
-  team2       Team     @relation("MatchesAsTeam2", fields: [team2Id], references: [id], onDelete:NoAction)
+  // Campos de ronda más genéricos
+  roundNumber Int       // Número de la ronda (1, 2, 3...)
+  roundName   String?   // Nombre descriptivo (ej: "Jornada 1", "Cuartos de Final")
+  winnerId    String?
   
-  leagueId    String
-  league      League   @relation(fields: [leagueId], references: [id], onDelete: Cascade)
+  team1Id   String?
+  team1     Team?      @relation("MatchesAsTeam1", fields: [team1Id], references: [id], onDelete: NoAction)
+  team2Id   String?
+  team2     Team?      @relation("MatchesAsTeam2", fields: [team2Id], references: [id], onDelete: NoAction)
+
+  // La relación ahora es con "Competition"
+  competitionId String
+  competition   Competition @relation(fields: [competitionId], references: [id], onDelete: Cascade)
 }

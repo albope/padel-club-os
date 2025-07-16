@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { User, CompetitionFormat } from '@prisma/client';
-import { PlusCircle, Zap, Loader2, Pencil, Save, Edit, XCircle, Download, Trophy } from 'lucide-react';
+import { PlusCircle, Zap, Loader2, Pencil, Save, Edit, XCircle, Download } from 'lucide-react';
 import html2canvas from 'html2canvas';
 import { useRouter } from 'next/navigation';
 
@@ -15,6 +15,53 @@ import {
 import AddTeamModal from './AddTeamModal';
 import AddResultModal from './AddResultModal';
 import MatchListView from './MatchListView';
+
+// --- AÑADIDO: Componente reutilizable para la tabla de clasificación ---
+const ClassificationTable: React.FC<{ teams: TeamWithPlayers[] }> = ({ teams }) => (
+  <div className="overflow-x-auto">
+    <table className="w-full text-left text-sm whitespace-nowrap">
+      <thead className="text-xs text-gray-400 uppercase bg-gray-700/50">
+        <tr>
+          <th className="px-3 py-3">#</th>
+          <th className="px-4 py-3">Pareja</th>
+          <th className="px-2 py-3 text-center" title="Partidos Jugados">PJ</th>
+          <th className="px-2 py-3 text-center" title="Puntos">PT</th>
+          <th className="px-2 py-3 text-center" title="Partidos Ganados">PG</th>
+          <th className="px-2 py-3 text-center" title="Partidos Perdidos">PP</th>
+          <th className="px-2 py-3 text-center" title="Sets a Favor">SF</th>
+          <th className="px-2 py-3 text-center" title="Sets en Contra">SC</th>
+          <th className="px-2 py-3 text-center" title="Diferencia de Sets">DS</th>
+          <th className="px-2 py-3 text-center" title="Juegos a Favor">JF</th>
+          <th className="px-2 py-3 text-center" title="Juegos en Contra">JG</th>
+          <th className="px-2 py-3 text-center" title="Diferencia de Juegos">DG</th>
+        </tr>
+      </thead>
+      <tbody>
+        {teams.map((team, index) => {
+          const setDiff = team.setsFor - team.setsAgainst;
+          const gameDiff = team.gamesFor - team.gamesAgainst;
+          return (
+            <tr key={team.id} className="border-b border-gray-700 hover:bg-gray-700/50">
+              <td className="px-3 py-3 text-center font-medium">{index + 1}</td>
+              <td className="px-4 py-3 font-medium text-white">{team.name}</td>
+              <td className="px-2 py-3 text-center">{team.played}</td>
+              <td className="px-2 py-3 text-center font-bold text-lg text-indigo-400">{team.points}</td>
+              <td className="px-2 py-3 text-center text-green-400">{team.won}</td>
+              <td className="px-2 py-3 text-center text-red-400">{team.lost}</td>
+              <td className="px-2 py-3 text-center">{team.setsFor}</td>
+              <td className="px-2 py-3 text-center">{team.setsAgainst}</td>
+              <td className={`px-2 py-3 text-center font-semibold ${setDiff >= 0 ? 'text-green-400' : 'text-red-400'}`}>{setDiff > 0 ? `+${setDiff}`: setDiff}</td>
+              <td className="px-2 py-3 text-center">{team.gamesFor}</td>
+              <td className="px-2 py-3 text-center">{team.gamesAgainst}</td>
+              <td className={`px-2 py-3 text-center font-semibold ${gameDiff >= 0 ? 'text-green-400' : 'text-red-400'}`}>{gameDiff > 0 ? `+${gameDiff}`: gameDiff}</td>
+            </tr>
+          );
+        })}
+      </tbody>
+    </table>
+  </div>
+);
+
 
 interface CompetitionDetailClientProps {
   competition: CompetitionWithDetails;
@@ -55,7 +102,6 @@ const CompetitionDetailClient: React.FC<CompetitionDetailClientProps> = ({ compe
     setIsResultModalOpen(true);
   };
 
-  // --- HELPER FUNCTIONS FOR DYNAMIC TEXT ---
   const getButtonText = () => {
     switch (competition.format) {
       case CompetitionFormat.KNOCKOUT: return 'Generar Bracket';
@@ -72,7 +118,6 @@ const CompetitionDetailClient: React.FC<CompetitionDetailClientProps> = ({ compe
     }
   };
 
-  // --- API CALLS ---
   const handleGenerateMatches = async () => {
     const confirmationMessage = `Esto eliminará todos los partidos existentes y generará una nueva ${getConfirmationDetails()}. ¿Continuar?`;
     if (!window.confirm(confirmationMessage)) return;
@@ -186,13 +231,12 @@ const CompetitionDetailClient: React.FC<CompetitionDetailClientProps> = ({ compe
                   <h3 className="text-lg font-semibold text-indigo-400 mb-2 border-b border-gray-700 pb-1">{matches[0]?.roundName || `Jornada ${round}`}</h3>
                   <ul className="divide-y divide-gray-700">
                     {matches.map(match => (
-
                       <li key={match.id} className="py-3 flex flex-wrap justify-between items-center gap-3">
                         <div className="flex-1 min-w-[200px]">
-                          <p className="font-medium text-white">{match.team1?.name ?? '?'} vs {match.team2?.name ?? '?'}</p>
-                          <p className="text-xs text-gray-400 truncate">
-                            ({match.team1?.player1?.name ?? 'S/N'} / {match.team1?.player2?.name ?? 'S/N'}) vs ({match.team2?.player1?.name ?? 'S/N'} / {match.team2?.player2?.name ?? 'S/N'})
-                          </p>
+                            <p className="font-medium text-white">{match.team1?.name ?? '?'} vs {match.team2?.name ?? '?'}</p>
+                            <p className="text-xs text-gray-400 truncate">
+                                ({match.team1?.player1?.name ?? 'S/N'} / {match.team1?.player2?.name ?? 'S/N'}) vs ({match.team2?.player1?.name ?? 'S/N'} / {match.team2?.player2?.name ?? 'S/N'})
+                            </p>
                         </div>
                         <div className="flex items-center gap-2 flex-wrap">
                           <input type="date" value={matchDates[match.id] || ''} onChange={(e) => handleDateChange(match.id, e.target.value)} className="bg-gray-700 text-white rounded-lg px-3 py-1.5 text-sm border-gray-600 focus:ring-indigo-500" />
@@ -216,7 +260,7 @@ const CompetitionDetailClient: React.FC<CompetitionDetailClientProps> = ({ compe
             </div>
           ) : <p className="text-gray-500 text-center py-12">Genera el calendario para ver los partidos.</p>}
         </div>
-        <div id="clasificacion-container" className="bg-gray-800 p-6 rounded-xl shadow-lg">
+        <div id="clasificacion-container" className="bg-gray-800 p-6 rounded-xl shadow-lg mt-8">
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-xl font-semibold text-white">Clasificación</h2>
             <button onClick={() => handleExportAsImage('clasificacion-container', `clasificacion-${competition.name.replace(/\s+/g, '_')}.png`)} disabled={exporting} className="p-2 text-sm font-semibold text-white bg-blue-600 rounded-lg hover:bg-blue-500 disabled:bg-gray-600" title="Descargar Clasificación como imagen">
@@ -224,30 +268,7 @@ const CompetitionDetailClient: React.FC<CompetitionDetailClientProps> = ({ compe
             </button>
           </div>
           {competition.teams.length > 0 ? (
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-sm">
-                <thead className="text-xs text-gray-400 uppercase bg-gray-700/50">
-                  <tr>
-                    <th className="px-4 py-3">Equipo</th>
-                    <th className="px-2 py-3 text-center" title="Partidos Jugados">PJ</th>
-                    <th className="px-2 py-3 text-center" title="Partidos Ganados">PG</th>
-                    <th className="px-2 py-3 text-center" title="Partidos Perdidos">PP</th>
-                    <th className="px-2 py-3 text-center" title="Puntos">Ptos</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {sortedTeams.map(team => (
-                    <tr key={team.id} className="border-b border-gray-700 hover:bg-gray-700/50">
-                      <td className="px-4 py-3 font-medium text-white">{team.name}</td>
-                      <td className="px-2 py-3 text-center">{team.played}</td>
-                      <td className="px-2 py-3 text-center text-green-400">{team.won}</td>
-                      <td className="px-2 py-3 text-center text-red-400">{team.lost}</td>
-                      <td className="px-2 py-3 text-center font-bold text-lg text-indigo-400">{team.points}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+            <ClassificationTable teams={sortedTeams} />
           ) : <p className="text-gray-500 text-center py-12">La clasificación aparecerá aquí.</p>}
         </div>
       </>
@@ -269,30 +290,7 @@ const CompetitionDetailClient: React.FC<CompetitionDetailClientProps> = ({ compe
             <h3 className="text-2xl font-bold text-indigo-400 mb-4">Grupo {groupName}</h3>
             <div className="mb-6">
               <h4 className="text-lg font-semibold text-white mb-2">Clasificación</h4>
-              <div className="overflow-x-auto">
-                <table className="w-full text-left text-sm">
-                  <thead className="text-xs text-gray-400 uppercase bg-gray-700/50">
-                    <tr>
-                      <th className="px-4 py-2">Equipo</th>
-                      <th className="px-2 py-2 text-center">PJ</th>
-                      <th className="px-2 py-2 text-center">PG</th>
-                      <th className="px-2 py-2 text-center">PP</th>
-                      <th className="px-2 py-2 text-center">Ptos</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {teamsInGroup.sort((a, b) => b.points - a.points).map(team => (
-                      <tr key={team.id} className="border-b border-gray-700">
-                        <td className="px-4 py-2 font-medium text-white">{team.name}</td>
-                        <td className="px-2 py-2 text-center">{team.played}</td>
-                        <td className="px-2 py-2 text-center">{team.won}</td>
-                        <td className="px-2 py-2 text-center">{team.lost}</td>
-                        <td className="px-2 py-2 text-center font-bold text-indigo-300">{team.points}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+               <ClassificationTable teams={teamsInGroup.sort((a, b) => b.points - a.points)} />
             </div>
             <div>
               <h4 className="text-lg font-semibold text-white mb-2">Partidos del Grupo</h4>

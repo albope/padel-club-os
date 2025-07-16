@@ -14,7 +14,7 @@ import {
 
 import AddTeamModal from './AddTeamModal';
 import AddResultModal from './AddResultModal';
-import BracketView from './BracketView';
+import MatchListView from './MatchListView';
 
 interface CompetitionDetailClientProps {
   competition: CompetitionWithDetails;
@@ -57,7 +57,7 @@ const CompetitionDetailClient: React.FC<CompetitionDetailClientProps> = ({ compe
 
   // --- HELPER FUNCTIONS FOR DYNAMIC TEXT ---
   const getButtonText = () => {
-    switch(competition.format) {
+    switch (competition.format) {
       case CompetitionFormat.KNOCKOUT: return 'Generar Bracket';
       case CompetitionFormat.GROUP_AND_KNOCKOUT: return 'Generar Fase de Grupos';
       default: return 'Generar Calendario';
@@ -65,7 +65,7 @@ const CompetitionDetailClient: React.FC<CompetitionDetailClientProps> = ({ compe
   };
 
   const getConfirmationDetails = () => {
-    switch(competition.format) {
+    switch (competition.format) {
       case CompetitionFormat.KNOCKOUT: return 'cuadro eliminatorio';
       case CompetitionFormat.GROUP_AND_KNOCKOUT: return 'fase de grupos';
       default: return 'calendario de liga';
@@ -158,7 +158,7 @@ const CompetitionDetailClient: React.FC<CompetitionDetailClientProps> = ({ compe
       acc[round].push(match);
       return acc;
     }, {} as Record<number, MatchWithTeams[]>);
-    
+
     const sortedTeams = [...competition.teams].sort((a, b) => {
       if (b.points !== a.points) return b.points - a.points;
       const setDiffA = a.setsFor - a.setsAgainst;
@@ -250,61 +250,61 @@ const CompetitionDetailClient: React.FC<CompetitionDetailClientProps> = ({ compe
 
   const GroupStageView = () => {
     const groupedTeams = competition.teams.reduce((acc, team) => {
-        const group = team.group || 'Sin Grupo';
-        if (!acc[group]) acc[group] = [];
-        acc[group].push(team);
-        return acc;
+      const group = team.group || 'Sin Grupo';
+      if (!acc[group]) acc[group] = [];
+      acc[group].push(team);
+      return acc;
     }, {} as Record<string, TeamWithPlayers[]>);
 
     return (
-        <div className="space-y-8">
-            {Object.entries(groupedTeams).sort(([a], [b]) => a.localeCompare(b)).map(([groupName, teamsInGroup]) => (
-                <div key={groupName} className="bg-gray-800 p-6 rounded-xl shadow-lg">
-                    <h3 className="text-2xl font-bold text-indigo-400 mb-4">Grupo {groupName}</h3>
-                    <div className="mb-6">
-                        <h4 className="text-lg font-semibold text-white mb-2">Clasificación</h4>
-                        <div className="overflow-x-auto">
-                            <table className="w-full text-left text-sm">
-                                <thead className="text-xs text-gray-400 uppercase bg-gray-700/50">
-                                    <tr>
-                                        <th className="px-4 py-2">Equipo</th>
-                                        <th className="px-2 py-2 text-center">PJ</th>
-                                        <th className="px-2 py-2 text-center">PG</th>
-                                        <th className="px-2 py-2 text-center">PP</th>
-                                        <th className="px-2 py-2 text-center">Ptos</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {teamsInGroup.sort((a,b) => b.points - a.points).map(team => (
-                                        <tr key={team.id} className="border-b border-gray-700">
-                                            <td className="px-4 py-2 font-medium text-white">{team.name}</td>
-                                            <td className="px-2 py-2 text-center">{team.played}</td>
-                                            <td className="px-2 py-2 text-center">{team.won}</td>
-                                            <td className="px-2 py-2 text-center">{team.lost}</td>
-                                            <td className="px-2 py-2 text-center font-bold text-indigo-300">{team.points}</td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                    <div>
-                        <h4 className="text-lg font-semibold text-white mb-2">Partidos del Grupo</h4>
-                        <ul className="divide-y divide-gray-700">
-                            {competition.matches.filter(m => m.roundName?.includes(`Grupo ${groupName}`)).map(match => (
-                                <li key={match.id} className="py-2 flex justify-between items-center">
-                                    <p className="text-gray-300">{match.team1?.name ?? '?'} vs {match.team2?.name ?? '?'}</p>
-                                    <button onClick={() => handleOpenResultModal(match)} className="flex items-center gap-2 px-3 py-1 text-xs text-indigo-300 hover:bg-indigo-500/40 rounded-lg">
-                                        <Edit className="h-3 w-3" />
-                                        <span>{match.result || 'Resultado'}</span>
-                                    </button>
-                                </li>
-                            ))}
-                        </ul>
-                    </div>
-                </div>
-            ))}
-        </div>
+      <div className="space-y-8">
+        {Object.entries(groupedTeams).sort(([a], [b]) => a.localeCompare(b)).map(([groupName, teamsInGroup]) => (
+          <div key={groupName} className="bg-gray-800 p-6 rounded-xl shadow-lg">
+            <h3 className="text-2xl font-bold text-indigo-400 mb-4">Grupo {groupName}</h3>
+            <div className="mb-6">
+              <h4 className="text-lg font-semibold text-white mb-2">Clasificación</h4>
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-sm">
+                  <thead className="text-xs text-gray-400 uppercase bg-gray-700/50">
+                    <tr>
+                      <th className="px-4 py-2">Equipo</th>
+                      <th className="px-2 py-2 text-center">PJ</th>
+                      <th className="px-2 py-2 text-center">PG</th>
+                      <th className="px-2 py-2 text-center">PP</th>
+                      <th className="px-2 py-2 text-center">Ptos</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {teamsInGroup.sort((a, b) => b.points - a.points).map(team => (
+                      <tr key={team.id} className="border-b border-gray-700">
+                        <td className="px-4 py-2 font-medium text-white">{team.name}</td>
+                        <td className="px-2 py-2 text-center">{team.played}</td>
+                        <td className="px-2 py-2 text-center">{team.won}</td>
+                        <td className="px-2 py-2 text-center">{team.lost}</td>
+                        <td className="px-2 py-2 text-center font-bold text-indigo-300">{team.points}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+            <div>
+              <h4 className="text-lg font-semibold text-white mb-2">Partidos del Grupo</h4>
+              <ul className="divide-y divide-gray-700">
+                {competition.matches.filter(m => m.roundName?.includes(`Grupo ${groupName}`)).map(match => (
+                  <li key={match.id} className="py-2 flex justify-between items-center">
+                    <p className="text-gray-300">{match.team1?.name ?? '?'} vs {match.team2?.name ?? '?'}</p>
+                    <button onClick={() => handleOpenResultModal(match)} className="flex items-center gap-2 px-3 py-1 text-xs text-indigo-300 hover:bg-indigo-500/40 rounded-lg">
+                      <Edit className="h-3 w-3" />
+                      <span>{match.result || 'Resultado'}</span>
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        ))}
+      </div>
     );
   };
 
@@ -312,7 +312,7 @@ const CompetitionDetailClient: React.FC<CompetitionDetailClientProps> = ({ compe
     <>
       <AddTeamModal isOpen={isTeamModalOpen} onClose={() => setIsTeamModalOpen(false)} competitionId={competition.id} users={users} teamToEdit={editingTeam} />
       {editingMatch && <AddResultModal isOpen={isResultModalOpen} onClose={() => setIsResultModalOpen(false)} match={editingMatch} />}
-      
+
       <div className="lg:col-span-1 bg-gray-800 p-6 rounded-xl shadow-lg self-start">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-xl font-semibold text-white">Equipos</h2>
@@ -332,20 +332,22 @@ const CompetitionDetailClient: React.FC<CompetitionDetailClientProps> = ({ compe
           </ul>
         ) : <p className="text-gray-500 text-center py-8">Aún no hay equipos.</p>}
         <div className="mt-6 border-t border-gray-700 pt-4">
-            <button onClick={handleGenerateMatches} disabled={isLoading || competition.teams.length < 2} className="w-full flex items-center justify-center gap-2 px-3 py-2 text-sm font-semibold text-white bg-green-600 rounded-lg hover:bg-green-500 disabled:bg-gray-600">
-                {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Zap className="h-4 w-4" />}
-                {isLoading ? 'Generando...' : getButtonText()}
-            </button>
+          <button onClick={handleGenerateMatches} disabled={isLoading || competition.teams.length < 2} className="w-full flex items-center justify-center gap-2 px-3 py-2 text-sm font-semibold text-white bg-green-600 rounded-lg hover:bg-green-500 disabled:bg-gray-600">
+            {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Zap className="h-4 w-4" />}
+            {isLoading ? 'Generando...' : getButtonText()}
+          </button>
         </div>
       </div>
 
       <div className="lg:col-span-2 space-y-8">
         {competition.format === CompetitionFormat.LEAGUE && <LeagueView />}
-        {competition.format === CompetitionFormat.KNOCKOUT && <BracketView matches={competition.matches} onMatchClick={handleOpenResultModal} />}
+        {competition.format === CompetitionFormat.KNOCKOUT &&
+          <MatchListView matches={competition.matches} onMatchClick={handleOpenResultModal} />
+        }
         {competition.format === CompetitionFormat.GROUP_AND_KNOCKOUT && (
-            competition.matches.length > 0 
-                ? <GroupStageView />
-                : <div className="text-center p-8 bg-gray-800 rounded-lg"><p className="text-gray-400">Genera la fase de grupos para ver los partidos y la clasificación.</p></div>
+          competition.matches.length > 0
+            ? <GroupStageView />
+            : <div className="text-center p-8 bg-gray-800 rounded-lg"><p className="text-gray-400">Genera la fase de grupos para ver los partidos y la clasificación.</p></div>
         )}
       </div>
     </>

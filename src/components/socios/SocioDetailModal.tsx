@@ -25,6 +25,11 @@ const SocioDetailModal: React.FC<SocioDetailModalProps> = ({ isOpen, onClose, so
   const reservasActivas = socio.bookings.length;
   const reservasTotales = socio._count.bookings;
   const edad = socio.birthDate ? Math.floor((new Date().getTime() - new Date(socio.birthDate).getTime()) / 3.15576e+10) : null;
+  
+  // --- AÑADIDO: Formateamos la fecha de cumpleaños ---
+  const formattedBirthDate = socio.birthDate 
+    ? `(${(new Date(socio.birthDate).getDate()).toString().padStart(2, '0')}/${(new Date(socio.birthDate).getMonth() + 1).toString().padStart(2, '0')})` 
+    : '';
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
@@ -54,7 +59,14 @@ const SocioDetailModal: React.FC<SocioDetailModalProps> = ({ isOpen, onClose, so
             {socio.phone && <p className="flex items-center gap-3 text-gray-300"><Phone className="h-5 w-5 text-gray-500"/> {socio.phone}</p>}
             {socio.position && <p className="flex items-center gap-3 text-gray-300"><Gamepad2 className="h-5 w-5 text-gray-500"/> {socio.position}</p>}
             {socio.level && <p className="flex items-center gap-3 text-gray-300"><BarChart3 className="h-5 w-5 text-gray-500"/> Nivel: {socio.level}</p>}
-            {edad !== null && <p className="flex items-center gap-3 text-gray-300"><Cake className="h-5 w-5 text-gray-500"/> {edad} años</p>}
+            
+            {/* --- MODIFICADO: Añadimos la fecha de cumpleaños --- */}
+            {edad !== null && (
+              <p className="flex items-center gap-3 text-gray-300">
+                <Cake className="h-5 w-5 text-gray-500"/> {edad} años
+                <span className="text-gray-500 ml-1">{formattedBirthDate}</span>
+              </p>
+            )}
         </div>
 
         {/* --- Estadísticas de Reservas --- */}

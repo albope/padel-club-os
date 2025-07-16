@@ -21,8 +21,9 @@ function updateStats(tx: Prisma.TransactionClient, teamId: string, stats: any, o
   });
 }
 
+// --- CORREGIDO: parseResult ahora usa coma como separador ---
 function parseResult(result: string) {
-    const sets = result.split(' ').map((set: string) => set.split('-').map(s => parseInt(s, 10)));
+    const sets = result.split(',').map((set: string) => set.trim().split('-').map(s => parseInt(s, 10)));
     let team1SetsWon = 0, team2SetsWon = 0, team1GamesWon = 0, team2GamesWon = 0;
     for (const set of sets) {
         if (isNaN(set[0]) || isNaN(set[1])) continue;
@@ -33,6 +34,7 @@ function parseResult(result: string) {
     }
     return { team1SetsWon, team2SetsWon, team1GamesWon, team2GamesWon };
 }
+
 
 // --- PATCH: Actualiza un partido según el formato de la competición ---
 export async function PATCH(
@@ -47,16 +49,17 @@ export async function PATCH(
     const { result: newResult } = body;
     if (!newResult) { return new NextResponse("Se requiere un resultado.", { status: 400 }); }
 
+    // Sanitizamos el resultado para asegurar el formato "6-2,6-4"
+    const sanitizedResult = newResult.replace(/\s/g, '');
+
     const match = await db.match.findUnique({ where: { id: params.matchId } });
     const competition = await db.competition.findUnique({ where: { id: params.competitionId } });
     
     if (!match || !competition) { return new NextResponse("Partido o competición no encontrados.", { status: 404 });}
     if (!match.team1Id || !match.team2Id) { return new NextResponse("Los equipos de este partido no están definidos.", { status: 400 }); }
 
-    // --- Lógica condicional completa ---
     if (competition.format === CompetitionFormat.LEAGUE || competition.format === CompetitionFormat.GROUP_AND_KNOCKOUT) {
-        await db.$transaction(async (tx) => {
-            // 1. Revertir estadísticas antiguas si el partido ya tenía un resultado
+        return await db.$transaction(async (tx) => {
             if (match.result && match.winnerId) {
                 const oldStats = parseResult(match.result);
                 const oldWinnerId = match.winnerId;
@@ -69,8 +72,7 @@ export async function PATCH(
                 await updateStats(tx, oldLoserId, oldLoserStats, 'decrement');
             }
 
-            // 2. Aplicar nuevas estadísticas
-            const newStats = parseResult(newResult);
+            const newStats = parseResult(sanitizedResult);
             const newWinnerId = newStats.team1SetsWon > newStats.team2SetsWon ? match.team1Id! : match.team2Id!;
             const newLoserId = newWinnerId === match.team1Id ? match.team2Id! : match.team1Id!;
             
@@ -80,14 +82,16 @@ export async function PATCH(
             await updateStats(tx, newWinnerId, newWinnerStats, 'increment');
             await updateStats(tx, newLoserId, newLoserStats, 'increment');
 
-            // 3. Actualizar el partido
-            await tx.match.update({ where: { id: params.matchId }, data: { result: newResult, winnerId: newWinnerId } });
+            await tx.match.update({ where: { id: params.matchId }, data: { result: sanitizedResult, winnerId: newWinnerId } });
+            
+            return NextResponse.json({ message: "Resultado guardado y estadísticas actualizadas." });
         });
     } else if (competition.format === CompetitionFormat.KNOCKOUT) {
-        await db.$transaction(async (tx) => {
-            const scores = newResult.split(' ')[0].split('-').map(Number);
-            const winnerId = scores[0] > scores[1] ? match.team1Id! : match.team2Id!;
-            await tx.match.update({ where: { id: params.matchId }, data: { result: newResult, winnerId } });
+        return await db.$transaction(async (tx) => {
+            const newStats = parseResult(sanitizedResult);
+            const winnerId = newStats.team1SetsWon > newStats.team2SetsWon ? match.team1Id! : match.team2Id!;
+            
+            await tx.match.update({ where: { id: params.matchId }, data: { result: sanitizedResult, winnerId } });
             
             const currentRoundMatches = await tx.match.findMany({ where: { competitionId: params.competitionId, roundNumber: match.roundNumber }, orderBy: { id: 'asc' } });
             const isFinal = (await tx.match.count({ where: { competitionId: params.competitionId, roundNumber: match.roundNumber + 1 } })) === 0;
@@ -102,10 +106,11 @@ export async function PATCH(
                     await tx.match.update({ where: { id: nextMatch.id }, data: updateData });
                 }
             }
+            return NextResponse.json({ message: "Resultado guardado y bracket actualizado." });
         });
     }
 
-    return NextResponse.json({ message: "Resultado guardado con éxito." });
+    return new NextResponse("Formato no válido.", { status: 400 });
   } catch (error) {
     console.error("[MATCH_PATCH_ERROR]", error);
     return new NextResponse("Internal Server Error", { status: 500 });

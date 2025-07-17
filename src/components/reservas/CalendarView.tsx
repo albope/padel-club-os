@@ -9,7 +9,6 @@ import type { EventClickArg } from '@fullcalendar/core'; // Corrected import for
 import { Booking, Court, User } from '@prisma/client';
 import BookingModal from './BookingModal';
 
-// --- (CalendarStyles component remains the same) ---
 const CalendarStyles = () => <style>{`
       /* Toolbar Buttons */
       .fc-button-primary { background-color: #4f46e5 !important; border-color: #4f46e5 !important; }
@@ -26,7 +25,11 @@ const CalendarStyles = () => <style>{`
 `}</style>;
 
 // Define the shape of the props
-export type BookingWithDetails = Booking & { user: { name: string | null }; court: { name: string } };
+export type BookingWithDetails = Booking & { 
+    user: { name: string | null } | null; // User puede ser nulo en una reserva provisional
+    court: { name: string } 
+};
+
 interface CalendarViewProps {
   initialBookings: BookingWithDetails[];
   courts: Court[];
@@ -42,22 +45,33 @@ const events = useMemo(() => {
   // Es una buena práctica comprobar que initialBookings no sea nulo.
   if (!initialBookings) return [];
 
-  return initialBookings.map((booking) => {
-    // --- SOLUCIÓN ---: Mueve la definición de la constante aquí DENTRO.
-    const displayName = booking.user?.name || booking.guestName || 'Invitado';
-
-    return {
-      id: booking.id,
-      // Ahora 'displayName' sí existe en este contexto.
-      title: `${booking.court.name} - ${displayName}`,
-      start: new Date(booking.startTime),
-      end: new Date(booking.endTime),
-      backgroundColor: '#3b82f6',
-      borderColor: '#2563eb',
-      extendedProps: booking,
-    };
-  });
-}, [initialBookings]);
+ return initialBookings.map((booking) => {
+      // --- INICIO DE LA MODIFICACIÓN ---
+      if (booking.status === 'provisional') {
+        return {
+          id: booking.id,
+          title: `${booking.court.name} - Partida Abierta`,
+          start: new Date(booking.startTime),
+          end: new Date(booking.endTime),
+          backgroundColor: '#16a34a', // Verde
+          borderColor: '#15803d',
+          extendedProps: booking,
+        };
+      }
+      // Lógica para reservas confirmadas
+      const displayName = booking.user?.name || booking.guestName || 'Invitado';
+      return {
+        id: booking.id,
+        title: `${booking.court.name} - ${displayName}`,
+        start: new Date(booking.startTime),
+        end: new Date(booking.endTime),
+        backgroundColor: '#4f46e5', // Azul índigo
+        borderColor: '#4338ca',
+        extendedProps: booking,
+      };
+      // --- FIN DE LA MODIFICACIÓN ---
+    });
+  }, [initialBookings]);
 
   // Handler for creating a NEW booking
   const handleDateClick = (arg: DateClickArg) => {

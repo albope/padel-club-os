@@ -1,17 +1,13 @@
 'use client';
 
 import React, { useState } from 'react';
-import { User } from 'next-auth'; // Este es el User de la sesión (NextAuth)
-
-// --- AÑADIDO ---: Importamos los tipos de Prisma, usando un alias para User.
+import { User } from 'next-auth';
 import { Booking, Court, type User as PrismaUser } from '@prisma/client'; 
-
 import BookingModal from '@/components/reservas/BookingModal';
 import { PlusCircle, Calendar, Users, BarChart, Trophy, Clock, ArrowRight, ChevronLeft, ChevronRight, Info } from 'lucide-react';
 
-// ... (El código de StatCard y UpcomingBookingItem no cambia) ...
-
 const StatCard = ({ title, value, icon: Icon, color, tooltipText }: { title: string, value: string, icon: React.ElementType, color: string, tooltipText?: string }) => {
+    // ...código del componente sin cambios...
     const colorVariants: { [key: string]: string } = {
         blue: 'border-blue-500 text-blue-400',
         green: 'border-green-500 text-green-400',
@@ -23,8 +19,8 @@ const StatCard = ({ title, value, icon: Icon, color, tooltipText }: { title: str
             <div className="flex items-center justify-between">
                 <div>
                     <div className="flex items-center gap-2">
-                      <p className="text-sm font-medium text-gray-400">{title}</p>
-                      {tooltipText && <Info className="h-4 w-4 text-gray-500" />}
+                        <p className="text-sm font-medium text-gray-400">{title}</p>
+                        {tooltipText && <Info className="h-4 w-4 text-gray-500" />}
                     </div>
                     <p className="text-3xl font-bold text-white">{value}</p>
                 </div>
@@ -39,15 +35,48 @@ const StatCard = ({ title, value, icon: Icon, color, tooltipText }: { title: str
     );
 };
 
-type UpcomingBooking = Booking & {
-  user: { name: string | null } | null;
+// --- MODIFICADO: El tipo ahora refleja exactamente los datos que seleccionamos en la API ---
+type UpcomingBooking = {
+  id: string;
+  startTime: string; // Las fechas se convierten en string al pasar del servidor al cliente
+  endTime: string;
+  status: string;
+  guestName: string | null;
   court: { name: string };
+  user: { name: string | null } | null;
 };
 
+// --- MODIFICADO: El componente ahora diferencia por booking.status ---
 const UpcomingBookingItem = ({ booking }: { booking: UpcomingBooking }) => {
   const startTime = new Date(booking.startTime).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
   const endTime = new Date(booking.endTime).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
   const timeRange = `${startTime} - ${endTime}`;
+
+  // Lógica condicional para mostrar la partida abierta
+  if (booking.status === 'provisional') {
+    return (
+        <li className="flex items-center space-x-4 py-3 border-b border-gray-700 last:border-b-0 group cursor-pointer hover:bg-gray-700/50 -mx-6 px-6 transition-colors">
+            <div className="p-2 bg-gray-700 rounded-full">
+                <Users className="h-5 w-5 text-gray-400" />
+            </div>
+            <div className="flex-1">
+                <p className="text-sm font-semibold text-white">{booking.court.name}</p>
+                <div className="flex items-center gap-2">
+                <p className="text-xs text-gray-400">Partida Abierta</p>
+                <span className="text-xs px-1.5 py-0.5 rounded-full bg-green-500/20 text-green-300">
+                    Abierta
+                </span>
+                </div>
+            </div>
+            <div className="text-right">
+                <p className="text-sm font-medium text-white">{timeRange}</p>
+            </div>
+            <ArrowRight className="h-5 w-5 text-gray-600 group-hover:text-white transition-colors" />
+        </li>
+    );
+  }
+
+  // Lógica original para reservas confirmadas
   const displayName = booking.user?.name || booking.guestName || 'Invitado';
   const userType = booking.user ? 'Socio' : 'Invitado';
 
@@ -60,7 +89,7 @@ const UpcomingBookingItem = ({ booking }: { booking: UpcomingBooking }) => {
         <p className="text-sm font-semibold text-white">{booking.court.name}</p>
         <div className="flex items-center gap-2">
           <p className="text-xs text-gray-400">{displayName}</p>
-          <span className={`text-xs px-1.5 py-0.5 rounded-full ${userType === 'Socio' ? 'bg-green-500/20 text-green-300' : 'bg-yellow-500/20 text-yellow-300'}`}>
+          <span className={`text-xs px-1.5 py-0.5 rounded-full ${userType === 'Socio' ? 'bg-blue-500/20 text-blue-300' : 'bg-yellow-500/20 text-yellow-300'}`}>
             {userType}
           </span>
         </div>
@@ -75,7 +104,7 @@ const UpcomingBookingItem = ({ booking }: { booking: UpcomingBooking }) => {
 
 
 interface DashboardClientProps {
-  user: User; // <-- Este es User de NextAuth, se queda igual.
+  user: User;
   upcomingBookings: UpcomingBooking[];
   stats: {
     bookingsToday: number;
@@ -84,11 +113,9 @@ interface DashboardClientProps {
     occupancyRate: number;
   };
   courts: Court[];
-  // --- MODIFICADO ---: Usamos el alias para el array de usuarios de Prisma.
   users: PrismaUser[];
 }
 
-// --- MODIFICADO ---: Usamos la interfaz actualizada.
 const DashboardClient: React.FC<DashboardClientProps> = ({ user, upcomingBookings, stats, courts, users }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedInfoForModal, setSelectedInfoForModal] = useState<Date | null>(null);
@@ -104,7 +131,7 @@ const DashboardClient: React.FC<DashboardClientProps> = ({ user, upcomingBooking
   };
 
   const [currentPage, setCurrentPage] = useState(1);
-  const bookingsPerPage = 10;
+  const bookingsPerPage = 5; // Reducido para mejor visualización
   const indexOfLastBooking = currentPage * bookingsPerPage;
   const indexOfFirstBooking = indexOfLastBooking - bookingsPerPage;
   const currentBookings = upcomingBookings.slice(indexOfFirstBooking, indexOfLastBooking);
@@ -132,7 +159,6 @@ const DashboardClient: React.FC<DashboardClientProps> = ({ user, upcomingBooking
         </div>
 
         <main>
-          {/* ... El resto del código no cambia ... */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
               <StatCard title="Reservas de Hoy" value={stats.bookingsToday.toString()} icon={Calendar} color="blue" />
               <StatCard title="Socios Activos" value={stats.activeMembers.toString()} icon={Users} color="green" />
@@ -143,7 +169,7 @@ const DashboardClient: React.FC<DashboardClientProps> = ({ user, upcomingBooking
                 color="purple"
                 tooltipText="Porcentaje de horas reservadas sobre el total de horas disponibles hoy."
               />
-              <StatCard title="Ligas Activas" value={stats.activeLeagues.toString()} icon={Trophy} color="yellow" />
+              <StatCard title="Competiciones Activas" value={stats.activeLeagues.toString()} icon={Trophy} color="yellow" />
           </div>
 
           <div className="mt-8 bg-gray-800 rounded-xl shadow-lg">
@@ -187,7 +213,6 @@ const DashboardClient: React.FC<DashboardClientProps> = ({ user, upcomingBooking
         </main>
       </div>
       
-      {/* Esta llamada ahora es correcta porque `users` tiene el tipo PrismaUser[] */}
       <BookingModal
         isOpen={isModalOpen}
         onClose={handleCloseModal}

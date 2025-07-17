@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Court } from '@prisma/client';
-import { PlusCircle, Clock, ChevronDown, Users } from 'lucide-react'; // Añadimos Users
+import { PlusCircle, Clock, ChevronDown, Users, BarChart3 } from 'lucide-react';
 import { BookingWithDetails } from './CalendarView';
 
 interface CourtGridViewProps {
@@ -14,16 +14,15 @@ interface CourtGridViewProps {
 }
 
 const generateTimeSlots = (startHour: number, endHour: number, interval: number): string[] => {
-    // ...función sin cambios...
-    const slots = [];
-    for (let h = startHour; h < endHour; h++) {
-        for (let m = 0; m < 60; m += interval) {
-            const hour = h.toString().padStart(2, '0');
-            const minute = m.toString().padStart(2, '0');
-            slots.push(`${hour}:${minute}`);
-        }
+  const slots = [];
+  for (let h = startHour; h < endHour; h++) {
+    for (let m = 0; m < 60; m += interval) {
+      const hour = h.toString().padStart(2, '0');
+      const minute = m.toString().padStart(2, '0');
+      slots.push(`${hour}:${minute}`);
     }
-    return slots;
+  }
+  return slots;
 };
 
 const CourtGridView: React.FC<CourtGridViewProps> = ({ courts, bookings, selectedDate, onSlotClick, onBookingClick }) => {
@@ -50,11 +49,11 @@ const CourtGridView: React.FC<CourtGridViewProps> = ({ courts, bookings, selecte
       {courts.map(court => {
         const isExpanded = expandedCourts[court.id];
         const courtBookings = bookings.filter(b => {
-            const bookingDate = new Date(b.startTime);
-            return b.courtId === court.id &&
-                   bookingDate.getDate() === selectedDate.getDate() &&
-                   bookingDate.getMonth() === selectedDate.getMonth() &&
-                   bookingDate.getFullYear() === selectedDate.getFullYear();
+          const bookingDate = new Date(b.startTime);
+          return b.courtId === court.id &&
+                 bookingDate.getDate() === selectedDate.getDate() &&
+                 bookingDate.getMonth() === selectedDate.getMonth() &&
+                 bookingDate.getFullYear() === selectedDate.getFullYear();
         });
 
         return (
@@ -73,7 +72,6 @@ const CourtGridView: React.FC<CourtGridViewProps> = ({ courts, bookings, selecte
                   const [hour, minute] = slot.split(':').map(Number);
                   const slotDate = new Date(selectedDate);
                   slotDate.setHours(hour, minute, 0, 0);
-
                   const booking = courtBookings.find(b => new Date(b.startTime).getTime() === slotDate.getTime());
 
                   if (booking) {
@@ -81,14 +79,25 @@ const CourtGridView: React.FC<CourtGridViewProps> = ({ courts, bookings, selecte
                     const endTime = new Date(booking.endTime);
                     const timeRange = `${startTime.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })} - ${endTime.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}`;
                     
-                    // --- INICIO DE LA MODIFICACIÓN ---
                     if (booking.status === 'provisional') {
+                        let levelText = null;
+                        if (booking.openMatch?.levelMin && booking.openMatch?.levelMax) {
+                            levelText = `${booking.openMatch.levelMin} - ${booking.openMatch.levelMax}`;
+                        } else if (booking.openMatch?.levelMin) {
+                            levelText = `Desde ${booking.openMatch.levelMin}`;
+                        } else if (booking.openMatch?.levelMax) {
+                            levelText = `Hasta ${booking.openMatch.levelMax}`;
+                        }
+
                         return (
-                             <div key={slot} onClick={() => onBookingClick(booking)} className="bg-green-600 rounded-lg p-3 text-white cursor-pointer hover:bg-green-500 transition-colors">
+                             <div key={slot} onClick={() => onBookingClick(booking)} className="bg-green-600 rounded-lg p-3 text-white cursor-pointer hover:bg-green-500 transition-colors space-y-1">
                                 <div className="flex items-center gap-2 font-semibold text-sm">
                                     <Users className="h-4 w-4" /> Partida Abierta
                                 </div>
                                 <p className="text-xs text-green-200">{timeRange}</p>
+                                {levelText && (
+                                    <p className="flex items-center gap-1 text-xs text-green-200"><BarChart3 className="h-3 w-3" /> Nivel: {levelText}</p>
+                                )}
                             </div>
                         );
                     }
@@ -100,7 +109,6 @@ const CourtGridView: React.FC<CourtGridViewProps> = ({ courts, bookings, selecte
                         <p className="text-xs text-indigo-200">{timeRange}</p>
                       </div>
                     );
-                    // --- FIN DE LA MODIFICACIÓN ---
                   } else {
                     return (
                       <div key={slot} onClick={() => onSlotClick(slotDate, court.id)} className="bg-gray-700/50 rounded-lg p-3 text-gray-400 flex items-center justify-between cursor-pointer hover:bg-gray-700 transition-colors">

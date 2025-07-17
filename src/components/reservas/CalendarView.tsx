@@ -5,7 +5,7 @@ import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import timeGridPlugin from '@fullcalendar/timegrid';
 import interactionPlugin, { DateClickArg } from '@fullcalendar/interaction';
-import type { EventClickArg } from '@fullcalendar/core'; // Corrected import for the type
+import type { EventClickArg } from '@fullcalendar/core';
 import { Booking, Court, User } from '@prisma/client';
 import BookingModal from './BookingModal';
 
@@ -24,10 +24,11 @@ const CalendarStyles = () => <style>{`
       .fc-event { border: 1px solid rgba(0,0,0,0.3); }
 `}</style>;
 
-// Define the shape of the props
+// --- MODIFICADO: El tipo ahora incluye la relación con OpenMatch, corrigiendo el error ---
 export type BookingWithDetails = Booking & { 
-    user: { name: string | null } | null; // User puede ser nulo en una reserva provisional
-    court: { name: string } 
+    user: { name: string | null } | null;
+    court: { name: string };
+    openMatch: { levelMin: number | null, levelMax: number | null } | null;
 };
 
 interface CalendarViewProps {
@@ -38,19 +39,26 @@ interface CalendarViewProps {
 
 const CalendarView: React.FC<CalendarViewProps> = ({ initialBookings, courts, users }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  // This state will hold either the date for a new booking, or the data of an existing one
   const [selectedInfo, setSelectedInfo] = useState<Date | BookingWithDetails | null>(null);
 
-const events = useMemo(() => {
-  // Es una buena práctica comprobar que initialBookings no sea nulo.
-  if (!initialBookings) return [];
+  const events = useMemo(() => {
+    if (!initialBookings) return [];
 
- return initialBookings.map((booking) => {
-      // --- INICIO DE LA MODIFICACIÓN ---
+    return initialBookings.map((booking) => {
+      // Si la reserva es de una partida abierta, la mostramos diferente
       if (booking.status === 'provisional') {
+        let levelText = '';
+        if (booking.openMatch?.levelMin && booking.openMatch?.levelMax) {
+            levelText = ` (Nivel: ${booking.openMatch.levelMin}-${booking.openMatch.levelMax})`;
+        } else if (booking.openMatch?.levelMin) {
+            levelText = ` (Nivel: ${booking.openMatch.levelMin}+)`;
+        } else if (booking.openMatch?.levelMax) {
+            levelText = ` (Nivel: hasta ${booking.openMatch.levelMax})`;
+        }
+
         return {
           id: booking.id,
-          title: `${booking.court.name} - Partida Abierta`,
+          title: `${booking.court.name} - Partida Abierta${levelText}`,
           start: new Date(booking.startTime),
           end: new Date(booking.endTime),
           backgroundColor: '#16a34a', // Verde
@@ -58,7 +66,8 @@ const events = useMemo(() => {
           extendedProps: booking,
         };
       }
-      // Lógica para reservas confirmadas
+
+      // Lógica para reservas confirmadas normales
       const displayName = booking.user?.name || booking.guestName || 'Invitado';
       return {
         id: booking.id,
@@ -69,19 +78,15 @@ const events = useMemo(() => {
         borderColor: '#4338ca',
         extendedProps: booking,
       };
-      // --- FIN DE LA MODIFICACIÓN ---
     });
   }, [initialBookings]);
 
-  // Handler for creating a NEW booking
   const handleDateClick = (arg: DateClickArg) => {
     setSelectedInfo(arg.date);
     setIsModalOpen(true);
   };
 
-  // Handler for editing an EXISTING booking
   const handleEventClick = (arg: EventClickArg) => {
-    // Retrieve the full booking object from the event
     const bookingData = arg.event.extendedProps as BookingWithDetails;
     setSelectedInfo(bookingData);
     setIsModalOpen(true);

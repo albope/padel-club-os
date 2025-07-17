@@ -25,8 +25,10 @@ model Club {
   admins       User[]
   courts       Court[]
   bookings     Booking[]
-  // --- MODIFICADO: La relación ahora es con "Competition" ---
   competitions Competition[]
+  
+  // --- AÑADIDO: Relación inversa para partidas abiertas ---
+  openMatches  OpenMatch[]
 }
 
 // --- USER AND AUTHENTICATION MODELS ---
@@ -51,9 +53,12 @@ model User {
   teamsAsPlayer1 Team[]    @relation("Player1OfTeams")
   teamsAsPlayer2 Team[]    @relation("Player2OfTeams")
   bookings      Booking[]
+
+  // --- AÑADIDO: Relación inversa para partidas abiertas ---
+  openMatches   OpenMatchPlayer[]
 }
 
-// --- NextAuth Models (Sin Cambios) ---
+// --- NextAuth Models ---
 model Account {
   id                String  @id @default(cuid())
   userId            String
@@ -86,7 +91,7 @@ model VerificationToken {
   @@unique([identifier, token])
 }
 
-// --- BOOKING AND COURTS MODULE (Sin Cambios) ---
+// --- BOOKING AND COURTS MODULE ---
 model Court {
   id       String    @id @default(cuid())
   name     String
@@ -94,6 +99,9 @@ model Court {
   clubId   String
   club     Club      @relation(fields: [clubId], references: [id], onDelete: Cascade)
   bookings Booking[]
+
+  // --- AÑADIDO: Relación inversa para partidas abiertas ---
+  openMatches OpenMatch[]
 }
 
 model Booking {
@@ -101,7 +109,6 @@ model Booking {
   startTime  DateTime
   endTime    DateTime
   totalPrice Float
-  status     String   @default("confirmed")
   courtId    String
   court      Court    @relation(fields: [courtId], references: [id])
   userId     String?
@@ -109,36 +116,33 @@ model Booking {
   guestName  String?
   clubId     String
   club       Club     @relation(fields: [clubId], references: [id], onDelete: Cascade)
+  
+  // --- AÑADIDO: Campos para el sistema de Partidas Abiertas ---
+  status      String     @default("confirmed") // "confirmed" o "provisional"
+  openMatch   OpenMatch? // Relación inversa a OpenMatch
+  
   @@unique([courtId, startTime])
 }
 
-
 // --- UNIFIED COMPETITION MODULE ---
-
-// --- AÑADIDO: Enum para definir el formato de la competición ---
 enum CompetitionFormat {
-  LEAGUE             // Todos contra todos (Round Robin)
-  KNOCKOUT           // Eliminación directa
-  GROUP_AND_KNOCKOUT // Fase de grupos y luego eliminatoria
+  LEAGUE
+  KNOCKOUT
+  GROUP_AND_KNOCKOUT
 }
 
-// --- MODIFICADO: El modelo "League" ahora es "Competition" ---
 model Competition {
   id        String   @id @default(cuid())
   name      String
   clubId    String
   club      Club     @relation(fields: [clubId], references: [id], onDelete: Cascade)
-
-  // Campos para gestionar diferentes formatos
   format    CompetitionFormat @default(LEAGUE)
-  groupSize Int?              // Equipos por grupo (para GROUP_AND_KNOCKOUT)
-  teamsPerGroupToAdvance Int? // Cuántos equipos avanzan por grupo
-
+  groupSize Int?
+  teamsPerGroupToAdvance Int?
   teams     Team[]
   matches   Match[]
 }
 
-// --- MODIFICADO: El modelo "Team" ahora se relaciona con "Competition" ---
 model Team {
   id          String @id @default(cuid())
   name        String
@@ -146,15 +150,9 @@ model Team {
   player1     User   @relation("Player1OfTeams", fields: [player1Id], references: [id], onDelete: Cascade)
   player2Id   String
   player2     User   @relation("Player2OfTeams", fields: [player2Id], references: [id], onDelete: Cascade)
-  
-  // La relación ahora es con "Competition"
   competitionId String
   competition Competition @relation(fields: [competitionId], references: [id], onDelete: Cascade)
-  
-  // Campo para la fase de grupos
-  group       String? // ej: "A", "B", "C"
-
-  // Estadísticas (se mantienen por ahora, útiles para ligas y fases de grupo)
+  group       String?
   points      Int @default(0)
   played      Int @default(0)
   won         Int @default(0)
@@ -163,30 +161,64 @@ model Team {
   setsAgainst Int @default(0)
   gamesFor    Int @default(0)
   gamesAgainst Int @default(0)
-
   matchesAsTeam1 Match[] @relation("MatchesAsTeam1")
   matchesAsTeam2 Match[] @relation("MatchesAsTeam2")
-
   @@unique([competitionId, player1Id, player2Id])
 }
 
-// El modelo "Match" ahora se relaciona con "Competition" ---
 model Match {
   id        String    @id @default(cuid())
   result    String?
   matchDate DateTime?
-  
-  // Campos de ronda más genéricos
-  roundNumber Int       // Número de la ronda (1, 2, 3...)
-  roundName   String?   // Nombre descriptivo (ej: "Jornada 1", "Cuartos de Final")
+  roundNumber Int
+  roundName   String?
   winnerId    String?
-  
   team1Id   String?
   team1     Team?      @relation("MatchesAsTeam1", fields: [team1Id], references: [id], onDelete: NoAction)
   team2Id   String?
   team2     Team?      @relation("MatchesAsTeam2", fields: [team2Id], references: [id], onDelete: NoAction)
-
-  // La relación ahora es con "Competition"
   competitionId String
   competition   Competition @relation(fields: [competitionId], references: [id], onDelete: Cascade)
+}
+
+// --- MÓDULO DE PARTIDAS ABIERTAS (PLAY!) ---
+
+enum OpenMatchStatus {
+  OPEN
+  FULL
+  CONFIRMED
+  CANCELLED
+}
+
+model OpenMatch {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  matchTime DateTime
+  status    OpenMatchStatus @default(OPEN)
+  levelMin  Float?
+  levelMax  Float?
+  
+  clubId    String
+  club      Club     @relation(fields: [clubId], references: [id], onDelete: Cascade)
+  
+  courtId   String
+  court     Court    @relation(fields: [courtId], references: [id])
+  
+  players   OpenMatchPlayer[]
+  
+  // --- CORREGIDO: Relación 1-a-1 con Booking ---
+  booking   Booking? @relation(fields: [bookingId], references: [id])
+  bookingId String?  @unique
+}
+
+model OpenMatchPlayer {
+  openMatchId String
+  openMatch   OpenMatch @relation(fields: [openMatchId], references: [id], onDelete: Cascade)
+  
+  userId      String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt   DateTime  @default(now())
+
+  @@id([openMatchId, userId])
 }

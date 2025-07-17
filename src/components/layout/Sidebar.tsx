@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, Calendar, Trophy, Users, Fence, Settings } from 'lucide-react'; // Eliminamos BarChart que no se usa
+import { LayoutDashboard, Calendar, Trophy, Users, Fence, Settings, CalendarPlus } from 'lucide-react'; // Eliminamos BarChart que no se usa
 import React from 'react';
 
 
@@ -12,6 +12,7 @@ const navItems = [
   { name: 'Pistas', href: '/dashboard/pistas', icon: Fence },
   { name: 'Competiciones', href: '/dashboard/competitions', icon: Trophy }, 
   { name: 'Socios', href: '/dashboard/socios', icon: Users },
+  { name: 'Partidas Abiertas', href: '/dashboard/partidas-abiertas', icon: CalendarPlus },
   { name: 'Ajustes', href: '/dashboard/ajustes', icon: Settings },
 ];
 

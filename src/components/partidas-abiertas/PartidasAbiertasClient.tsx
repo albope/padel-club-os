@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { OpenMatch, Court } from '@prisma/client';
-import { Calendar, Clock, MapPin, Users, ShieldCheck, Hourglass, XCircle, Pencil, Loader2 } from 'lucide-react';
+import { Calendar, Clock, MapPin, Users, ShieldCheck, Hourglass, XCircle, Pencil, BarChart3 } from 'lucide-react';
 import Link from 'next/link';
 
 type MatchWithDetails = OpenMatch & {
@@ -35,6 +35,15 @@ const getStatusInfo = (status: MatchWithDetails['status']) => {
 const PartidaCard: React.FC<{ match: MatchWithDetails; onDelete: (matchId: string) => void; isLoading: boolean; }> = ({ match, onDelete, isLoading }) => {
     const statusInfo = getStatusInfo(match.status);
     const StatusIcon = statusInfo.icon;
+ 
+    let levelText = null;
+    if (match.levelMin && match.levelMax) {
+        levelText = `${match.levelMin} - ${match.levelMax}`;
+    } else if (match.levelMin) {
+        levelText = `Desde ${match.levelMin}`;
+    } else if (match.levelMax) {
+        levelText = `Hasta ${match.levelMax}`;
+    }
     
     return (
         <div className="bg-gray-800 rounded-xl shadow-lg flex flex-col justify-between">
@@ -45,6 +54,9 @@ const PartidaCard: React.FC<{ match: MatchWithDetails; onDelete: (matchId: strin
                             <p className="flex items-center gap-2 font-semibold text-white"><MapPin className="h-4 w-4 text-gray-400"/> {match.court.name}</p>
                             <p className="flex items-center gap-2 text-sm text-gray-400 mt-1"><Calendar className="h-4 w-4"/> {new Date(match.matchTime).toLocaleDateString('es-ES')}</p>
                             <p className="flex items-center gap-2 text-sm text-gray-400"><Clock className="h-4 w-4"/> {new Date(match.matchTime).toLocaleTimeString('es-ES', {hour: '2-digit', minute:'2-digit'})}</p>
+                            {levelText && (
+                               <p className="flex items-center gap-2 text-sm text-gray-400"><BarChart3 className="h-4 w-4"/> Nivel: {levelText}</p>
+                            )}
                         </div>
                         <span className={`flex items-center gap-1.5 text-xs font-semibold px-2 py-1 rounded-full ${statusInfo.color}`}>
                             <StatusIcon className="h-4 w-4" />

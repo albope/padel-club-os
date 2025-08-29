@@ -1,3 +1,4 @@
+// Path: src/app/dashboard/partidas-abiertas/page.tsx
 import React from 'react';
 import { db } from '@/lib/db';
 import { authOptions } from '@/lib/auth';
@@ -12,6 +13,12 @@ const PartidasAbiertasPage = async () => {
   if (!session?.user?.clubId) {
     redirect('/login');
   }
+
+  // --- MODIFICADO: Obtenemos el nombre del club además de las partidas ---
+  const club = await db.club.findUnique({
+    where: { id: session.user.clubId },
+    select: { name: true }
+  });
 
   const openMatches = await db.openMatch.findMany({
     where: { clubId: session.user.clubId },
@@ -42,7 +49,11 @@ const PartidasAbiertasPage = async () => {
         </Link>
       </div>
 
-      <PartidasAbiertasClient initialMatches={JSON.parse(JSON.stringify(openMatches))} />
+      {/* --- MODIFICADO: Pasamos el nombre del club al componente cliente --- */}
+      <PartidasAbiertasClient 
+        initialMatches={JSON.parse(JSON.stringify(openMatches))}
+        clubName={club?.name || 'Nuestro Club'}
+      />
     </div>
   );
 };

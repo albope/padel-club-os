@@ -1,16 +1,19 @@
+
 'use client';
 
 import React, { useMemo } from 'react';
-import { Edit } from 'lucide-react';
+import { Edit, XCircle } from 'lucide-react';
 import { type CompetitionWithDetails, type MatchWithTeams } from '@/types/competition.types';
 import ClassificationTable from './ClassificationTable';
 
 interface GroupStageViewProps {
   competition: CompetitionWithDetails;
   onOpenResultModal: (match: MatchWithTeams) => void;
+  onDeleteResult: (matchId: string) => void;
+  isLoading: boolean;
 }
 
-const GroupStageView: React.FC<GroupStageViewProps> = ({ competition, onOpenResultModal }) => {
+const GroupStageView: React.FC<GroupStageViewProps> = ({ competition, onOpenResultModal, onDeleteResult, isLoading }) => {
   // Usamos useMemo para agrupar los equipos por su grupo.
   // Esto se recalculará solo si la lista de equipos cambia.
   const groupedTeams = useMemo(() => {
@@ -63,10 +66,17 @@ const GroupStageView: React.FC<GroupStageViewProps> = ({ competition, onOpenResu
                                 ({match.team1?.player1?.name ?? 'S/N'} / {match.team1?.player2?.name ?? 'S/N'}) vs ({match.team2?.player1?.name ?? 'S/N'} / {match.team2?.player2?.name ?? 'S/N'})
                             </p>
                         </div>
-                        <button onClick={() => onOpenResultModal(match)} className="flex items-center gap-2 px-3 py-1.5 text-sm text-indigo-300 hover:bg-indigo-500/40 rounded-lg">
-                          <Edit className="h-4 w-4" />
-                          <span>{match.result || 'Resultado'}</span>
-                        </button>
+                        <div className="flex items-center rounded-lg bg-indigo-500/20">
+                          <button onClick={() => onOpenResultModal(match)} className="flex items-center gap-2 px-3 py-1.5 text-sm text-indigo-300 hover:bg-indigo-500/40 rounded-l-lg">
+                            <Edit className="h-4 w-4" />
+                            <span>{match.result || 'Resultado'}</span>
+                          </button>
+                          {match.result && (
+                            <button onClick={() => onDeleteResult(match.id)} title="Eliminar resultado" disabled={isLoading} className="px-2 py-1.5 text-red-400 hover:bg-red-500/40 rounded-r-lg border-l border-indigo-500/50 disabled:opacity-50">
+                              <XCircle className="h-4 w-4" />
+                            </button>
+                          )}
+                        </div>
                       </li>
                   ))}
                 </ul>

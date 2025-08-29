@@ -137,6 +137,7 @@ model Competition {
   clubId    String
   club      Club     @relation(fields: [clubId], references: [id], onDelete: Cascade)
   format    CompetitionFormat @default(LEAGUE)
+  rounds    Int      @default(1)
   groupSize Int?
   teamsPerGroupToAdvance Int?
   teams     Team[]

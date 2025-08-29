@@ -1,3 +1,4 @@
+// Path: prisma/schema.prisma
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
@@ -27,7 +28,6 @@ model Club {
   bookings     Booking[]
   competitions Competition[]
   
-  // --- AÑADIDO: Relación inversa para partidas abiertas ---
   openMatches  OpenMatch[]
 }
 
@@ -53,8 +53,6 @@ model User {
   teamsAsPlayer1 Team[]    @relation("Player1OfTeams")
   teamsAsPlayer2 Team[]    @relation("Player2OfTeams")
   bookings      Booking[]
-
-  // --- AÑADIDO: Relación inversa para partidas abiertas ---
   openMatches   OpenMatchPlayer[]
 }
 
@@ -99,8 +97,6 @@ model Court {
   clubId   String
   club     Club      @relation(fields: [clubId], references: [id], onDelete: Cascade)
   bookings Booking[]
-
-  // --- AÑADIDO: Relación inversa para partidas abiertas ---
   openMatches OpenMatch[]
 }
 
@@ -117,9 +113,8 @@ model Booking {
   clubId     String
   club       Club     @relation(fields: [clubId], references: [id], onDelete: Cascade)
   
-  // --- AÑADIDO: Campos para el sistema de Partidas Abiertas ---
-  status      String     @default("confirmed") // "confirmed" o "provisional"
-  openMatch   OpenMatch? // Relación inversa a OpenMatch
+  status      String     @default("confirmed")
+  openMatch   OpenMatch?
   
   @@unique([courtId, startTime])
 }
@@ -131,6 +126,12 @@ enum CompetitionFormat {
   GROUP_AND_KNOCKOUT
 }
 
+// --- AÑADIR ESTE ENUM ---
+enum CompetitionStatus {
+  ACTIVE
+  FINISHED
+}
+
 model Competition {
   id        String   @id @default(cuid())
   name      String
@@ -138,6 +139,7 @@ model Competition {
   club      Club     @relation(fields: [clubId], references: [id], onDelete: Cascade)
   format    CompetitionFormat @default(LEAGUE)
   rounds    Int      @default(1)
+  status    CompetitionStatus @default(ACTIVE) // <-- AÑADIR ESTA LÍNEA
   groupSize Int?
   teamsPerGroupToAdvance Int?
   teams     Team[]
@@ -207,7 +209,6 @@ model OpenMatch {
   
   players   OpenMatchPlayer[]
   
-  // --- CORREGIDO: Relación 1-a-1 con Booking ---
   booking   Booking? @relation(fields: [bookingId], references: [id])
   bookingId String?  @unique
 }

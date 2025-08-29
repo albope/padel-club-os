@@ -1,3 +1,4 @@
+// Path: src/types/competition.types.ts
 import type { Competition, Team, Match, User } from '@prisma/client';
 
 // Tipo para un equipo que incluye los nombres de sus jugadores
@@ -8,8 +9,8 @@ export type TeamWithPlayers = Team & {
 
 // Tipo para un partido que incluye los equipos con sus jugadores
 export type MatchWithTeams = Match & {
-  team1: TeamWithPlayers;
-  team2: TeamWithPlayers;
+  team1: TeamWithPlayers | null; // <-- Permite nulos para brackets
+  team2: TeamWithPlayers | null; // <-- Permite nulos para brackets
 };
 
 // Tipo para una competición que incluye todos sus detalles anidados

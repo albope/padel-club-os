@@ -1,21 +1,16 @@
+// Path: src/components/competitions/CompetitionDetailClient.tsx
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { type CompetitionWithDetails, type MatchWithTeams, type TeamWithPlayers } from '@/types/competition.types';
 import { User, CompetitionFormat } from '@prisma/client';
 import { PlusCircle, Zap, Loader2, Pencil } from 'lucide-react';
 import html2canvas from 'html2canvas';
-import { useRouter } from 'next/navigation';
 
-// Tipos y Modales
-import {
-  type CompetitionWithDetails,
-  type TeamWithPlayers,
-  type MatchWithTeams,
-} from '@/types/competition.types';
+// Modales y Vistas
 import AddTeamModal from './AddTeamModal';
 import AddResultModal from './AddResultModal';
-
-// Vistas Refactorizadas
 import LeagueView from './views/LeagueView';
 import GroupStageView from './views/GroupStageView';
 import MatchListView from './MatchListView';
@@ -26,8 +21,9 @@ interface CompetitionDetailClientProps {
   users: User[];
 }
 
-const CompetitionDetailClient: React.FC<CompetitionDetailClientProps> = ({ competition, users }) => {
+const CompetitionDetailClient: React.FC<CompetitionDetailClientProps> = ({ competition: initialCompetition, users }) => {
   const router = useRouter();
+  const [competition, setCompetition] = useState(initialCompetition);
   
   // --- GESTIÓN DE ESTADO CENTRALIZADA ---
   const [isTeamModalOpen, setIsTeamModalOpen] = useState(false);
@@ -38,16 +34,18 @@ const CompetitionDetailClient: React.FC<CompetitionDetailClientProps> = ({ compe
   const [editingMatch, setEditingMatch] = useState<MatchWithTeams | null>(null);
   const [matchDates, setMatchDates] = useState<{ [matchId: string]: string }>({});
 
-  // --- LÓGICA Y HANDLERS COMPLETOS ---
+  // --- SOLUCIÓN: Sincronizar estado con las props cuando se refrescan ---
   useEffect(() => {
+    setCompetition(initialCompetition);
     const initialDates: { [matchId: string]: string } = {};
-    competition.matches.forEach(match => {
+    initialCompetition.matches.forEach(match => {
       if (match.matchDate) {
         initialDates[match.id] = new Date(match.matchDate).toISOString().split('T')[0];
       }
     });
     setMatchDates(initialDates);
-  }, [competition.matches]);
+  }, [initialCompetition]);
+
 
   const handleDateChange = (matchId: string, date: string) => {
     setMatchDates(prev => ({ ...prev, [matchId]: date }));
@@ -84,7 +82,7 @@ const CompetitionDetailClient: React.FC<CompetitionDetailClientProps> = ({ compe
       }
       router.refresh();
     } catch (error: any) {
-      alert(`Error al generar los partidos: ${error.message}`);
+      console.error(`Error al generar los partidos: ${error.message}`);
     } finally {
       setIsLoading(false);
     }
@@ -94,29 +92,31 @@ const CompetitionDetailClient: React.FC<CompetitionDetailClientProps> = ({ compe
     setIsLoading(true);
     const matchesToUpdate = Object.entries(matchDates).map(([id, matchDate]) => ({ id, matchDate }));
     try {
-      // NOTA: La API para esto no está implementada en el contexto original, pero la lógica del cliente está aquí.
-      // Deberías tener un endpoint como `/api/competitions/${competition.id}/matches` que acepte un PATCH.
-      alert("Lógica para guardar fechas pendiente de implementación en API.");
+      // TODO: Implementar API para guardar fechas
+      console.log("Guardando fechas...", matchesToUpdate);
     } catch (error) {
-      alert("Error al guardar las fechas.");
+      console.error("Error al guardar las fechas.");
     } finally {
       setIsLoading(false);
     }
   };
 
   const handleDeleteResult = async (matchId: string) => {
-    if (!confirm("¿Estás seguro de que quieres eliminar este resultado?")) return;
+    if (!window.confirm("¿Estás seguro de que quieres eliminar este resultado?")) return;
     setIsLoading(true);
     try {
-      const response = await fetch(`/api/competitions/${competition.id}/matches/${matchId}`, { method: 'DELETE' });
+      const response = await fetch(`/api/competitions/${competition.id}/matches/${matchId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ result: null }), // Enviar null para eliminar
+      });
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.message || "No se pudo eliminar el resultado.");
       }
-      alert("Resultado eliminado con éxito.");
       router.refresh();
     } catch (error: any) {
-      alert(`Error al eliminar el resultado: ${error.message}`);
+      console.error(`Error al eliminar el resultado: ${error.message}`);
     } finally {
       setIsLoading(false);
     }
@@ -136,9 +136,52 @@ const CompetitionDetailClient: React.FC<CompetitionDetailClientProps> = ({ compe
       link.click();
       document.body.removeChild(link);
     } catch (error) {
-      alert("Hubo un error al generar la imagen.");
+      console.error("Hubo un error al generar la imagen.");
     } finally {
       setExporting(false);
+    }
+  };
+
+  // --- LÓGICA DE RENDERIZADO MEJORADA Y MÁS LEGIBLE ---
+  const renderCompetitionView = () => {
+    switch (competition.format) {
+      case CompetitionFormat.LEAGUE:
+        return (
+          <LeagueView 
+            teams={competition.teams}
+            matches={competition.matches}
+            matchDates={matchDates}
+            isLoading={isLoading}
+            exporting={exporting}
+            onDateChange={handleDateChange}
+            onUpdateDates={handleUpdateMatchDates}
+            onOpenResultModal={handleOpenResultModal}
+            onDeleteResult={handleDeleteResult}
+            onExportImage={handleExportAsImage}
+          />
+        );
+      case CompetitionFormat.KNOCKOUT:
+        return <MatchListView matches={competition.matches} onMatchClick={handleOpenResultModal} />;
+      
+      case CompetitionFormat.GROUP_AND_KNOCKOUT:
+        if (competition.matches.length > 0) {
+          return (
+            <GroupStageView 
+              competition={competition} 
+              onOpenResultModal={handleOpenResultModal} 
+              onDeleteResult={handleDeleteResult} 
+              isLoading={isLoading} 
+            />
+          );
+        }
+        return (
+          <div className="text-center p-8 bg-gray-800 rounded-lg">
+            <p className="text-gray-400">Genera la fase de grupos para ver los partidos y la clasificación.</p>
+          </div>
+        );
+
+      default:
+        return null; // O un mensaje por defecto
     }
   };
 
@@ -174,28 +217,7 @@ const CompetitionDetailClient: React.FC<CompetitionDetailClientProps> = ({ compe
       </div>
 
       <div className="lg:col-span-2 space-y-8">
-        {competition.format === CompetitionFormat.LEAGUE && 
-          <LeagueView 
-            teams={competition.teams}
-            matches={competition.matches}
-            matchDates={matchDates}
-            isLoading={isLoading}
-            exporting={exporting}
-            onDateChange={handleDateChange}
-            onUpdateDates={handleUpdateMatchDates}
-            onOpenResultModal={handleOpenResultModal}
-            onDeleteResult={handleDeleteResult}
-            onExportImage={handleExportAsImage}
-          />
-        }
-        {competition.format === CompetitionFormat.KNOCKOUT &&
-          <MatchListView matches={competition.matches} onMatchClick={handleOpenResultModal} />
-        }
-        {competition.format === CompetitionFormat.GROUP_AND_KNOCKOUT && (
-          competition.matches.length > 0
-            ? <GroupStageView competition={competition} onOpenResultModal={handleOpenResultModal} />
-            : <div className="text-center p-8 bg-gray-800 rounded-lg"><p className="text-gray-400">Genera la fase de grupos para ver los partidos y la clasificación.</p></div>
-        )}
+        {renderCompetitionView()}
       </div>
     </>
   );

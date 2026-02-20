@@ -315,14 +315,10 @@ const AuthForm: React.FC<AuthFormProps> = ({ isRegister = false }) => {
             className={cn(
               'relative w-full h-10 rounded-lg text-sm font-semibold',
               'text-white overflow-hidden',
-              'transition-all duration-200',
               'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
               'disabled:opacity-55 disabled:pointer-events-none',
-              'hover:scale-[1.015] active:scale-[0.985]',
-              'shadow-sm hover:shadow-md',
-              !isLoading && 'auth-shimmer-btn'
+              'auth-solid-btn'
             )}
-            style={isLoading ? { backgroundColor: 'hsl(var(--primary))' } : undefined}
           >
             <span className="relative flex items-center justify-center gap-2">
               {isLoading ? (

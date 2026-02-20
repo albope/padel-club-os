@@ -10,8 +10,8 @@
     --card-foreground: 222.2 84% 4.9%;
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
-    --primary: 243 75% 59%;
-    --primary-foreground: 210 40% 98%;
+    --primary: 217 91% 60%;
+    --primary-foreground: 0 0% 100%;
     --secondary: 210 40% 96.1%;
     --secondary-foreground: 222.2 47.4% 11.2%;
     --muted: 210 40% 96.1%;
@@ -22,16 +22,16 @@
     --destructive-foreground: 210 40% 98%;
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
-    --ring: 243 75% 59%;
+    --ring: 217 91% 60%;
     --radius: 0.5rem;
     --sidebar-background: 0 0% 98%;
     --sidebar-foreground: 240 5.3% 26.1%;
-    --sidebar-primary: 243 75% 59%;
-    --sidebar-primary-foreground: 0 0% 98%;
+    --sidebar-primary: 217 91% 60%;
+    --sidebar-primary-foreground: 0 0% 100%;
     --sidebar-accent: 240 4.8% 95.9%;
     --sidebar-accent-foreground: 240 5.9% 10%;
     --sidebar-border: 220 13% 91%;
-    --sidebar-ring: 243 75% 59%;
+    --sidebar-ring: 217 91% 60%;
   }
 
   .dark {
@@ -41,8 +41,8 @@
     --card-foreground: 210 40% 98%;
     --popover: 222.2 84% 4.9%;
     --popover-foreground: 210 40% 98%;
-    --primary: 243 75% 59%;
-    --primary-foreground: 210 40% 98%;
+    --primary: 217 91% 60%;
+    --primary-foreground: 0 0% 100%;
     --secondary: 217.2 32.6% 17.5%;
     --secondary-foreground: 210 40% 98%;
     --muted: 217.2 32.6% 17.5%;
@@ -53,15 +53,15 @@
     --destructive-foreground: 210 40% 98%;
     --border: 217.2 32.6% 17.5%;
     --input: 217.2 32.6% 17.5%;
-    --ring: 243 75% 59%;
+    --ring: 217 91% 60%;
     --sidebar-background: 222.2 84% 4.9%;
     --sidebar-foreground: 210 40% 98%;
-    --sidebar-primary: 243 75% 59%;
-    --sidebar-primary-foreground: 0 0% 98%;
+    --sidebar-primary: 217 91% 60%;
+    --sidebar-primary-foreground: 0 0% 100%;
     --sidebar-accent: 217.2 32.6% 17.5%;
     --sidebar-accent-foreground: 210 40% 98%;
     --sidebar-border: 217.2 32.6% 17.5%;
-    --sidebar-ring: 243 75% 59%;
+    --sidebar-ring: 217 91% 60%;
   }
 }
 
@@ -86,24 +86,19 @@
 
 @keyframes auth-float-1 {
   0%, 100% { transform: translateY(0px) translateX(0px); }
-  40%       { transform: translateY(-20px) translateX(8px); }
-  70%       { transform: translateY(10px) translateX(-5px); }
+  40%       { transform: translateY(-16px) translateX(6px); }
+  70%       { transform: translateY(8px) translateX(-4px); }
 }
 
 @keyframes auth-float-2 {
   0%, 100% { transform: translateY(0px) translateX(0px); }
-  35%       { transform: translateY(16px) translateX(-10px); }
-  70%       { transform: translateY(-10px) translateX(8px); }
+  35%       { transform: translateY(12px) translateX(-8px); }
+  70%       { transform: translateY(-8px) translateX(6px); }
 }
 
 @keyframes auth-float-3 {
   0%, 100% { transform: translateY(0px) scale(1); }
-  50%       { transform: translateY(-14px) scale(1.05); }
-}
-
-@keyframes auth-shimmer {
-  0%   { background-position: -200% center; }
-  100% { background-position: 200% center; }
+  50%       { transform: translateY(-10px) scale(1.03); }
 }
 
 @keyframes auth-fade-up {
@@ -127,27 +122,38 @@
 }
 
 @keyframes auth-glow-pulse {
-  0%, 100% { opacity: 0.4; }
-  50%       { opacity: 0.7; }
+  0%, 100% { opacity: 0.5; }
+  50%       { opacity: 0.75; }
 }
 
 /* Clases de animacion */
 .auth-gradient-bg {
   background: linear-gradient(
     135deg,
-    hsl(243, 80%, 22%) 0%,
-    hsl(255, 85%, 30%) 25%,
-    hsl(225, 80%, 25%) 50%,
-    hsl(265, 75%, 28%) 75%,
-    hsl(243, 80%, 22%) 100%
+    hsl(210, 80%, 94%) 0%,
+    hsl(200, 85%, 90%) 25%,
+    hsl(215, 75%, 92%) 50%,
+    hsl(195, 80%, 88%) 75%,
+    hsl(210, 80%, 94%) 100%
   );
   background-size: 300% 300%;
-  animation: auth-gradient-shift 18s ease infinite;
+  animation: auth-gradient-shift 22s ease infinite;
 }
 
-.auth-float-1 { animation: auth-float-1 8s ease-in-out infinite; }
-.auth-float-2 { animation: auth-float-2 11s ease-in-out infinite; }
-.auth-float-3 { animation: auth-float-3 6s ease-in-out infinite; }
+.dark .auth-gradient-bg {
+  background: linear-gradient(
+    135deg,
+    hsl(217, 50%, 14%) 0%,
+    hsl(205, 55%, 18%) 25%,
+    hsl(220, 48%, 12%) 50%,
+    hsl(200, 52%, 16%) 75%,
+    hsl(217, 50%, 14%) 100%
+  );
+}
+
+.auth-float-1 { animation: auth-float-1 10s ease-in-out infinite; }
+.auth-float-2 { animation: auth-float-2 14s ease-in-out infinite; }
+.auth-float-3 { animation: auth-float-3 8s ease-in-out infinite; }
 
 .auth-fade-up-1 { animation: auth-fade-up 0.5s cubic-bezier(0.25, 0.1, 0.25, 1) 0.05s both; }
 .auth-fade-up-2 { animation: auth-fade-up 0.5s cubic-bezier(0.25, 0.1, 0.25, 1) 0.12s both; }
@@ -159,22 +165,20 @@
 .auth-slide-right { animation: auth-slide-right 0.45s cubic-bezier(0.25, 0.1, 0.25, 1) 0.1s both; }
 .auth-scale-in  { animation: auth-scale-in 0.4s cubic-bezier(0.25, 0.1, 0.25, 1) both; }
 
-.auth-shimmer-btn {
-  background: linear-gradient(
-    90deg,
-    hsl(var(--primary)) 0%,
-    hsl(255, 80%, 68%) 30%,
-    hsl(230, 85%, 72%) 50%,
-    hsl(255, 80%, 68%) 70%,
-    hsl(var(--primary)) 100%
-  );
-  background-size: 200% auto;
-  animation: auth-shimmer 3.5s linear infinite;
+/* Boton solido — sin shimmer */
+.auth-solid-btn {
+  background-color: hsl(var(--primary));
+  transition: background-color 0.18s ease, box-shadow 0.18s ease, transform 0.12s ease;
 }
 
-.auth-shimmer-btn:hover {
-  animation: auth-shimmer 1.8s linear infinite;
-  filter: brightness(1.08);
+.auth-solid-btn:hover:not(:disabled) {
+  background-color: hsl(217 91% 53%);
+  box-shadow: 0 4px 14px hsl(217 91% 60% / 0.35);
+}
+
+.auth-solid-btn:active:not(:disabled) {
+  transform: scale(0.985);
+  box-shadow: 0 2px 6px hsl(217 91% 60% / 0.25);
 }
 
 .auth-input-glow:focus-within {
@@ -208,17 +212,17 @@
 
 .auth-orb {
   border-radius: 50%;
-  filter: blur(70px);
+  filter: blur(72px);
   position: absolute;
   pointer-events: none;
-  animation: auth-glow-pulse 6s ease-in-out infinite;
+  animation: auth-glow-pulse 8s ease-in-out infinite;
 }
 
 /* Patron de puntos para el fondo del panel de formulario */
 .auth-dot-pattern {
   background-image: radial-gradient(
     circle,
-    hsl(var(--primary) / 0.15) 1px,
+    hsl(var(--primary) / 0.10) 1px,
     transparent 1px
   );
   background-size: 24px 24px;

@@ -7,8 +7,12 @@ import * as z from 'zod';
 import { useRouter } from 'next/navigation';
 import { Loader2 } from 'lucide-react';
 import { Club } from '@prisma/client';
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Button } from '@/components/ui/button';
+import { toast } from '@/hooks/use-toast';
 
-// Validation schema for the settings form
 const SettingsSchema = z.object({
   name: z.string().min(3, "El nombre del club es requerido."),
   openingTime: z.string(),
@@ -22,8 +26,6 @@ interface SettingsFormProps {
 const SettingsForm: React.FC<SettingsFormProps> = ({ club }) => {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState<string | null>(null);
 
   const form = useForm<z.infer<typeof SettingsSchema>>({
     resolver: zodResolver(SettingsSchema),
@@ -36,8 +38,6 @@ const SettingsForm: React.FC<SettingsFormProps> = ({ club }) => {
 
   const onSubmit = async (values: z.infer<typeof SettingsSchema>) => {
     setIsLoading(true);
-    setError(null);
-    setSuccess(null);
 
     try {
       const response = await fetch('/api/club', {
@@ -49,45 +49,50 @@ const SettingsForm: React.FC<SettingsFormProps> = ({ club }) => {
       if (!response.ok) {
         throw new Error('No se pudieron guardar los ajustes.');
       }
-      
-      setSuccess("Ajustes guardados con éxito.");
-      router.refresh();
 
+      toast({ title: "Ajustes guardados", description: "Los ajustes se han guardado con éxito." });
+      router.refresh();
     } catch (err: any) {
-      setError(err.message);
+      toast({ title: "Error", description: err.message, variant: "destructive" });
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 max-w-lg">
-      <div>
-        <label htmlFor="name" className="block text-sm font-medium text-gray-300">Nombre del Club</label>
-        <input id="name" {...form.register('name')} className="mt-1 block w-full bg-gray-700 text-white rounded-md p-3" />
-      </div>
+    <Card className="max-w-lg">
+      <CardHeader>
+        <CardTitle>Ajustes del Club</CardTitle>
+      </CardHeader>
+      <form onSubmit={form.handleSubmit(onSubmit)}>
+        <CardContent className="space-y-6">
+          <div className="space-y-2">
+            <Label htmlFor="name">Nombre del Club</Label>
+            <Input id="name" {...form.register('name')} />
+            {form.formState.errors.name && (
+              <p className="text-sm text-destructive">{form.formState.errors.name.message}</p>
+            )}
+          </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-        <div>
-          <label htmlFor="openingTime" className="block text-sm font-medium text-gray-300">Hora de Apertura</label>
-          <input id="openingTime" type="time" {...form.register('openingTime')} className="mt-1 block w-full bg-gray-700 text-white rounded-md p-3" />
-        </div>
-        <div>
-          <label htmlFor="closingTime" className="block text-sm font-medium text-gray-300">Hora de Cierre</label>
-          <input id="closingTime" type="time" {...form.register('closingTime')} className="mt-1 block w-full bg-gray-700 text-white rounded-md p-3" />
-        </div>
-      </div>
-
-      {error && <p className="text-sm text-red-400">{error}</p>}
-      {success && <p className="text-sm text-green-400">{success}</p>}
-
-      <div className="flex justify-end pt-4">
-        <button type="submit" disabled={isLoading} className="flex items-center justify-center px-6 py-3 font-semibold text-white bg-indigo-600 rounded-lg hover:bg-indigo-500 disabled:bg-gray-500">
-          {isLoading && <Loader2 className="mr-2 h-5 w-5 animate-spin" />}
-          Guardar Ajustes
-        </button>
-      </div>
-    </form>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            <div className="space-y-2">
+              <Label htmlFor="openingTime">Hora de Apertura</Label>
+              <Input id="openingTime" type="time" {...form.register('openingTime')} />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="closingTime">Hora de Cierre</Label>
+              <Input id="closingTime" type="time" {...form.register('closingTime')} />
+            </div>
+          </div>
+        </CardContent>
+        <CardFooter className="flex justify-end">
+          <Button type="submit" disabled={isLoading}>
+            {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            Guardar Ajustes
+          </Button>
+        </CardFooter>
+      </form>
+    </Card>
   );
 };
 

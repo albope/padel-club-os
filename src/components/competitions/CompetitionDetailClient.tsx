@@ -1,4 +1,3 @@
-// Path: src/components/competitions/CompetitionDetailClient.tsx
 'use client';
 
 import React, { useState, useEffect } from 'react';
@@ -8,13 +7,17 @@ import { User, CompetitionStatus, CompetitionFormat } from '@prisma/client';
 import { PlusCircle, Zap, Loader2, Pencil, Trash2, CheckCircle } from 'lucide-react';
 import html2canvas from 'html2canvas';
 
-// Modales y Vistas
 import AddTeamModal from './AddTeamModal';
 import AddResultModal from './AddResultModal';
 import LeagueView from './views/LeagueView';
 import GroupStageView from './views/GroupStageView';
 import MatchListView from './MatchListView';
 
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Separator } from '@/components/ui/separator';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
+import { toast } from '@/hooks/use-toast';
 
 interface CompetitionDetailClientProps {
   competition: CompetitionWithDetails;
@@ -24,7 +27,7 @@ interface CompetitionDetailClientProps {
 const CompetitionDetailClient: React.FC<CompetitionDetailClientProps> = ({ competition: initialCompetition, users }) => {
   const router = useRouter();
   const [competition, setCompetition] = useState(initialCompetition);
-  
+
   const [isTeamModalOpen, setIsTeamModalOpen] = useState(false);
   const [isResultModalOpen, setIsResultModalOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -32,6 +35,13 @@ const CompetitionDetailClient: React.FC<CompetitionDetailClientProps> = ({ compe
   const [editingTeam, setEditingTeam] = useState<TeamWithPlayers | null>(null);
   const [editingMatch, setEditingMatch] = useState<MatchWithTeams | null>(null);
   const [matchDates, setMatchDates] = useState<{ [matchId: string]: string }>({});
+  const [confirmDialog, setConfirmDialog] = useState<{
+    open: boolean;
+    title: string;
+    description: string;
+    destructive: boolean;
+    action: () => Promise<void>;
+  }>({ open: false, title: '', description: '', destructive: false, action: async () => {} });
 
   useEffect(() => {
     setCompetition(initialCompetition);
@@ -57,7 +67,7 @@ const CompetitionDetailClient: React.FC<CompetitionDetailClientProps> = ({ compe
     setEditingMatch(match);
     setIsResultModalOpen(true);
   };
-  
+
   const getButtonText = () => {
     switch (competition.format) {
       case CompetitionFormat.KNOCKOUT: return 'Generar Bracket';
@@ -66,57 +76,97 @@ const CompetitionDetailClient: React.FC<CompetitionDetailClientProps> = ({ compe
     }
   };
 
-  const handleGenerateMatches = async () => {
-    if (!window.confirm("¿Seguro? Se borrarán los partidos existentes y se resetearán las estadísticas.")) return;
-    setIsLoading(true);
-    try {
-      await fetch(`/api/competitions/${competition.id}/generate-matches`, { method: 'POST' });
-      router.refresh();
-    } catch (error) { console.error(error); } finally { setIsLoading(false); }
+  const showConfirm = (title: string, description: string, action: () => Promise<void>, destructive = false) => {
+    setConfirmDialog({ open: true, title, description, destructive, action });
   };
-  
+
+  const handleGenerateMatches = async () => {
+    showConfirm(
+      'Generar partidos',
+      '¿Seguro? Se borrarán los partidos existentes y se resetearán las estadísticas.',
+      async () => {
+        setIsLoading(true);
+        try {
+          await fetch(`/api/competitions/${competition.id}/generate-matches`, { method: 'POST' });
+          toast({ title: "Partidos generados", description: "Los partidos se han generado correctamente." });
+          router.refresh();
+        } catch (error) {
+          console.error(error);
+          toast({ title: "Error", description: "Error al generar los partidos.", variant: "destructive" });
+        } finally { setIsLoading(false); }
+      }
+    );
+  };
+
   const handleUpdateMatchDates = async () => { /* ... */ };
 
   const handleDeleteResult = async (matchId: string) => {
-    if (!window.confirm("¿Seguro que quieres eliminar este resultado?")) return;
-    setIsLoading(true);
-    try {
-      await fetch(`/api/competitions/${competition.id}/matches/${matchId}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ result: null }),
-      });
-      router.refresh();
-    } catch (error) { console.error(error); } finally { setIsLoading(false); }
+    showConfirm(
+      'Eliminar resultado',
+      '¿Seguro que quieres eliminar este resultado?',
+      async () => {
+        setIsLoading(true);
+        try {
+          await fetch(`/api/competitions/${competition.id}/matches/${matchId}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ result: null }),
+          });
+          toast({ title: "Resultado eliminado", description: "El resultado ha sido eliminado." });
+          router.refresh();
+        } catch (error) {
+          console.error(error);
+          toast({ title: "Error", description: "Error al eliminar el resultado.", variant: "destructive" });
+        } finally { setIsLoading(false); }
+      },
+      true
+    );
   };
 
   const handleExportAsImage = async (elementId: string, fileName: string) => { /* ... */ };
-  
-  // --- NUEVAS ACCIONES DE GESTIÓN ---
+
   const handleFinishCompetition = async () => {
-    if (!window.confirm("¿Marcar esta competición como finalizada?")) return;
-    setIsLoading(true);
-    try {
-        await fetch(`/api/competitions/${competition.id}`, {
+    showConfirm(
+      'Finalizar competición',
+      '¿Marcar esta competición como finalizada?',
+      async () => {
+        setIsLoading(true);
+        try {
+          await fetch(`/api/competitions/${competition.id}`, {
             method: 'PATCH',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ status: CompetitionStatus.FINISHED })
-        });
-        router.push('/dashboard/competitions');
-        router.refresh();
-    } catch (error) { console.error(error); } finally { setIsLoading(false); }
+          });
+          toast({ title: "Competición finalizada", description: "La competición se ha marcado como finalizada." });
+          router.push('/dashboard/competitions');
+          router.refresh();
+        } catch (error) {
+          console.error(error);
+          toast({ title: "Error", description: "Error al finalizar la competición.", variant: "destructive" });
+        } finally { setIsLoading(false); }
+      }
+    );
   };
 
   const handleDeleteCompetition = async () => {
-    if (!window.confirm("¡ATENCIÓN! Se eliminará la competición y todos sus datos. Esta acción no se puede deshacer. ¿Continuar?")) return;
-    setIsLoading(true);
-    try {
-        await fetch(`/api/competitions/${competition.id}`, { method: 'DELETE' });
-        router.push('/dashboard/competitions');
-        router.refresh();
-    } catch (error) { console.error(error); } finally { setIsLoading(false); }
+    showConfirm(
+      'Eliminar competición',
+      '¡ATENCIÓN! Se eliminará la competición y todos sus datos. Esta acción no se puede deshacer. ¿Continuar?',
+      async () => {
+        setIsLoading(true);
+        try {
+          await fetch(`/api/competitions/${competition.id}`, { method: 'DELETE' });
+          toast({ title: "Competición eliminada", description: "La competición ha sido eliminada." });
+          router.push('/dashboard/competitions');
+          router.refresh();
+        } catch (error) {
+          console.error(error);
+          toast({ title: "Error", description: "Error al eliminar la competición.", variant: "destructive" });
+        } finally { setIsLoading(false); }
+      },
+      true
+    );
   };
-
 
   const renderCompetitionView = () => {
     switch (competition.format) {
@@ -128,7 +178,13 @@ const CompetitionDetailClient: React.FC<CompetitionDetailClientProps> = ({ compe
         if (competition.matches.length > 0) {
           return <GroupStageView competition={competition} onOpenResultModal={handleOpenResultModal} onDeleteResult={handleDeleteResult} isLoading={isLoading} />;
         }
-        return <div className="text-center p-8 bg-gray-800 rounded-lg"><p className="text-gray-400">Genera la fase de grupos para ver los partidos y la clasificación.</p></div>;
+        return (
+          <Card>
+            <CardContent className="text-center py-8">
+              <p className="text-muted-foreground">Genera la fase de grupos para ver los partidos y la clasificación.</p>
+            </CardContent>
+          </Card>
+        );
       default: return null;
     }
   };
@@ -138,50 +194,80 @@ const CompetitionDetailClient: React.FC<CompetitionDetailClientProps> = ({ compe
       <AddTeamModal isOpen={isTeamModalOpen} onClose={() => setIsTeamModalOpen(false)} competitionId={competition.id} users={users} teamToEdit={editingTeam} />
       {editingMatch && <AddResultModal isOpen={isResultModalOpen} onClose={() => setIsResultModalOpen(false)} match={editingMatch} />}
 
-      <div className="lg:col-span-1 bg-gray-800 p-6 rounded-xl shadow-lg self-start">
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-semibold text-white">Equipos</h2>
-          <button onClick={() => handleOpenTeamModal(null)} disabled={competition.status === 'FINISHED'} className="flex items-center gap-2 px-3 py-1.5 text-sm font-semibold text-white bg-indigo-600 rounded-lg hover:bg-indigo-500 disabled:bg-gray-600"><PlusCircle className="h-4 w-4" />Añadir</button>
-        </div>
-        {competition.teams.length > 0 ? (
-          <ul className="divide-y divide-gray-700">
-            {competition.teams.map(team => (
-              <li key={team.id} className="py-3 flex justify-between items-center group">
-                <div>
-                  <p className="font-medium text-white">{team.name} {team.group ? `(G${team.group})` : ''}</p>
-                  <p className="text-sm text-gray-400">{team.player1.name} / {team.player2.name}</p>
-                </div>
-                {competition.status === 'ACTIVE' && (
-                  <button onClick={() => handleOpenTeamModal(team)} className="opacity-0 group-hover:opacity-100 text-gray-400 hover:text-white transition-opacity"><Pencil className="h-4 w-4" /></button>
-                )}
-              </li>
-            ))}
-          </ul>
-        ) : <p className="text-gray-500 text-center py-8">Aún no hay equipos.</p>}
-        
-        {/* --- MODIFICADO: Lógica de botones de acción --- */}
-        <div className="mt-6 border-t border-gray-700 pt-4 space-y-2">
-            {competition.status === 'ACTIVE' && (
-                <>
-                    <button onClick={handleGenerateMatches} disabled={isLoading || competition.teams.length < 2} className="w-full flex items-center justify-center gap-2 px-3 py-2 text-sm font-semibold text-white bg-green-600 rounded-lg hover:bg-green-500 disabled:bg-gray-600">
-                        {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Zap className="h-4 w-4" />}
-                        {isLoading ? 'Generando...' : getButtonText()}
-                    </button>
-                    <button onClick={handleFinishCompetition} disabled={isLoading} className="w-full flex items-center justify-center gap-2 px-3 py-2 text-sm font-semibold text-white bg-blue-600 rounded-lg hover:bg-blue-500 disabled:bg-gray-600">
-                        <CheckCircle className="h-4 w-4" /> Finalizar Competición
-                    </button>
-                </>
-            )}
-            <button onClick={handleDeleteCompetition} disabled={isLoading} className="w-full flex items-center justify-center gap-2 px-3 py-2 text-sm font-semibold text-white bg-red-600 rounded-lg hover:bg-red-500 disabled:bg-gray-600">
-                <Trash2 className="h-4 w-4" /> Eliminar Competición
-            </button>
-        </div>
+      <Card className="lg:col-span-1 self-start">
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
+          <CardTitle>Equipos</CardTitle>
+          <Button size="sm" onClick={() => handleOpenTeamModal(null)} disabled={competition.status === 'FINISHED'}>
+            <PlusCircle className="mr-1 h-4 w-4" /> Añadir
+          </Button>
+        </CardHeader>
+        <CardContent>
+          {competition.teams.length > 0 ? (
+            <ul className="space-y-1">
+              {competition.teams.map((team, index) => (
+                <React.Fragment key={team.id}>
+                  {index > 0 && <Separator />}
+                  <li className="py-3 flex justify-between items-center group">
+                    <div>
+                      <p className="font-medium text-foreground">{team.name} {team.group ? `(G${team.group})` : ''}</p>
+                      <p className="text-sm text-muted-foreground">{team.player1.name} / {team.player2.name}</p>
+                    </div>
+                    {competition.status === 'ACTIVE' && (
+                      <Button variant="ghost" size="icon" onClick={() => handleOpenTeamModal(team)} className="opacity-0 group-hover:opacity-100 transition-opacity">
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                    )}
+                  </li>
+                </React.Fragment>
+              ))}
+            </ul>
+          ) : (
+            <p className="text-muted-foreground text-center py-8">Aún no hay equipos.</p>
+          )}
+        </CardContent>
 
-      </div>
+        <CardFooter className="flex flex-col gap-2 border-t pt-4">
+          {competition.status === 'ACTIVE' && (
+            <>
+              <Button className="w-full bg-green-600 hover:bg-green-500 text-white" onClick={handleGenerateMatches} disabled={isLoading || competition.teams.length < 2}>
+                {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Zap className="mr-2 h-4 w-4" />}
+                {isLoading ? 'Generando...' : getButtonText()}
+              </Button>
+              <Button variant="outline" className="w-full" onClick={handleFinishCompetition} disabled={isLoading}>
+                <CheckCircle className="mr-2 h-4 w-4" /> Finalizar Competición
+              </Button>
+            </>
+          )}
+          <Button variant="outline" className="w-full text-destructive border-destructive/30 hover:bg-destructive/10" onClick={handleDeleteCompetition} disabled={isLoading}>
+            <Trash2 className="mr-2 h-4 w-4" /> Eliminar Competición
+          </Button>
+        </CardFooter>
+      </Card>
 
       <div className="lg:col-span-2 space-y-8">
         {renderCompetitionView()}
       </div>
+
+      <AlertDialog open={confirmDialog.open} onOpenChange={(open) => setConfirmDialog(prev => ({ ...prev, open }))}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{confirmDialog.title}</AlertDialogTitle>
+            <AlertDialogDescription>{confirmDialog.description}</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={async () => {
+                await confirmDialog.action();
+                setConfirmDialog(prev => ({ ...prev, open: false }));
+              }}
+              className={confirmDialog.destructive ? 'bg-destructive text-destructive-foreground hover:bg-destructive/90' : ''}
+            >
+              Confirmar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 };

@@ -49,6 +49,7 @@ export const authOptions: NextAuthOptions = {
           email: existingUser.email,
           image: existingUser.image,
           clubId: existingUser.clubId,
+          role: existingUser.role,
         };
       }
     })
@@ -58,13 +59,15 @@ export const authOptions: NextAuthOptions = {
       if (user) {
         token.id = user.id;
         token.clubId = (user as any).clubId;
+        token.role = (user as any).role;
       }
       if (token.id && !token.clubId) {
         const dbUser = await db.user.findUnique({
           where: { id: token.id },
         });
-        if (dbUser?.clubId) {
+        if (dbUser) {
           token.clubId = dbUser.clubId;
+          token.role = dbUser.role;
         }
       }
       return token;
@@ -73,6 +76,7 @@ export const authOptions: NextAuthOptions = {
       if (token) {
         session.user.id = token.id;
         session.user.clubId = token.clubId as string | null;
+        session.user.role = token.role;
       }
       return session;
     }

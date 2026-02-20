@@ -4,12 +4,18 @@ import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { X, Loader2, Trash2 } from 'lucide-react';
+import { Loader2, Trash2 } from 'lucide-react';
 import { Court, User } from '@prisma/client';
 import { useRouter } from 'next/navigation';
 import { BookingWithDetails } from './CalendarView';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Button } from '@/components/ui/button';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
+import { toast } from '@/hooks/use-toast';
 
-// Validation schema now handles either a userId or a guestName
 const BookingSchema = z.object({
   courtId: z.string().min(1, "Debes seleccionar una pista."),
   startDate: z.string(),
@@ -38,9 +44,9 @@ interface BookingModalProps {
 const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, selectedInfo, courts, users }) => {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [showUserList, setShowUserList] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
   const isEditMode = selectedInfo !== null && !(selectedInfo instanceof Date);
   const bookingData = isEditMode ? selectedInfo as BookingWithDetails : null;
@@ -67,7 +73,6 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, selectedIn
 
   const handleFormSubmit = async (data: BookingFormValues) => {
     setIsLoading(true);
-    setError(null);
 
     const newStartTime = new Date(`${data.startDate}T${data.startTime}`);
     const newEndTime = new Date(`${data.startDate}T${data.endTime}`);
@@ -88,17 +93,17 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, selectedIn
         }),
       });
       if (!response.ok) {
-        // This logic handles the specific conflict error from the API
         if (response.status === 409) {
           const errorMessage = await response.text();
           throw new Error(errorMessage);
         }
         throw new Error(`No se pudo ${isEditMode ? 'actualizar' : 'crear'} la reserva.`);
       }
+      toast({ title: isEditMode ? "Reserva actualizada" : "Reserva creada", description: `La reserva se ha ${isEditMode ? 'actualizado' : 'creado'} correctamente.` });
       onClose();
       router.refresh();
     } catch (err: any) {
-      setError(err.message);
+      toast({ title: "Error", description: err.message, variant: "destructive" });
     } finally {
       setIsLoading(false);
     }
@@ -106,15 +111,15 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, selectedIn
 
   const onDelete = async () => {
     if (!isEditMode || !bookingData) return;
-    if (!window.confirm(`¿Estás seguro de que quieres eliminar esta reserva?`)) return;
+    setDeleteDialogOpen(false);
     setIsLoading(true);
-    setError(null);
     try {
       await fetch(`/api/bookings/${bookingData!.id}`, { method: 'DELETE' });
+      toast({ title: "Reserva eliminada", description: "La reserva ha sido eliminada." });
       onClose();
       router.refresh();
     } catch (err: any) {
-      setError(err.message);
+      toast({ title: "Error", description: err.message, variant: "destructive" });
     } finally {
       setIsLoading(false);
     }
@@ -131,104 +136,124 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, selectedIn
     setShowUserList(false);
   };
 
-  if (!isOpen) return null;
-
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50">
-      <div className="bg-gray-800 rounded-xl shadow-lg p-8 w-full max-w-lg relative">
-        <button onClick={onClose} className="absolute top-4 right-4 text-gray-400 hover:text-white"><X /></button>
-        <h2 className="text-2xl font-bold text-white mb-6">{isEditMode ? 'Editar Reserva' : 'Nueva Reserva'}</h2>
+    <>
+      <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle>{isEditMode ? 'Editar Reserva' : 'Nueva Reserva'}</DialogTitle>
+          </DialogHeader>
 
-        <form onSubmit={form.handleSubmit(handleFormSubmit)} className="space-y-4">
-          {/* Date and Time Fields */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="md:col-span-1">
-              <label htmlFor="startDate" className="block text-sm font-medium text-gray-300">Fecha</label>
-              <input type="date" id="startDate" {...form.register('startDate')} className="mt-1 block w-full bg-gray-700 border-gray-600 text-white rounded-md p-2" />
+          <form onSubmit={form.handleSubmit(handleFormSubmit)} className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="md:col-span-1 space-y-2">
+                <Label htmlFor="startDate">Fecha</Label>
+                <Input type="date" id="startDate" {...form.register('startDate')} />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="startTime">Hora Inicio</Label>
+                <Input type="time" id="startTime" {...form.register('startTime')} step="1800" />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="endTime">Hora Fin</Label>
+                <Input type="time" id="endTime" {...form.register('endTime')} step="1800" />
+              </div>
             </div>
-            <div>
-              <label htmlFor="startTime" className="block text-sm font-medium text-gray-300">Hora Inicio</label>
-              <input type="time" id="startTime" {...form.register('startTime')} step="1800" className="mt-1 block w-full bg-gray-700 border-gray-600 text-white rounded-md p-2" />
-            </div>
-            <div>
-              <label htmlFor="endTime" className="block text-sm font-medium text-gray-300">Hora Fin</label>
-              <input type="time" id="endTime" {...form.register('endTime')} step="1800" className="mt-1 block w-full bg-gray-700 border-gray-600 text-white rounded-md p-2" />
-            </div>
-          </div>
-          {form.formState.errors.endTime && <p className="text-sm text-red-400">{form.formState.errors.endTime.message}</p>}
+            {form.formState.errors.endTime && (
+              <p className="text-sm text-destructive">{form.formState.errors.endTime.message}</p>
+            )}
 
-          {/* Court Selection */}
-          <div>
-            <label htmlFor="courtId" className="block text-sm font-medium text-gray-300">Pista</label>
-            <select id="courtId" {...form.register('courtId')} className="mt-1 block w-full bg-gray-700 text-white rounded-md p-2">
-              <option value="">Selecciona una pista</option>
-
-              {/* --- MODIFICADO ---: Añadimos una comprobación para asegurar que 'courts' es un array */}
-              {Array.isArray(courts) && courts.map(court => (
-                <option key={court.id} value={court.id}>{court.name}</option>
-              ))}
-
-            </select>
-            {form.formState.errors.courtId && <p className="text-sm text-red-400 mt-1">{form.formState.errors.courtId.message}</p>}
-          </div>
-
-          {/* Searchable User/Guest Input */}
-          <div>
-            <label htmlFor="user-search" className="block text-sm font-medium text-gray-300">Socio o Invitado</label>
-            <div className="relative">
-              <input
-                id="user-search"
-                type="text"
-                value={searchTerm}
-                onChange={(e) => {
-                  setSearchTerm(e.target.value);
-                  form.setValue('guestName', e.target.value);
-                  form.setValue('userId', '');
-                  setShowUserList(true);
-                }}
-                onFocus={() => setShowUserList(true)}
-                onBlur={() => setTimeout(() => setShowUserList(false), 200)}
-                className="mt-1 block w-full bg-gray-700 text-white rounded-md p-2"
-                placeholder="Busca un socio o escribe un nombre..."
-                autoComplete="off"
-              />
-              {showUserList && searchTerm && (
-                <ul className="absolute z-10 w-full bg-gray-700 border border-gray-600 rounded-md mt-1 max-h-40 overflow-y-auto">
-                  {filteredUsers.length > 0 ? (
-                    filteredUsers.map(user => (
-                      <li key={user.id} onMouseDown={() => selectUser(user)} className="px-3 py-2 text-white hover:bg-indigo-600 cursor-pointer">
-                        {user.name}
-                      </li>
-                    ))
-                  ) : (
-                    <li className="px-3 py-2 text-gray-400">No se encontraron socios. Pulsa Enter para añadir como invitado.</li>
-                  )}
-                </ul>
+            <div className="space-y-2">
+              <Label htmlFor="courtId">Pista</Label>
+              <Select
+                value={form.watch('courtId')}
+                onValueChange={(value) => form.setValue('courtId', value)}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecciona una pista" />
+                </SelectTrigger>
+                <SelectContent>
+                  {Array.isArray(courts) && courts.map(court => (
+                    <SelectItem key={court.id} value={court.id}>{court.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {form.formState.errors.courtId && (
+                <p className="text-sm text-destructive">{form.formState.errors.courtId.message}</p>
               )}
             </div>
-            {form.formState.errors.guestName && <p className="text-sm text-red-400 mt-1">{form.formState.errors.guestName.message}</p>}
-          </div>
 
-          {error && <p className="text-sm text-center text-red-400 pt-2">{error}</p>}
-
-          {/* Action Buttons */}
-          <div className="flex justify-between items-center pt-4">
-            {isEditMode && (
-              <button type="button" onClick={onDelete} disabled={isLoading} className="flex items-center px-4 py-2 text-sm text-red-400 hover:bg-red-500/10 rounded-lg">
-                <Trash2 className="mr-2 h-4 w-4" /> Eliminar
-              </button>
-            )}
-            <div className="flex-grow flex justify-end gap-3">
-              <button type="button" onClick={onClose} className="px-4 py-2 bg-gray-700 rounded-lg hover:bg-gray-600">Cancelar</button>
-              <button type="submit" disabled={isLoading} className="flex items-center px-4 py-2 text-white bg-indigo-600 rounded-lg hover:bg-indigo-500 disabled:bg-gray-500">
-                {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                {isEditMode ? 'Guardar Cambios' : 'Confirmar Reserva'}
-              </button>
+            <div className="space-y-2">
+              <Label htmlFor="user-search">Socio o Invitado</Label>
+              <div className="relative">
+                <Input
+                  id="user-search"
+                  value={searchTerm}
+                  onChange={(e) => {
+                    setSearchTerm(e.target.value);
+                    form.setValue('guestName', e.target.value);
+                    form.setValue('userId', '');
+                    setShowUserList(true);
+                  }}
+                  onFocus={() => setShowUserList(true)}
+                  onBlur={() => setTimeout(() => setShowUserList(false), 200)}
+                  placeholder="Busca un socio o escribe un nombre..."
+                  autoComplete="off"
+                />
+                {showUserList && searchTerm && (
+                  <ul className="absolute z-10 w-full bg-popover border border-border rounded-md mt-1 max-h-40 overflow-y-auto shadow-md">
+                    {filteredUsers.length > 0 ? (
+                      filteredUsers.map(user => (
+                        <li key={user.id} onMouseDown={() => selectUser(user)} className="px-3 py-2 text-popover-foreground hover:bg-accent cursor-pointer">
+                          {user.name}
+                        </li>
+                      ))
+                    ) : (
+                      <li className="px-3 py-2 text-muted-foreground">No se encontraron socios. Pulsa Enter para añadir como invitado.</li>
+                    )}
+                  </ul>
+                )}
+              </div>
+              {form.formState.errors.guestName && (
+                <p className="text-sm text-destructive">{form.formState.errors.guestName.message}</p>
+              )}
             </div>
-          </div>
-        </form>
-      </div>
-    </div>
+
+            <div className="flex justify-between items-center pt-2">
+              {isEditMode && (
+                <Button type="button" variant="ghost" className="text-destructive hover:text-destructive" onClick={() => setDeleteDialogOpen(true)} disabled={isLoading}>
+                  <Trash2 className="mr-2 h-4 w-4" /> Eliminar
+                </Button>
+              )}
+              <div className="flex-grow flex justify-end gap-3">
+                <Button type="button" variant="outline" onClick={onClose}>Cancelar</Button>
+                <Button type="submit" disabled={isLoading}>
+                  {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  {isEditMode ? 'Guardar Cambios' : 'Confirmar Reserva'}
+                </Button>
+              </div>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Eliminar reserva</AlertDialogTitle>
+            <AlertDialogDescription>
+              ¿Estás seguro de que quieres eliminar esta reserva? Esta acción no se puede deshacer.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={onDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Eliminar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   );
 };
 

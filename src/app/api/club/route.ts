@@ -1,29 +1,45 @@
 import { db } from "@/lib/db";
-import { authOptions } from "@/lib/auth";
-import { getServerSession } from "next-auth";
+import { requireAuth, isAuthError } from "@/lib/api-auth";
 import { NextResponse } from "next/server";
 
-// API route to handle club settings
+// GET: Obtener datos del club
+export async function GET() {
+  try {
+    const auth = await requireAuth("settings:read")
+    if (isAuthError(auth)) return auth
 
-// PATCH function to update the club's settings
+    const club = await db.club.findUnique({
+      where: { id: auth.session.user.clubId },
+    });
+
+    return NextResponse.json(club);
+  } catch (error) {
+    console.error("[GET_CLUB_ERROR]", error);
+    return new NextResponse("Internal Server Error", { status: 500 });
+  }
+}
+
+// PATCH: Actualizar configuracion del club
 export async function PATCH(req: Request) {
   try {
-    const session = await getServerSession(authOptions);
-    const body = await req.json();
-    const { name, openingTime, closingTime } = body;
+    const auth = await requireAuth("settings:update")
+    if (isAuthError(auth)) return auth
 
-    if (!session?.user?.clubId) {
-      return new NextResponse("Unauthorized", { status: 401 });
-    }
+    const body = await req.json();
+    const {
+      name, openingTime, closingTime,
+      description, phone, email, primaryColor,
+      maxAdvanceBooking, cancellationHours,
+      enableOpenMatches, enablePlayerBooking,
+    } = body;
 
     const updatedClub = await db.club.update({
-      where: {
-        id: session.user.clubId,
-      },
+      where: { id: auth.session.user.clubId },
       data: {
-        name,
-        openingTime,
-        closingTime,
+        name, openingTime, closingTime,
+        description, phone, email, primaryColor,
+        maxAdvanceBooking, cancellationHours,
+        enableOpenMatches, enablePlayerBooking,
       },
     });
 

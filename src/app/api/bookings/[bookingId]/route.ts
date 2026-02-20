@@ -1,30 +1,30 @@
 import { db } from "@/lib/db";
-import { authOptions } from "@/lib/auth";
-import { getServerSession } from "next-auth";
+import { requireAuth, isAuthError } from "@/lib/api-auth";
 import { NextResponse } from "next/server";
 
-// PATCH function to update a booking with overlap check
+// PATCH: Actualizar una reserva con deteccion de solapamiento
 export async function PATCH(
   req: Request,
   { params }: { params: { bookingId: string } }
 ) {
   try {
-    const session = await getServerSession(authOptions);
+    const auth = await requireAuth("bookings:update")
+    if (isAuthError(auth)) return auth
+
     const body = await req.json();
     const { courtId, userId, startTime, endTime } = body;
 
-    if (!session?.user?.clubId || !params.bookingId) {
-      return new NextResponse("Unauthorized or Missing ID", { status: 401 });
+    if (!params.bookingId) {
+      return new NextResponse("ID de reserva requerido", { status: 400 });
     }
-    
+
     const newStartTime = new Date(startTime);
     const newEndTime = new Date(endTime);
 
-    // --- OVERLAP CHECK ---
     const overlappingBooking = await db.booking.findFirst({
       where: {
-        courtId: courtId,
-        id: { not: params.bookingId }, // Exclude the current booking from the check
+        courtId,
+        id: { not: params.bookingId },
         AND: [
           { startTime: { lt: newEndTime } },
           { endTime: { gt: newStartTime } },
@@ -35,10 +35,9 @@ export async function PATCH(
     if (overlappingBooking) {
       return new NextResponse("El nuevo horario se solapa con otra reserva existente.", { status: 409 });
     }
-    // --- END OF OVERLAP CHECK ---
 
     const updatedBooking = await db.booking.update({
-      where: { id: params.bookingId, clubId: session.user.clubId },
+      where: { id: params.bookingId, clubId: auth.session.user.clubId },
       data: { courtId, userId, startTime: newStartTime, endTime: newEndTime },
     });
 
@@ -49,26 +48,24 @@ export async function PATCH(
   }
 }
 
-// DELETE function to remove a booking
+// DELETE: Eliminar una reserva
 export async function DELETE(
   req: Request,
   { params }: { params: { bookingId: string } }
 ) {
   try {
-    const session = await getServerSession(authOptions);
+    const auth = await requireAuth("bookings:delete")
+    if (isAuthError(auth)) return auth
 
-    if (!session?.user?.clubId || !params.bookingId) {
-      return new NextResponse("Unauthorized or Missing ID", { status: 401 });
+    if (!params.bookingId) {
+      return new NextResponse("ID de reserva requerido", { status: 400 });
     }
 
     await db.booking.delete({
-      where: {
-        id: params.bookingId,
-        clubId: session.user.clubId, // Security check
-      },
+      where: { id: params.bookingId, clubId: auth.session.user.clubId },
     });
 
-    return new NextResponse(null, { status: 204 }); // 204 No Content
+    return new NextResponse(null, { status: 204 });
   } catch (error) {
     console.error("[DELETE_BOOKING_ERROR]", error);
     return new NextResponse("Internal Server Error", { status: 500 });

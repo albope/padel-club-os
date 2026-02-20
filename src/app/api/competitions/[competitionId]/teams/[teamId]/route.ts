@@ -1,25 +1,29 @@
 import { db } from "@/lib/db";
-import { authOptions } from "@/lib/auth";
-import { getServerSession } from "next-auth";
+import { requireAuth, isAuthError } from "@/lib/api-auth";
 import { NextResponse } from "next/server";
 
-// API route to handle specific teams by their ID
-
-// PATCH function to update a team
+// PATCH: Actualizar un equipo
 export async function PATCH(
   req: Request,
-  { params }: { params: { teamId: string } }
+  { params }: { params: { competitionId: string; teamId: string } }
 ) {
   try {
-    const session = await getServerSession(authOptions);
+    const auth = await requireAuth("competitions:update")
+    if (isAuthError(auth)) return auth
+
     const body = await req.json();
     const { name, player1Id, player2Id } = body;
 
-    if (!session?.user?.clubId) {
-      return new NextResponse("Unauthorized", { status: 401 });
-    }
     if (!params.teamId) {
-      return new NextResponse("Team ID is required", { status: 400 });
+      return new NextResponse("ID de equipo requerido", { status: 400 });
+    }
+
+    // Verificar que la competicion pertenece al club
+    const competition = await db.competition.findFirst({
+      where: { id: params.competitionId, clubId: auth.session.user.clubId },
+    });
+    if (!competition) {
+      return new NextResponse("Competicion no encontrada.", { status: 404 });
     }
 
     const updatedTeam = await db.team.update({
@@ -34,24 +38,28 @@ export async function PATCH(
   }
 }
 
-// DELETE function to remove a team
+// DELETE: Eliminar un equipo
 export async function DELETE(
   req: Request,
-  { params }: { params: { teamId: string } }
+  { params }: { params: { competitionId: string; teamId: string } }
 ) {
   try {
-    const session = await getServerSession(authOptions);
+    const auth = await requireAuth("competitions:delete")
+    if (isAuthError(auth)) return auth
 
-    if (!session?.user?.clubId) {
-      return new NextResponse("Unauthorized", { status: 401 });
-    }
     if (!params.teamId) {
-      return new NextResponse("Team ID is required", { status: 400 });
+      return new NextResponse("ID de equipo requerido", { status: 400 });
     }
 
-    await db.team.delete({
-      where: { id: params.teamId },
+    // Verificar que la competicion pertenece al club
+    const competition = await db.competition.findFirst({
+      where: { id: params.competitionId, clubId: auth.session.user.clubId },
     });
+    if (!competition) {
+      return new NextResponse("Competicion no encontrada.", { status: 404 });
+    }
+
+    await db.team.delete({ where: { id: params.teamId } });
 
     return new NextResponse(null, { status: 204 });
   } catch (error) {

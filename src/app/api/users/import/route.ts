@@ -1,17 +1,14 @@
-// Path: src/app/api/users/import/route.ts
 import { db } from "@/lib/db";
-import { authOptions } from "@/lib/auth";
-import { getServerSession } from "next-auth";
+import { requireAuth, isAuthError } from "@/lib/api-auth";
 import { NextResponse } from "next/server";
 import { hash } from "bcrypt";
 
+// POST: Importar socios en bulk
 export async function POST(req: Request) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.clubId) {
-      return new NextResponse("Unauthorized", { status: 401 });
-    }
-    const clubId = session.user.clubId;
+    const auth = await requireAuth("users:import")
+    if (isAuthError(auth)) return auth
+    const clubId = auth.session.user.clubId;
 
     const body = await req.json();
     const { socios } = body;
@@ -22,7 +19,9 @@ export async function POST(req: Request) {
 
     let successCount = 0;
     const errors: string[] = [];
-    const existingEmails = new Set((await db.user.findMany({ select: { email: true } })).map(u => u.email).filter(Boolean));
+    const existingEmails = new Set(
+      (await db.user.findMany({ select: { email: true } })).map(u => u.email).filter(Boolean)
+    );
 
     const sociosToCreate = [];
 
@@ -35,7 +34,7 @@ export async function POST(req: Request) {
         errors.push(`Email duplicado: ${socio.email} ya existe y fue omitido.`);
         continue;
       }
-      
+
       const hashedPassword = await hash(socio.password || 'padel123', 10);
 
       sociosToCreate.push({
@@ -46,22 +45,20 @@ export async function POST(req: Request) {
         position: socio.position || null,
         level: socio.level || null,
         birthDate: socio.birthDate ? new Date(socio.birthDate) : null,
-        clubId: clubId,
+        clubId,
       });
-      // Añadimos el email al set para evitar duplicados dentro del mismo archivo
       existingEmails.add(socio.email);
     }
-    
+
     if (sociosToCreate.length > 0) {
-        const result = await db.user.createMany({
-            data: sociosToCreate,
-            skipDuplicates: true, // Por si acaso, aunque ya filtramos
-        });
-        successCount = result.count;
+      const result = await db.user.createMany({
+        data: sociosToCreate,
+        skipDuplicates: true,
+      });
+      successCount = result.count;
     }
 
     return NextResponse.json({ successCount, errors });
-
   } catch (error) {
     console.error("[IMPORT_USERS_ERROR]", error);
     return new NextResponse("Internal Server Error", { status: 500 });

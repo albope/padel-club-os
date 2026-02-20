@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
+import { NextIntlClientProvider } from "next-intl";
+import { getLocale, getMessages } from "next-intl/server";
 import "./globals.css";
-import Providers from "@/components/providers"; // Import the session provider
+import Providers from "@/components/providers";
 
-// Configure the Inter font from Google Fonts
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
@@ -11,16 +12,20 @@ export const metadata: Metadata = {
   description: "La solución definitiva para la gestión de tu club de pádel.",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const locale = await getLocale();
+  const messages = await getMessages();
+
   return (
-    <html lang="es">
+    <html lang={locale} suppressHydrationWarning>
       <body className={inter.className}>
-        {/* The Providers component is essential for NextAuth session management */}
-        <Providers>{children}</Providers>
+        <NextIntlClientProvider messages={messages}>
+          <Providers>{children}</Providers>
+        </NextIntlClientProvider>
       </body>
     </html>
   );

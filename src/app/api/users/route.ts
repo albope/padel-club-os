@@ -1,19 +1,14 @@
 import { db } from "@/lib/db";
-import { authOptions } from "@/lib/auth";
-import { getServerSession } from "next-auth";
+import { requireAuth, isAuthError } from "@/lib/api-auth";
 import { NextResponse } from "next/server";
 import { hash } from "bcrypt";
 
-// API route to handle users (socios)
-
+// POST: Crear un nuevo socio
 export async function POST(req: Request) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.clubId) {
-      return new NextResponse("Unauthorized", { status: 401 });
-    }
+    const auth = await requireAuth("users:create")
+    if (isAuthError(auth)) return auth
 
-    // --- MODIFICADO ---: Desestructuramos los nuevos campos del body
     const body = await req.json();
     const { email, name, password, phone, position, level, birthDate } = body;
 
@@ -21,22 +16,20 @@ export async function POST(req: Request) {
       return new NextResponse("Faltan campos requeridos", { status: 400 });
     }
 
-    // ... (comprobación de usuario existente)
+    const existingUser = await db.user.findUnique({ where: { email } });
+    if (existingUser) {
+      return new NextResponse("Ya existe un usuario con ese email", { status: 409 });
+    }
 
     const hashedPassword = await hash(password, 10);
 
     const newUser = await db.user.create({
       data: {
-        email,
-        name,
+        email, name,
         password: hashedPassword,
-        phone,
-        clubId: session.user.clubId,
-        // --- AÑADIDO ---: Guardamos los nuevos datos
-        position,
-        level,
-        // Si birthDate viene como string, lo convertimos a Date
+        phone, position, level,
         birthDate: birthDate ? new Date(birthDate) : null,
+        clubId: auth.session.user.clubId,
       },
     });
 

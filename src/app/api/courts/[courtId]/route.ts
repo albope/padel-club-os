@@ -1,37 +1,26 @@
 import { db } from "@/lib/db";
-import { authOptions } from "@/lib/auth";
-import { getServerSession } from "next-auth";
+import { requireAuth, isAuthError } from "@/lib/api-auth";
 import { NextResponse } from "next/server";
 
-// API route to handle specific courts by their ID
-
-// PATCH function to update a court
+// PATCH: Actualizar una pista
 export async function PATCH(
   req: Request,
   { params }: { params: { courtId: string } }
 ) {
   try {
-    const session = await getServerSession(authOptions);
+    const auth = await requireAuth("courts:update")
+    if (isAuthError(auth)) return auth
+
     const body = await req.json();
     const { name, type } = body;
 
-    if (!session?.user?.clubId) {
-      return new NextResponse("Unauthorized", { status: 401 });
-    }
-
     if (!params.courtId) {
-      return new NextResponse("Court ID is required", { status: 400 });
+      return new NextResponse("ID de pista requerido", { status: 400 });
     }
 
     const updatedCourt = await db.court.update({
-      where: {
-        id: params.courtId,
-        clubId: session.user.clubId, // Ensure user can only update their own club's courts
-      },
-      data: {
-        name,
-        type,
-      },
+      where: { id: params.courtId, clubId: auth.session.user.clubId },
+      data: { name, type },
     });
 
     return NextResponse.json(updatedCourt);
@@ -41,30 +30,24 @@ export async function PATCH(
   }
 }
 
-// DELETE function to remove a court
+// DELETE: Eliminar una pista
 export async function DELETE(
   req: Request,
   { params }: { params: { courtId: string } }
 ) {
   try {
-    const session = await getServerSession(authOptions);
-
-    if (!session?.user?.clubId) {
-      return new NextResponse("Unauthorized", { status: 401 });
-    }
+    const auth = await requireAuth("courts:delete")
+    if (isAuthError(auth)) return auth
 
     if (!params.courtId) {
-      return new NextResponse("Court ID is required", { status: 400 });
+      return new NextResponse("ID de pista requerido", { status: 400 });
     }
 
     await db.court.delete({
-      where: {
-        id: params.courtId,
-        clubId: session.user.clubId, // Security check
-      },
+      where: { id: params.courtId, clubId: auth.session.user.clubId },
     });
 
-    return new NextResponse(null, { status: 204 }); // 204 No Content
+    return new NextResponse(null, { status: 204 });
   } catch (error) {
     console.error("[DELETE_COURT_ERROR]", error);
     return new NextResponse("Internal Server Error", { status: 500 });

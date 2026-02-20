@@ -1,18 +1,225 @@
-/* These are Tailwind CSS directives. 
-  The "Unknown at rule @tailwind" warning is a common editor issue 
-  and can be safely ignored, or fixed by installing the official 
-  "Tailwind CSS IntelliSense" extension in VS Code.
-*/
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* We define some base styles for our application here to ensure
-  a consistent look and feel, especially for our dark theme.
-*/
-body {
-  background-color: #111827; /* bg-gray-900 */
-  color: #f3f4f6; /* text-gray-100 */
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+    --primary: 243 75% 59%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222.2 47.4% 11.2%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 243 75% 59%;
+    --radius: 0.5rem;
+    --sidebar-background: 0 0% 98%;
+    --sidebar-foreground: 240 5.3% 26.1%;
+    --sidebar-primary: 243 75% 59%;
+    --sidebar-primary-foreground: 0 0% 98%;
+    --sidebar-accent: 240 4.8% 95.9%;
+    --sidebar-accent-foreground: 240 5.9% 10%;
+    --sidebar-border: 220 13% 91%;
+    --sidebar-ring: 243 75% 59%;
+  }
+
+  .dark {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 243 75% 59%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 243 75% 59%;
+    --sidebar-background: 222.2 84% 4.9%;
+    --sidebar-foreground: 210 40% 98%;
+    --sidebar-primary: 243 75% 59%;
+    --sidebar-primary-foreground: 0 0% 98%;
+    --sidebar-accent: 217.2 32.6% 17.5%;
+    --sidebar-accent-foreground: 210 40% 98%;
+    --sidebar-border: 217.2 32.6% 17.5%;
+    --sidebar-ring: 243 75% 59%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+}
+
+/* ─── Auth pages: animaciones premium ───────────────────────────────────── */
+
+@keyframes auth-gradient-shift {
+  0%   { background-position: 0% 50%; }
+  50%  { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+@keyframes auth-float-1 {
+  0%, 100% { transform: translateY(0px) translateX(0px); }
+  40%       { transform: translateY(-20px) translateX(8px); }
+  70%       { transform: translateY(10px) translateX(-5px); }
+}
+
+@keyframes auth-float-2 {
+  0%, 100% { transform: translateY(0px) translateX(0px); }
+  35%       { transform: translateY(16px) translateX(-10px); }
+  70%       { transform: translateY(-10px) translateX(8px); }
+}
+
+@keyframes auth-float-3 {
+  0%, 100% { transform: translateY(0px) scale(1); }
+  50%       { transform: translateY(-14px) scale(1.05); }
+}
+
+@keyframes auth-shimmer {
+  0%   { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+
+@keyframes auth-fade-up {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes auth-fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes auth-slide-right {
+  from { opacity: 0; transform: translateX(-10px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes auth-scale-in {
+  from { opacity: 0; transform: scale(0.96); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+@keyframes auth-glow-pulse {
+  0%, 100% { opacity: 0.4; }
+  50%       { opacity: 0.7; }
+}
+
+/* Clases de animacion */
+.auth-gradient-bg {
+  background: linear-gradient(
+    135deg,
+    hsl(243, 80%, 22%) 0%,
+    hsl(255, 85%, 30%) 25%,
+    hsl(225, 80%, 25%) 50%,
+    hsl(265, 75%, 28%) 75%,
+    hsl(243, 80%, 22%) 100%
+  );
+  background-size: 300% 300%;
+  animation: auth-gradient-shift 18s ease infinite;
+}
+
+.auth-float-1 { animation: auth-float-1 8s ease-in-out infinite; }
+.auth-float-2 { animation: auth-float-2 11s ease-in-out infinite; }
+.auth-float-3 { animation: auth-float-3 6s ease-in-out infinite; }
+
+.auth-fade-up-1 { animation: auth-fade-up 0.5s cubic-bezier(0.25, 0.1, 0.25, 1) 0.05s both; }
+.auth-fade-up-2 { animation: auth-fade-up 0.5s cubic-bezier(0.25, 0.1, 0.25, 1) 0.12s both; }
+.auth-fade-up-3 { animation: auth-fade-up 0.5s cubic-bezier(0.25, 0.1, 0.25, 1) 0.20s both; }
+.auth-fade-up-4 { animation: auth-fade-up 0.5s cubic-bezier(0.25, 0.1, 0.25, 1) 0.28s both; }
+.auth-fade-up-5 { animation: auth-fade-up 0.5s cubic-bezier(0.25, 0.1, 0.25, 1) 0.36s both; }
+.auth-fade-up-6 { animation: auth-fade-up 0.5s cubic-bezier(0.25, 0.1, 0.25, 1) 0.44s both; }
+.auth-fade-in   { animation: auth-fade-in 0.6s ease-out both; }
+.auth-slide-right { animation: auth-slide-right 0.45s cubic-bezier(0.25, 0.1, 0.25, 1) 0.1s both; }
+.auth-scale-in  { animation: auth-scale-in 0.4s cubic-bezier(0.25, 0.1, 0.25, 1) both; }
+
+.auth-shimmer-btn {
+  background: linear-gradient(
+    90deg,
+    hsl(var(--primary)) 0%,
+    hsl(255, 80%, 68%) 30%,
+    hsl(230, 85%, 72%) 50%,
+    hsl(255, 80%, 68%) 70%,
+    hsl(var(--primary)) 100%
+  );
+  background-size: 200% auto;
+  animation: auth-shimmer 3.5s linear infinite;
+}
+
+.auth-shimmer-btn:hover {
+  animation: auth-shimmer 1.8s linear infinite;
+  filter: brightness(1.08);
+}
+
+.auth-input-glow:focus-within {
+  box-shadow: 0 0 0 3px hsl(var(--primary) / 0.12),
+              0 1px 3px hsl(0 0% 0% / 0.06);
+  border-radius: 0.5rem;
+}
+
+.auth-card-surface {
+  background: hsl(var(--background));
+  border: 1px solid hsl(var(--border));
+  box-shadow:
+    0 1px 2px hsl(0 0% 0% / 0.04),
+    0 4px 8px hsl(0 0% 0% / 0.04),
+    0 16px 32px hsl(0 0% 0% / 0.06);
+}
+
+.dark .auth-card-surface {
+  background: hsl(222.2 47% 8%);
+  border-color: hsl(var(--border) / 0.8);
+  box-shadow:
+    0 1px 2px hsl(0 0% 0% / 0.2),
+    0 4px 8px hsl(0 0% 0% / 0.15),
+    0 16px 32px hsl(0 0% 0% / 0.25);
+}
+
+.auth-strength-bar {
+  transition: width 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+              background-color 0.35s ease;
+}
+
+.auth-orb {
+  border-radius: 50%;
+  filter: blur(70px);
+  position: absolute;
+  pointer-events: none;
+  animation: auth-glow-pulse 6s ease-in-out infinite;
+}
+
+/* Patron de puntos para el fondo del panel de formulario */
+.auth-dot-pattern {
+  background-image: radial-gradient(
+    circle,
+    hsl(var(--primary) / 0.15) 1px,
+    transparent 1px
+  );
+  background-size: 24px 24px;
 }

@@ -15,20 +15,39 @@ datasource db {
 model Club {
   id               String    @id @default(cuid())
   name             String
+  slug             String    @unique
   address          String?
   logoUrl          String?
   openingTime      String?   @default("09:00")
   closingTime      String?   @default("23:00")
   subscriptionTier String    @default("essential")
   stripeCustomerId String?   @unique
-  
+
+  // Configuracion del portal publico
+  description       String?
+  phone             String?
+  email             String?
+  primaryColor      String?  @default("#4f46e5")
+  maxAdvanceBooking Int?     @default(7)     // dias de antelacion para reservar
+  cancellationHours Int?     @default(2)     // horas antes para cancelar
+  enableOpenMatches Boolean  @default(true)
+  enablePlayerBooking Boolean @default(true)
+
   // Relationships
   admins       User[]
   courts       Court[]
   bookings     Booking[]
   competitions Competition[]
-  
   openMatches  OpenMatch[]
+  news         News[]
+}
+
+// --- USER ROLES ---
+enum UserRole {
+  SUPER_ADMIN
+  CLUB_ADMIN
+  STAFF
+  PLAYER
 }
 
 // --- USER AND AUTHENTICATION MODELS ---
@@ -43,7 +62,8 @@ model User {
   position      String?
   level         String?
   birthDate     DateTime?
-  
+  role          UserRole  @default(PLAYER)
+
   clubId        String?
   club          Club?     @relation(fields: [clubId], references: [id])
   
@@ -113,9 +133,11 @@ model Booking {
   clubId     String
   club       Club     @relation(fields: [clubId], references: [id], onDelete: Cascade)
   
-  status      String     @default("confirmed")
-  openMatch   OpenMatch?
-  
+  status       String     @default("confirmed")
+  cancelledAt  DateTime?
+  cancelReason String?
+  openMatch    OpenMatch?
+
   @@unique([courtId, startTime])
 }
 
@@ -216,11 +238,24 @@ model OpenMatch {
 model OpenMatchPlayer {
   openMatchId String
   openMatch   OpenMatch @relation(fields: [openMatchId], references: [id], onDelete: Cascade)
-  
+
   userId      String
   user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   createdAt   DateTime  @default(now())
 
   @@id([openMatchId, userId])
+}
+
+// --- NOTICIAS DEL CLUB ---
+model News {
+  id        String   @id @default(cuid())
+  title     String
+  content   String
+  imageUrl  String?
+  published Boolean  @default(false)
+  clubId    String
+  club      Club     @relation(fields: [clubId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }

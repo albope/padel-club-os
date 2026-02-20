@@ -1,20 +1,16 @@
-// Path: src/app/api/competitions/[competitionId]/route.ts
 import { db } from "@/lib/db";
-import { authOptions } from "@/lib/auth";
-import { getServerSession } from "next-auth";
+import { requireAuth, isAuthError } from "@/lib/api-auth";
 import { NextResponse } from "next/server";
 import { CompetitionStatus } from "@prisma/client";
 
-// PATCH: Actualiza el estado de una competición (ej. para finalizarla)
+// PATCH: Actualizar estado de una competicion
 export async function PATCH(
   req: Request,
   { params }: { params: { competitionId: string } }
 ) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.clubId) {
-      return new NextResponse("Unauthorized", { status: 401 });
-    }
+    const auth = await requireAuth("competitions:update")
+    if (isAuthError(auth)) return auth
 
     const body = await req.json();
     const { status } = body;
@@ -24,7 +20,7 @@ export async function PATCH(
     }
 
     const updatedCompetition = await db.competition.update({
-      where: { id: params.competitionId, clubId: session.user.clubId },
+      where: { id: params.competitionId, clubId: auth.session.user.clubId },
       data: { status },
     });
 
@@ -35,23 +31,17 @@ export async function PATCH(
   }
 }
 
-// DELETE: Elimina una competición y todos sus datos asociados
+// DELETE: Eliminar una competicion y todos sus datos asociados
 export async function DELETE(
   req: Request,
   { params }: { params: { competitionId: string } }
 ) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.clubId) {
-      return new NextResponse("Unauthorized", { status: 401 });
-    }
+    const auth = await requireAuth("competitions:delete")
+    if (isAuthError(auth)) return auth
 
-    // Prisma se encargará de borrar en cascada los equipos y partidos asociados
     await db.competition.delete({
-      where: {
-        id: params.competitionId,
-        clubId: session.user.clubId, // Seguridad
-      },
+      where: { id: params.competitionId, clubId: auth.session.user.clubId },
     });
 
     return new NextResponse(null, { status: 204 });

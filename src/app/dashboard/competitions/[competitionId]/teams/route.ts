@@ -1,45 +1,43 @@
 import { db } from "@/lib/db";
-import { authOptions } from "@/lib/auth";
-import { getServerSession } from "next-auth";
+import { requireAuth, isAuthError } from "@/lib/api-auth";
 import { NextResponse } from "next/server";
 
-// API route to add a team to a specific league
-
+// POST: Crear un equipo para una competicion
 export async function POST(
   req: Request,
-  { params }: { params: { leagueId: string } }
+  { params }: { params: { competitionId: string } }
 ) {
   try {
-    const session = await getServerSession(authOptions);
+    const auth = await requireAuth("competitions:update")
+    if (isAuthError(auth)) return auth
+
     const body = await req.json();
     const { name, player1Id, player2Id } = body;
 
-    // Security: Ensure user is authenticated and is an admin of a club
-    if (!session?.user?.clubId) {
-      return new NextResponse("Unauthorized", { status: 401 });
-    }
-
-    // Validation: Ensure all required fields are present
     if (!name || !player1Id || !player2Id) {
-      return new NextResponse("Missing required fields", { status: 400 });
+      return new NextResponse("Faltan campos requeridos", { status: 400 });
     }
 
     if (player1Id === player2Id) {
-      return new NextResponse("Players must be different", { status: 400 });
+      return new NextResponse("Los jugadores deben ser diferentes", { status: 400 });
     }
 
-    // Logic: Create the new team in the database
+    // Verificar que la competicion pertenece al club
+    const competition = await db.competition.findFirst({
+      where: { id: params.competitionId, clubId: auth.session.user.clubId },
+    });
+    if (!competition) {
+      return new NextResponse("Competicion no encontrada.", { status: 404 });
+    }
+
     const newTeam = await db.team.create({
       data: {
-        name,
-        player1Id,
-        player2Id,
-        leagueId: params.leagueId,
+        name, player1Id, player2Id,
+        competitionId: params.competitionId,
       },
     });
 
     return NextResponse.json(newTeam, { status: 201 });
-
   } catch (error) {
     console.error("[ADD_TEAM_ERROR]", error);
     return new NextResponse("Internal Server Error", { status: 500 });

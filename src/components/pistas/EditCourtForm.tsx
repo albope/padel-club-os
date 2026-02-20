@@ -7,8 +7,14 @@ import * as z from 'zod';
 import { useRouter } from 'next/navigation';
 import { Loader2, Trash2 } from 'lucide-react';
 import { Court } from '@prisma/client';
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Button } from '@/components/ui/button';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { toast } from '@/hooks/use-toast';
 
-// Validation schema for the court form
 const CourtSchema = z.object({
   name: z.string().min(3, "El nombre debe tener al menos 3 caracteres."),
   type: z.string().min(1, "Debes seleccionar un tipo de pista."),
@@ -21,7 +27,6 @@ interface EditCourtFormProps {
 const EditCourtForm: React.FC<EditCourtFormProps> = ({ court }) => {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
   const form = useForm<z.infer<typeof CourtSchema>>({
     resolver: zodResolver(CourtSchema),
@@ -33,7 +38,6 @@ const EditCourtForm: React.FC<EditCourtFormProps> = ({ court }) => {
 
   const onUpdate = async (values: z.infer<typeof CourtSchema>) => {
     setIsLoading(true);
-    setError(null);
     try {
       const response = await fetch(`/api/courts/${court.id}`, {
         method: 'PATCH',
@@ -41,63 +45,97 @@ const EditCourtForm: React.FC<EditCourtFormProps> = ({ court }) => {
         body: JSON.stringify(values),
       });
       if (!response.ok) throw new Error('No se pudo actualizar la pista.');
+      toast({ title: "Pista actualizada", description: "Los cambios se han guardado correctamente." });
       router.push('/dashboard/pistas');
       router.refresh();
     } catch (err: any) {
-      setError(err.message);
+      toast({ title: "Error", description: err.message, variant: "destructive" });
     } finally {
       setIsLoading(false);
     }
   };
 
   const onDelete = async () => {
-    if (!window.confirm(`¿Estás seguro de que quieres eliminar la pista "${court.name}"? Esta acción no se puede deshacer.`)) {
-      return;
-    }
     setIsLoading(true);
-    setError(null);
     try {
       const response = await fetch(`/api/courts/${court.id}`, {
         method: 'DELETE',
       });
       if (!response.ok) throw new Error('No se pudo eliminar la pista.');
+      toast({ title: "Pista eliminada", description: `La pista "${court.name}" ha sido eliminada.` });
       router.push('/dashboard/pistas');
       router.refresh();
     } catch (err: any) {
-      setError(err.message);
+      toast({ title: "Error", description: err.message, variant: "destructive" });
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <form onSubmit={form.handleSubmit(onUpdate)} className="space-y-6 max-w-lg">
-      {/* Form fields are similar to the AddCourtForm */}
-      <div>
-        <label htmlFor="name" className="block text-sm font-medium text-gray-300">Nombre de la Pista</label>
-        <input id="name" type="text" {...form.register('name')} disabled={isLoading} className="mt-1 block w-full bg-gray-700 text-white rounded-md p-3" />
-        {form.formState.errors.name && <p className="mt-1 text-sm text-red-400">{form.formState.errors.name.message}</p>}
-      </div>
-      <div>
-        <label htmlFor="type" className="block text-sm font-medium text-gray-300">Tipo de Pista</label>
-        <select id="type" {...form.register('type')} disabled={isLoading} className="mt-1 block w-full bg-gray-700 text-white rounded-md p-3">
-          <option>Cristal</option>
-          <option>Muro</option>
-          <option>Individual</option>
-        </select>
-      </div>
-      {error && <p className="text-sm text-red-500">{error}</p>}
-      <div className="flex justify-between items-center pt-4">
-        <button type="button" onClick={onDelete} disabled={isLoading} className="flex items-center px-4 py-2 text-sm font-medium text-red-400 hover:bg-red-500/10 rounded-lg">
-          <Trash2 className="mr-2 h-4 w-4" />
-          Eliminar
-        </button>
-        <button type="submit" disabled={isLoading} className="flex items-center justify-center px-6 py-3 font-semibold text-white bg-indigo-600 rounded-lg hover:bg-indigo-500 disabled:bg-gray-500">
-          {isLoading && <Loader2 className="mr-2 h-5 w-5 animate-spin" />}
-          Guardar Cambios
-        </button>
-      </div>
-    </form>
+    <Card className="max-w-lg">
+      <CardHeader>
+        <CardTitle>Editar Pista</CardTitle>
+      </CardHeader>
+      <form onSubmit={form.handleSubmit(onUpdate)}>
+        <CardContent className="space-y-6">
+          <div className="space-y-2">
+            <Label htmlFor="name">Nombre de la Pista</Label>
+            <Input id="name" {...form.register('name')} disabled={isLoading} />
+            {form.formState.errors.name && (
+              <p className="text-sm text-destructive">{form.formState.errors.name.message}</p>
+            )}
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="type">Tipo de Pista</Label>
+            <Select
+              defaultValue={form.getValues('type')}
+              onValueChange={(value) => form.setValue('type', value)}
+              disabled={isLoading}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Selecciona un tipo" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Cristal">Cristal</SelectItem>
+                <SelectItem value="Muro">Muro</SelectItem>
+                <SelectItem value="Individual">Individual</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </CardContent>
+        <CardFooter className="flex justify-between">
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button type="button" variant="ghost" className="text-destructive hover:text-destructive" disabled={isLoading}>
+                <Trash2 className="mr-2 h-4 w-4" />
+                Eliminar
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Eliminar pista</AlertDialogTitle>
+                <AlertDialogDescription>
+                  ¿Estás seguro de que quieres eliminar la pista &quot;{court.name}&quot;? Esta acción no se puede deshacer.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                <AlertDialogAction onClick={onDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                  Eliminar
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+
+          <Button type="submit" disabled={isLoading}>
+            {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            Guardar Cambios
+          </Button>
+        </CardFooter>
+      </form>
+    </Card>
   );
 };
 

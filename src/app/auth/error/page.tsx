@@ -2,34 +2,55 @@
 
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import React from 'react';
+import React, { Suspense } from 'react';
+import { AlertTriangle } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 
-const AuthErrorPage = () => {
+function AuthErrorContent() {
   const searchParams = useSearchParams();
   const error = searchParams.get('error');
 
   let errorMessage = 'Ha ocurrido un error inesperado.';
 
-  // NextAuth provides specific error codes we can check
   if (error === 'CredentialsSignin') {
-    errorMessage = 'Email o contraseña incorrectos. Por favor, inténtalo de nuevo.';
+    errorMessage = 'Email o contrasena incorrectos. Por favor, intentalo de nuevo.';
   } else if (error === 'Configuration') {
-    errorMessage = 'Hay un problema con la configuración del servidor. Por favor, contacta al administrador.';
+    errorMessage = 'Hay un problema con la configuracion del servidor. Por favor, contacta al administrador.';
   }
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50 text-center px-4">
-      <div className="bg-white p-8 rounded-lg shadow-md max-w-md w-full">
-        <h1 className="text-3xl font-bold text-red-600 mb-4">Error de Autenticación</h1>
-        <p className="text-gray-700 mb-6">{errorMessage}</p>
-        <Link href="/login">
-          <span className="px-6 py-2 font-bold text-white bg-indigo-600 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 cursor-pointer">
-            Volver a Intentar
-          </span>
-        </Link>
-      </div>
+    <div className="flex items-center justify-center min-h-screen bg-background px-4">
+      <Card className="w-full max-w-md">
+        <CardHeader className="text-center">
+          <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-destructive/10">
+            <AlertTriangle className="h-6 w-6 text-destructive" />
+          </div>
+          <CardTitle>Error de Autenticacion</CardTitle>
+        </CardHeader>
+        <CardContent className="text-center">
+          <p className="text-sm text-muted-foreground">{errorMessage}</p>
+        </CardContent>
+        <CardFooter className="justify-center">
+          <Button asChild>
+            <Link href="/login">Volver a Intentar</Link>
+          </Button>
+        </CardFooter>
+      </Card>
     </div>
   );
-};
+}
 
-export default AuthErrorPage;
+export default function AuthErrorPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex items-center justify-center min-h-screen bg-background">
+        <Card className="w-full max-w-md p-8 text-center">
+          <p className="text-muted-foreground">Cargando...</p>
+        </Card>
+      </div>
+    }>
+      <AuthErrorContent />
+    </Suspense>
+  );
+}

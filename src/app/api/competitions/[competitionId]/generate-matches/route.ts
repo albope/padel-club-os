@@ -1,6 +1,5 @@
 import { db } from "@/lib/db";
-import { authOptions } from "@/lib/auth";
-import { getServerSession } from "next-auth";
+import { requireAuth, isAuthError } from "@/lib/api-auth";
 import { NextResponse } from "next/server";
 import { CompetitionFormat } from "@prisma/client";
 
@@ -20,14 +19,12 @@ export async function POST(
   { params }: { params: { competitionId: string } }
 ) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.clubId) {
-      return new NextResponse("Unauthorized", { status: 401 });
-    }
+    const auth = await requireAuth("competitions:update")
+    if (isAuthError(auth)) return auth
 
-    // --- MODIFICADO: Obtenemos también el campo 'rounds' ---
-    const competition = await db.competition.findUnique({
-      where: { id: params.competitionId },
+    // Verificar que la competicion pertenece al club
+    const competition = await db.competition.findFirst({
+      where: { id: params.competitionId, clubId: auth.session.user.clubId },
       select: { format: true, groupSize: true, rounds: true },
     });
 
@@ -52,7 +49,7 @@ export async function POST(
         setsFor: 0, setsAgainst: 0, gamesFor: 0, gamesAgainst: 0,
       }
     });
-    
+
     if (competition.format === CompetitionFormat.LEAGUE) {
       let teamIds = teams.map(t => t.id);
       if (teamIds.length % 2 !== 0) teamIds.push("dummy");
@@ -63,52 +60,41 @@ export async function POST(
       const firstTeam = teamIds[0];
       const rotatingTeams = teamIds.slice(1);
 
-      // --- Generación de partidos de IDA ---
       for (let i = 0; i < numRoundsIda; i++) {
         const roundNumber = i + 1;
         if (rotatingTeams[0] !== "dummy") {
           matchesToCreate.push({
-            team1Id: firstTeam,
-            team2Id: rotatingTeams[0],
-            competitionId: params.competitionId,
-            roundNumber,
-            roundName: `Jornada ${roundNumber}`,
+            team1Id: firstTeam, team2Id: rotatingTeams[0],
+            competitionId: params.competitionId, roundNumber, roundName: `Jornada ${roundNumber}`,
           });
         }
         for (let j = 1; j < numTeams / 2; j++) {
           if (rotatingTeams[j] !== "dummy" && rotatingTeams[numTeams - 1 - j] !== "dummy") {
             matchesToCreate.push({
-              team1Id: rotatingTeams[j],
-              team2Id: rotatingTeams[numTeams - 1 - j],
-              competitionId: params.competitionId,
-              roundNumber,
-              roundName: `Jornada ${roundNumber}`,
+              team1Id: rotatingTeams[j], team2Id: rotatingTeams[numTeams - 1 - j],
+              competitionId: params.competitionId, roundNumber, roundName: `Jornada ${roundNumber}`,
             });
           }
         }
         rotatingTeams.unshift(rotatingTeams.pop()!);
       }
 
-      // --- AÑADIDO: Generación de partidos de VUELTA si es necesario ---
       if (competition.rounds === 2) {
-        const matchesIda = [...matchesToCreate]; // Copiamos los partidos de ida
-        for(const matchIda of matchesIda) {
-            const roundNumberVuelta = matchIda.roundNumber + numRoundsIda;
-            matchesToCreate.push({
-                team1Id: matchIda.team2Id, // Invertimos los equipos
-                team2Id: matchIda.team1Id,
-                competitionId: params.competitionId,
-                roundNumber: roundNumberVuelta,
-                roundName: `Jornada ${roundNumberVuelta}`,
-            })
+        const matchesIda = [...matchesToCreate];
+        for (const matchIda of matchesIda) {
+          const roundNumberVuelta = matchIda.roundNumber + numRoundsIda;
+          matchesToCreate.push({
+            team1Id: matchIda.team2Id, team2Id: matchIda.team1Id,
+            competitionId: params.competitionId, roundNumber: roundNumberVuelta,
+            roundName: `Jornada ${roundNumberVuelta}`,
+          });
         }
       }
-      
+
       await db.match.createMany({ data: matchesToCreate });
       return NextResponse.json({ message: "Calendario de liga generado con éxito." });
 
     } else if (competition.format === CompetitionFormat.KNOCKOUT) {
-      // Lógica de Torneo (sin cambios)
       const teamIds = teams.map(t => t.id);
       const bracketSize = Math.pow(2, Math.ceil(Math.log2(teamIds.length)));
       const byes = bracketSize - teamIds.length;
@@ -135,48 +121,46 @@ export async function POST(
       }
       await db.match.createMany({ data: matchesToCreate });
       return NextResponse.json({ message: "Bracket de torneo generado con éxito." });
-    
+
     } else if (competition.format === CompetitionFormat.GROUP_AND_KNOCKOUT) {
-       // Lógica de Grupos (sin cambios)
-       const groupSize = competition.groupSize || 4;
-       if (teams.length < groupSize) return new NextResponse("No hay suficientes equipos para formar un grupo.", { status: 400 });
-       const shuffledTeams = teams.map(t => t.id).sort(() => Math.random() - 0.5);
-       const numGroups = Math.ceil(shuffledTeams.length / groupSize);
-       const groups: { [key: string]: string[] } = {};
-       const teamUpdatePromises = [];
-       for (let i = 0; i < numGroups; i++) {
-         const groupName = String.fromCharCode(65 + i);
-         const groupTeams = shuffledTeams.splice(0, groupSize);
-         groups[groupName] = groupTeams;
-         teamUpdatePromises.push(db.team.updateMany({ where: { id: { in: groupTeams } }, data: { group: groupName } }));
-       }
-       await db.$transaction(teamUpdatePromises);
-       const matchesToCreate: any[] = [];
-       for (const groupName in groups) {
-         let teamIds = groups[groupName];
-         if (teamIds.length % 2 !== 0) teamIds.push("dummy");
-         const numTeams = teamIds.length;
-         const firstTeam = teamIds[0];
-         const rotatingTeams = teamIds.slice(1);
-         for (let i = 0; i < numTeams - 1; i++) {
-           const roundNumber = i + 1;
-           if (rotatingTeams[0] !== "dummy") {
-             matchesToCreate.push({ team1Id: firstTeam, team2Id: rotatingTeams[0], competitionId: params.competitionId, roundNumber, roundName: `Grupo ${groupName} - Jornada ${roundNumber}` });
-           }
-           for (let j = 1; j < numTeams / 2; j++) {
-             if (rotatingTeams[j] !== "dummy" && rotatingTeams[numTeams - 1 - j] !== "dummy") {
-               matchesToCreate.push({ team1Id: rotatingTeams[j], team2Id: rotatingTeams[numTeams - 1 - j], competitionId: params.competitionId, roundNumber, roundName: `Grupo ${groupName} - Jornada ${roundNumber}` });
-             }
-           }
-           rotatingTeams.unshift(rotatingTeams.pop()!);
-         }
-       }
-       await db.match.createMany({ data: matchesToCreate });
-       return NextResponse.json({ message: "Fase de grupos generada con éxito." });
+      const groupSize = competition.groupSize || 4;
+      if (teams.length < groupSize) return new NextResponse("No hay suficientes equipos para formar un grupo.", { status: 400 });
+      const shuffledTeams = teams.map(t => t.id).sort(() => Math.random() - 0.5);
+      const numGroups = Math.ceil(shuffledTeams.length / groupSize);
+      const groups: { [key: string]: string[] } = {};
+      const teamUpdatePromises = [];
+      for (let i = 0; i < numGroups; i++) {
+        const groupName = String.fromCharCode(65 + i);
+        const groupTeams = shuffledTeams.splice(0, groupSize);
+        groups[groupName] = groupTeams;
+        teamUpdatePromises.push(db.team.updateMany({ where: { id: { in: groupTeams } }, data: { group: groupName } }));
+      }
+      await db.$transaction(teamUpdatePromises);
+      const matchesToCreate: any[] = [];
+      for (const groupName in groups) {
+        let teamIds = groups[groupName];
+        if (teamIds.length % 2 !== 0) teamIds.push("dummy");
+        const numTeams = teamIds.length;
+        const firstTeam = teamIds[0];
+        const rotatingTeams = teamIds.slice(1);
+        for (let i = 0; i < numTeams - 1; i++) {
+          const roundNumber = i + 1;
+          if (rotatingTeams[0] !== "dummy") {
+            matchesToCreate.push({ team1Id: firstTeam, team2Id: rotatingTeams[0], competitionId: params.competitionId, roundNumber, roundName: `Grupo ${groupName} - Jornada ${roundNumber}` });
+          }
+          for (let j = 1; j < numTeams / 2; j++) {
+            if (rotatingTeams[j] !== "dummy" && rotatingTeams[numTeams - 1 - j] !== "dummy") {
+              matchesToCreate.push({ team1Id: rotatingTeams[j], team2Id: rotatingTeams[numTeams - 1 - j], competitionId: params.competitionId, roundNumber, roundName: `Grupo ${groupName} - Jornada ${roundNumber}` });
+            }
+          }
+          rotatingTeams.unshift(rotatingTeams.pop()!);
+        }
+      }
+      await db.match.createMany({ data: matchesToCreate });
+      return NextResponse.json({ message: "Fase de grupos generada con éxito." });
     }
 
     return new NextResponse("Formato de competición no soportado.", { status: 400 });
-
   } catch (error) {
     console.error("[GENERATE_MATCHES_ERROR]", error);
     return new NextResponse("Internal Server Error", { status: 500 });

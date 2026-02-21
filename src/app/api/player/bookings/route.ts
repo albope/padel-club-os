@@ -1,6 +1,7 @@
 import { db } from "@/lib/db";
 import { requireAuth, isAuthError } from "@/lib/api-auth";
 import { NextResponse } from "next/server";
+import { calcularPrecioReserva } from "@/lib/pricing";
 
 // GET: Obtener reservas del jugador autenticado
 export async function GET() {
@@ -51,6 +52,7 @@ export async function POST(req: Request) {
         cancellationHours: true,
         openingTime: true,
         closingTime: true,
+        bookingPaymentMode: true,
       },
     });
 
@@ -114,13 +116,16 @@ export async function POST(req: Request) {
       );
     }
 
+    const totalPrice = await calcularPrecioReserva(courtId, auth.session.user.clubId, newStartTime, newEndTime);
+
     const booking = await db.booking.create({
       data: {
         courtId,
         userId: auth.session.user.id,
         startTime: newStartTime,
         endTime: newEndTime,
-        totalPrice: 20.0, // TODO: precio dinamico
+        totalPrice,
+        paymentStatus: club.bookingPaymentMode === "presential" ? "exempt" : "pending",
         status: "confirmed",
         clubId: auth.session.user.clubId,
       },

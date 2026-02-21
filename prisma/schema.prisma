@@ -33,13 +33,27 @@ model Club {
   enableOpenMatches Boolean  @default(true)
   enablePlayerBooking Boolean @default(true)
 
+  // Stripe - Suscripcion SaaS
+  stripeSubscriptionId    String?
+  subscriptionStatus      String?   @default("trialing")
+  trialEndsAt             DateTime?
+
+  // Stripe Connect - Pagos de reservas (preparado para fase D)
+  stripeConnectAccountId  String?
+  stripeConnectOnboarded  Boolean  @default(false)
+
+  // Modo de pago de reservas: "online" | "presential" | "both"
+  bookingPaymentMode      String?  @default("presential")
+
   // Relationships
-  admins       User[]
-  courts       Court[]
-  bookings     Booking[]
-  competitions Competition[]
-  openMatches  OpenMatch[]
-  news         News[]
+  admins        User[]
+  courts        Court[]
+  bookings      Booking[]
+  competitions  Competition[]
+  openMatches   OpenMatch[]
+  news          News[]
+  payments      Payment[]
+  courtPricings CourtPricing[]
 }
 
 // --- USER ROLES ---
@@ -74,6 +88,7 @@ model User {
   teamsAsPlayer2 Team[]    @relation("Player2OfTeams")
   bookings      Booking[]
   openMatches   OpenMatchPlayer[]
+  payments      Payment[]
 }
 
 // --- NextAuth Models ---
@@ -118,6 +133,7 @@ model Court {
   club     Club      @relation(fields: [clubId], references: [id], onDelete: Cascade)
   bookings Booking[]
   openMatches OpenMatch[]
+  pricings CourtPricing[]
 }
 
 model Booking {
@@ -133,10 +149,12 @@ model Booking {
   clubId     String
   club       Club     @relation(fields: [clubId], references: [id], onDelete: Cascade)
   
-  status       String     @default("confirmed")
-  cancelledAt  DateTime?
-  cancelReason String?
-  openMatch    OpenMatch?
+  status        String     @default("confirmed")
+  paymentStatus String?    @default("pending") // "pending" | "paid" | "exempt"
+  cancelledAt   DateTime?
+  cancelReason  String?
+  openMatch     OpenMatch?
+  payment       Payment?
 
   @@unique([courtId, startTime])
 }
@@ -258,4 +276,40 @@ model News {
   club      Club     @relation(fields: [clubId], references: [id], onDelete: Cascade)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+// --- PAGOS ---
+model Payment {
+  id              String   @id @default(cuid())
+  amount          Float
+  currency        String   @default("EUR")
+  status          String   // "succeeded" | "pending" | "failed" | "refunded"
+  type            String   // "booking" | "subscription"
+  stripePaymentId String?  @unique
+
+  bookingId       String?  @unique
+  booking         Booking? @relation(fields: [bookingId], references: [id])
+
+  userId          String?
+  user            User?    @relation(fields: [userId], references: [id])
+
+  clubId          String
+  club            Club     @relation(fields: [clubId], references: [id], onDelete: Cascade)
+
+  createdAt       DateTime @default(now())
+}
+
+// --- PRECIOS POR PISTA ---
+model CourtPricing {
+  id        String @id @default(cuid())
+  courtId   String
+  court     Court  @relation(fields: [courtId], references: [id], onDelete: Cascade)
+  dayOfWeek Int    // 0=Domingo, 6=Sabado
+  startHour Int    // 0-23
+  endHour   Int    // 0-23
+  price     Float
+  clubId    String
+  club      Club   @relation(fields: [clubId], references: [id], onDelete: Cascade)
+
+  @@unique([courtId, dayOfWeek, startHour])
 }

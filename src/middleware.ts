@@ -34,6 +34,7 @@ export default withAuth(
           pathname.startsWith("/auth") ||
           pathname.startsWith("/api/auth") ||
           pathname.startsWith("/api/register") ||
+          pathname.startsWith("/api/stripe/webhook") ||
           pathname.startsWith("/club")
         ) {
           return true

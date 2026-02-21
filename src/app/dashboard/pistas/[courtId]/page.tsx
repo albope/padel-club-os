@@ -5,7 +5,7 @@ import { getServerSession } from 'next-auth';
 import { redirect } from 'next/navigation';
 import EditCourtForm from '@/components/pistas/EditCourtForm';
 import Link from 'next/link';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Euro } from 'lucide-react';
 
 interface EditCourtPageProps {
   params: {
@@ -53,6 +53,16 @@ const EditCourtPage = async ({ params }: EditCourtPageProps) => {
 
       <div className="bg-gray-800 p-6 sm:p-8 rounded-xl shadow-lg">
         <EditCourtForm court={court} />
+      </div>
+
+      <div className="mt-4">
+        <Link
+          href={`/dashboard/pistas/${params.courtId}/precios`}
+          className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-primary/10 text-primary hover:bg-primary/20 transition-colors text-sm font-medium"
+        >
+          <Euro className="h-4 w-4" />
+          Configurar precios por franja horaria
+        </Link>
       </div>
     </div>
   );

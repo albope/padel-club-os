@@ -6,7 +6,6 @@ import {
   Shield,
   Star,
   CheckCircle,
-  Zap,
 } from 'lucide-react';
 
 /* ─── Props ──────────────────────────────────────────────────────────────── */
@@ -89,57 +88,31 @@ export default function AuthBrandingPanel({ modo }: AuthBrandingPanelProps) {
         style={{ background: 'radial-gradient(circle, rgba(147,197,253,0.28) 0%, transparent 60%)' }}
       />
 
-      {/* Formas geometricas decorativas — tonos azul claros */}
-      <div aria-hidden="true" className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div
-          className="absolute top-10 right-14 w-16 h-16 rounded-2xl auth-float-2"
-          style={{
-            border: '1px solid rgba(32,106,245,0.12)',
-            background: 'rgba(32,106,245,0.05)',
-            transform: 'rotate(12deg)',
-          }}
-        />
-        <div
-          className="absolute bottom-24 right-16 w-10 h-10 rounded-xl auth-float-1"
-          style={{
-            border: '1px solid rgba(107,188,226,0.16)',
-            background: 'rgba(107,188,226,0.06)',
-            transform: 'rotate(-6deg)',
-          }}
-        />
-        <div
-          className="absolute top-[36%] left-8 w-7 h-7 rounded-lg auth-float-3"
-          style={{
-            border: '1px solid rgba(32,106,245,0.14)',
-            background: 'rgba(32,106,245,0.06)',
-            transform: 'rotate(45deg)',
-          }}
-        />
-        {/* Linea de acento diagonal */}
-        <div
-          className="absolute -top-1/4 -right-1/4 w-[150%] h-px rotate-[-18deg]"
-          style={{ background: 'linear-gradient(90deg, transparent, rgba(32,106,245,0.10), transparent)' }}
-        />
-        <div
-          className="absolute top-2/3 -left-1/4 w-[150%] h-px rotate-[-18deg]"
-          style={{ background: 'linear-gradient(90deg, transparent, rgba(107,188,226,0.08), transparent)' }}
-        />
-      </div>
-
       {/* Contenido principal del panel */}
       <div className="relative z-10 flex flex-col h-full p-10 xl:p-14">
 
         {/* Logo — texto oscuro sobre fondo claro */}
-        <div className="auth-fade-up-1">
+        <div className="auth-fade-up-1 mb-8">
           <Link href="/" className="inline-flex items-center gap-2.5 group">
             <div
               className="w-9 h-9 rounded-xl flex items-center justify-center shadow-sm group-hover:shadow-md transition-shadow duration-200"
               style={{
-                background: 'rgba(32,106,245,0.12)',
-                border: '1px solid rgba(32,106,245,0.18)',
+                background: 'linear-gradient(135deg, hsl(217,91%,52%) 0%, hsl(197,85%,48%) 100%)',
+                border: '1px solid rgba(32,106,245,0.22)',
               }}
             >
-              <Zap className="w-[18px] h-[18px]" style={{ color: 'hsl(217,91%,50%)' }} />
+              <svg
+                width="18"
+                height="18"
+                viewBox="0 0 18 18"
+                fill="none"
+                aria-hidden="true"
+              >
+                <rect x="2" y="2" width="6" height="6" rx="1.5" fill="rgba(255,255,255,0.95)" />
+                <rect x="10" y="2" width="6" height="6" rx="1.5" fill="rgba(255,255,255,0.60)" />
+                <rect x="2" y="10" width="6" height="6" rx="1.5" fill="rgba(255,255,255,0.60)" />
+                <rect x="10" y="10" width="6" height="6" rx="1.5" fill="rgba(255,255,255,0.30)" />
+              </svg>
             </div>
             <span className="text-[17px] font-bold tracking-tight text-slate-800 dark:text-slate-100">
               Padel Club OS
@@ -161,7 +134,7 @@ export default function AuthBrandingPanel({ modo }: AuthBrandingPanelProps) {
               }}
             >
               <Star className="w-3 h-3 flex-shrink-0" style={{ fill: '#f59e0b', color: '#f59e0b' }} />
-              {modo === 'registro' ? '14 dias de prueba gratuita' : 'La plataforma lider en Espana'}
+              {modo === 'registro' ? '14 días de prueba gratuita' : 'Gestión inteligente para tu club'}
             </span>
           </div>
 
@@ -247,49 +220,10 @@ export default function AuthBrandingPanel({ modo }: AuthBrandingPanelProps) {
             style={{ borderTop: '1px solid rgba(32,106,245,0.10)' }}
           />
 
-          {/* Social proof */}
+          {/* Early adopter */}
           <div className="auth-fade-up-6 mt-6">
-            <div className="flex items-start gap-4">
-              {/* Avatares */}
-              <div className="flex -space-x-2 flex-shrink-0 mt-0.5">
-                {[
-                  { bg: 'hsl(217,80%,52%)', letra: 'J' },
-                  { bg: 'hsl(197,75%,46%)', letra: 'M' },
-                  { bg: 'hsl(170,65%,42%)', letra: 'A' },
-                  { bg: 'hsl(235,70%,58%)', letra: 'R' },
-                ].map(({ bg, letra }, i) => (
-                  <div
-                    key={i}
-                    className="w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-bold text-white"
-                    style={{
-                      background: bg,
-                      border: '2px solid rgba(255,255,255,0.85)',
-                      boxShadow: '0 1px 3px rgba(0,0,0,0.12)',
-                    }}
-                  >
-                    {letra}
-                  </div>
-                ))}
-              </div>
-
-              {/* Texto y estrellas */}
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-1 mb-1">
-                  {[...Array(5)].map((_, i) => (
-                    <Star key={i} className="w-3 h-3" style={{ fill: '#f59e0b', color: '#f59e0b' }} />
-                  ))}
-                  <span className="ml-1 text-xs font-semibold text-slate-600 dark:text-slate-300">5.0</span>
-                </div>
-                <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
-                  <span className="font-semibold text-slate-700 dark:text-slate-200">+500 clubes</span>{' '}
-                  confian en Padel Club OS
-                </p>
-              </div>
-            </div>
-
-            {/* Testimonial card — blanco sobre el fondo azul claro */}
             <div
-              className="mt-4 rounded-xl p-4"
+              className="rounded-xl p-5"
               style={{
                 background: 'rgba(255,255,255,0.82)',
                 border: '1px solid rgba(32,106,245,0.10)',
@@ -297,35 +231,23 @@ export default function AuthBrandingPanel({ modo }: AuthBrandingPanelProps) {
                 backdropFilter: 'blur(8px)',
               }}
             >
-              <p className="text-sm text-slate-600 leading-relaxed">
-                &ldquo;Pasamos de hojas de calculo a tener todo automatizado en menos de una semana.
-                Las reservas aumentaron un{' '}
-                <span className="text-slate-800 font-medium">40%</span> el primer mes.&rdquo;
-              </p>
-              <div className="mt-3 flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <div
-                    className="w-6 h-6 rounded-full flex items-center justify-center"
-                    style={{
-                      background: 'hsl(217,80%,52%)',
-                    }}
-                  >
-                    <span className="text-[9px] font-bold text-white">JM</span>
-                  </div>
-                  <div>
-                    <p className="text-xs font-semibold text-slate-700">Jorge Morales</p>
-                    <p className="text-[11px] text-slate-400">Director, Club Padel Valencia</p>
-                  </div>
-                </div>
+              <div className="flex items-center gap-2.5 mb-3">
                 <div
-                  className="w-5 h-5 rounded-full flex items-center justify-center"
-                  style={{ background: 'rgba(32,106,245,0.08)' }}
+                  className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
+                  style={{
+                    background: 'linear-gradient(135deg, hsl(217,91%,52%) 0%, hsl(197,85%,48%) 100%)',
+                  }}
                 >
-                  <svg width="9" height="9" viewBox="0 0 9 9" fill="none">
-                    <path d="M1.5 7.5L7.5 1.5M7.5 1.5H2.5M7.5 1.5V6.5" stroke="hsl(217,75%,50%)" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
-                  </svg>
+                  <Star className="w-4 h-4 text-white" />
                 </div>
+                <p className="text-sm font-semibold text-slate-800 dark:text-slate-100">
+                  Acceso anticipado
+                </p>
               </div>
+              <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed">
+                Únete a los primeros clubes que están digitalizando su gestión.
+                Ayúdanos a construir la herramienta que el pádel necesita.
+              </p>
             </div>
           </div>
 

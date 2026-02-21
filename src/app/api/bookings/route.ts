@@ -1,6 +1,7 @@
 import { db } from "@/lib/db";
 import { requireAuth, isAuthError } from "@/lib/api-auth";
 import { NextResponse } from "next/server";
+import { calcularPrecioReserva } from "@/lib/pricing";
 
 // GET: Obtener todas las reservas del club
 export async function GET() {
@@ -53,6 +54,8 @@ export async function POST(req: Request) {
       return new NextResponse("Este horario ya está ocupado en la pista seleccionada.", { status: 409 });
     }
 
+    const totalPrice = await calcularPrecioReserva(courtId, auth.session.user.clubId, newStartTime, newEndTime);
+
     const newBooking = await db.booking.create({
       data: {
         courtId,
@@ -60,7 +63,8 @@ export async function POST(req: Request) {
         guestName: guestName || null,
         startTime: newStartTime,
         endTime: newEndTime,
-        totalPrice: 20.0,
+        totalPrice,
+        paymentStatus: "exempt", // Reservas admin no requieren pago online
         status: "confirmed",
         clubId: auth.session.user.clubId,
       },

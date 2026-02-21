@@ -38,6 +38,12 @@ export type Permission =
   | "news:create"
   | "news:update"
   | "news:delete"
+  // Facturacion / Pagos
+  | "billing:read"
+  | "billing:update"
+  // Precios de pistas
+  | "court-pricing:read"
+  | "court-pricing:update"
   // Perfil propio
   | "profile:read"
   | "profile:update"
@@ -52,6 +58,8 @@ const rolePermissions: Record<UserRole, Permission[]> = {
     "open-matches:read", "open-matches:create", "open-matches:join", "open-matches:update", "open-matches:delete",
     "settings:read", "settings:update",
     "news:read", "news:create", "news:update", "news:delete",
+    "billing:read", "billing:update",
+    "court-pricing:read", "court-pricing:update",
     "profile:read", "profile:update",
   ],
   CLUB_ADMIN: [
@@ -62,6 +70,8 @@ const rolePermissions: Record<UserRole, Permission[]> = {
     "open-matches:read", "open-matches:create", "open-matches:join", "open-matches:update", "open-matches:delete",
     "settings:read", "settings:update",
     "news:read", "news:create", "news:update", "news:delete",
+    "billing:read", "billing:update",
+    "court-pricing:read", "court-pricing:update",
     "profile:read", "profile:update",
   ],
   STAFF: [
@@ -71,6 +81,7 @@ const rolePermissions: Record<UserRole, Permission[]> = {
     "competitions:read", "competitions:create", "competitions:update", "competitions:delete",
     "open-matches:read", "open-matches:create", "open-matches:join", "open-matches:update", "open-matches:delete",
     "news:read",
+    "court-pricing:read",
     "profile:read", "profile:update",
   ],
   PLAYER: [

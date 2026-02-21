@@ -104,5 +104,28 @@
     "saved": "Perfil actualizado",
     "savedDesc": "Tus datos se han guardado correctamente.",
     "saveError": "No se pudo actualizar el perfil."
+  },
+  "billing": {
+    "title": "Facturacion",
+    "subtitle": "Gestiona tu plan y facturacion",
+    "currentPlan": "Plan actual",
+    "changePlan": "Cambiar plan",
+    "manageBilling": "Gestionar facturacion",
+    "paymentHistory": "Historial de pagos",
+    "noPayments": "Aun no hay pagos registrados.",
+    "trialEndsIn": "Tu prueba gratuita termina en {days} dias",
+    "trialExpired": "Tu prueba gratuita ha expirado",
+    "active": "Activo",
+    "trialing": "Prueba gratuita",
+    "pastDue": "Pago pendiente",
+    "canceled": "Cancelado",
+    "amount": "Importe",
+    "date": "Fecha",
+    "status": "Estado",
+    "type": "Tipo",
+    "perMonth": "/mes",
+    "selectPlan": "Elegir plan",
+    "currentPlanBadge": "Plan actual",
+    "mostPopular": "Mas popular"
   }
 }

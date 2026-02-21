@@ -104,5 +104,28 @@
     "saved": "Profile updated",
     "savedDesc": "Your data has been saved successfully.",
     "saveError": "Could not update profile."
+  },
+  "billing": {
+    "title": "Billing",
+    "subtitle": "Manage your plan and billing",
+    "currentPlan": "Current plan",
+    "changePlan": "Change plan",
+    "manageBilling": "Manage billing",
+    "paymentHistory": "Payment history",
+    "noPayments": "No payments recorded yet.",
+    "trialEndsIn": "Your free trial ends in {days} days",
+    "trialExpired": "Your free trial has expired",
+    "active": "Active",
+    "trialing": "Free trial",
+    "pastDue": "Past due",
+    "canceled": "Canceled",
+    "amount": "Amount",
+    "date": "Date",
+    "status": "Status",
+    "type": "Type",
+    "perMonth": "/month",
+    "selectPlan": "Select plan",
+    "currentPlanBadge": "Current plan",
+    "mostPopular": "Most popular"
   }
 }

@@ -2,6 +2,7 @@ import { db } from "@/lib/db";
 import { requireAuth, isAuthError } from "@/lib/api-auth";
 import { NextResponse } from "next/server";
 import { OpenMatchStatus } from "@prisma/client";
+import { calcularPrecioReserva } from "@/lib/pricing";
 
 // POST: Crear una nueva partida abierta
 export async function POST(req: Request) {
@@ -34,11 +35,14 @@ export async function POST(req: Request) {
       return new NextResponse("Ya existe una reserva en esa pista y a esa hora.", { status: 409 });
     }
 
+    const totalPrice = await calcularPrecioReserva(courtId, clubId, startTime, endTime);
+
     const newOpenMatch = await db.$transaction(async (prisma) => {
       const provisionalBooking = await prisma.booking.create({
         data: {
           clubId, courtId, startTime, endTime,
-          status: 'provisional', totalPrice: 0,
+          status: 'provisional', totalPrice,
+          paymentStatus: "exempt",
         },
       });
 

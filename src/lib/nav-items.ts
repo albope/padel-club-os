@@ -6,6 +6,7 @@ import {
   Fence,
   Settings,
   CalendarPlus,
+  CreditCard,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -22,6 +23,7 @@ export const navItems: NavItem[] = [
   { name: 'Competiciones', href: '/dashboard/competitions', icon: Trophy },
   { name: 'Socios', href: '/dashboard/socios', icon: Users },
   { name: 'Partidas Abiertas', href: '/dashboard/partidas-abiertas', icon: CalendarPlus },
+  { name: 'Facturacion', href: '/dashboard/facturacion', icon: CreditCard },
   { name: 'Ajustes', href: '/dashboard/ajustes', icon: Settings },
 ];
 

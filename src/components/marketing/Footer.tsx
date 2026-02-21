@@ -1,5 +1,6 @@
 import Link from "next/link"
 import { Separator } from "@/components/ui/separator"
+import { LogoIcon } from "@/components/ui/logo-icon"
 
 const columnas = [
   {
@@ -21,9 +22,9 @@ const columnas = [
   {
     titulo: "Legal",
     links: [
-      { label: "Privacidad", href: "#" },
-      { label: "Terminos de uso", href: "#" },
-      { label: "Cookies", href: "#" },
+      { label: "Privacidad", href: "/privacidad" },
+      { label: "Terminos de uso", href: "/terminos" },
+      { label: "Cookies", href: "/cookies" },
     ],
   },
 ]
@@ -36,9 +37,7 @@ export default function Footer() {
           {/* Marca */}
           <div>
             <Link href="/" className="flex items-center gap-2">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
-                <span className="text-sm font-bold text-primary-foreground">P</span>
-              </div>
+              <LogoIcon tamano="md" />
               <span className="text-lg font-bold">Padel Club OS</span>
             </Link>
             <p className="mt-4 text-sm leading-relaxed text-muted-foreground">
@@ -54,12 +53,12 @@ export default function Footer() {
               <ul className="mt-4 space-y-2.5">
                 {col.links.map((link) => (
                   <li key={link.label}>
-                    <a
+                    <Link
                       href={link.href}
                       className="text-sm text-muted-foreground transition-colors hover:text-foreground"
                     >
                       {link.label}
-                    </a>
+                    </Link>
                   </li>
                 ))}
               </ul>

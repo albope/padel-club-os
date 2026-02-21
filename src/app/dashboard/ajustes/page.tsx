@@ -27,13 +27,11 @@ const AjustesPage = async () => {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-3xl font-bold text-white">Ajustes del Club</h1>
-        <p className="mt-1 text-gray-400">Gestiona la información y el horario de tu club.</p>
+        <h1 className="text-3xl font-bold">Ajustes del Club</h1>
+        <p className="mt-1 text-muted-foreground">Gestiona la informacion, horario y configuracion de tu club.</p>
       </div>
 
-      <div className="bg-gray-800 p-6 sm:p-8 rounded-xl shadow-lg">
-        <SettingsForm club={club} />
-      </div>
+      <SettingsForm club={club} />
     </div>
   );
 };

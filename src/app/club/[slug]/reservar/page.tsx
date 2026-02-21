@@ -45,6 +45,7 @@ export default function PlayerBookingPage() {
   const [selectedCourt, setSelectedCourt] = useState<string | null>(null);
   const [selectedSlot, setSelectedSlot] = useState<string | null>(null);
   const [existingBookings, setExistingBookings] = useState<any[]>([]);
+  const [slotPrices, setSlotPrices] = useState<Record<number, number>>({});
   const [isLoading, setIsLoading] = useState(true);
   const [isBooking, setIsBooking] = useState(false);
 
@@ -72,15 +73,30 @@ export default function PlayerBookingPage() {
     load();
   }, [slug]);
 
-  // Cargar reservas existentes cuando cambia fecha o pista
+  // Cargar reservas existentes y precios cuando cambia fecha o pista
   useEffect(() => {
     if (!selectedCourt || !selectedDate || !clubInfo) return;
-    async function loadBookings() {
+    async function loadBookingsAndPrices() {
       try {
-        // Obtenemos las reservas del dia para la pista seleccionada via la API del club
         const dateStart = new Date(`${selectedDate}T00:00:00`);
         const dateEnd = new Date(`${selectedDate}T23:59:59`);
-        // Usamos la API de reservas del jugador si esta autenticado
+
+        // Cargar precios de la pista para este dia
+        const pricingRes = await fetch(`/api/club/${slug}/pricing?courtId=${selectedCourt}&date=${selectedDate}`);
+        if (pricingRes.ok) {
+          const pricingData = await pricingRes.json();
+          const priceMap: Record<number, number> = {};
+          for (const p of pricingData) {
+            for (let h = p.startHour; h < p.endHour; h++) {
+              priceMap[h] = p.price;
+            }
+          }
+          setSlotPrices(priceMap);
+        } else {
+          setSlotPrices({});
+        }
+
+        // Cargar reservas del jugador si esta autenticado
         if (session?.user) {
           const res = await fetch('/api/player/bookings');
           if (res.ok) {
@@ -94,8 +110,8 @@ export default function PlayerBookingPage() {
         }
       } catch { /* silenciar */ }
     }
-    loadBookings();
-  }, [selectedCourt, selectedDate, clubInfo, session]);
+    loadBookingsAndPrices();
+  }, [selectedCourt, selectedDate, clubInfo, session, slug]);
 
   const handleBook = async () => {
     if (!session?.user) {
@@ -218,20 +234,29 @@ export default function PlayerBookingPage() {
           <CardContent>
             <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2">
               {slots.map((slot) => {
-                // Por ahora marcamos todos como disponibles; en el futuro se cruzara con bookings reales
                 const isSelected = selectedSlot === slot;
+                const hour = parseInt(slot.split(':')[0]);
+                const price = slotPrices[hour];
                 return (
                   <button
                     key={slot}
                     onClick={() => setSelectedSlot(isSelected ? null : slot)}
                     className={cn(
-                      'py-2 px-3 rounded-md text-sm font-medium border transition-colors',
+                      'py-2 px-3 rounded-md text-sm font-medium border transition-colors flex flex-col items-center gap-0.5',
                       isSelected
                         ? 'bg-primary text-primary-foreground border-primary'
                         : 'hover:bg-muted border-border text-foreground'
                     )}
                   >
-                    {slot}
+                    <span>{slot}</span>
+                    {price !== undefined && price > 0 && (
+                      <span className={cn(
+                        'text-[10px] font-normal',
+                        isSelected ? 'text-primary-foreground/80' : 'text-muted-foreground'
+                      )}>
+                        {price}€
+                      </span>
+                    )}
                   </button>
                 );
               })}
@@ -254,6 +279,13 @@ export default function PlayerBookingPage() {
               <p className="text-sm text-muted-foreground">
                 {selectedSlot} - 90 minutos
               </p>
+              {(() => {
+                const hour = parseInt(selectedSlot.split(':')[0]);
+                const price = slotPrices[hour];
+                return price !== undefined && price > 0 ? (
+                  <p className="text-sm font-semibold text-primary">{price.toFixed(2)}€</p>
+                ) : null;
+              })()}
             </div>
             <Button onClick={handleBook} disabled={isBooking}>
               {isBooking ? (

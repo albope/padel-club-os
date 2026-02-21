@@ -13,6 +13,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from '@/components/ui/sheet';
+import { LogoIcon } from '@/components/ui/logo-icon';
 import { useState } from 'react';
 
 export function MobileSidebar() {
@@ -34,7 +35,8 @@ export function MobileSidebar() {
       </SheetTrigger>
       <SheetContent side="left" className="w-72 p-0">
         <SheetHeader className="h-16 flex items-center justify-center border-b px-6">
-          <SheetTitle className="text-xl font-bold text-primary">
+          <SheetTitle className="text-xl font-bold text-primary flex items-center gap-2">
+            <LogoIcon tamano="sm" />
             PadelClub OS
           </SheetTitle>
         </SheetHeader>

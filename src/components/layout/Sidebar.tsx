@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { navItems } from '@/lib/nav-items';
 import { cn } from '@/lib/utils';
+import { LogoIcon } from '@/components/ui/logo-icon';
 import React from 'react';
 
 const Sidebar = () => {
@@ -17,7 +18,10 @@ const Sidebar = () => {
   return (
     <aside className="w-64 border-r bg-sidebar text-sidebar-foreground flex-col hidden md:flex">
       <div className="h-16 flex items-center justify-center border-b">
-        <h1 className="text-2xl font-bold text-sidebar-primary">PadelClub OS</h1>
+        <div className="flex items-center gap-2.5">
+          <LogoIcon tamano="md" />
+          <h1 className="text-2xl font-bold text-sidebar-primary">PadelClub OS</h1>
+        </div>
       </div>
 
       <nav className="flex-grow p-4">

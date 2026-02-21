@@ -97,10 +97,12 @@ npx prisma db push # Sincronizar schema con DB
 
 ## Modelos principales (Prisma)
 
-- **Club**: Centro multi-tenant. Campos config: description, phone, email, primaryColor, maxAdvanceBooking (dias), cancellationHours, enableOpenMatches, enablePlayerBooking
+- **Club**: Centro multi-tenant. Config: description, phone, email, primaryColor, maxAdvanceBooking, cancellationHours, enableOpenMatches, enablePlayerBooking, bookingPaymentMode. Stripe: stripeSubscriptionId, subscriptionStatus, trialEndsAt, stripeConnectAccountId, stripeConnectOnboarded
 - **User**: Pertenece a un Club, role (SUPER_ADMIN, CLUB_ADMIN, STAFF, PLAYER)
-- **Court**: Pistas del club (name, type)
-- **Booking**: Reservas con solapamiento. Campos cancel: cancelledAt, cancelReason
+- **Court**: Pistas del club (name, type). Relacion: pricings (CourtPricing[])
+- **Booking**: Reservas con solapamiento. Campos: cancelledAt, cancelReason, totalPrice, paymentStatus (pending|paid|exempt)
+- **Payment**: Pagos (amount, currency, status, type booking|subscription, stripePaymentId unique, bookingId, userId, clubId)
+- **CourtPricing**: Precios por pista/dia/hora (courtId, dayOfWeek 0-6, startHour, endHour, price, @@unique[courtId, dayOfWeek, startHour])
 - **Competition**: Ligas/torneos (LEAGUE, KNOCKOUT, GROUP_AND_KNOCKOUT), status (ACTIVE, FINISHED)
 - **Team**: 2 jugadores por equipo, stats (points, played, won, lost, sets, games)
 - **Match**: Partidos de competicion (resultados formato "6-2 6-4")
@@ -178,7 +180,29 @@ El plan completo de 5 fases esta en: `C:\Users\alber\.claude\plans\jaunty-tumbli
 - [x] i18n: next-intl 4, mensajes es.json + en.json, NextIntlClientProvider en root layout
 - [x] Build exitoso sin errores
 
-**Siguiente: Fase 3 - Pagos, Notificaciones, Reservas Avanzadas**
+## Estado - Fase 3.1 (Stripe + Precios Dinamicos) - COMPLETADA
+
+- [x] Stripe SDK instalado (stripe, @stripe/stripe-js, @stripe/react-stripe-js)
+- [x] Schema Prisma: modelos Payment, CourtPricing, campos Stripe en Club, paymentStatus en Booking
+- [x] src/lib/stripe.ts: cliente Stripe lazy (Proxy pattern), PLAN_PRICES, helpers
+- [x] src/lib/pricing.ts: calcularPrecioReserva(), obtenerPreciosPista()
+- [x] Permisos RBAC: billing:read/update, court-pricing:read/update
+- [x] Middleware: /api/stripe/webhook excluido de auth
+- [x] APIs Stripe: /api/stripe/checkout, /api/stripe/portal, /api/stripe/webhook
+- [x] Pagina facturacion: /dashboard/facturacion (BillingOverview + PricingPlans)
+- [x] SubscriptionBanner en dashboard layout (trial, past_due, canceled)
+- [x] Navegacion: item "Facturacion" en sidebar
+- [x] Registro con trial: 14 dias gratis al crear club
+- [x] i18n: seccion "billing" en es.json y en.json
+- [x] API precios pista: /api/courts/[courtId]/pricing (GET, POST)
+- [x] UI precios pista: /dashboard/pistas/[courtId]/precios (grid dias x horas)
+- [x] Precio dinamico: reemplazado hardcoded 20.0 en bookings, player/bookings, open-matches
+- [x] API publica precios: /api/club/[slug]/pricing
+- [x] Precios en reserva jugador: slots muestran precio, confirmacion muestra total
+- [x] Formulario ajustes expandido: bookingPaymentMode, description, phone, email, toggles
+- [x] Build exitoso sin errores
+
+**Siguiente: Fase 3.2+ - Notificaciones, Reservas Avanzadas, PWA**
 
 ## Notas
 

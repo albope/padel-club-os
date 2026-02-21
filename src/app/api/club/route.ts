@@ -31,6 +31,7 @@ export async function PATCH(req: Request) {
       description, phone, email, primaryColor,
       maxAdvanceBooking, cancellationHours,
       enableOpenMatches, enablePlayerBooking,
+      bookingPaymentMode,
     } = body;
 
     const updatedClub = await db.club.update({
@@ -40,6 +41,7 @@ export async function PATCH(req: Request) {
         description, phone, email, primaryColor,
         maxAdvanceBooking, cancellationHours,
         enableOpenMatches, enablePlayerBooking,
+        bookingPaymentMode,
       },
     });
 

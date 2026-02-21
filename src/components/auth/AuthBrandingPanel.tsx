@@ -7,6 +7,7 @@ import {
   Star,
   CheckCircle,
 } from 'lucide-react';
+import { LogoIcon } from '@/components/ui/logo-icon';
 
 /* ─── Props ──────────────────────────────────────────────────────────────── */
 
@@ -94,26 +95,7 @@ export default function AuthBrandingPanel({ modo }: AuthBrandingPanelProps) {
         {/* Logo — texto oscuro sobre fondo claro */}
         <div className="auth-fade-up-1 mb-8">
           <Link href="/" className="inline-flex items-center gap-2.5 group">
-            <div
-              className="w-9 h-9 rounded-xl flex items-center justify-center shadow-sm group-hover:shadow-md transition-shadow duration-200"
-              style={{
-                background: 'linear-gradient(135deg, hsl(217,91%,52%) 0%, hsl(197,85%,48%) 100%)',
-                border: '1px solid rgba(32,106,245,0.22)',
-              }}
-            >
-              <svg
-                width="18"
-                height="18"
-                viewBox="0 0 18 18"
-                fill="none"
-                aria-hidden="true"
-              >
-                <rect x="2" y="2" width="6" height="6" rx="1.5" fill="rgba(255,255,255,0.95)" />
-                <rect x="10" y="2" width="6" height="6" rx="1.5" fill="rgba(255,255,255,0.60)" />
-                <rect x="2" y="10" width="6" height="6" rx="1.5" fill="rgba(255,255,255,0.60)" />
-                <rect x="10" y="10" width="6" height="6" rx="1.5" fill="rgba(255,255,255,0.30)" />
-              </svg>
-            </div>
+            <LogoIcon tamano="lg" className="shadow-sm group-hover:shadow-md transition-shadow duration-200 border border-blue-500/20" />
             <span className="text-[17px] font-bold tracking-tight text-slate-800 dark:text-slate-100">
               Padel Club OS
             </span>

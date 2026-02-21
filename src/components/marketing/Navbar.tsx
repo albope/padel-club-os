@@ -5,6 +5,7 @@ import { useState } from "react"
 import { Menu, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
+import { LogoIcon } from "@/components/ui/logo-icon"
 
 const navLinks = [
   { href: "#funcionalidades", label: "Funcionalidades" },
@@ -19,9 +20,7 @@ export default function Navbar() {
     <header className="sticky top-0 z-50 w-full border-b bg-background/80 backdrop-blur-md">
       <nav className="container flex h-16 items-center justify-between">
         <Link href="/" className="flex items-center gap-2">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
-            <span className="text-sm font-bold text-primary-foreground">P</span>
-          </div>
+          <LogoIcon tamano="md" />
           <span className="text-lg font-bold">Padel Club OS</span>
         </Link>
 

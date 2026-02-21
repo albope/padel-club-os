@@ -14,9 +14,9 @@ const columnas = [
   {
     titulo: "Empresa",
     links: [
-      { label: "Sobre nosotros", href: "#" },
-      { label: "Blog", href: "#" },
-      { label: "Contacto", href: "#" },
+      { label: "Sobre nosotros", href: "/sobre-nosotros" },
+      { label: "Blog", href: "/blog" },
+      { label: "Contacto", href: "/contacto" },
     ],
   },
   {

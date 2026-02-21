@@ -108,6 +108,7 @@ const UpcomingBookingItem = ({ booking }: { booking: UpcomingBooking }) => {
 
 interface DashboardClientProps {
   user: User;
+  clubName: string | null;
   upcomingBookings: UpcomingBooking[];
   stats: {
     bookingsToday: number;
@@ -119,7 +120,7 @@ interface DashboardClientProps {
   users: PrismaUser[];
 }
 
-const DashboardClient: React.FC<DashboardClientProps> = ({ user, upcomingBookings, stats, courts, users }) => {
+const DashboardClient: React.FC<DashboardClientProps> = ({ user, clubName, upcomingBookings, stats, courts, users }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedInfoForModal, setSelectedInfoForModal] = useState<Date | null>(null);
 
@@ -148,9 +149,9 @@ const DashboardClient: React.FC<DashboardClientProps> = ({ user, upcomingBooking
         <div className="flex flex-wrap justify-between items-center gap-4">
           <div>
             <h1 className="text-3xl font-bold">
-              Bienvenido, {user.name}
+              Bienvenido a {clubName || 'tu club'}
             </h1>
-            <p className="mt-1 text-muted-foreground">Resumen del club PadelClub OS.</p>
+            <p className="mt-1 text-muted-foreground">Resumen del club {clubName || 'tu club'}.</p>
           </div>
           <Button onClick={handleOpenModal}>
             <PlusCircle className="mr-2 h-5 w-5" />

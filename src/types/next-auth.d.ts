@@ -6,6 +6,7 @@ declare module "next-auth/jwt" {
   interface JWT extends DefaultJWT {
     id: string;
     clubId?: string | null;
+    clubName?: string | null;
     role?: UserRole;
   }
 }
@@ -15,6 +16,7 @@ declare module "next-auth" {
     user: {
       id: string;
       clubId?: string | null;
+      clubName?: string | null;
       role?: UserRole;
     } & DefaultSession["user"]
   }
@@ -22,6 +24,7 @@ declare module "next-auth" {
   interface User extends DefaultUser {
     id: string;
     clubId?: string | null;
+    clubName?: string | null;
     role?: UserRole;
   }
 }

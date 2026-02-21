@@ -128,6 +128,7 @@ const DashboardPage = async () => {
   return (
     <DashboardClient
       user={session.user}
+      clubName={session.user.clubName || null}
       upcomingBookings={upcomingBookings}
       stats={stats}
       courts={courts}

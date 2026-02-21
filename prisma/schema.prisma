@@ -54,6 +54,7 @@ model Club {
   news          News[]
   payments      Payment[]
   courtPricings CourtPricing[]
+  playerStats   PlayerStats[]
 }
 
 // --- USER ROLES ---
@@ -89,6 +90,7 @@ model User {
   bookings      Booking[]
   openMatches   OpenMatchPlayer[]
   payments      Payment[]
+  playerStats   PlayerStats[]
 }
 
 // --- NextAuth Models ---
@@ -297,6 +299,27 @@ model Payment {
   club            Club     @relation(fields: [clubId], references: [id], onDelete: Cascade)
 
   createdAt       DateTime @default(now())
+}
+
+// --- RANKING / ESTADISTICAS DE JUGADOR ---
+model PlayerStats {
+  id            String   @id @default(cuid())
+  userId        String
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  clubId        String
+  club          Club     @relation(fields: [clubId], references: [id], onDelete: Cascade)
+  eloRating     Float    @default(1500)
+  matchesPlayed Int      @default(0)
+  matchesWon    Int      @default(0)
+  setsWon       Int      @default(0)
+  setsLost      Int      @default(0)
+  gamesWon      Int      @default(0)
+  gamesLost     Int      @default(0)
+  winStreak     Int      @default(0)
+  bestWinStreak Int      @default(0)
+  updatedAt     DateTime @updatedAt
+
+  @@unique([userId, clubId])
 }
 
 // --- PRECIOS POR PISTA ---

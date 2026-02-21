@@ -5,12 +5,13 @@ import { getServerSession } from 'next-auth';
 import { redirect } from 'next/navigation';
 import { Fence, PlusCircle, Pencil } from 'lucide-react';
 import Link from 'next/link';
+import { Button } from '@/components/ui/button';
 
 const PistasPage = async () => {
   const session = await getServerSession(authOptions);
 
   if (!session?.user?.clubId) {
-    redirect('/dashboard'); // Or show a message to create a club
+    redirect('/dashboard');
   }
 
   const courts = await db.court.findMany({
@@ -22,45 +23,45 @@ const PistasPage = async () => {
     <div className="space-y-8">
       <div className="flex flex-wrap justify-between items-center gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-white">Gestión de Pistas</h1>
-          <p className="mt-1 text-gray-400">Añade, edita y gestiona las pistas de tu club.</p>
+          <h1 className="text-3xl font-bold">Gestion de Pistas</h1>
+          <p className="mt-1 text-muted-foreground">Añade, edita y gestiona las pistas de tu club.</p>
         </div>
-        <Link href="/dashboard/pistas/nueva">
-          <span className="flex items-center gap-2 px-4 py-2 font-semibold text-white bg-indigo-600 rounded-lg shadow-md hover:bg-indigo-500">
-            <PlusCircle className="h-5 w-5" />
+        <Button asChild>
+          <Link href="/dashboard/pistas/nueva">
+            <PlusCircle className="mr-2 h-4 w-4" />
             Añadir Pista
-          </span>
-        </Link>
+          </Link>
+        </Button>
       </div>
 
-      <div className="bg-gray-800 rounded-xl shadow-lg">
+      <div className="bg-card border rounded-xl shadow-sm">
         <div className="p-6">
           {courts.length > 0 ? (
-            <ul className="divide-y divide-gray-700">
+            <ul className="divide-y divide-border">
               {courts.map((court) => (
                 <li key={court.id} className="flex items-center justify-between py-4">
                   <div className="flex items-center gap-4">
-                    <div className="p-3 bg-gray-700 rounded-lg">
-                      <Fence className="h-6 w-6 text-indigo-400" />
+                    <div className="p-3 bg-muted rounded-lg">
+                      <Fence className="h-6 w-6 text-primary" />
                     </div>
                     <div>
-                      <p className="font-semibold text-white">{court.name}</p>
-                      <p className="text-sm text-gray-400">{court.type}</p>
+                      <p className="font-semibold">{court.name}</p>
+                      <p className="text-sm text-muted-foreground">{court.type}</p>
                     </div>
                   </div>
-                  <Link href={`/dashboard/pistas/${court.id}`}>
-                    <span className="flex items-center gap-2 px-3 py-1 text-sm text-gray-300 hover:bg-gray-700 rounded-md">
-                      <Pencil className="h-4 w-4" />
+                  <Button variant="ghost" size="sm" asChild>
+                    <Link href={`/dashboard/pistas/${court.id}`}>
+                      <Pencil className="mr-2 h-4 w-4" />
                       Editar
-                    </span>
-                  </Link>
+                    </Link>
+                  </Button>
                 </li>
               ))}
             </ul>
           ) : (
             <div className="text-center py-12">
-              <p className="text-gray-400">Aún no has añadido ninguna pista.</p>
-              <p className="text-sm text-gray-500 mt-1">Haz clic en "Añadir Pista" para empezar.</p>
+              <p className="text-muted-foreground">Aun no has añadido ninguna pista.</p>
+              <p className="text-sm text-muted-foreground mt-1">Haz clic en &quot;Añadir Pista&quot; para empezar.</p>
             </div>
           )}
         </div>

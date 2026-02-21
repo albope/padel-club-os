@@ -19,7 +19,6 @@ const ReservasContainer: React.FC<ReservasContainerProps> = ({ initialBookings, 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedInfo, setSelectedInfo] = useState<Date | BookingWithDetails | null>(null);
 
-  // --- AÑADIDO: Funciones para navegar entre días ---
   const handlePrevDay = () => {
     setCurrentDate(prevDate => {
       const newDate = new Date(prevDate);
@@ -36,20 +35,17 @@ const ReservasContainer: React.FC<ReservasContainerProps> = ({ initialBookings, 
     });
   };
 
-  // --- AÑADIDO: Función para formatear la fecha a mostrar ---
   const formatDisplayDate = (date: Date): string => {
     const today = new Date();
     const tomorrow = new Date();
     tomorrow.setDate(today.getDate() + 1);
 
-    // Comparamos solo la parte de la fecha, ignorando la hora
     if (date.toDateString() === today.toDateString()) {
       return 'Hoy';
     }
     if (date.toDateString() === tomorrow.toDateString()) {
       return 'Mañana';
     }
-    // Formato amigable para otras fechas
     return new Intl.DateTimeFormat('es-ES', { weekday: 'long', day: 'numeric', month: 'short' }).format(date);
   };
 
@@ -72,35 +68,34 @@ const ReservasContainer: React.FC<ReservasContainerProps> = ({ initialBookings, 
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap justify-between items-center gap-4">
-        <h1 className="text-3xl font-bold text-white">Calendario de Reservas</h1>
-        
-        {/* --- MODIFICADO: Contenedor para todos los controles --- */}
+        <h1 className="text-3xl font-bold">Calendario de Reservas</h1>
+
         <div className="flex items-center gap-4">
-          
+
           {/* Controles de navegación de día (solo para vista de parrilla) */}
           {view === 'grid' && (
-            <div className="flex items-center gap-2 text-white bg-gray-800 rounded-lg p-1">
-                <button onClick={handlePrevDay} className="p-1.5 rounded-md hover:bg-gray-700">
+            <div className="flex items-center gap-2 bg-muted rounded-lg p-1">
+                <button onClick={handlePrevDay} className="p-1.5 rounded-md hover:bg-accent">
                     <ChevronLeft className="h-5 w-5" />
                 </button>
                 <span className="font-semibold text-center w-32">{formatDisplayDate(currentDate)}</span>
-                <button onClick={handleNextDay} className="p-1.5 rounded-md hover:bg-gray-700">
+                <button onClick={handleNextDay} className="p-1.5 rounded-md hover:bg-accent">
                     <ChevronRight className="h-5 w-5" />
                 </button>
             </div>
           )}
 
           {/* View Switcher */}
-          <div className="flex items-center bg-gray-800 rounded-lg p-1 space-x-1">
+          <div className="flex items-center bg-muted rounded-lg p-1 space-x-1">
             <button
               onClick={() => setView('grid')}
-              className={`px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${view === 'grid' ? 'bg-indigo-600 text-white' : 'text-gray-400 hover:bg-gray-700'}`}
+              className={`px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${view === 'grid' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:bg-accent'}`}
             >
               <LayoutGrid className="h-5 w-5" />
             </button>
             <button
               onClick={() => setView('calendar')}
-              className={`px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${view === 'calendar' ? 'bg-indigo-600 text-white' : 'text-gray-400 hover:bg-gray-700'}`}
+              className={`px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${view === 'calendar' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:bg-accent'}`}
             >
               <Calendar className="h-5 w-5" />
             </button>
@@ -108,15 +103,15 @@ const ReservasContainer: React.FC<ReservasContainerProps> = ({ initialBookings, 
         </div>
       </div>
 
-      <div className="bg-gray-800 p-4 sm:p-6 rounded-xl shadow-lg">
+      <div className="bg-card border rounded-xl shadow-sm p-4 sm:p-6">
         {view === 'calendar' ? (
-          <CalendarView 
+          <CalendarView
             initialBookings={initialBookings}
             courts={courts}
             users={users}
           />
         ) : (
-          <CourtGridView 
+          <CourtGridView
             courts={courts}
             bookings={initialBookings}
             selectedDate={currentDate}
@@ -126,7 +121,7 @@ const ReservasContainer: React.FC<ReservasContainerProps> = ({ initialBookings, 
         )}
       </div>
 
-      <BookingModal 
+      <BookingModal
         isOpen={isModalOpen}
         onClose={closeModal}
         selectedInfo={selectedInfo}

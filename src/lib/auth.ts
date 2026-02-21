@@ -30,13 +30,14 @@ export const authOptions: NextAuthOptions = {
         }
 
         const existingUser = await db.user.findUnique({
-          where: { email: credentials.email }
+          where: { email: credentials.email },
+          include: { club: { select: { name: true } } },
         });
 
         if (!existingUser || !existingUser.password) {
           return null;
         }
-        
+
         const passwordMatch = await compare(credentials.password, existingUser.password);
 
         if (!passwordMatch) {
@@ -49,6 +50,7 @@ export const authOptions: NextAuthOptions = {
           email: existingUser.email,
           image: existingUser.image,
           clubId: existingUser.clubId,
+          clubName: existingUser.club?.name || null,
           role: existingUser.role,
         };
       }
@@ -59,14 +61,17 @@ export const authOptions: NextAuthOptions = {
       if (user) {
         token.id = user.id;
         token.clubId = (user as any).clubId;
+        token.clubName = (user as any).clubName;
         token.role = (user as any).role;
       }
       if (token.id && !token.clubId) {
         const dbUser = await db.user.findUnique({
           where: { id: token.id },
+          include: { club: { select: { name: true } } },
         });
         if (dbUser) {
           token.clubId = dbUser.clubId;
+          token.clubName = dbUser.club?.name || null;
           token.role = dbUser.role;
         }
       }
@@ -76,6 +81,7 @@ export const authOptions: NextAuthOptions = {
       if (token) {
         session.user.id = token.id;
         session.user.clubId = token.clubId as string | null;
+        session.user.clubName = token.clubName as string | null;
         session.user.role = token.role;
       }
       return session;

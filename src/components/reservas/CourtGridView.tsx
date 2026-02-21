@@ -44,7 +44,6 @@ const CourtGridView: React.FC<CourtGridViewProps> = ({ courts, bookings, selecte
     }));
   };
 
-  // --- AÑADIDO: Funciones para expandir/contraer todas las pistas ---
   const handleExpandAll = () => {
     const allExpanded = courts.reduce((acc, court) => {
       acc[court.id] = true;
@@ -62,14 +61,13 @@ const CourtGridView: React.FC<CourtGridViewProps> = ({ courts, bookings, selecte
   };
 
   return (
-    // --- MODIFICADO: Envolvemos todo en un div para añadir los botones arriba ---
     <div>
         <div className="flex justify-end gap-2 mb-4">
-            <button onClick={handleCollapseAll} className="flex items-center gap-1.5 px-3 py-1 text-xs font-semibold text-gray-300 bg-gray-700 rounded-md hover:bg-gray-600">
+            <button onClick={handleCollapseAll} className="flex items-center gap-1.5 px-3 py-1 text-xs font-semibold text-muted-foreground bg-muted rounded-md hover:bg-accent">
                 <Minimize className="h-4 w-4" />
                 Contraer Todas
             </button>
-            <button onClick={handleExpandAll} className="flex items-center gap-1.5 px-3 py-1 text-xs font-semibold text-gray-300 bg-gray-700 rounded-md hover:bg-gray-600">
+            <button onClick={handleExpandAll} className="flex items-center gap-1.5 px-3 py-1 text-xs font-semibold text-muted-foreground bg-muted rounded-md hover:bg-accent">
                 <Maximize className="h-4 w-4" />
                 Expandir Todas
             </button>
@@ -87,15 +85,15 @@ const CourtGridView: React.FC<CourtGridViewProps> = ({ courts, bookings, selecte
             });
 
             return (
-            <div key={court.id} className="bg-gray-800 rounded-xl shadow-lg flex flex-col">
+            <div key={court.id} className="bg-card border rounded-xl shadow-sm flex flex-col">
                 <button
                 onClick={() => toggleCourtExpansion(court.id)}
-                className="w-full flex items-center justify-between p-4 text-center font-bold text-white border-b border-gray-700 bg-gray-700/50 rounded-t-xl hover:bg-gray-700 transition-colors"
+                className="w-full flex items-center justify-between p-4 text-center font-bold border-b bg-muted/50 rounded-t-xl hover:bg-muted transition-colors"
                 >
                 <span>{court.name}</span>
                 <ChevronDown className={`h-5 w-5 transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`} />
                 </button>
-                
+
                 {isExpanded && (
                 <div className="p-4 space-y-3">
                     {timeSlots.map(slot => {
@@ -108,7 +106,7 @@ const CourtGridView: React.FC<CourtGridViewProps> = ({ courts, bookings, selecte
                         const startTime = new Date(booking.startTime);
                         const endTime = new Date(booking.endTime);
                         const timeRange = `${startTime.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })} - ${endTime.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}`;
-                        
+
                         if (booking.status === 'provisional') {
                             let levelText = null;
                             if (booking.openMatch?.levelMin && booking.openMatch?.levelMax) {
@@ -131,19 +129,19 @@ const CourtGridView: React.FC<CourtGridViewProps> = ({ courts, bookings, selecte
                                 </div>
                             );
                         }
-                        
+
                         const displayName = booking.guestName || booking.user?.name || 'Reservado';
                         return (
-                        <div key={slot} onClick={() => onBookingClick(booking)} className="bg-indigo-600 rounded-lg p-3 text-white cursor-pointer hover:bg-indigo-500 transition-colors">
+                        <div key={slot} onClick={() => onBookingClick(booking)} className="bg-primary rounded-lg p-3 text-primary-foreground cursor-pointer hover:bg-primary/90 transition-colors">
                             <p className="font-semibold text-sm truncate">{displayName}</p>
-                            <p className="text-xs text-indigo-200">{timeRange}</p>
+                            <p className="text-xs opacity-75">{timeRange}</p>
                         </div>
                         );
                     } else {
                         return (
-                        <div key={slot} onClick={() => onSlotClick(slotDate, court.id)} className="bg-gray-700/50 rounded-lg p-3 text-gray-400 flex items-center justify-between cursor-pointer hover:bg-gray-700 transition-colors">
+                        <div key={slot} onClick={() => onSlotClick(slotDate, court.id)} className="bg-muted/50 rounded-lg p-3 text-muted-foreground flex items-center justify-between cursor-pointer hover:bg-muted transition-colors">
                             <div className="flex items-center"><Clock className="h-4 w-4 mr-2" /><span className="text-sm">{slot}</span></div>
-                            <PlusCircle className="h-5 w-5 text-gray-500" />
+                            <PlusCircle className="h-5 w-5 opacity-50" />
                         </div>
                         );
                     }

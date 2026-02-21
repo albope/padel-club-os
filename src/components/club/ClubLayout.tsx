@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import {
-  CalendarDays, Users, Trophy, User, Home, LogIn,
+  CalendarDays, Users, Trophy, User, Home, LogIn, Newspaper,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -38,6 +38,7 @@ export default function ClubLayout({ club, children }: ClubLayoutProps) {
       ? [{ label: 'Partidas', href: `${basePath}/partidas`, icon: Users }]
       : []),
     { label: 'Competiciones', href: `${basePath}/competiciones`, icon: Trophy },
+    { label: 'Noticias', href: `${basePath}/noticias`, icon: Newspaper },
   ];
 
   const isActive = (href: string) => {

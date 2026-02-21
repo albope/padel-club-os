@@ -10,22 +10,23 @@ import { Booking, Court, User } from '@prisma/client';
 import BookingModal from './BookingModal';
 
 const CalendarStyles = () => <style>{`
-      /* Toolbar Buttons */
-      .fc-button-primary { background-color: #4f46e5 !important; border-color: #4f46e5 !important; }
-      .fc-button-primary:hover { background-color: #4338ca !important; }
-      .fc-button-primary:disabled { background-color: #4b5563 !important; }
-      .fc-button-active { background-color: #3730a3 !important; border-color: #3730a3 !important; }
-      .fc-toolbar-title { color: #ffffff; }
-      .fc-theme-standard td, .fc-theme-standard th, .fc-scrollgrid, .fc-view { border-color: #374151; }
-      .fc-col-header-cell-cushion { color: #d1d5db; text-decoration: none; }
-      .fc-timegrid-axis-cushion, .fc-timegrid-slot-label { color: #9ca3af; }
+      .fc-button-primary { background-color: hsl(var(--primary)) !important; border-color: hsl(var(--primary)) !important; color: hsl(var(--primary-foreground)) !important; }
+      .fc-button-primary:hover { opacity: 0.9; }
+      .fc-button-primary:disabled { opacity: 0.5; }
+      .fc-button-active { filter: brightness(0.85); }
+      .fc-toolbar-title { color: hsl(var(--foreground)); }
+      .fc-theme-standard td, .fc-theme-standard th, .fc-scrollgrid, .fc-view { border-color: hsl(var(--border)); }
+      .fc-col-header-cell-cushion { color: hsl(var(--muted-foreground)); text-decoration: none; }
+      .fc-timegrid-axis-cushion, .fc-timegrid-slot-label { color: hsl(var(--muted-foreground)); }
       :root { --fc-event-text-color: #ffffff; }
-      .fc-day-today { background-color: rgba(79, 70, 229, 0.1) !important; }
-      .fc-event { border: 1px solid rgba(0,0,0,0.3); }
+      .fc-day-today { background-color: hsl(var(--primary) / 0.05) !important; }
+      .fc-event { border: 1px solid rgba(0,0,0,0.2); }
+      .fc-daygrid-day-number { color: hsl(var(--foreground)); }
+      .fc-more-link { color: hsl(var(--primary)); }
 `}</style>;
 
 // --- MODIFICADO: El tipo ahora incluye la relación con OpenMatch, corrigiendo el error ---
-export type BookingWithDetails = Booking & { 
+export type BookingWithDetails = Booking & {
     user: { name: string | null } | null;
     court: { name: string };
     openMatch: { levelMin: number | null, levelMax: number | null } | null;
@@ -61,7 +62,7 @@ const CalendarView: React.FC<CalendarViewProps> = ({ initialBookings, courts, us
           title: `${booking.court.name} - Partida Abierta${levelText}`,
           start: new Date(booking.startTime),
           end: new Date(booking.endTime),
-          backgroundColor: '#16a34a', // Verde
+          backgroundColor: '#16a34a',
           borderColor: '#15803d',
           extendedProps: booking,
         };
@@ -74,7 +75,7 @@ const CalendarView: React.FC<CalendarViewProps> = ({ initialBookings, courts, us
         title: `${booking.court.name} - ${displayName}`,
         start: new Date(booking.startTime),
         end: new Date(booking.endTime),
-        backgroundColor: '#4f46e5', // Azul índigo
+        backgroundColor: '#4f46e5',
         borderColor: '#4338ca',
         extendedProps: booking,
       };
@@ -100,7 +101,7 @@ const CalendarView: React.FC<CalendarViewProps> = ({ initialBookings, courts, us
   return (
     <div>
       <CalendarStyles />
-      <BookingModal 
+      <BookingModal
         isOpen={isModalOpen}
         onClose={closeModal}
         selectedInfo={selectedInfo}

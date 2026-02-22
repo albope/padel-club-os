@@ -27,31 +27,38 @@ src/
       sobre-nosotros/ # Pagina "Quienes somos"
       contacto/     # Pagina de contacto con formulario
       cookies/      # Politica de cookies
+      privacidad/   # Politica de privacidad (RGPD)
+      terminos/     # Terminos y condiciones
       blog/         # Blog publico (listado + detalle por slug)
         [slug]/      # Articulo individual
     api/            # API Routes (REST)
-      auth/         # NextAuth handler
+      auth/         # NextAuth handler + forgot-password + reset-password
       blog/         # CRUD blog plataforma (blog:read/create/update/delete)
         public/     # API publica blog (listado + detalle por slug)
-      bookings/     # CRUD reservas (admin)
-      club/         # Ajustes club + API publica /club/[slug]
+      bookings/     # CRUD reservas (admin) + export CSV
+      club/         # Ajustes club + API publica /club/[slug] + rankings
       competitions/ # CRUD competiciones, equipos, partidos
       contact/      # Formulario contacto (publico, guarda en DB + email)
       courts/       # CRUD pistas + pricing
+      cron/         # Tareas programadas (booking-reminders)
       news/         # CRUD noticias (news:read/create/update/delete)
       notifications/ # CRUD notificaciones + subscribe + vapid-key
       open-matches/ # CRUD partidas abiertas (admin)
-      player/       # APIs de jugador (bookings, open-matches, profile)
+      payments/     # Export pagos CSV
+      player/       # APIs de jugador (bookings, open-matches, profile, stats)
       register/     # Registro admin + /register/player
+      search/       # Busqueda global (socios, pistas, reservas)
       stripe/       # Checkout, portal, webhook
-      users/        # CRUD socios + importacion
+      users/        # CRUD socios + importacion + export CSV
     club/[slug]/    # Portal publico del club (jugadores)
       login/        # Login jugador
       registro/     # Registro jugador
+      forgot-password/ # Recuperar contraseña jugador
       reservar/     # Reservar pista
       partidas/     # Partidas abiertas (paginadas, con filtros)
       competiciones/ # Ver competiciones (solo lectura)
       noticias/     # Ver noticias del club (listado + detalle)
+      rankings/     # Rankings ELO del club
       perfil/       # Perfil del jugador
       tarifas/      # Tarifas publicas del club
     dashboard/      # Panel admin (layout con sidebar)
@@ -59,15 +66,19 @@ src/
       blog/         # CRUD blog plataforma (nuevo, editar, listar)
       analiticas/   # Dashboard de analiticas con graficos
       facturacion/  # Facturacion Stripe
+      rankings/     # Rankings ELO admin
+    forgot-password/ # Recuperar contraseña admin
+    reset-password/  # Restablecer contraseña con token
     login/          # Login admin
     register/       # Registro admin (crea club)
+    not-found.tsx   # Pagina 404 personalizada
     manifest.ts     # PWA manifest
     sw.ts           # Service Worker
   components/
     ui/             # shadcn/ui (21 componentes, incluye popover, scroll-area)
-    layout/         # Header, Sidebar, MobileNavBar, MobileSidebar, Breadcrumbs, ThemeToggle, NotificationBell, PushNotificationPrompt
+    layout/         # Header, Sidebar, MobileNavBar, MobileSidebar, Breadcrumbs, ThemeToggle, NotificationBell, PushNotificationPrompt, GlobalSearch, CookieBanner
     dashboard/      # DashboardClient (resumen del club)
-    club/           # ClubLayout, ClubHome, GridReservas, NuevaPartidaJugadorForm, ConfirmacionReserva
+    club/           # ClubLayout, ClubHome, GridReservas, NuevaPartidaJugadorForm, ConfirmacionReserva, Leaderboard
     marketing/      # Hero, Features, Pricing, Testimonials, CTA, Navbar, Footer, ContactForm
     noticias/       # NoticiasClient, NewsForm (admin CRUD noticias)
     blog/           # BlogListClient, BlogForm (admin CRUD blog plataforma)
@@ -79,15 +90,19 @@ src/
     partidas-abiertas/ # Buscar partidas (admin)
     ajustes/        # Configuracion del club
     auth/           # AuthForm, AuthBrandingPanel
+    not-found/      # BotonVolver (pagina 404)
   lib/
     auth.ts         # Config de NextAuth (role + clubName en JWT/session)
     api-auth.ts     # requireAuth() helper con permisos RBAC
     permissions.ts  # Definicion de permisos por rol (~41 permisos)
     stripe.ts       # Cliente Stripe lazy (Proxy pattern), PLAN_PRICES
-    email.ts        # Cliente Resend lazy, enviarEmailContacto()
+    email.ts        # Cliente Resend lazy, enviarEmailContacto(), enviarEmailResetPassword()
     pricing.ts      # calcularPrecioReserva(), obtenerPreciosPista()
     notifications.ts # Crear notificaciones + enviar push
     web-push.ts     # Cliente web-push lazy (Proxy pattern)
+    elo.ts          # Sistema ELO para padel dobles (calculateMatchRatings, eloANivel)
+    csv.ts          # Utilidades CSV (escaparCSV, generarCSV, formatearFechaCSV)
+    tokens.ts       # Tokens de recuperacion de contraseña (SHA-256, 1h expiracion)
     db.ts           # Prisma client singleton
     utils.ts        # cn() helper
     nav-items.ts    # Items de navegacion admin
@@ -101,7 +116,7 @@ messages/
   es.json           # Traducciones espanol
   en.json           # Traducciones ingles
 prisma/
-  schema.prisma     # 17 modelos (ver seccion Modelos)
+  schema.prisma     # 18 modelos (ver seccion Modelos)
 scripts/
   generate-icons.js # Generador de iconos PWA
 public/
@@ -133,9 +148,9 @@ npx prisma db push # Sincronizar schema con DB
 ## Modelos principales (Prisma)
 
 - **Club**: Centro multi-tenant. Config: description, phone, email, primaryColor, maxAdvanceBooking, cancellationHours, enableOpenMatches, enablePlayerBooking, bookingPaymentMode, bannerUrl, instagramUrl, facebookUrl, bookingDuration. Stripe: stripeSubscriptionId, subscriptionStatus, trialEndsAt, stripeConnectAccountId, stripeConnectOnboarded
-- **User**: Pertenece a un Club, role (SUPER_ADMIN, CLUB_ADMIN, STAFF, PLAYER)
+- **User**: Pertenece a un Club, role (SUPER_ADMIN, CLUB_ADMIN, STAFF, PLAYER). Campos: adminNotes, isActive, birthDate
 - **Court**: Pistas del club (name, type). Relacion: pricings (CourtPricing[])
-- **Booking**: Reservas con solapamiento. Campos: cancelledAt, cancelReason, totalPrice, paymentStatus (pending|paid|exempt)
+- **Booking**: Reservas con solapamiento. Campos: cancelledAt, cancelReason, totalPrice, paymentStatus (pending|paid|exempt), reminderSentAt
 - **Payment**: Pagos (amount, currency, status, type booking|subscription, stripePaymentId unique, bookingId, userId, clubId)
 - **CourtPricing**: Precios por pista/dia/hora (courtId, dayOfWeek 0-6, startHour, endHour, price, @@unique[courtId, dayOfWeek, startHour])
 - **Competition**: Ligas/torneos (LEAGUE, KNOCKOUT, GROUP_AND_KNOCKOUT), status (ACTIVE, FINISHED)
@@ -144,18 +159,19 @@ npx prisma db push # Sincronizar schema con DB
 - **OpenMatch**: Partidas abiertas por nivel (OPEN, FULL, CONFIRMED, CANCELLED)
 - **OpenMatchPlayer**: Jugadores en partida abierta (tabla pivot)
 - **News**: Noticias del club (title, content, published)
-- **PlayerStats**: Estadisticas de jugador (eloRating, matchesPlayed, matchesWon, setsWon/Lost, gamesWon/Lost, winStreak, bestWinStreak)
+- **PlayerStats**: Estadisticas de jugador (eloRating, matchesPlayed, matchesWon, setsWon/Lost, gamesWon/Lost, winStreak, bestWinStreak). @@unique[userId, clubId]
 - **Notification**: Notificaciones in-app (type, title, message, read, metadata JSON, userId, clubId). Tipos: booking_confirmed/cancelled/reminder, open_match_created/full/joined, news_published
 - **PushSubscription**: Suscripciones push (endpoint, p256dh, auth, userId). @@unique[endpoint]
 - **ContactSubmission**: Mensajes del formulario de contacto (nombre, email, asunto, mensaje, leido). Sin clubId (plataforma)
 - **BlogPost**: Articulos del blog (title, slug unique, content, excerpt, category, imageUrl, published, authorName, readTime). Sin clubId (plataforma)
+- **PasswordResetToken**: Tokens de recuperacion de contraseña (email, token SHA-256, expires, @@index[email])
 
 ## Auth y RBAC
 
 - Session extiende con `id`, `clubId`, `clubName` y `role` (ver `src/types/next-auth.d.ts`)
 - **requireAuth(permission)**: valida sesion + clubId + permiso en una llamada
 - **isAuthError(result)**: type guard para verificar si es NextResponse de error
-- **Middleware**: protege /dashboard (solo ADMIN_ROLES), permite /club/* publicamente, excluye /api/stripe/webhook, /api/contact, /api/blog/public
+- **Middleware**: protege /dashboard (solo ADMIN_ROLES), permite /club/* publicamente, excluye /api/stripe/webhook, /api/contact, /api/blog/public, /api/auth/forgot-password, /api/auth/reset-password
 - **Permisos**: definidos en `src/lib/permissions.ts`, ~41 permisos por 4 roles
 
 ### Patron de uso en API routes:
@@ -194,7 +210,7 @@ El plan completo de 5 fases esta en: `C:\Users\alber\.claude\plans\jaunty-tumbli
 1. Fundacion (design system, mobile, UX) - COMPLETADA
 2. Portal publico + RBAC - COMPLETADA
 3. Pagos, noticias, analiticas, marketing, notificaciones - COMPLETADA
-4. Rankings, social, reservas avanzadas
+4. Rankings, social, reservas avanzadas - EN PROGRESO
 5. Crecimiento (multi-deporte, API, white-label, real-time)
 
 ## Estado - Fase 1 (Fundacion) - COMPLETADA
@@ -274,12 +290,35 @@ El plan completo de 5 fases esta en: `C:\Users\alber\.claude\plans\jaunty-tumbli
 - [x] API publica club: se expone maxAdvanceBooking
 - [x] i18n: seccion "notifications" en es.json y en.json
 
-**Siguiente: Rankings, social, reservas avanzadas**
+## Estado - Fase 4 (Rankings, seguridad, mejoras) - EN PROGRESO
+
+- [x] Recuperacion de contraseña: /forgot-password, /reset-password, /club/[slug]/forgot-password
+- [x] API auth: /api/auth/forgot-password (rate limiting 3/IP/15min), /api/auth/reset-password (tokens SHA-256, 1h expiracion)
+- [x] src/lib/tokens.ts: generarToken(), hashToken(), guardarToken(), verificarToken() (tokens de un solo uso)
+- [x] src/lib/email.ts: enviarEmailResetPassword() con Resend
+- [x] Schema Prisma: modelo PasswordResetToken
+- [x] Banner cookies RGPD: CookieBanner.tsx con opciones esenciales/aceptar todo (localStorage)
+- [x] Paginas legales: /privacidad (RGPD), /terminos
+- [x] Recordatorios de reserva: /api/cron/booking-reminders (push 1h antes, compatible Vercel Cron, CRON_SECRET)
+- [x] Schema Prisma: campo reminderSentAt en Booking
+- [x] Rankings ELO: src/lib/elo.ts (calculateMatchRatings, K-factor dinamico, eloANivel 1.0-7.0, rating base 1500)
+- [x] Rankings admin: /dashboard/rankings (tabla completa stats jugadores)
+- [x] Rankings jugador: /club/[slug]/rankings (Leaderboard con tabs: ranking, stats personales, info ELO)
+- [x] API rankings: /api/club/[slug]/rankings (GET publico, limit 100), /api/player/stats (GET stats + posicion)
+- [x] Componente Leaderboard.tsx: medallas top 3, tabs ranking/stats/info, rachas, win rate %
+- [x] Busqueda global: GlobalSearch.tsx (Ctrl+K, busca socios/pistas/reservas, debounce 300ms, navegacion teclado)
+- [x] API busqueda: /api/search?q=query (requiere bookings:read)
+- [x] Exportaciones CSV: /api/bookings/export, /api/payments/export, /api/users/export (filtros fecha, UTF-8 BOM)
+- [x] src/lib/csv.ts: escaparCSV(), generarCSV(), formatearFechaCSV(), formatearHoraCSV()
+- [x] Pagina 404 personalizada: not-found.tsx (SVG padel, orbes animados, gradiente azul/cyan)
+- [x] i18n: secciones cookies, auth en es.json y en.json
+
+**Siguiente: Social, reservas avanzadas, Stripe Connect**
 
 ## Notas
 
 - El postinstall ejecuta `prisma generate` automaticamente
-- Variables de entorno: `DATABASE_URL`, `AUTH_SECRET`, `RESEND_API_KEY`, `CONTACT_EMAIL`, `NEXT_PUBLIC_VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY` (en .env)
+- Variables de entorno: `DATABASE_URL`, `AUTH_SECRET`, `RESEND_API_KEY`, `CONTACT_EMAIL`, `NEXT_PUBLIC_VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `CRON_SECRET` (en .env)
 - Componentes shadcn se generan en `src/components/ui/`
 - Node.js 20.16.0 - no soporta Prisma 7 (necesita 20.19+)
 - Prisma generate puede fallar con EPERM si el dev server tiene el DLL bloqueado - parar dev server primero

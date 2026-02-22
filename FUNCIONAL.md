@@ -32,12 +32,19 @@ Sirve como hoja de ruta para saber que hay, que falta y que se puede mejorar.
 | Cookies | `/cookies` | Completa (7 secciones, tabla de cookies) |
 | Privacidad | `/privacidad` | Completa (10 secciones, derechos RGPD) |
 | Terminos | `/terminos` | Completa (12 secciones) |
+| Pagina 404 | cualquier ruta invalida | Completa (SVG padel, orbes animados, "¡Bola fuera!") |
+
+### Banner de cookies RGPD
+- CookieBanner.tsx: banner fijo inferior con icono cookie
+- Dos opciones: "Solo esenciales" / "Aceptar todo"
+- Persistencia via localStorage (`padel-cookie-consent`)
+- Enlace a /cookies
 
 ### Posibles mejoras
 - [ ] **Testimonios reales**: el componente Testimonials.tsx no muestra testimonios, muestra pain points duplicados
 - [ ] **Capturas de pantalla / demos**: mostrar el producto real en vez de mockups genericos
 - [ ] **Video demo**: añadir video del producto en uso
-- [ ] **Banner de cookies**: no hay consentimiento de cookies (RGPD obligatorio)
+- [x] **Banner de cookies**: consentimiento RGPD implementado (CookieBanner.tsx)
 - [ ] **Chat en vivo / widget de soporte**: alternativa al formulario de contacto
 - [ ] **Casos de exito**: pagina dedicada con clubes reales usando la plataforma
 - [ ] **Comparativa vs competencia**: pagina tipo "PadelOS vs Matchpoint"
@@ -119,17 +126,24 @@ Sirve como hoja de ruta para saber que hay, que falta y que se puede mejorar.
 - **Apariencia portal**: color primario, banner (upload), Instagram, Facebook
 - **Reservas**: dias anticipacion, horas cancelacion, habilitar reservas, habilitar partidas, duracion reserva (60/90/120min), modo pago (presencial/online/ambos)
 
+#### 2.12 Rankings (`/dashboard/rankings`)
+- Tabla de jugadores con stats ELO completas
+- Posicion, rating, partidos jugados/ganados, rachas, win rate
+- Sistema ELO para padel dobles (K-factor dinamico, rating base 1500)
+- Conversion ELO a nivel padel (1.0 - 7.0)
+
 ### Componentes transversales del dashboard
 - Sidebar + Header con breadcrumbs + toggle tema + dropdown usuario
 - NotificationBell (campana con badge de no leidas, popover con lista)
 - PushNotificationPrompt (banner para activar push, se oculta si descarta)
 - SubscriptionBanner (aviso trial/pago pendiente/cancelado)
+- GlobalSearch (Ctrl+K / Cmd+K: busca socios, pistas, reservas con debounce y navegacion teclado)
 - MobileNavBar + MobileSidebar
 
 ### Posibles mejoras admin
 - [ ] **Dashboard mejorado**: graficos inline en home, revenue chart, reservas del dia por hora
-- [ ] **Busqueda global**: buscar socios, reservas, etc. desde un unico input
-- [ ] **Exportar datos**: CSV/Excel para reservas, socios, pagos
+- [x] **Busqueda global**: GlobalSearch.tsx (Ctrl+K, busca socios/pistas/reservas, debounce 300ms)
+- [x] **Exportar datos**: CSV para reservas (/api/bookings/export), socios (/api/users/export), pagos (/api/payments/export)
 - [ ] **Historial de actividad / audit log**: quien hizo que y cuando
 - [ ] **Multi-admin**: invitar mas administradores al club
 - [ ] **Gestion de pagos de pistas**: ver cobros pendientes, marcar como pagado
@@ -137,7 +151,7 @@ Sirve como hoja de ruta para saber que hay, que falta y que se puede mejorar.
 - [ ] **Reservas recurrentes**: clase fija semanal que se auto-genera
 - [ ] **Agenda del dia**: vista tipo timeline del dia actual
 - [ ] **Socios**: añadir foto de perfil, notas internas, estado activo/inactivo
-- [ ] **Competiciones**: estadisticas de jugadores, ranking historico
+- [x] **Rankings ELO**: /dashboard/rankings con tabla completa de stats
 - [ ] **Analiticas**: revenue chart, comparativa periodos, exportar PDF
 - [ ] **Configurar horarios especiales**: festivos, mantenimiento de pistas
 
@@ -155,6 +169,7 @@ Items condicionales segun config del club (enablePlayerBooking, enableOpenMatche
 | Reservar | `enablePlayerBooking` | Si (para confirmar) |
 | Partidas | `enableOpenMatches` | Si (para interactuar) |
 | Competiciones | Siempre | No |
+| Rankings | Siempre | No |
 | Noticias | Siempre | No |
 | Tarifas | Siempre | No |
 | Perfil | Siempre (solo logueado) | Si |
@@ -201,9 +216,16 @@ Items condicionales segun config del club (enablePlayerBooking, enableOpenMatche
 - Cancelar reservas futuras (respeta ventana de cancelacion del club)
 - Cerrar sesion
 
-#### 3.8 Login / Registro
+#### 3.8 Rankings (`/club/[slug]/rankings`)
+- Leaderboard con tabs: Ranking, Mis stats, Info ELO
+- Tabla de clasificacion con medallas top 3
+- Stats personales: rating, partidos, rachas, win rate %
+- Pestaña informativa explicando el sistema ELO
+
+#### 3.9 Login / Registro / Recuperar contraseña
 - Login: email + password, redirect al portal del club
 - Registro: nombre, email, telefono, password con indicador de fuerza
+- Recuperar contraseña: /club/[slug]/forgot-password (email con token de reset, 1h expiracion)
 
 ### Posibles mejoras portal jugador
 - [ ] **Pago online de reservas**: integrar Stripe Connect para que jugadores paguen al reservar
@@ -213,10 +235,10 @@ Items condicionales segun config del club (enablePlayerBooking, enableOpenMatche
 - [ ] **Valoraciones post-partido**: puntuar compañeros
 - [ ] **Buscar jugadores**: encontrar jugadores por nivel para crear partidas
 - [ ] **Mis competiciones**: ver solo las competiciones donde participo
-- [ ] **Recordatorios**: notificacion push X horas antes de mi reserva/partida
+- [x] **Recordatorios**: cron job envia push 1h antes de reserva (/api/cron/booking-reminders)
 - [ ] **Repetir reserva**: re-reservar mismo slot la semana siguiente
 - [ ] **Invitar amigos al club**: generar link de invitacion
-- [ ] **Recuperar password**: flujo olvidaste tu contraseña (email reset)
+- [x] **Recuperar password**: flujo completo con email, token seguro SHA-256 y pagina de reset
 - [ ] **Notificaciones de competiciones**: resultados, proximos partidos
 
 ---
@@ -286,7 +308,7 @@ Items condicionales segun config del club (enablePlayerBooking, enableOpenMatche
 - **Partida llena**: notificacion a todos los jugadores de la partida
 
 ### Pendiente por integrar
-- [ ] **Recordatorio de reserva**: cron job o scheduler que envie push X horas antes
+- [x] **Recordatorio de reserva**: /api/cron/booking-reminders (push 1h antes, compatible Vercel Cron, CRON_SECRET)
 - [ ] **Resultado competicion**: notificar al introducir resultados
 - [ ] **Variables de entorno**: configurar VAPID keys en produccion
 
@@ -297,15 +319,18 @@ Items condicionales segun config del club (enablePlayerBooking, enableOpenMatche
 ### Implementado
 - NextAuth v4 con Credentials provider + JWT
 - 4 roles: SUPER_ADMIN, CLUB_ADMIN, STAFF, PLAYER
-- ~39 permisos definidos, verificados en cada API route
+- ~41 permisos definidos, verificados en cada API route
 - Middleware protege /dashboard (solo admin roles)
 - Registro admin (crea club con trial 14 dias)
 - Registro jugador (requiere slug de club valido)
 - Session incluye: id, clubId, clubName, role
 - Rate limiting en formulario de contacto (3/IP/15min)
+- Recuperacion de contraseña: tokens SHA-256, un solo uso, expiran en 1h, rate limiting (3/IP/15min)
+- Flujo reset password para admin (/forgot-password, /reset-password) y jugadores (/club/[slug]/forgot-password)
+- Banner de cookies RGPD con consentimiento (solo esenciales / aceptar todo)
 
 ### Posibles mejoras
-- [ ] **Recuperar contraseña**: flujo email con token de reset
+- [x] **Recuperar contraseña**: flujo email con token de reset (admin + jugador)
 - [ ] **2FA**: autenticacion de dos factores
 - [ ] **OAuth**: login con Google/Apple
 - [ ] **Bloqueo por intentos**: bloquear cuenta tras X intentos fallidos
@@ -322,27 +347,36 @@ Items condicionales segun config del club (enablePlayerBooking, enableOpenMatche
 | 2 | Portal publico + RBAC | COMPLETADA |
 | 3.1 | Stripe + Precios dinamicos | COMPLETADA |
 | 3.2 | Noticias + Analiticas + Marketing + Blog | COMPLETADA |
-| 3.3 | Notificaciones push + PWA | ~90% (infra lista, faltan triggers menores) |
-| 3.4 | Rankings, social | NO INICIADA |
-| 4 | Crecimiento (multi-deporte, API, white-label) | NO INICIADA |
+| 3.3 | Notificaciones push + PWA | COMPLETADA |
+| 4 | Rankings ELO, seguridad, mejoras admin | EN PROGRESO (~60%) |
+| 5 | Crecimiento (multi-deporte, API, white-label) | NO INICIADA |
 
 ---
 
 ## 8. TOP PRIORIDADES SUGERIDAS (hoja de ruta)
 
-### Corto plazo (cerrar lo abierto)
-1. **Recuperar contraseña** - Funcionalidad critica que falta
-2. **Banner de cookies RGPD** - Obligatorio legalmente en España
-3. **Recordatorio de reserva** (cron/scheduler) - Tipo de notificacion definido pero sin trigger
-4. **Testear PWA en produccion** - La SW esta deshabilitada en dev
-5. **Stripe Connect para pagos de pistas** - El modo "online" esta configurado pero falta la integracion real de cobro al jugador
+### Completado recientemente
+- [x] **Recuperar contraseña** - Admin + jugador, tokens seguros, rate limiting
+- [x] **Banner de cookies RGPD** - CookieBanner.tsx con opciones esenciales/aceptar
+- [x] **Recordatorio de reserva** - Cron job push 1h antes (/api/cron/booking-reminders)
+- [x] **Rankings de jugadores** - Sistema ELO completo, leaderboard con tabs
+- [x] **Exportar datos** (CSV) - Reservas, socios, pagos con filtros fecha
+- [x] **Busqueda global** - Ctrl+K, busca socios/pistas/reservas
+- [x] **Pagina 404** - Diseño personalizado con tematica padel
+
+### Corto plazo (siguiente)
+1. **Testear PWA en produccion** - La SW esta deshabilitada en dev
+2. **Stripe Connect para pagos de pistas** - El modo "online" esta configurado pero falta la integracion real de cobro al jugador
+3. **Reservas recurrentes** - Clases fijas semanales
+4. **Comunicacion masiva** - Email/push a todos los socios
+5. **Dashboard mejorado** - Revenue, graficos inline, agenda del dia
 
 ### Medio plazo (valor añadido)
-6. **Rankings de jugadores** - Fase 3.4 planeada
-7. **Exportar datos** (CSV/Excel) - Muy solicitado por clubs
-8. **Reservas recurrentes** - Clases fijas semanales
-9. **Comunicacion masiva** - Email/push a todos los socios
-10. **Dashboard mejorado** - Revenue, graficos inline, agenda del dia
+6. **Historial de actividad / audit log** - Quien hizo que y cuando
+7. **Multi-admin** - Invitar mas administradores al club
+8. **Gestion de pagos de pistas** - Ver cobros pendientes, marcar como pagado
+9. **Notificaciones de competiciones** - Resultados, proximos partidos
+10. **Perfil con foto** - Subir avatar
 
 ### Largo plazo (crecimiento)
 11. **Multi-deporte** - Extender a tenis, futbol sala, etc.

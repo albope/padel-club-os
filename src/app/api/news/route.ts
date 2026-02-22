@@ -2,6 +2,7 @@ import { requireAuth, isAuthError } from "@/lib/api-auth"
 import { db } from "@/lib/db"
 import { NextResponse } from "next/server"
 import * as z from "zod"
+import { notificarClub } from "@/lib/notifications"
 
 const NewsCreateSchema = z.object({
   title: z.string().min(3, "El titulo debe tener al menos 3 caracteres."),
@@ -55,6 +56,18 @@ export async function POST(req: Request) {
         clubId: auth.session.user.clubId,
       },
     })
+
+    // Si la noticia se publica directamente, notificar a jugadores
+    if (published) {
+      notificarClub({
+        tipo: "news_published",
+        titulo: "Nueva noticia del club",
+        mensaje: title,
+        clubId: auth.session.user.clubId,
+        metadata: { newsId: noticia.id },
+        url: "/noticias",
+      }).catch(() => {})
+    }
 
     return NextResponse.json(noticia, { status: 201 })
   } catch (error) {

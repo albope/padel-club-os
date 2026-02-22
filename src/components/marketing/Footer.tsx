@@ -8,7 +8,7 @@ const columnas = [
     links: [
       { label: "Funcionalidades", href: "/#funcionalidades" },
       { label: "Precios", href: "/#precios" },
-      { label: "Como funciona", href: "/#como-funciona" },
+      { label: "Cómo funciona", href: "/#como-funciona" },
     ],
   },
   {
@@ -23,7 +23,7 @@ const columnas = [
     titulo: "Legal",
     links: [
       { label: "Privacidad", href: "/privacidad" },
-      { label: "Terminos de uso", href: "/terminos" },
+      { label: "Términos de uso", href: "/terminos" },
       { label: "Cookies", href: "/cookies" },
     ],
   },
@@ -41,7 +41,7 @@ export default function Footer() {
               <span className="text-lg font-bold">Padel Club OS</span>
             </Link>
             <p className="mt-4 text-sm leading-relaxed text-muted-foreground">
-              La plataforma de gestion para clubes de padel en Espana.
+              La plataforma de gestión para clubes de pádel en España.
               Moderna, accesible y sin complicaciones.
             </p>
             {/* Redes sociales */}
@@ -109,7 +109,7 @@ export default function Footer() {
             &copy; {new Date().getFullYear()} Padel Club OS. Todos los derechos reservados.
           </p>
           <p className="text-sm text-muted-foreground">
-            Hecho en Espana
+            Hecho en España
           </p>
         </div>
       </div>

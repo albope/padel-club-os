@@ -2,6 +2,7 @@ import { db } from "@/lib/db";
 import { requireAuth, isAuthError } from "@/lib/api-auth";
 import { NextResponse } from "next/server";
 import { calcularPrecioReserva } from "@/lib/pricing";
+import { crearNotificacion } from "@/lib/notifications";
 
 // GET: Obtener reservas del jugador autenticado
 export async function GET() {
@@ -131,6 +132,17 @@ export async function POST(req: Request) {
       },
     });
 
+    // Notificar al jugador de la confirmacion
+    crearNotificacion({
+      tipo: "booking_confirmed",
+      titulo: "Reserva confirmada",
+      mensaje: `Tu reserva en ${court.name} para el ${newStartTime.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' })} a las ${newStartTime.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })} ha sido confirmada.`,
+      userId: auth.session.user.id,
+      clubId: auth.session.user.clubId,
+      metadata: { bookingId: booking.id },
+      url: "/reservar",
+    }).catch(() => {})
+
     return NextResponse.json(booking, { status: 201 });
   } catch (error) {
     console.error("[CREATE_PLAYER_BOOKING_ERROR]", error);
@@ -204,6 +216,17 @@ export async function DELETE(req: Request) {
         cancelReason: "Cancelado por el jugador",
       },
     });
+
+    // Notificar al jugador de la cancelacion
+    crearNotificacion({
+      tipo: "booking_cancelled",
+      titulo: "Reserva cancelada",
+      mensaje: "Tu reserva ha sido cancelada correctamente.",
+      userId: auth.session.user.id,
+      clubId: auth.session.user.clubId,
+      metadata: { bookingId },
+      url: "/reservar",
+    }).catch(() => {})
 
     return NextResponse.json({ message: "Reserva cancelada correctamente." });
   } catch (error) {

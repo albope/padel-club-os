@@ -17,6 +17,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { ThemeToggle } from '@/components/layout/ThemeToggle';
 import { MobileSidebar } from '@/components/layout/MobileSidebar';
 import { Breadcrumbs } from '@/components/layout/Breadcrumbs';
+import { NotificationBell } from '@/components/layout/NotificationBell';
 
 const Header = () => {
   const { data: session, status } = useSession();
@@ -32,6 +33,8 @@ const Header = () => {
 
         <div className="flex items-center gap-2">
           <ThemeToggle />
+
+          {status === 'authenticated' && <NotificationBell />}
 
           {status === 'loading' && (
             <Skeleton className="h-9 w-9 rounded-full" />

@@ -25,6 +25,7 @@ export async function GET(
         instagramUrl: true,
         facebookUrl: true,
         bookingDuration: true,
+        maxAdvanceBooking: true,
         enableOpenMatches: true,
         enablePlayerBooking: true,
       },

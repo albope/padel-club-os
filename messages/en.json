@@ -127,5 +127,24 @@
     "selectPlan": "Select plan",
     "currentPlanBadge": "Current plan",
     "mostPopular": "Most popular"
+  },
+  "notifications": {
+    "title": "Notifications",
+    "markAllRead": "Mark all",
+    "empty": "No notifications",
+    "bookingConfirmed": "Booking confirmed",
+    "bookingCancelled": "Booking cancelled",
+    "bookingReminder": "Booking reminder",
+    "openMatchCreated": "New open match",
+    "openMatchFull": "Match is full",
+    "openMatchJoined": "New player joined your match",
+    "newsPublished": "New club news",
+    "competitionResult": "Competition result",
+    "pushPromptTitle": "Enable notifications",
+    "pushPromptDescription": "Get alerts for bookings, matches, and club news.",
+    "pushActivate": "Enable",
+    "pushActivated": "Notifications enabled",
+    "pushActivatedDesc": "You'll receive alerts for your bookings and matches.",
+    "pushError": "Could not enable notifications."
   }
 }

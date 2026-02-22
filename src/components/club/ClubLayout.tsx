@@ -8,6 +8,7 @@ import {
   CalendarDays, Users, Trophy, User, Home, LogIn, Newspaper, DollarSign,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { NotificationBell } from '@/components/layout/NotificationBell';
 
 interface ClubInfo {
   id: string;
@@ -101,6 +102,7 @@ export default function ClubLayout({ club, children }: ClubLayoutProps) {
 
           {/* Auth button */}
           <div className="flex items-center gap-2">
+            {isPlayerOfClub && <NotificationBell urlBase={basePath} />}
             {isPlayerOfClub ? (
               <Link
                 href={`${basePath}/perfil`}

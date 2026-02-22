@@ -59,6 +59,7 @@ model Club {
   payments      Payment[]
   courtPricings CourtPricing[]
   playerStats   PlayerStats[]
+  notifications Notification[]
 }
 
 // --- USER ROLES ---
@@ -95,6 +96,8 @@ model User {
   openMatches   OpenMatchPlayer[]
   payments      Payment[]
   playerStats   PlayerStats[]
+  notifications     Notification[]
+  pushSubscriptions PushSubscription[]
 }
 
 // --- NextAuth Models ---
@@ -366,4 +369,34 @@ model BlogPost {
   readTime   String?
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
+}
+
+// --- NOTIFICACIONES ---
+model Notification {
+  id        String   @id @default(cuid())
+  type      String   // booking_confirmed, booking_cancelled, booking_reminder, open_match_created, open_match_full, open_match_joined, news_published
+  title     String
+  message   String
+  read      Boolean  @default(false)
+  metadata  Json?    // { bookingId?, openMatchId?, newsId?, url? }
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  clubId    String
+  club      Club     @relation(fields: [clubId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@index([userId, read])
+  @@index([clubId])
+}
+
+model PushSubscription {
+  id        String   @id @default(cuid())
+  endpoint  String
+  p256dh    String
+  auth      String
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([endpoint])
 }

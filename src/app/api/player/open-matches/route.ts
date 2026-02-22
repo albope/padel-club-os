@@ -2,6 +2,7 @@ import { db } from "@/lib/db";
 import { requireAuth, isAuthError } from "@/lib/api-auth";
 import { NextResponse } from "next/server";
 import { OpenMatchStatus } from "@prisma/client";
+import { crearNotificacion } from "@/lib/notifications";
 
 // GET: Obtener partidas abiertas del club del jugador
 export async function GET() {
@@ -97,6 +98,40 @@ export async function POST(req: Request) {
         });
       }
     });
+
+    // Notificar al creador de la partida (primer jugador inscrito)
+    const creador = openMatch.players[0]
+    if (creador && creador.userId !== auth.session.user.id) {
+      const jugadorActual = await db.user.findUnique({
+        where: { id: auth.session.user.id },
+        select: { name: true },
+      })
+      crearNotificacion({
+        tipo: "open_match_joined",
+        titulo: "Nuevo jugador en tu partida",
+        mensaje: `${jugadorActual?.name || 'Un jugador'} se ha unido a tu partida.`,
+        userId: creador.userId,
+        clubId: auth.session.user.clubId,
+        metadata: { openMatchId },
+        url: "/partidas",
+      }).catch(() => {})
+    }
+
+    // Si ahora la partida esta FULL, notificar a todos los jugadores
+    const totalJugadores = openMatch.players.length + 1
+    if (totalJugadores >= 4) {
+      for (const jugador of openMatch.players) {
+        crearNotificacion({
+          tipo: "open_match_full",
+          titulo: "Partida completa",
+          mensaje: "Tu partida ya tiene 4 jugadores. ¡A jugar!",
+          userId: jugador.userId,
+          clubId: auth.session.user.clubId,
+          metadata: { openMatchId },
+          url: "/partidas",
+        }).catch(() => {})
+      }
+    }
 
     return NextResponse.json({ message: "Te has unido a la partida." });
   } catch (error) {

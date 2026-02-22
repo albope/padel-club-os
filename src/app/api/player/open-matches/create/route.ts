@@ -2,6 +2,7 @@ import { db } from "@/lib/db";
 import { requireAuth, isAuthError } from "@/lib/api-auth";
 import { NextResponse } from "next/server";
 import { calcularPrecioReserva } from "@/lib/pricing";
+import { notificarClub } from "@/lib/notifications";
 
 // POST: El jugador crea una nueva partida abierta (queda inscrito automaticamente)
 export async function POST(req: Request) {
@@ -133,6 +134,17 @@ export async function POST(req: Request) {
 
       return openMatch;
     });
+
+    // Notificar a todos los jugadores del club sobre la nueva partida
+    notificarClub({
+      tipo: "open_match_created",
+      titulo: "Nueva partida abierta",
+      mensaje: `Se ha creado una partida en ${pista.name} para el ${startTime.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' })} a las ${startTime.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}.`,
+      clubId: auth.session.user.clubId,
+      metadata: { openMatchId: partida.id },
+      url: "/partidas",
+      excluirUserId: auth.session.user.id,
+    }).catch(() => {})
 
     return NextResponse.json(partida, { status: 201 });
   } catch (error) {

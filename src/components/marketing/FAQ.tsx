@@ -23,14 +23,14 @@ const preguntas = [
       "Sí. Puedes importar tu lista de socios desde un archivo Excel en un solo clic. Si necesitas ayuda, te asistimos sin coste adicional.",
   },
   {
-    pregunta: "¿Hay permanencia o compromiso minimo?",
+    pregunta: "¿Hay permanencia o compromiso mínimo?",
     respuesta:
-      "No. Todos los planes son mensuales. Puedes cancelar cuando quieras sin penalizaciones ni preguntas incomodas.",
+      "No. Todos los planes son mensuales. Puedes cancelar cuando quieras sin penalizaciones ni preguntas incómodas.",
   },
   {
-    pregunta: "¿Que pasa cuando termina la prueba gratuita?",
+    pregunta: "¿Qué pasa cuando termina la prueba gratuita?",
     respuesta:
-      "Eliges un plan que se adapte a tu club o tu cuenta se pausa. No cobramos nada automaticamente y nunca lo haremos sin tu permiso.",
+      "Eliges un plan que se adapte a tu club o tu cuenta se pausa. No cobramos nada automáticamente y nunca lo haremos sin tu permiso.",
   },
 ]
 

@@ -19,12 +19,12 @@ export default function CTA() {
       <div className="container relative">
         <AnimateOnScroll animation="fade-up" className="mx-auto max-w-3xl text-center">
           <h2 className="font-display text-3xl font-bold tracking-tight text-white md:text-4xl lg:text-5xl">
-            Tu club no puede esperar mas
+            Tu club no puede esperar más
           </h2>
           <p className="mx-auto mt-6 max-w-xl text-lg text-slate-300">
-            Cada dia sin digitalizar es un dia de reservas perdidas,
+            Cada día sin digitalizar es un día de reservas perdidas,
             socios frustrados y horas malgastadas.
-            Empieza hoy. Es gratis durante 14 dias.
+            Empieza hoy. Es gratis durante 14 días.
           </p>
 
           <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
@@ -49,7 +49,7 @@ export default function CTA() {
           </div>
 
           <p className="mt-6 text-sm text-slate-400">
-            Sin tarjeta de credito · Configura en 5 minutos · Cancela cuando quieras
+            Sin tarjeta de crédito · Configura en 5 minutos · Cancela cuando quieras
           </p>
         </AnimateOnScroll>
       </div>

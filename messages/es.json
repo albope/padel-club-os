@@ -127,5 +127,24 @@
     "selectPlan": "Elegir plan",
     "currentPlanBadge": "Plan actual",
     "mostPopular": "Mas popular"
+  },
+  "notifications": {
+    "title": "Notificaciones",
+    "markAllRead": "Marcar todas",
+    "empty": "Sin notificaciones",
+    "bookingConfirmed": "Reserva confirmada",
+    "bookingCancelled": "Reserva cancelada",
+    "bookingReminder": "Recordatorio de reserva",
+    "openMatchCreated": "Nueva partida abierta",
+    "openMatchFull": "Partida completa",
+    "openMatchJoined": "Nuevo jugador en tu partida",
+    "newsPublished": "Nueva noticia del club",
+    "competitionResult": "Resultado de competicion",
+    "pushPromptTitle": "Activa las notificaciones",
+    "pushPromptDescription": "Recibe alertas de reservas, partidas y noticias del club.",
+    "pushActivate": "Activar",
+    "pushActivated": "Notificaciones activadas",
+    "pushActivatedDesc": "Recibiras alertas de tus reservas y partidas.",
+    "pushError": "No se pudieron activar las notificaciones."
   }
 }

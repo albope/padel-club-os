@@ -6,6 +6,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { db } from '@/lib/db';
 import SubscriptionBanner from '@/components/facturacion/SubscriptionBanner';
+import { PushNotificationPrompt } from '@/components/layout/PushNotificationPrompt';
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -36,6 +37,7 @@ const DashboardLayout = async ({ children }: DashboardLayoutProps) => {
               subscriptionStatus={subscriptionStatus}
               trialEndsAt={trialEndsAt}
             />
+            <PushNotificationPrompt />
             {children}
           </div>
         </main>

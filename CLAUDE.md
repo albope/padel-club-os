@@ -16,6 +16,7 @@ App fullstack de gestion de clubes de padel. Next.js 14 + TypeScript + Prisma + 
 - **i18n**: next-intl 4 (es/en, locale fijo por ahora)
 - **Charts**: recharts 3.7
 - **Email**: resend (notificaciones de contacto)
+- **Push**: web-push (notificaciones push via VAPID)
 
 ## Estructura
 
@@ -38,6 +39,7 @@ src/
       contact/      # Formulario contacto (publico, guarda en DB + email)
       courts/       # CRUD pistas + pricing
       news/         # CRUD noticias (news:read/create/update/delete)
+      notifications/ # CRUD notificaciones + subscribe + vapid-key
       open-matches/ # CRUD partidas abiertas (admin)
       player/       # APIs de jugador (bookings, open-matches, profile)
       register/     # Registro admin + /register/player
@@ -47,10 +49,11 @@ src/
       login/        # Login jugador
       registro/     # Registro jugador
       reservar/     # Reservar pista
-      partidas/     # Partidas abiertas (unirse/salir)
+      partidas/     # Partidas abiertas (paginadas, con filtros)
       competiciones/ # Ver competiciones (solo lectura)
       noticias/     # Ver noticias del club (listado + detalle)
       perfil/       # Perfil del jugador
+      tarifas/      # Tarifas publicas del club
     dashboard/      # Panel admin (layout con sidebar)
       noticias/     # CRUD noticias (nueva, editar, listar)
       blog/         # CRUD blog plataforma (nuevo, editar, listar)
@@ -58,11 +61,13 @@ src/
       facturacion/  # Facturacion Stripe
     login/          # Login admin
     register/       # Registro admin (crea club)
+    manifest.ts     # PWA manifest
+    sw.ts           # Service Worker
   components/
-    ui/             # shadcn/ui (17 componentes, incluye textarea)
-    layout/         # Header, Sidebar, MobileNavBar, MobileSidebar, Breadcrumbs, ThemeToggle
+    ui/             # shadcn/ui (21 componentes, incluye popover, scroll-area)
+    layout/         # Header, Sidebar, MobileNavBar, MobileSidebar, Breadcrumbs, ThemeToggle, NotificationBell, PushNotificationPrompt
     dashboard/      # DashboardClient (resumen del club)
-    club/           # ClubLayout, ClubHome (portal jugadores)
+    club/           # ClubLayout, ClubHome, GridReservas, NuevaPartidaJugadorForm, ConfirmacionReserva
     marketing/      # Hero, Features, Pricing, Testimonials, CTA, Navbar, Footer, ContactForm
     noticias/       # NoticiasClient, NewsForm (admin CRUD noticias)
     blog/           # BlogListClient, BlogForm (admin CRUD blog plataforma)
@@ -71,30 +76,36 @@ src/
     reservas/       # Reservas de pistas (CalendarView, CourtGridView, BookingModal)
     pistas/         # Gestion de pistas
     socios/         # Gestion de socios
-    partidas-abiertas/ # Buscar partidas
+    partidas-abiertas/ # Buscar partidas (admin)
     ajustes/        # Configuracion del club
     auth/           # AuthForm, AuthBrandingPanel
   lib/
     auth.ts         # Config de NextAuth (role + clubName en JWT/session)
     api-auth.ts     # requireAuth() helper con permisos RBAC
-    permissions.ts  # Definicion de permisos por rol (~39 permisos)
+    permissions.ts  # Definicion de permisos por rol (~41 permisos)
     stripe.ts       # Cliente Stripe lazy (Proxy pattern), PLAN_PRICES
     email.ts        # Cliente Resend lazy, enviarEmailContacto()
     pricing.ts      # calcularPrecioReserva(), obtenerPreciosPista()
+    notifications.ts # Crear notificaciones + enviar push
+    web-push.ts     # Cliente web-push lazy (Proxy pattern)
     db.ts           # Prisma client singleton
     utils.ts        # cn() helper
     nav-items.ts    # Items de navegacion admin
   i18n/
     request.ts      # Config next-intl (locale fijo 'es')
   types/            # Tipos TS (next-auth.d.ts)
-  hooks/            # Custom hooks (use-toast)
+  hooks/            # Custom hooks (use-toast, use-push-notifications)
   middleware.ts     # Proteccion de rutas por rol
   test/             # Setup Vitest + utils
 messages/
   es.json           # Traducciones espanol
   en.json           # Traducciones ingles
 prisma/
-  schema.prisma     # 14 modelos (ver seccion Modelos)
+  schema.prisma     # 17 modelos (ver seccion Modelos)
+scripts/
+  generate-icons.js # Generador de iconos PWA
+public/
+  icons/            # Iconos PWA (192, 512, maskable, apple-touch, svg)
 ```
 
 ## Convenciones
@@ -121,7 +132,7 @@ npx prisma db push # Sincronizar schema con DB
 
 ## Modelos principales (Prisma)
 
-- **Club**: Centro multi-tenant. Config: description, phone, email, primaryColor, maxAdvanceBooking, cancellationHours, enableOpenMatches, enablePlayerBooking, bookingPaymentMode. Stripe: stripeSubscriptionId, subscriptionStatus, trialEndsAt, stripeConnectAccountId, stripeConnectOnboarded
+- **Club**: Centro multi-tenant. Config: description, phone, email, primaryColor, maxAdvanceBooking, cancellationHours, enableOpenMatches, enablePlayerBooking, bookingPaymentMode, bannerUrl, instagramUrl, facebookUrl, bookingDuration. Stripe: stripeSubscriptionId, subscriptionStatus, trialEndsAt, stripeConnectAccountId, stripeConnectOnboarded
 - **User**: Pertenece a un Club, role (SUPER_ADMIN, CLUB_ADMIN, STAFF, PLAYER)
 - **Court**: Pistas del club (name, type). Relacion: pricings (CourtPricing[])
 - **Booking**: Reservas con solapamiento. Campos: cancelledAt, cancelReason, totalPrice, paymentStatus (pending|paid|exempt)
@@ -133,6 +144,9 @@ npx prisma db push # Sincronizar schema con DB
 - **OpenMatch**: Partidas abiertas por nivel (OPEN, FULL, CONFIRMED, CANCELLED)
 - **OpenMatchPlayer**: Jugadores en partida abierta (tabla pivot)
 - **News**: Noticias del club (title, content, published)
+- **PlayerStats**: Estadisticas de jugador (eloRating, matchesPlayed, matchesWon, setsWon/Lost, gamesWon/Lost, winStreak, bestWinStreak)
+- **Notification**: Notificaciones in-app (type, title, message, read, metadata JSON, userId, clubId). Tipos: booking_confirmed/cancelled/reminder, open_match_created/full/joined, news_published
+- **PushSubscription**: Suscripciones push (endpoint, p256dh, auth, userId). @@unique[endpoint]
 - **ContactSubmission**: Mensajes del formulario de contacto (nombre, email, asunto, mensaje, leido). Sin clubId (plataforma)
 - **BlogPost**: Articulos del blog (title, slug unique, content, excerpt, category, imageUrl, published, authorName, readTime). Sin clubId (plataforma)
 
@@ -142,7 +156,7 @@ npx prisma db push # Sincronizar schema con DB
 - **requireAuth(permission)**: valida sesion + clubId + permiso en una llamada
 - **isAuthError(result)**: type guard para verificar si es NextResponse de error
 - **Middleware**: protege /dashboard (solo ADMIN_ROLES), permite /club/* publicamente, excluye /api/stripe/webhook, /api/contact, /api/blog/public
-- **Permisos**: definidos en `src/lib/permissions.ts`, ~39 permisos por 4 roles
+- **Permisos**: definidos en `src/lib/permissions.ts`, ~41 permisos por 4 roles
 
 ### Patron de uso en API routes:
 ```typescript
@@ -156,9 +170,9 @@ export async function GET() {
 ```
 
 ### Roles y permisos:
-- **SUPER_ADMIN / CLUB_ADMIN**: acceso total (incluye news:*, blog:*, analytics:read, billing:*)
-- **STAFF**: gestionar reservas, pistas, competiciones; ver socios, noticias y analiticas (no crear/editar/eliminar socios ni noticias)
-- **PLAYER**: crear reserva propia, unirse a partidas, ver competiciones, gestionar perfil
+- **SUPER_ADMIN / CLUB_ADMIN**: acceso total (incluye news:*, blog:*, analytics:read, billing:*, notifications:*)
+- **STAFF**: gestionar reservas, pistas, competiciones; ver socios, noticias, analiticas y notificaciones
+- **PLAYER**: crear reserva propia, unirse a partidas, ver competiciones, gestionar perfil, ver notificaciones
 
 ## Plan maestro
 
@@ -179,8 +193,8 @@ El plan completo de 5 fases esta en: `C:\Users\alber\.claude\plans\jaunty-tumbli
 **Fases**:
 1. Fundacion (design system, mobile, UX) - COMPLETADA
 2. Portal publico + RBAC - COMPLETADA
-3. Pagos, noticias, analiticas, marketing - EN PROGRESO
-4. Rankings, social, notificaciones push
+3. Pagos, noticias, analiticas, marketing, notificaciones - COMPLETADA
+4. Rankings, social, reservas avanzadas
 5. Crecimiento (multi-deporte, API, white-label, real-time)
 
 ## Estado - Fase 1 (Fundacion) - COMPLETADA
@@ -244,12 +258,28 @@ El plan completo de 5 fases esta en: `C:\Users\alber\.claude\plans\jaunty-tumbli
 - [x] Navbar marketing: link al blog con navegacion SPA
 - [x] Build exitoso sin errores
 
-**Siguiente: Notificaciones push, PWA, Reservas Avanzadas**
+## Estado - Fase 3.3 (Notificaciones + PWA + Partidas mejoradas) - COMPLETADA
+
+- [x] Schema Prisma: modelos Notification, PushSubscription, PlayerStats
+- [x] Notificaciones in-app: API /api/notifications (GET, PATCH), /api/notifications/[notificationId] (PATCH marcar leida)
+- [x] Push notifications: /api/notifications/subscribe, /api/notifications/vapid-key, web-push
+- [x] src/lib/notifications.ts: crearNotificacion() + envio push automatico
+- [x] src/lib/web-push.ts: cliente web-push lazy (Proxy pattern)
+- [x] Componentes: NotificationBell (campana con badge contador), PushNotificationPrompt (solicitar permiso)
+- [x] Hook: use-push-notifications.ts (registro SW, suscripcion VAPID)
+- [x] Permisos RBAC: notifications:read, notifications:update (todos los roles)
+- [x] Notificaciones integradas en: reservas jugador, partidas abiertas (crear/unirse), noticias publicadas
+- [x] PWA: manifest.ts, service worker (sw.ts), iconos en public/icons/
+- [x] Partidas abiertas mejoradas: paginacion (6/pagina), filtros (fecha con dia concreto limitado por maxAdvanceBooking, pista, disponibilidad abiertas/completas/mis partidas, nivel)
+- [x] API publica club: se expone maxAdvanceBooking
+- [x] i18n: seccion "notifications" en es.json y en.json
+
+**Siguiente: Rankings, social, reservas avanzadas**
 
 ## Notas
 
 - El postinstall ejecuta `prisma generate` automaticamente
-- Variables de entorno: `DATABASE_URL`, `AUTH_SECRET`, `RESEND_API_KEY`, `CONTACT_EMAIL` (en .env)
+- Variables de entorno: `DATABASE_URL`, `AUTH_SECRET`, `RESEND_API_KEY`, `CONTACT_EMAIL`, `NEXT_PUBLIC_VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY` (en .env)
 - Componentes shadcn se generan en `src/components/ui/`
 - Node.js 20.16.0 - no soporta Prisma 7 (necesita 20.19+)
 - Prisma generate puede fallar con EPERM si el dev server tiene el DLL bloqueado - parar dev server primero

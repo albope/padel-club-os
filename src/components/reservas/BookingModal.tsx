@@ -41,6 +41,32 @@ interface BookingModalProps {
   users: User[];
 }
 
+// Generar opciones de hora cada 30 minutos (07:00 - 23:30)
+const HORAS_DISPONIBLES = Array.from({ length: 34 }, (_, i) => {
+  const totalMinutes = 7 * 60 + i * 30; // Desde las 07:00
+  const hours = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes % 60;
+  return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+});
+
+function redondearA30Min(date: Date): string {
+  const h = date.getHours();
+  const m = date.getMinutes();
+  const rounded = m < 15 ? 0 : m < 45 ? 30 : 60;
+  const totalMin = h * 60 + rounded;
+  const hh = Math.floor(totalMin / 60).toString().padStart(2, '0');
+  const mm = (totalMin % 60).toString().padStart(2, '0');
+  return `${hh}:${mm}`;
+}
+
+function calcularHoraFin(startTime: string): string {
+  const [h, m] = startTime.split(':').map(Number);
+  const totalMin = h * 60 + m + 90; // +1h30m
+  const hh = Math.floor(totalMin / 60).toString().padStart(2, '0');
+  const mm = (totalMin % 60).toString().padStart(2, '0');
+  return `${hh}:${mm}`;
+}
+
 const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, selectedInfo, courts, users }) => {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
@@ -58,14 +84,19 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, selectedIn
   useEffect(() => {
     if (selectedInfo) {
       const initialDate = isEditMode ? new Date(bookingData!.startTime) : selectedInfo as Date;
-      const endDate = isEditMode ? new Date(bookingData!.endTime) : new Date(initialDate.getTime() + 90 * 60000);
+      const startTime = isEditMode
+        ? redondearA30Min(new Date(bookingData!.startTime))
+        : redondearA30Min(initialDate);
+      const endTime = isEditMode
+        ? redondearA30Min(new Date(bookingData!.endTime))
+        : calcularHoraFin(startTime);
       form.reset({
         courtId: isEditMode ? bookingData!.courtId : '',
         userId: isEditMode ? bookingData!.userId || '' : '',
         guestName: isEditMode ? bookingData!.guestName || '' : '',
         startDate: initialDate.toISOString().split('T')[0],
-        startTime: initialDate.toTimeString().slice(0, 5),
-        endTime: endDate.toTimeString().slice(0, 5),
+        startTime,
+        endTime,
       });
       setSearchTerm(isEditMode ? bookingData!.user?.name || bookingData!.guestName || '' : '');
     }
@@ -151,12 +182,39 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, selectedIn
                 <Input type="date" id="startDate" {...form.register('startDate')} />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="startTime">Hora Inicio</Label>
-                <Input type="time" id="startTime" {...form.register('startTime')} step="1800" />
+                <Label>Hora Inicio</Label>
+                <Select
+                  value={form.watch('startTime')}
+                  onValueChange={(value) => {
+                    form.setValue('startTime', value);
+                    form.setValue('endTime', calcularHoraFin(value));
+                  }}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Hora inicio" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {HORAS_DISPONIBLES.map(hora => (
+                      <SelectItem key={hora} value={hora}>{hora}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="endTime">Hora Fin</Label>
-                <Input type="time" id="endTime" {...form.register('endTime')} step="1800" />
+                <Label>Hora Fin</Label>
+                <Select
+                  value={form.watch('endTime')}
+                  onValueChange={(value) => form.setValue('endTime', value)}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Hora fin" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {HORAS_DISPONIBLES.map(hora => (
+                      <SelectItem key={hora} value={hora}>{hora}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
             </div>
             {form.formState.errors.endTime && (

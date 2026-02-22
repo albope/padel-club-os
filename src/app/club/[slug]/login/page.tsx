@@ -79,7 +79,15 @@ export default function ClubLoginPage() {
             </div>
 
             <div className="space-y-1.5">
-              <Label htmlFor="password">Contrasena</Label>
+              <div className="flex items-center justify-between">
+                <Label htmlFor="password">Contrasena</Label>
+                <Link
+                  href={`/club/${slug}/forgot-password`}
+                  className="text-xs text-primary/70 hover:text-primary transition-colors duration-150"
+                >
+                  Olvidaste tu contrasena?
+                </Link>
+              </div>
               <div className="relative">
                 <Input
                   id="password"

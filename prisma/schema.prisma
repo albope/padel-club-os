@@ -133,6 +133,16 @@ model VerificationToken {
   @@unique([identifier, token])
 }
 
+model PasswordResetToken {
+  id        String   @id @default(cuid())
+  email     String
+  token     String   @unique  // SHA-256 hash del token original
+  expires   DateTime
+  createdAt DateTime @default(now())
+
+  @@index([email])
+}
+
 // --- BOOKING AND COURTS MODULE ---
 model Court {
   id       String    @id @default(cuid())
@@ -160,10 +170,11 @@ model Booking {
   
   status        String     @default("confirmed")
   paymentStatus String?    @default("pending") // "pending" | "paid" | "exempt"
-  cancelledAt   DateTime?
-  cancelReason  String?
-  openMatch     OpenMatch?
-  payment       Payment?
+  cancelledAt     DateTime?
+  cancelReason    String?
+  reminderSentAt  DateTime?
+  openMatch       OpenMatch?
+  payment         Payment?
 
   @@unique([courtId, startTime])
 }

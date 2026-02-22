@@ -195,7 +195,7 @@ const AuthForm: React.FC<AuthFormProps> = ({ isRegister = false }) => {
             </Label>
             {!isRegister && (
               <Link
-                href="#"
+                href="/forgot-password"
                 className="text-xs text-primary/70 hover:text-primary transition-colors duration-150"
               >
                 Olvidaste tu contrasena?

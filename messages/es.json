@@ -26,7 +26,24 @@
     "hasAccount": "Ya tienes cuenta?",
     "invalidCredentials": "Email o contrasena incorrectos.",
     "registerSuccess": "Cuenta creada con exito.",
-    "passwordMinLength": "Minimo 8 caracteres."
+    "passwordMinLength": "Minimo 8 caracteres.",
+    "recoverPassword": "Recuperar contrasena",
+    "recoverPasswordDescription": "Introduce tu email y te enviaremos instrucciones.",
+    "sendInstructions": "Enviar instrucciones",
+    "sending": "Enviando...",
+    "checkEmail": "Revisa tu correo",
+    "checkEmailDescription": "Si el email esta registrado, recibiras instrucciones para restablecer tu contrasena.",
+    "backToLogin": "Volver a iniciar sesion",
+    "newPassword": "Nueva contrasena",
+    "confirmPassword": "Confirmar contrasena",
+    "passwordsDoNotMatch": "Las contrasenas no coinciden.",
+    "resetPassword": "Restablecer contrasena",
+    "updating": "Actualizando...",
+    "passwordUpdated": "Contrasena actualizada",
+    "passwordUpdatedDescription": "Tu contrasena ha sido restablecida correctamente. Ya puedes iniciar sesion.",
+    "invalidLink": "Enlace no valido",
+    "invalidLinkDescription": "El enlace de recuperacion no es valido o ha expirado.",
+    "linkExpired": "El enlace ha expirado o no es valido. Solicita uno nuevo."
   },
   "club": {
     "home": "Inicio",
@@ -146,5 +163,11 @@
     "pushActivated": "Notificaciones activadas",
     "pushActivatedDesc": "Recibiras alertas de tus reservas y partidas.",
     "pushError": "No se pudieron activar las notificaciones."
+  },
+  "cookies": {
+    "message": "Utilizamos cookies esenciales para el funcionamiento del sitio y cookies funcionales para recordar tus preferencias.",
+    "learnMore": "Mas informacion",
+    "acceptAll": "Aceptar todas",
+    "onlyEssential": "Solo esenciales"
   }
 }

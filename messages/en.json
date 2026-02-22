@@ -26,7 +26,24 @@
     "hasAccount": "Already have an account?",
     "invalidCredentials": "Invalid email or password.",
     "registerSuccess": "Account created successfully.",
-    "passwordMinLength": "Minimum 8 characters."
+    "passwordMinLength": "Minimum 8 characters.",
+    "recoverPassword": "Recover password",
+    "recoverPasswordDescription": "Enter your email and we'll send you instructions.",
+    "sendInstructions": "Send instructions",
+    "sending": "Sending...",
+    "checkEmail": "Check your email",
+    "checkEmailDescription": "If the email is registered, you will receive instructions to reset your password.",
+    "backToLogin": "Back to sign in",
+    "newPassword": "New password",
+    "confirmPassword": "Confirm password",
+    "passwordsDoNotMatch": "Passwords do not match.",
+    "resetPassword": "Reset password",
+    "updating": "Updating...",
+    "passwordUpdated": "Password updated",
+    "passwordUpdatedDescription": "Your password has been reset successfully. You can now sign in.",
+    "invalidLink": "Invalid link",
+    "invalidLinkDescription": "The recovery link is invalid or has expired.",
+    "linkExpired": "The link has expired or is invalid. Request a new one."
   },
   "club": {
     "home": "Home",
@@ -146,5 +163,11 @@
     "pushActivated": "Notifications enabled",
     "pushActivatedDesc": "You'll receive alerts for your bookings and matches.",
     "pushError": "Could not enable notifications."
+  },
+  "cookies": {
+    "message": "We use essential cookies for site functionality and functional cookies to remember your preferences.",
+    "learnMore": "Learn more",
+    "acceptAll": "Accept all",
+    "onlyEssential": "Essential only"
   }
 }

@@ -10,6 +10,7 @@ import {
   Newspaper,
   BarChart3,
   FileText,
+  Medal,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -24,6 +25,7 @@ export const navItems: NavItem[] = [
   { name: 'Reservas', href: '/dashboard/reservas', icon: Calendar },
   { name: 'Pistas', href: '/dashboard/pistas', icon: LayoutGrid },
   { name: 'Competiciones', href: '/dashboard/competitions', icon: Trophy },
+  { name: 'Rankings', href: '/dashboard/rankings', icon: Medal },
   { name: 'Socios', href: '/dashboard/socios', icon: Users },
   { name: 'Partidas Abiertas', href: '/dashboard/partidas-abiertas', icon: CalendarPlus },
   { name: 'Noticias', href: '/dashboard/noticias', icon: Newspaper },

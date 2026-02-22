@@ -7,15 +7,17 @@ import {
   Eye,
   MapPin,
   Heart,
+  Code,
+  Smartphone,
+  Zap,
 } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Separator } from "@/components/ui/separator"
 
 export const metadata: Metadata = {
-  title: "Sobre nosotros | Padel Club OS",
+  title: "Sobre mí | Padel Club OS",
   description:
-    "Conoce al equipo detras de Padel Club OS. Nuestra mision es que cada club de padel en Espana tenga el software que merece.",
+    "Conoce a Alberto Bort, el desarrollador detrás de Padel Club OS. Mi misión es que cada club de pádel en España tenga el software que merece.",
 }
 
 const principios = [
@@ -23,57 +25,39 @@ const principios = [
     icono: Sparkles,
     titulo: "Simplicidad radical",
     descripcion:
-      "Si una funcion necesita un manual, esta mal disenada. Cada pantalla de Padel Club OS busca ser obvia.",
+      "Si una función necesita un manual, está mal diseñada. Cada pantalla de Padel Club OS busca ser obvia.",
   },
   {
     icono: Eye,
     titulo: "Transparencia total",
     descripcion:
-      "Precios publicos, sin letra pequena, sin llamadas de ventas. Sabes lo que pagas y lo que recibes.",
+      "Precios públicos, sin letra pequeña, sin llamadas de ventas. Sabes lo que pagas y lo que recibes.",
   },
   {
     icono: MapPin,
-    titulo: "Pensado para Espana",
+    titulo: "Pensado para España",
     descripcion:
-      "No somos un software americano traducido. Entendemos los horarios, la cultura y las necesidades de los clubes espanoles.",
+      "No es un software americano traducido. Entiendo los horarios, la cultura y las necesidades de los clubes españoles.",
   },
   {
     icono: Heart,
-    titulo: "Obsesionados con el club",
+    titulo: "Obsesionado con el club",
     descripcion:
-      "No construimos funcionalidades porque suenan bien. Las construimos porque un club real nos dijo que las necesitaba.",
+      "No construyo funcionalidades porque suenan bien. Las construyo porque un club real me dijo que las necesitaba.",
   },
 ]
 
 const estadisticas = [
-  { valor: "50+", etiqueta: "Clubes gestionados" },
-  { valor: "12.000+", etiqueta: "Reservas procesadas" },
-  { valor: "5.000+", etiqueta: "Jugadores activos" },
-  { valor: "99.9%", etiqueta: "Uptime garantizado" },
+  { valor: "5 min", etiqueta: "Para configurar tu club" },
+  { valor: "0 €", etiqueta: "Para empezar (14 días gratis)" },
+  { valor: "24/7", etiqueta: "Reservas sin intervención" },
+  { valor: "100%", etiqueta: "Pensado para pádel" },
 ]
 
-const equipo = [
-  {
-    iniciales: "AM",
-    nombre: "Alberto Martinez",
-    rol: "Co-fundador & CTO",
-    bio: "Ingeniero de software y jugador de padel desde hace 8 anos. Antes en startups fintech.",
-    gradiente: "linear-gradient(135deg, hsl(217,91%,52%) 0%, hsl(197,85%,48%) 100%)",
-  },
-  {
-    iniciales: "CR",
-    nombre: "Carlos Ruiz",
-    rol: "Co-fundador & CEO",
-    bio: "Gestion de producto y estrategia. 10 anos gestionando comunidades deportivas.",
-    gradiente: "linear-gradient(135deg, hsl(262,83%,58%) 0%, hsl(240,80%,62%) 100%)",
-  },
-  {
-    iniciales: "LG",
-    nombre: "Laura Garcia",
-    rol: "Diseno & Producto",
-    bio: "Disenadora de producto obsesionada con que cada interaccion se sienta natural.",
-    gradiente: "linear-gradient(135deg, hsl(142,71%,45%) 0%, hsl(160,84%,39%) 100%)",
-  },
+const tecnologias = [
+  { icono: Code, nombre: "Next.js & React", descripcion: "Aplicaciones web rápidas y modernas" },
+  { icono: Smartphone, nombre: "PWA", descripcion: "Funciona offline, se instala como app nativa" },
+  { icono: Zap, nombre: "TypeScript", descripcion: "Código robusto y mantenible" },
 ]
 
 export default function SobreNosotrosPage() {
@@ -92,62 +76,104 @@ export default function SobreNosotrosPage() {
           </Link>
 
           <Badge variant="secondary" className="gap-1.5 px-3 py-1 text-sm font-medium">
-            Nuestra historia
+            Mi historia
           </Badge>
 
           <h1 className="max-w-4xl text-4xl font-bold tracking-tight sm:text-5xl md:text-6xl">
-            Los clubes de padel merecen un software{" "}
+            Los clubes de pádel merecen un software{" "}
             <span className="text-primary">a la altura</span>
           </h1>
 
           <p className="max-w-2xl text-lg text-muted-foreground md:text-xl">
-            Somos jugadores de padel que vimos un problema: la gestion de clubes seguia
-            anclada en hojas de calculo, WhatsApp y software de los 2000. Decidimos cambiarlo.
+            Soy desarrollador web y jugador de pádel. Vi un problema: la gestión de clubes
+            seguía anclada en hojas de cálculo, WhatsApp y software de los 2000. Decidí cambiarlo.
           </p>
         </div>
       </section>
 
-      {/* Nuestra historia */}
+      {/* Mi historia */}
       <section className="border-t bg-muted/30 py-24">
         <div className="container mx-auto max-w-3xl">
           <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
-            Como empezo todo
+            Cómo empezó todo
           </h2>
 
           <div className="mt-8 space-y-6 text-lg leading-relaxed text-muted-foreground">
             <p>
-              Empezamos como jugadores que reservaban pista por WhatsApp. Veiamos a los
-              encargados del club apuntando reservas en libretas, gestionando ligas en Excel
-              y contestando mensajes a las 11 de la noche. Sabiamos que tenia que haber una
-              forma mejor.
+              Todo empezó reservando pista por WhatsApp. Veía a los encargados del club
+              apuntando reservas en libretas, gestionando ligas en Excel y contestando
+              mensajes a las 11 de la noche. Sabía que tenía que haber una forma mejor.
             </p>
 
             <div className="border-l-4 border-primary pl-6">
               <p className="font-medium text-foreground">
-                &ldquo;Queríamos la herramienta que nos hubiera gustado encontrar como jugadores
-                y como gestores de club.&rdquo;
+                &ldquo;Quería construir la herramienta que me hubiera gustado encontrar
+                como jugador y que cualquier club pudiera usar desde el primer día.&rdquo;
               </p>
             </div>
 
             <p>
-              En 2024 decidimos construir esa herramienta. Una plataforma moderna, pensada
-              desde el principio para clubes de padel en Espana. Sin traducciones forzadas
+              Como desarrollador especializado en aplicaciones web modernas y PWAs,
+              tenía las herramientas para hacerlo. Así nació Padel Club OS: una plataforma
+              pensada desde cero para clubes de pádel en España. Sin traducciones forzadas
               de software americano, sin funcionalidades de golf o tenis que nadie necesita.
-              Solo lo esencial, bien hecho.
+              Sólo lo esencial, bien hecho.
             </p>
           </div>
         </div>
       </section>
 
-      {/* Principios */}
+      {/* Quién soy */}
       <section className="py-24">
+        <div className="container">
+          <div className="mx-auto max-w-3xl">
+            <div className="flex flex-col items-center gap-8 sm:flex-row sm:items-start">
+              <div className="shrink-0">
+                <div
+                  className="flex h-24 w-24 items-center justify-center rounded-full text-3xl font-bold text-white"
+                  style={{ background: "linear-gradient(135deg, hsl(217,91%,52%) 0%, hsl(197,85%,48%) 100%)" }}
+                >
+                  AB
+                </div>
+              </div>
+              <div>
+                <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
+                  Alberto Bort
+                </h2>
+                <p className="mt-1 text-lg font-medium text-primary">
+                  Desarrollador Web & Arquitecto PWA
+                </p>
+                <p className="mt-4 text-lg leading-relaxed text-muted-foreground">
+                  Desarrollo aplicaciones web modernas y Progressive Web Apps que cargan rápido,
+                  funcionan offline y convierten visitantes en clientes. Padel Club OS es el
+                  resultado de combinar mi experiencia técnica con mi pasión por el pádel.
+                </p>
+                <div className="mt-6 flex flex-wrap gap-3">
+                  {tecnologias.map((tech) => (
+                    <div
+                      key={tech.nombre}
+                      className="flex items-center gap-2 rounded-lg border bg-card px-3 py-2"
+                    >
+                      <tech.icono className="h-4 w-4 text-primary" />
+                      <span className="text-sm font-medium">{tech.nombre}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Principios */}
+      <section className="border-t bg-muted/30 py-24">
         <div className="container">
           <div className="mx-auto max-w-2xl text-center">
             <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
-              Nuestros principios
+              Mis principios
             </h2>
             <p className="mt-4 text-lg text-muted-foreground">
-              Las ideas que guian cada decision que tomamos.
+              Las ideas que guían cada decisión que tomo.
             </p>
           </div>
 
@@ -170,15 +196,15 @@ export default function SobreNosotrosPage() {
         </div>
       </section>
 
-      {/* Numeros */}
-      <section className="border-t bg-muted/30 py-24">
+      {/* Números */}
+      <section className="py-24">
         <div className="container">
           <div className="mx-auto max-w-2xl text-center">
             <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
-              Numeros que hablan
+              Diseñado para simplificar
             </h2>
             <p className="mt-4 text-lg text-muted-foreground">
-              Creciendo junto a los clubes que confian en nosotros.
+              Todo lo que necesitas para gestionar tu club, desde el primer día.
             </p>
           </div>
 
@@ -187,36 +213,6 @@ export default function SobreNosotrosPage() {
               <div key={stat.etiqueta} className="text-center">
                 <div className="text-4xl font-bold text-primary">{stat.valor}</div>
                 <div className="mt-2 text-sm text-muted-foreground">{stat.etiqueta}</div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Equipo */}
-      <section className="py-24">
-        <div className="container">
-          <div className="mx-auto max-w-2xl text-center">
-            <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
-              El equipo
-            </h2>
-            <p className="mt-4 text-lg text-muted-foreground">
-              Personas reales que juegan a padel y construyen software.
-            </p>
-          </div>
-
-          <div className="mx-auto mt-16 grid max-w-3xl gap-12 sm:grid-cols-3">
-            {equipo.map((miembro) => (
-              <div key={miembro.nombre} className="text-center">
-                <div
-                  className="mx-auto flex h-20 w-20 items-center justify-center rounded-full text-2xl font-bold text-white"
-                  style={{ background: miembro.gradiente }}
-                >
-                  {miembro.iniciales}
-                </div>
-                <h3 className="mt-4 text-lg font-semibold">{miembro.nombre}</h3>
-                <p className="text-sm font-medium text-primary">{miembro.rol}</p>
-                <p className="mt-2 text-sm text-muted-foreground">{miembro.bio}</p>
               </div>
             ))}
           </div>
@@ -237,8 +233,8 @@ export default function SobreNosotrosPage() {
                 Forma parte del cambio
               </h2>
               <p className="mx-auto mt-4 max-w-xl text-lg text-primary-foreground/80">
-                Unete a los clubes que ya confian en Padel Club OS para simplificar
-                su gestion diaria.
+                Prueba Padel Club OS gratis durante 14 días y descubre lo fácil
+                que es gestionar tu club.
               </p>
               <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
                 <Button

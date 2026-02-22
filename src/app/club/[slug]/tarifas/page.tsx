@@ -123,10 +123,11 @@ export default async function TarifasPage({ params }: { params: { slug: string }
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight">Tarifas</h1>
-        <p className="text-muted-foreground">
+        <h1 className="font-display text-2xl font-bold uppercase tracking-wide">Tarifas</h1>
+        <p className="text-muted-foreground mt-1">
           Precios por reserva de {duracion} minutos
         </p>
+        <div className="club-accent-line mt-3" />
       </div>
 
       {pistasAMostrar.map((pista) => {
@@ -161,8 +162,7 @@ export default async function TarifasPage({ params }: { params: { slug: string }
                     </div>
                     <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
                       {entresSemana.map((franja, i) => (
-                        <Card key={i} className="overflow-hidden">
-                          <CardContent className="p-0">
+                        <div key={i} className="club-card overflow-hidden">
                             <div className="px-4 py-3 bg-muted/50 border-b">
                               <p className="text-sm font-medium text-muted-foreground">
                                 {franja.nombre}
@@ -182,8 +182,7 @@ export default async function TarifasPage({ params }: { params: { slug: string }
                                 / pista
                               </span>
                             </div>
-                          </CardContent>
-                        </Card>
+                        </div>
                       ))}
                     </div>
                   </div>
@@ -196,12 +195,11 @@ export default async function TarifasPage({ params }: { params: { slug: string }
                       className="rounded-lg px-4 py-2.5 text-white font-semibold text-sm"
                       style={{ backgroundColor: color, opacity: 0.85 }}
                     >
-                      Sabados, domingos y festivos
+                      Sábados, domingos y festivos
                     </div>
                     <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
                       {finDeSemana.map((franja, i) => (
-                        <Card key={i} className="overflow-hidden">
-                          <CardContent className="p-0">
+                        <div key={i} className="club-card overflow-hidden">
                             <div className="px-4 py-3 bg-muted/50 border-b">
                               <p className="text-sm font-medium text-muted-foreground">
                                 {franja.nombre}
@@ -221,8 +219,7 @@ export default async function TarifasPage({ params }: { params: { slug: string }
                                 / pista
                               </span>
                             </div>
-                          </CardContent>
-                        </Card>
+                        </div>
                       ))}
                     </div>
                   </div>

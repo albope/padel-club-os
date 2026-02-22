@@ -83,6 +83,8 @@ model User {
   level         String?
   birthDate     DateTime?
   role          UserRole  @default(PLAYER)
+  isActive      Boolean   @default(true)
+  adminNotes    String?   @db.Text
 
   clubId        String?
   club          Club?     @relation(fields: [clubId], references: [id])

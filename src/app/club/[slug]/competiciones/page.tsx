@@ -34,31 +34,30 @@ export default async function ClubCompetitionsPage({ params }: { params: { slug:
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight">Competiciones</h1>
-        <p className="text-muted-foreground">Ligas y torneos del club</p>
+        <h1 className="font-display text-2xl font-bold uppercase tracking-wide">Competiciones</h1>
+        <p className="text-muted-foreground mt-1">Ligas y torneos del club</p>
+        <div className="club-accent-line mt-3" />
       </div>
 
       {/* Activas */}
       {active.length > 0 && (
         <section className="space-y-3">
-          <h2 className="text-lg font-semibold text-foreground">En curso</h2>
+          <h2 className="font-display text-lg font-semibold text-foreground uppercase tracking-wide">En curso</h2>
           <div className="grid gap-3">
             {active.map((comp) => (
               <Link key={comp.id} href={`/club/${params.slug}/competiciones/${comp.id}`}>
-                <Card className="hover:shadow-md transition-shadow">
-                  <CardContent className="flex items-center justify-between p-4">
-                    <div className="flex items-center gap-3">
-                      <Trophy className="h-5 w-5 text-primary" />
-                      <div>
-                        <p className="font-medium">{comp.name}</p>
-                        <p className="text-xs text-muted-foreground">
-                          {comp.teams.length} equipos · {comp.matches.filter(m => m.result).length}/{comp.matches.length} partidos jugados
-                        </p>
-                      </div>
+                <div className="club-card p-4 flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <Trophy className="h-5 w-5 text-primary" />
+                    <div>
+                      <p className="font-display font-bold text-sm">{comp.name}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {comp.teams.length} equipos · {comp.matches.filter(m => m.result).length}/{comp.matches.length} partidos jugados
+                      </p>
                     </div>
-                    <Badge>{formatLabel[comp.format] || comp.format}</Badge>
-                  </CardContent>
-                </Card>
+                  </div>
+                  <Badge>{formatLabel[comp.format] || comp.format}</Badge>
+                </div>
               </Link>
             ))}
           </div>
@@ -68,24 +67,22 @@ export default async function ClubCompetitionsPage({ params }: { params: { slug:
       {/* Finalizadas */}
       {finished.length > 0 && (
         <section className="space-y-3">
-          <h2 className="text-lg font-semibold text-muted-foreground">Finalizadas</h2>
+          <h2 className="font-display text-lg font-semibold text-muted-foreground uppercase tracking-wide">Finalizadas</h2>
           <div className="grid gap-3">
             {finished.map((comp) => (
               <Link key={comp.id} href={`/club/${params.slug}/competiciones/${comp.id}`}>
-                <Card className="hover:shadow-md transition-shadow opacity-75">
-                  <CardContent className="flex items-center justify-between p-4">
-                    <div className="flex items-center gap-3">
-                      <Trophy className="h-5 w-5 text-muted-foreground" />
-                      <div>
-                        <p className="font-medium">{comp.name}</p>
-                        <p className="text-xs text-muted-foreground">
-                          {comp.teams.length} equipos · {formatLabel[comp.format] || comp.format}
-                        </p>
-                      </div>
+                <div className="club-card p-4 flex items-center justify-between opacity-75">
+                  <div className="flex items-center gap-3">
+                    <Trophy className="h-5 w-5 text-muted-foreground" />
+                    <div>
+                      <p className="font-display font-bold text-sm">{comp.name}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {comp.teams.length} equipos · {formatLabel[comp.format] || comp.format}
+                      </p>
                     </div>
-                    <Badge variant="secondary">Finalizada</Badge>
-                  </CardContent>
-                </Card>
+                  </div>
+                  <Badge variant="secondary">Finalizada</Badge>
+                </div>
               </Link>
             ))}
           </div>
@@ -98,7 +95,7 @@ export default async function ClubCompetitionsPage({ params }: { params: { slug:
             <Trophy className="h-12 w-12 text-muted-foreground mb-4" />
             <p className="font-medium text-foreground">No hay competiciones</p>
             <p className="text-sm text-muted-foreground mt-1">
-              El club aun no ha creado competiciones.
+              El club aún no ha creado competiciones.
             </p>
           </CardContent>
         </Card>

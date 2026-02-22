@@ -15,8 +15,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 
 const LoginSchema = z.object({
-  email: z.string().min(1, 'El email es requerido.').email('Email invalido.'),
-  password: z.string().min(1, 'La contrasena es requerida.'),
+  email: z.string().min(1, 'El email es requerido.').email('Email inválido.'),
+  password: z.string().min(1, 'La contraseña es requerida.'),
 });
 
 export default function ClubLoginPage() {
@@ -46,7 +46,7 @@ export default function ClubLoginPage() {
     setIsLoading(false);
 
     if (result?.error) {
-      setError('Email o contrasena incorrectos.');
+      setError('Email o contraseña incorrectos.');
     } else {
       router.push(`/club/${slug}`);
       router.refresh();
@@ -57,7 +57,7 @@ export default function ClubLoginPage() {
     <div className="flex items-center justify-center min-h-[60vh]">
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl font-bold">Iniciar sesion</CardTitle>
+          <CardTitle className="text-2xl font-bold">Iniciar sesión</CardTitle>
           <p className="text-sm text-muted-foreground">
             Accede a tu cuenta de jugador
           </p>
@@ -65,7 +65,7 @@ export default function ClubLoginPage() {
         <CardContent>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <div className="space-y-1.5">
-              <Label htmlFor="email">Correo electronico</Label>
+              <Label htmlFor="email">Correo electrónico</Label>
               <Input
                 id="email"
                 type="email"
@@ -80,12 +80,12 @@ export default function ClubLoginPage() {
 
             <div className="space-y-1.5">
               <div className="flex items-center justify-between">
-                <Label htmlFor="password">Contrasena</Label>
+                <Label htmlFor="password">Contraseña</Label>
                 <Link
                   href={`/club/${slug}/forgot-password`}
                   className="text-xs text-primary/70 hover:text-primary transition-colors duration-150"
                 >
-                  Olvidaste tu contrasena?
+                  ¿Olvidaste tu contraseña?
                 </Link>
               </div>
               <div className="relative">
@@ -120,19 +120,19 @@ export default function ClubLoginPage() {
               {isLoading ? (
                 <><Loader2 className="h-4 w-4 animate-spin mr-2" /> Entrando...</>
               ) : (
-                'Iniciar sesion'
+                'Iniciar sesión'
               )}
             </Button>
           </form>
 
           <div className="mt-4 pt-4 border-t text-center">
             <p className="text-sm text-muted-foreground">
-              No tienes cuenta?{' '}
+              ¿No tienes cuenta?{' '}
               <Link
                 href={`/club/${slug}/registro`}
                 className="font-semibold text-primary hover:underline"
               >
-                Registrate
+                Regístrate
               </Link>
             </p>
           </div>

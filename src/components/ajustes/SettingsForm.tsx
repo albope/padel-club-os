@@ -23,6 +23,7 @@ const SettingsSchema = z.object({
   phone: z.string().optional(),
   email: z.string().email("Email no valido").optional().or(z.literal("")),
   primaryColor: z.string().optional(),
+  logoUrl: z.string().optional(),
   bannerUrl: z.string().optional(),
   instagramUrl: z.string().optional(),
   facebookUrl: z.string().optional(),
@@ -42,7 +43,9 @@ const SettingsForm: React.FC<SettingsFormProps> = ({ club }) => {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+  const [isUploadingLogo, setIsUploadingLogo] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const logoInputRef = useRef<HTMLInputElement>(null);
 
   const form = useForm<z.infer<typeof SettingsSchema>>({
     resolver: zodResolver(SettingsSchema),
@@ -54,6 +57,7 @@ const SettingsForm: React.FC<SettingsFormProps> = ({ club }) => {
       phone: club.phone || '',
       email: club.email || '',
       primaryColor: club.primaryColor || '#4f46e5',
+      logoUrl: club.logoUrl || '',
       bannerUrl: club.bannerUrl || '',
       instagramUrl: club.instagramUrl || '',
       facebookUrl: club.facebookUrl || '',
@@ -119,6 +123,37 @@ const SettingsForm: React.FC<SettingsFormProps> = ({ club }) => {
     }
   }
 
+  const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    if (!file.type.startsWith("image/")) {
+      toast({ title: "Error", description: "Solo se permiten imagenes (JPG, PNG, WebP, GIF).", variant: "destructive" })
+      return
+    }
+
+    if (file.size > 2 * 1024 * 1024) {
+      toast({ title: "Error", description: "El logo no puede superar 2MB.", variant: "destructive" })
+      return
+    }
+
+    setIsUploadingLogo(true)
+    try {
+      const blob = await upload(file.name, file, {
+        access: "public",
+        handleUploadUrl: "/api/upload",
+      })
+      form.setValue("logoUrl", blob.url)
+      toast({ title: "Logo subido", description: "Recuerda guardar los ajustes para aplicar el cambio.", variant: "success" })
+    } catch (err: any) {
+      toast({ title: "Error al subir logo", description: err.message, variant: "destructive" })
+    } finally {
+      setIsUploadingLogo(false)
+      if (logoInputRef.current) logoInputRef.current.value = ""
+    }
+  }
+
+  const logoUrl = form.watch("logoUrl")
   const bannerUrl = form.watch("bannerUrl")
 
   return (
@@ -202,6 +237,60 @@ const SettingsForm: React.FC<SettingsFormProps> = ({ club }) => {
               <p className="text-xs text-muted-foreground ml-2">
                 Color corporativo que se aplica en el portal.
               </p>
+            </div>
+          </div>
+
+          <Separator />
+
+          <div className="space-y-3">
+            <Label>Logo del club</Label>
+            <p className="text-xs text-muted-foreground">
+              Se muestra en la cabecera del portal de jugadores. Recomendado: cuadrado, min 200x200px.
+            </p>
+            <div className="flex items-center gap-4">
+              {logoUrl ? (
+                <div className="relative">
+                  <img
+                    src={logoUrl}
+                    alt="Logo del club"
+                    className="h-16 w-16 rounded-full object-cover ring-2 ring-border"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => form.setValue("logoUrl", "")}
+                    className="absolute -top-1 -right-1 bg-black/60 hover:bg-black/80 text-white rounded-full p-1 transition-colors"
+                  >
+                    <X className="h-3 w-3" />
+                  </button>
+                </div>
+              ) : (
+                <div className="h-16 w-16 rounded-full border-2 border-dashed border-muted-foreground/25 bg-muted/50 flex items-center justify-center">
+                  <ImageIcon className="h-6 w-6 text-muted-foreground" />
+                </div>
+              )}
+              <div>
+                <input
+                  ref={logoInputRef}
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp,image/gif"
+                  onChange={handleLogoUpload}
+                  className="hidden"
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  disabled={isUploadingLogo}
+                  onClick={() => logoInputRef.current?.click()}
+                >
+                  {isUploadingLogo ? (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  ) : (
+                    <Upload className="mr-2 h-4 w-4" />
+                  )}
+                  {isUploadingLogo ? "Subiendo..." : logoUrl ? "Cambiar logo" : "Subir logo"}
+                </Button>
+              </div>
             </div>
           </div>
 

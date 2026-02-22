@@ -139,3 +139,13 @@ export function calculateMatchRatings(params: MatchRatingParams): MatchRatingRes
     newTeam2Ratings: [p1t2.newRatingA, p2t2.newRatingA],
   }
 }
+
+/**
+ * Convierte ELO interno a nivel de padel (escala 1.0 - 7.0)
+ * Mapeo lineal: ELO 900 = 1.0, ELO 1500 = 4.0, ELO 2100 = 7.0
+ * Similar a la escala de Playtomic
+ */
+export function eloANivel(elo: number): number {
+  const nivel = 1.0 + ((elo - 900) * 6) / 1200
+  return Math.round(Math.max(1.0, Math.min(7.0, nivel)) * 10) / 10
+}

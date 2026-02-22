@@ -18,6 +18,7 @@ import { ThemeToggle } from '@/components/layout/ThemeToggle';
 import { MobileSidebar } from '@/components/layout/MobileSidebar';
 import { Breadcrumbs } from '@/components/layout/Breadcrumbs';
 import { NotificationBell } from '@/components/layout/NotificationBell';
+import { GlobalSearch } from '@/components/layout/GlobalSearch';
 
 const Header = () => {
   const { data: session, status } = useSession();
@@ -32,6 +33,7 @@ const Header = () => {
         </div>
 
         <div className="flex items-center gap-2">
+          {status === 'authenticated' && <GlobalSearch />}
           <ThemeToggle />
 
           {status === 'authenticated' && <NotificationBell />}

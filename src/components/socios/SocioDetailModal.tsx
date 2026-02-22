@@ -2,9 +2,10 @@
 
 import React from 'react';
 import { User } from '@prisma/client';
-import { Mail, Phone, Gamepad2, BarChart3, Cake, CalendarClock, CalendarCheck2 } from 'lucide-react';
+import { Mail, Phone, Gamepad2, BarChart3, Cake, CalendarClock, CalendarCheck2, StickyNote } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Separator } from '@/components/ui/separator';
+import { Badge } from '@/components/ui/badge';
 
 type SocioWithStats = User & {
   _count: {
@@ -41,7 +42,18 @@ const SocioDetailModal: React.FC<SocioDetailModalProps> = ({ isOpen, onClose, so
               className="h-16 w-16 rounded-full"
             />
             <div>
-              <DialogTitle className="text-2xl">{socio.name}</DialogTitle>
+              <div className="flex items-center gap-2">
+                <DialogTitle className="text-2xl">{socio.name}</DialogTitle>
+                <Badge
+                  variant="secondary"
+                  className={socio.isActive !== false
+                    ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
+                    : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
+                  }
+                >
+                  {socio.isActive !== false ? 'Activo' : 'Inactivo'}
+                </Badge>
+              </div>
               <p className="text-sm text-muted-foreground">{socio.email}</p>
             </div>
           </div>
@@ -89,6 +101,19 @@ const SocioDetailModal: React.FC<SocioDetailModalProps> = ({ isOpen, onClose, so
             <p className="text-xs text-muted-foreground mt-1">Reservas Totales</p>
           </div>
         </div>
+
+        {socio.adminNotes && (
+          <>
+            <Separator />
+            <div className="space-y-1">
+              <p className="flex items-center gap-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                <StickyNote className="h-3.5 w-3.5" />
+                Notas del Admin
+              </p>
+              <p className="text-sm text-muted-foreground whitespace-pre-wrap">{socio.adminNotes}</p>
+            </div>
+          </>
+        )}
       </DialogContent>
     </Dialog>
   );

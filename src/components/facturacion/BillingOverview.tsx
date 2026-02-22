@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { CreditCard, ExternalLink } from "lucide-react"
+import { CreditCard, ExternalLink, Download } from "lucide-react"
 import { toast } from "@/hooks/use-toast"
 
 interface PaymentRecord {
@@ -121,8 +121,20 @@ export default function BillingOverview({
       {/* Historial de pagos */}
       <Card>
         <CardHeader>
-          <CardTitle>Historial de pagos</CardTitle>
-          <CardDescription>Ultimos pagos de tu suscripcion</CardDescription>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle>Historial de pagos</CardTitle>
+              <CardDescription>Ultimos pagos de tu suscripcion</CardDescription>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => window.open("/api/payments/export", "_blank")}
+            >
+              <Download className="h-4 w-4 mr-2" />
+              Exportar CSV
+            </Button>
+          </div>
         </CardHeader>
         <CardContent>
           {payments.length === 0 ? (

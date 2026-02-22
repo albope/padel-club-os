@@ -68,7 +68,7 @@ export default function NuevaPartidaJugadorForm({ slug, onExito }: NuevaPartidaJ
       if (res.ok) {
         toast({
           title: "Partida creada",
-          description: "Tu partida abierta ha sido creada. Ya estas inscrito.",
+          description: "Tu partida abierta ha sido creada. Ya estás inscrito.",
         });
         onExito();
       } else {
@@ -82,7 +82,7 @@ export default function NuevaPartidaJugadorForm({ slug, onExito }: NuevaPartidaJ
     } catch {
       toast({
         title: "Error",
-        description: "Error de conexion.",
+        description: "Error de conexión.",
         variant: "destructive",
       });
     } finally {
@@ -143,7 +143,7 @@ export default function NuevaPartidaJugadorForm({ slug, onExito }: NuevaPartidaJ
 
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
-          <Label htmlFor="levelMin">Nivel minimo (opcional)</Label>
+          <Label htmlFor="levelMin">Nivel mínimo (opcional)</Label>
           <Input
             id="levelMin"
             type="number"
@@ -156,7 +156,7 @@ export default function NuevaPartidaJugadorForm({ slug, onExito }: NuevaPartidaJ
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="levelMax">Nivel maximo (opcional)</Label>
+          <Label htmlFor="levelMax">Nivel máximo (opcional)</Label>
           <Input
             id="levelMax"
             type="number"
@@ -171,7 +171,7 @@ export default function NuevaPartidaJugadorForm({ slug, onExito }: NuevaPartidaJ
       </div>
 
       <p className="text-xs text-muted-foreground">
-        Al crear la partida, quedas inscrito automaticamente como primer jugador.
+        Al crear la partida, quedas inscrito automáticamente como primer jugador.
       </p>
 
       <Button type="submit" className="w-full" disabled={isSubmitting}>

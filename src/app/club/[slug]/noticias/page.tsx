@@ -20,24 +20,25 @@ export default async function ClubNewsPage({ params }: { params: { slug: string 
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight">Noticias</h1>
-        <p className="text-muted-foreground">Novedades y comunicados del club</p>
+        <h1 className="font-display text-2xl font-bold uppercase tracking-wide">Noticias</h1>
+        <p className="text-muted-foreground mt-1">Novedades y comunicados del club</p>
+        <div className="club-accent-line mt-3" />
       </div>
 
       {news.length > 0 ? (
         <div className="grid gap-4">
           {news.map((item) => (
             <Link key={item.id} href={`/club/${params.slug}/noticias/${item.id}`}>
-              <Card className="hover:shadow-md transition-shadow">
-                <CardContent className="p-4">
+              <div className="club-card overflow-hidden">
+                <div className="p-4">
                   {item.imageUrl && (
                     <img
                       src={item.imageUrl}
                       alt={item.title}
-                      className="w-full h-48 object-cover rounded-lg mb-4"
+                      className="w-full h-48 object-cover rounded-xl mb-4"
                     />
                   )}
-                  <h2 className="font-semibold text-foreground">{item.title}</h2>
+                  <h2 className="font-display font-bold text-foreground">{item.title}</h2>
                   <p className="text-sm text-muted-foreground mt-1 line-clamp-3">
                     {item.content}
                   </p>
@@ -48,8 +49,8 @@ export default async function ClubNewsPage({ params }: { params: { slug: string 
                       year: "numeric",
                     })}
                   </p>
-                </CardContent>
-              </Card>
+                </div>
+              </div>
             </Link>
           ))}
         </div>
@@ -59,7 +60,7 @@ export default async function ClubNewsPage({ params }: { params: { slug: string 
             <Newspaper className="h-12 w-12 text-muted-foreground mb-4" />
             <p className="font-medium text-foreground">No hay noticias</p>
             <p className="text-sm text-muted-foreground mt-1">
-              El club aun no ha publicado noticias.
+              El club aún no ha publicado noticias.
             </p>
           </CardContent>
         </Card>

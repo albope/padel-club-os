@@ -116,7 +116,7 @@ export default function PlayerProfilePage() {
         toast({ title: "Error", description: "No se pudo actualizar el perfil.", variant: "destructive" });
       }
     } catch {
-      toast({ title: "Error", description: "Error de conexion.", variant: "destructive" });
+      toast({ title: "Error", description: "Error de conexión.", variant: "destructive" });
     } finally {
       setIsSaving(false);
     }
@@ -137,7 +137,7 @@ export default function PlayerProfilePage() {
         toast({ title: "Error", description: data.error || "No se pudo cancelar la reserva.", variant: "destructive" });
       }
     } catch {
-      toast({ title: "Error", description: "Error de conexion.", variant: "destructive" });
+      toast({ title: "Error", description: "Error de conexión.", variant: "destructive" });
     } finally {
       setIsCancelling(false);
       setCancelDialog({ open: false, bookingId: '', descripcion: '' });
@@ -166,7 +166,7 @@ export default function PlayerProfilePage() {
         </div>
         <Button variant="outline" size="sm" onClick={handleLogout}>
           <LogOut className="h-4 w-4 mr-2" />
-          Cerrar sesion
+          Cerrar sesión
         </Button>
       </div>
 
@@ -189,7 +189,7 @@ export default function PlayerProfilePage() {
               <Input id="email" value={profile?.email || ''} disabled className="bg-muted" />
             </div>
             <div className="space-y-1.5">
-              <Label htmlFor="phone">Telefono</Label>
+              <Label htmlFor="phone">Teléfono</Label>
               <Input id="phone" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="600 123 456" />
             </div>
             <div className="space-y-1.5">
@@ -197,8 +197,8 @@ export default function PlayerProfilePage() {
               <Input id="level" value={level} onChange={(e) => setLevel(e.target.value)} placeholder="Ej: 3.5" />
             </div>
             <div className="space-y-1.5">
-              <Label htmlFor="position">Posicion preferida</Label>
-              <Input id="position" value={position} onChange={(e) => setPosition(e.target.value)} placeholder="Derecha / Reves" />
+              <Label htmlFor="position">Posición preferida</Label>
+              <Input id="position" value={position} onChange={(e) => setPosition(e.target.value)} placeholder="Derecha / Revés" />
             </div>
           </div>
 

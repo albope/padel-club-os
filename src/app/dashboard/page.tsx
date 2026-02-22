@@ -47,6 +47,11 @@ const getDashboardData = async (clubId: string) => {
       // --- FIN DE LA MODIFICACIÓN ---
       db.booking.findMany({
         where: { clubId, startTime: { gte: startOfDay, lte: endOfDay } },
+        include: {
+          court: { select: { name: true } },
+          user: { select: { name: true } },
+        },
+        orderBy: { startTime: 'asc' },
       }),
       db.user.count({ where: { clubId } }),
       db.competition.count({ where: { clubId } }),
@@ -97,7 +102,26 @@ const getDashboardData = async (clubId: string) => {
       occupancyRate,
     };
 
-    return JSON.parse(JSON.stringify({ upcomingBookings, stats, courts, users }));
+    // Preparar reservas de hoy para la agenda (con court/user)
+    const todayBookings = bookingsToday.map(b => ({
+      id: b.id,
+      startTime: b.startTime,
+      endTime: b.endTime,
+      status: b.status,
+      guestName: b.guestName,
+      court: b.court,
+      user: b.user,
+    }));
+
+    return JSON.parse(JSON.stringify({
+      upcomingBookings,
+      stats,
+      courts,
+      users,
+      todayBookings,
+      openingTime: club?.openingTime || '09:00',
+      closingTime: club?.closingTime || '23:00',
+    }));
   } catch (error) {
     console.error('Failed to fetch dashboard data:', error);
     return {
@@ -110,6 +134,9 @@ const getDashboardData = async (clubId: string) => {
       },
       courts: [],
       users: [],
+      todayBookings: [],
+      openingTime: '09:00',
+      closingTime: '23:00',
     };
   }
 };
@@ -121,7 +148,7 @@ const DashboardPage = async () => {
     redirect('/login');
   }
 
-  const { upcomingBookings, stats, courts, users } = await getDashboardData(
+  const { upcomingBookings, stats, courts, users, todayBookings, openingTime, closingTime } = await getDashboardData(
     session.user.clubId
   );
 
@@ -133,6 +160,9 @@ const DashboardPage = async () => {
       stats={stats}
       courts={courts}
       users={users}
+      todayBookings={todayBookings}
+      openingTime={openingTime}
+      closingTime={closingTime}
     />
   );
 };

@@ -93,7 +93,7 @@ export default function ConfirmacionReserva({
     } catch {
       toast({
         title: "Error",
-        description: "Error de conexion.",
+        description: "Error de conexión.",
         variant: "destructive",
       });
     } finally {
@@ -151,7 +151,7 @@ export default function ConfirmacionReserva({
               className="w-full"
               onClick={() => router.push(`/club/${slug}/login`)}
             >
-              Iniciar sesion para reservar
+              Iniciar sesión para reservar
             </Button>
           ) : (
             <Button

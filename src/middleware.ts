@@ -38,6 +38,7 @@ export default withAuth(
           pathname.startsWith("/api/cron") ||
           pathname.startsWith("/api/contact") ||
           pathname.startsWith("/api/blog/public") ||
+          pathname.startsWith("/api/club/") ||
           pathname.startsWith("/club")
         ) {
           return true

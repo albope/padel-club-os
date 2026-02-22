@@ -15,11 +15,11 @@ import { cn } from '@/lib/utils';
 
 const RegisterSchema = z.object({
   name: z.string().min(1, 'El nombre es requerido.'),
-  email: z.string().min(1, 'El email es requerido.').email('Email invalido.'),
+  email: z.string().min(1, 'El email es requerido.').email('Email inválido.'),
   password: z
     .string()
-    .min(1, 'La contrasena es requerida.')
-    .min(8, 'Minimo 8 caracteres.'),
+    .min(1, 'La contraseña es requerida.')
+    .min(8, 'Mínimo 8 caracteres.'),
   phone: z.string().optional(),
 });
 
@@ -33,8 +33,8 @@ function evaluarPassword(password: string) {
   if (/[^A-Za-z0-9]/.test(password)) score++;
   const nivel = Math.min(4, Math.max(1, score));
   const mapa: Record<number, { label: string; color: string; width: string }> = {
-    1: { label: 'Muy debil', color: 'bg-red-500', width: 'w-1/4' },
-    2: { label: 'Debil', color: 'bg-orange-400', width: 'w-2/4' },
+    1: { label: 'Muy débil', color: 'bg-red-500', width: 'w-1/4' },
+    2: { label: 'Débil', color: 'bg-orange-400', width: 'w-2/4' },
     3: { label: 'Buena', color: 'bg-yellow-400', width: 'w-3/4' },
     4: { label: 'Fuerte', color: 'bg-emerald-500', width: 'w-full' },
   };
@@ -88,7 +88,7 @@ export default function ClubRegisterPage() {
         <CardHeader className="space-y-1">
           <CardTitle className="text-2xl font-bold">Crear cuenta</CardTitle>
           <p className="text-sm text-muted-foreground">
-            Registrate como jugador del club
+            Regístrate como jugador del club
           </p>
         </CardHeader>
         <CardContent>
@@ -108,7 +108,7 @@ export default function ClubRegisterPage() {
             </div>
 
             <div className="space-y-1.5">
-              <Label htmlFor="email">Correo electronico</Label>
+              <Label htmlFor="email">Correo electrónico</Label>
               <Input
                 id="email"
                 type="email"
@@ -122,7 +122,7 @@ export default function ClubRegisterPage() {
             </div>
 
             <div className="space-y-1.5">
-              <Label htmlFor="phone">Telefono (opcional)</Label>
+              <Label htmlFor="phone">Teléfono (opcional)</Label>
               <Input
                 id="phone"
                 type="tel"
@@ -132,7 +132,7 @@ export default function ClubRegisterPage() {
             </div>
 
             <div className="space-y-1.5">
-              <Label htmlFor="password">Contrasena</Label>
+              <Label htmlFor="password">Contraseña</Label>
               <div className="relative">
                 <Input
                   id="password"
@@ -182,12 +182,12 @@ export default function ClubRegisterPage() {
 
           <div className="mt-4 pt-4 border-t text-center">
             <p className="text-sm text-muted-foreground">
-              Ya tienes cuenta?{' '}
+              ¿Ya tienes cuenta?{' '}
               <Link
                 href={`/club/${slug}/login`}
                 className="font-semibold text-primary hover:underline"
               >
-                Inicia sesion
+                Inicia sesión
               </Link>
             </p>
           </div>

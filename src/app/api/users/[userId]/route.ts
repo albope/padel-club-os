@@ -12,7 +12,7 @@ export async function PATCH(
     if (isAuthError(auth)) return auth
 
     const body = await req.json();
-    const { name, email, phone, position, level, birthDate } = body;
+    const { name, email, phone, position, level, birthDate, isActive, adminNotes } = body;
 
     if (!params.userId) {
       return new NextResponse("ID de usuario requerido", { status: 400 });
@@ -27,6 +27,8 @@ export async function PATCH(
       data: {
         name, email, phone, position, level,
         birthDate: birthDate ? new Date(birthDate) : null,
+        ...(typeof isActive === 'boolean' ? { isActive } : {}),
+        ...(typeof adminNotes === 'string' || adminNotes === null ? { adminNotes } : {}),
       },
     });
 

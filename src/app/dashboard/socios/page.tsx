@@ -3,7 +3,7 @@ import { db } from '@/lib/db';
 import { authOptions } from '@/lib/auth';
 import { getServerSession } from 'next-auth';
 import { redirect } from 'next/navigation';
-import { PlusCircle, Upload } from 'lucide-react';
+import { PlusCircle, Upload, Download } from 'lucide-react';
 import Link from 'next/link';
 import SociosClient from '@/components/socios/SociosClient';
 import { Button } from '@/components/ui/button';
@@ -36,6 +36,12 @@ const SociosPage = async () => {
           <p className="mt-1 text-muted-foreground">Consulta y anade nuevos socios a tu club.</p>
         </div>
         <div className="flex items-center gap-2">
+          <Button variant="outline" asChild>
+            <a href="/api/users/export" download>
+              <Download className="h-5 w-5" />
+              Exportar CSV
+            </a>
+          </Button>
           <Button variant="secondary" asChild>
             <Link href="/dashboard/socios/importar">
               <Upload className="h-5 w-5" />

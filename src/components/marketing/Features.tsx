@@ -36,7 +36,7 @@ const funcionalidades = [
     icono: CreditCard,
     titulo: "Cobra online o en caja",
     descripcion:
-      "Pagos con Stripe integrados o marca presencial. Tú decides cómo cobra cada pista en cada franja.",
+      "Cobro online con Stripe o pago en recepción al llegar. Configúralo por pista y franja horaria.",
     color: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400",
   },
   {

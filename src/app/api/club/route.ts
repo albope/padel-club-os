@@ -29,7 +29,7 @@ export async function PATCH(req: Request) {
     const {
       name, openingTime, closingTime,
       description, phone, email, primaryColor,
-      bannerUrl, instagramUrl, facebookUrl,
+      logoUrl, bannerUrl, instagramUrl, facebookUrl,
       maxAdvanceBooking, cancellationHours,
       enableOpenMatches, enablePlayerBooking,
       bookingPaymentMode, bookingDuration,
@@ -40,6 +40,7 @@ export async function PATCH(req: Request) {
       data: {
         name, openingTime, closingTime,
         description, phone, email, primaryColor,
+        logoUrl: logoUrl || null,
         bannerUrl: bannerUrl || null,
         instagramUrl: instagramUrl || null,
         facebookUrl: facebookUrl || null,

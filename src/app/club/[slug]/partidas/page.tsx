@@ -270,16 +270,16 @@ export default function ClubOpenMatchesPage() {
   if (!session?.user) {
     return (
       <div className="space-y-4">
-        <h1 className="text-2xl font-bold tracking-tight">Partidas abiertas</h1>
+        <h1 className="font-display text-2xl font-bold uppercase tracking-wide">Partidas abiertas</h1>
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-12 text-center">
             <Users className="h-12 w-12 text-muted-foreground mb-4" />
-            <p className="font-medium text-foreground">Inicia sesion para ver las partidas</p>
+            <p className="font-medium text-foreground">Inicia sesión para ver las partidas</p>
             <p className="text-sm text-muted-foreground mt-1">
               Necesitas una cuenta para unirte a partidas abiertas.
             </p>
             <Button className="mt-4" onClick={() => router.push(`/club/${slug}/login`)}>
-              Iniciar sesion
+              Iniciar sesión
             </Button>
           </CardContent>
         </Card>
@@ -291,8 +291,9 @@ export default function ClubOpenMatchesPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Partidas abiertas</h1>
-          <p className="text-muted-foreground">Encuentra jugadores y unete a una partida</p>
+          <h1 className="font-display text-2xl font-bold uppercase tracking-wide">Partidas abiertas</h1>
+          <p className="text-muted-foreground mt-1">Encuentra jugadores y unete a una partida</p>
+          <div className="club-accent-line mt-3" />
         </div>
         {session?.user && (
           <Button onClick={() => setShowCreateDialog(true)}>
@@ -325,7 +326,7 @@ export default function ClubOpenMatchesPage() {
                   <SelectItem value="todas">Todas las fechas</SelectItem>
                   <SelectItem value="hoy">Hoy</SelectItem>
                   <SelectItem value="semana">Esta semana</SelectItem>
-                  <SelectItem value="dia">Dia concreto</SelectItem>
+                  <SelectItem value="dia">Día concreto</SelectItem>
                 </SelectContent>
               </Select>
               {filtroFecha === 'dia' && (
@@ -385,7 +386,7 @@ export default function ClubOpenMatchesPage() {
           </div>
           {filtroFecha === 'dia' && fechaSeleccionada && (
             <p className="text-xs text-muted-foreground mt-2">
-              Maximo {maxAdvanceBooking} dias de antelacion
+              Máximo {maxAdvanceBooking} días de antelación
             </p>
           )}
         </CardContent>
@@ -432,8 +433,8 @@ export default function ClubOpenMatchesPage() {
             </p>
             <p className="text-sm text-muted-foreground mt-1">
               {matches.length === 0
-                ? 'Vuelve mas tarde para ver nuevas partidas.'
-                : 'Prueba a cambiar los filtros o limpia la busqueda.'
+                ? 'Vuelve más tarde para ver nuevas partidas.'
+                : 'Prueba a cambiar los filtros o limpia la búsqueda.'
               }
             </p>
             {hayFiltrosActivos && (
@@ -452,8 +453,7 @@ export default function ClubOpenMatchesPage() {
               const isLoadingThis = actionLoading === match.id;
 
               return (
-                <Card key={match.id}>
-                  <CardContent className="p-4">
+                <div key={match.id} className="club-card border-l-3 p-4" style={{ borderLeftColor: 'var(--club-primary, hsl(217 91% 60%))' }}>
                     <div className="flex items-start justify-between gap-4">
                       <div className="space-y-2 flex-1">
                         <div className="flex items-center gap-2 flex-wrap">
@@ -529,8 +529,7 @@ export default function ClubOpenMatchesPage() {
                         )}
                       </div>
                     </div>
-                  </CardContent>
-                </Card>
+                </div>
               );
             })}
           </div>

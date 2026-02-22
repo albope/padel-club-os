@@ -11,6 +11,7 @@ export type TipoNotificacion =
   | "open_match_joined"
   | "news_published"
   | "competition_result"
+  | "club_announcement"
 
 interface CrearNotificacionParams {
   tipo: TipoNotificacion

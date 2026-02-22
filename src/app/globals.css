@@ -406,3 +406,160 @@
   pointer-events: none;
   animation: auth-glow-pulse 8s ease-in-out infinite;
 }
+
+/* ─── Club portal: estilos premium ──────────────────────────────────────── */
+
+/* Card elevada con hover lift */
+.club-card {
+  background: hsl(var(--card));
+  border: 1px solid hsl(var(--border));
+  border-radius: 0.75rem;
+  box-shadow:
+    0 1px 3px hsl(0 0% 0% / 0.04),
+    0 4px 12px hsl(0 0% 0% / 0.03);
+  transition: transform 0.2s cubic-bezier(0.25, 0.1, 0.25, 1),
+              box-shadow 0.2s cubic-bezier(0.25, 0.1, 0.25, 1);
+}
+
+.club-card:hover {
+  transform: translateY(-2px);
+  box-shadow:
+    0 4px 12px hsl(0 0% 0% / 0.08),
+    0 12px 32px hsl(0 0% 0% / 0.06);
+}
+
+.dark .club-card {
+  box-shadow:
+    0 1px 3px hsl(0 0% 0% / 0.2),
+    0 4px 12px hsl(0 0% 0% / 0.15);
+}
+
+.dark .club-card:hover {
+  box-shadow:
+    0 4px 12px hsl(0 0% 0% / 0.3),
+    0 12px 32px hsl(0 0% 0% / 0.25);
+}
+
+/* Seccion con fondo oscuro premium */
+.club-section-dark {
+  background: linear-gradient(135deg, hsl(222 47% 11%) 0%, hsl(217 33% 17%) 100%);
+  color: hsl(210 40% 98%);
+}
+
+.dark .club-section-dark {
+  background: linear-gradient(135deg, hsl(222 47% 6%) 0%, hsl(217 33% 10%) 100%);
+}
+
+/* Linea decorativa de color club */
+.club-accent-line {
+  width: 48px;
+  height: 4px;
+  border-radius: 2px;
+  background-color: var(--club-primary, hsl(217 91% 60%));
+}
+
+/* Icono circular premium */
+.club-icon-circle {
+  border-radius: 9999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  box-shadow: 0 4px 12px hsl(0 0% 0% / 0.15);
+}
+
+/* Flecha que aparece en hover del padre */
+.club-arrow-hover {
+  opacity: 0;
+  transform: translateX(-4px);
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.group:hover .club-arrow-hover {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+/* Nav desktop: underline animado para item activo */
+.club-nav-item {
+  position: relative;
+  overflow: visible;
+}
+
+.club-nav-item::after {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  left: 50%;
+  right: 50%;
+  height: 2px;
+  border-radius: 2px 2px 0 0;
+  background-color: var(--club-primary, hsl(217 91% 60%));
+  transition:
+    left 0.22s cubic-bezier(0.25, 0.1, 0.25, 1),
+    right 0.22s cubic-bezier(0.25, 0.1, 0.25, 1),
+    opacity 0.22s ease;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.club-nav-item[data-active="true"]::after {
+  left: 0;
+  right: 0;
+  opacity: 1;
+}
+
+/* CTA button "Acceder" */
+.club-cta-btn {
+  transition: opacity 0.15s ease, transform 0.12s ease, box-shadow 0.15s ease;
+}
+.club-cta-btn:hover {
+  opacity: 0.88;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px var(--club-primary-shadow, rgba(79, 70, 229, 0.4));
+}
+.club-cta-btn:active {
+  transform: scale(0.97) translateY(0);
+}
+
+/* Bottom nav: pill indicador superior */
+.club-bottom-pill {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  height: 3px;
+  border-radius: 0 0 3px 3px;
+  background-color: var(--club-primary, hsl(217 91% 60%));
+  transition:
+    width 0.25s cubic-bezier(0.25, 0.1, 0.25, 1),
+    opacity 0.25s ease;
+  width: 0;
+  opacity: 0;
+}
+[data-active="true"] .club-bottom-pill {
+  width: 28px;
+  opacity: 1;
+}
+
+/* Mobile header: ocultar al scroll down */
+.club-header-transition {
+  transition: transform 0.3s cubic-bezier(0.25, 0.1, 0.25, 1);
+  will-change: transform;
+}
+.club-header-hidden {
+  transform: translateY(-100%);
+}
+
+/* ─── 404: pelota rebotando ────────────────────────────────────────────── */
+
+@keyframes notfound-bounce {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  30%      { transform: translateY(-18px) rotate(8deg); }
+  50%      { transform: translateY(-24px) rotate(-4deg); }
+  70%      { transform: translateY(-10px) rotate(6deg); }
+}
+
+.notfound-bounce {
+  animation: notfound-bounce 3s ease-in-out infinite;
+}

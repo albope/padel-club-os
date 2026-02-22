@@ -14,7 +14,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 
 const ForgotPasswordSchema = z.object({
-  email: z.string().min(1, 'El email es requerido.').email('Email invalido.'),
+  email: z.string().min(1, 'El email es requerido.').email('Email inválido.'),
 });
 
 export default function ClubForgotPasswordPage() {
@@ -59,11 +59,11 @@ export default function ClubForgotPasswordPage() {
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1">
           <CardTitle className="text-2xl font-bold">
-            {enviado ? 'Revisa tu correo' : 'Recuperar contrasena'}
+            {enviado ? 'Revisa tu correo' : 'Recuperar contraseña'}
           </CardTitle>
           <p className="text-sm text-muted-foreground">
             {enviado
-              ? 'Si el email esta registrado, recibiras instrucciones.'
+              ? 'Si el email está registrado, recibirás instrucciones.'
               : 'Introduce tu email y te enviaremos instrucciones.'}
           </p>
         </CardHeader>
@@ -81,14 +81,14 @@ export default function ClubForgotPasswordPage() {
                 className="inline-flex items-center gap-2 text-sm font-semibold text-primary hover:underline"
               >
                 <ArrowLeft className="h-4 w-4" />
-                Volver a iniciar sesion
+                Volver a iniciar sesión
               </Link>
             </div>
           ) : (
             <>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
                 <div className="space-y-1.5">
-                  <Label htmlFor="email">Correo electronico</Label>
+                  <Label htmlFor="email">Correo electrónico</Label>
                   <Input
                     id="email"
                     type="email"
@@ -130,7 +130,7 @@ export default function ClubForgotPasswordPage() {
                   className="inline-flex items-center gap-2 text-sm font-semibold text-primary hover:underline"
                 >
                   <ArrowLeft className="h-4 w-4" />
-                  Volver a iniciar sesion
+                  Volver a iniciar sesión
                 </Link>
               </div>
             </>

@@ -10,6 +10,7 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
+import { cn } from '@/lib/utils';
 
 type SocioWithStats = User & {
   _count: {
@@ -27,14 +28,20 @@ const SociosClient: React.FC<SociosClientProps> = ({ initialSocios }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedSocio, setSelectedSocio] = useState<SocioWithStats | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'inactive'>('all');
   const [currentPage, setCurrentPage] = useState(1);
   const sociosPerPage = 10;
 
   const filteredSocios = useMemo(() => {
-    return initialSocios.filter(socio =>
-      socio.name?.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-  }, [initialSocios, searchTerm]);
+    return initialSocios.filter(socio => {
+      const matchesSearch = socio.name?.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesStatus =
+        statusFilter === 'all' ||
+        (statusFilter === 'active' && socio.isActive !== false) ||
+        (statusFilter === 'inactive' && socio.isActive === false);
+      return matchesSearch && matchesStatus;
+    });
+  }, [initialSocios, searchTerm, statusFilter]);
 
   const currentSocios = useMemo(() => {
     const indexOfLastSocio = currentPage * sociosPerPage;
@@ -71,6 +78,23 @@ const SociosClient: React.FC<SociosClientProps> = ({ initialSocios }) => {
         </div>
       </div>
 
+      <div className="flex gap-2 mb-4">
+        {([
+          { key: 'all', label: 'Todos' },
+          { key: 'active', label: 'Activos' },
+          { key: 'inactive', label: 'Inactivos' },
+        ] as const).map(({ key, label }) => (
+          <Button
+            key={key}
+            variant={statusFilter === key ? 'default' : 'outline'}
+            size="sm"
+            onClick={() => { setStatusFilter(key); setCurrentPage(1); }}
+          >
+            {label}
+          </Button>
+        ))}
+      </div>
+
       <Card>
         <CardContent className="p-4">
           {currentSocios.length > 0 ? (
@@ -80,7 +104,10 @@ const SociosClient: React.FC<SociosClientProps> = ({ initialSocios }) => {
                   {index > 0 && <Separator />}
                   <li
                     onClick={() => handleOpenModal(socio)}
-                    className="group flex items-center justify-between py-3 px-2 -mx-2 rounded-lg transition-colors hover:bg-muted cursor-pointer"
+                    className={cn(
+                      "group flex items-center justify-between py-3 px-2 -mx-2 rounded-lg transition-colors hover:bg-muted cursor-pointer",
+                      !socio.isActive && "opacity-50"
+                    )}
                   >
                     <div className="flex items-center gap-4">
                       <img
@@ -94,6 +121,11 @@ const SociosClient: React.FC<SociosClientProps> = ({ initialSocios }) => {
                           <Badge variant="secondary" className="gap-1">
                             <ShieldCheck className="h-3 w-3" />
                             Admin
+                          </Badge>
+                        )}
+                        {!socio.isActive && (
+                          <Badge variant="secondary" className="bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400">
+                            Inactivo
                           </Badge>
                         )}
                       </div>

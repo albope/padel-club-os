@@ -51,7 +51,7 @@ export default function PlayerBookingPage() {
   if (!clubInfo) {
     return (
       <div className="text-center py-12 text-muted-foreground">
-        No se pudo cargar la informacion del club.
+        No se pudo cargar la información del club.
       </div>
     );
   }
@@ -59,10 +59,11 @@ export default function PlayerBookingPage() {
   return (
     <div className="space-y-4">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight">Reservar pista</h1>
-        <p className="text-muted-foreground">
+        <h1 className="font-display text-2xl font-bold uppercase tracking-wide">Reservar pista</h1>
+        <p className="text-muted-foreground mt-1">
           Selecciona un horario disponible para reservar
         </p>
+        <div className="club-accent-line mt-3" />
       </div>
 
       <GridReservas

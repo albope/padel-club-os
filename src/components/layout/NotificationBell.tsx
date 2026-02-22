@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { Bell, Check, CalendarDays, Users, Newspaper, Trophy } from 'lucide-react';
+import { Bell, Check, CalendarDays, Users, Newspaper, Trophy, Megaphone } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import {
@@ -39,6 +39,8 @@ function iconoPorTipo(tipo: string) {
       return Newspaper;
     case 'competition_result':
       return Trophy;
+    case 'club_announcement':
+      return Megaphone;
     default:
       return Bell;
   }

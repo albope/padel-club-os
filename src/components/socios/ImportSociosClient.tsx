@@ -1,8 +1,17 @@
-// Path: src/components/socios/ImportSociosClient.tsx
 'use client';
 
 import React, { useState } from 'react';
 import { Loader2, Upload, FileText, CheckCircle, XCircle } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
 
 type SocioData = {
   name: string;
@@ -49,7 +58,7 @@ const ImportSociosClient = () => {
 
       const data = lines.slice(1).map(line => {
         const values = line.split(',');
-        const socio: SocioData = { name: '', email: '' }; // Inicialización
+        const socio: SocioData = { name: '', email: '' };
         headers.forEach((header, index) => {
           (socio as any)[header] = values[index]?.trim() || '';
         });
@@ -102,20 +111,24 @@ const ImportSociosClient = () => {
   return (
     <div className="space-y-6">
       {/* Instrucciones y Carga de Archivo */}
-      <div className="p-4 border border-dashed border-gray-600 rounded-lg text-center">
-        <h3 className="text-lg font-semibold text-white mb-2">Paso 1: Prepara tu archivo</h3>
-        <p className="text-sm text-gray-400 mb-4">
-          El archivo debe ser un CSV o TXT con las columnas: <code className="bg-gray-700 px-1 rounded">name</code>, <code className="bg-gray-700 px-1 rounded">email</code>. Opcionalmente puedes añadir: <code className="bg-gray-700 px-1 rounded">password</code>, <code className="bg-gray-700 px-1 rounded">phone</code>, <code className="bg-gray-700 px-1 rounded">position</code>, <code className="bg-gray-700 px-1 rounded">level</code>, <code className="bg-gray-700 px-1 rounded">birthDate</code> (formato YYYY-MM-DD).
+      <div className="p-4 border border-dashed border-border rounded-lg text-center">
+        <h3 className="text-lg font-semibold mb-2">Paso 1: Prepara tu archivo</h3>
+        <p className="text-sm text-muted-foreground mb-4">
+          El archivo debe ser un CSV o TXT con las columnas: <code className="bg-muted px-1 rounded text-xs">name</code>, <code className="bg-muted px-1 rounded text-xs">email</code>. Opcionalmente puedes anadir: <code className="bg-muted px-1 rounded text-xs">password</code>, <code className="bg-muted px-1 rounded text-xs">phone</code>, <code className="bg-muted px-1 rounded text-xs">position</code>, <code className="bg-muted px-1 rounded text-xs">level</code>, <code className="bg-muted px-1 rounded text-xs">birthDate</code> (formato YYYY-MM-DD).
         </p>
-        <button onClick={downloadTemplate} className="text-indigo-400 hover:text-indigo-300 text-sm font-semibold">
+        <Button variant="link" onClick={downloadTemplate} className="text-sm">
           Descargar plantilla de ejemplo
-        </button>
+        </Button>
       </div>
 
       <div className="text-center">
-        <label htmlFor="file-upload" className="cursor-pointer inline-flex items-center gap-2 px-4 py-2 font-semibold text-white bg-indigo-600 rounded-lg shadow-md hover:bg-indigo-500">
-          <Upload className="h-5 w-5" />
-          {file ? `Archivo: ${file.name}` : 'Paso 2: Seleccionar Archivo'}
+        <label htmlFor="file-upload" className="cursor-pointer">
+          <Button asChild>
+            <span>
+              <Upload className="h-5 w-5" />
+              {file ? `Archivo: ${file.name}` : 'Paso 2: Seleccionar Archivo'}
+            </span>
+          </Button>
         </label>
         <input id="file-upload" type="file" accept=".csv,.txt" className="hidden" onChange={handleFileChange} />
       </div>
@@ -123,58 +136,58 @@ const ImportSociosClient = () => {
       {/* Vista Previa */}
       {parsedData.length > 0 && (
         <div className="space-y-4">
-          <h3 className="text-lg font-semibold text-white">Vista Previa de Datos a Importar ({parsedData.length} socios)</h3>
-          <div className="overflow-auto max-h-60 bg-gray-900 rounded-md">
-            <table className="w-full text-sm text-left">
-              <thead className="text-xs text-gray-400 uppercase bg-gray-700 sticky top-0">
-                <tr>
-                  <th className="px-4 py-2">Nombre</th>
-                  <th className="px-4 py-2">Email</th>
-                  <th className="px-4 py-2">Teléfono</th>
-                </tr>
-              </thead>
-              <tbody>
+          <h3 className="text-lg font-semibold">Vista Previa de Datos a Importar ({parsedData.length} socios)</h3>
+          <Card className="overflow-auto max-h-60">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Nombre</TableHead>
+                  <TableHead>Email</TableHead>
+                  <TableHead>Telefono</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
                 {parsedData.map((socio, index) => (
-                  <tr key={index} className="border-b border-gray-700">
-                    <td className="px-4 py-2 text-white">{socio.name}</td>
-                    <td className="px-4 py-2">{socio.email}</td>
-                    <td className="px-4 py-2">{socio.phone || '-'}</td>
-                  </tr>
+                  <TableRow key={index}>
+                    <TableCell className="font-medium">{socio.name}</TableCell>
+                    <TableCell>{socio.email}</TableCell>
+                    <TableCell>{socio.phone || '-'}</TableCell>
+                  </TableRow>
                 ))}
-              </tbody>
-            </table>
-          </div>
+              </TableBody>
+            </Table>
+          </Card>
           <div className="text-center pt-4">
-            <button onClick={handleImport} disabled={isLoading} className="w-full max-w-xs flex items-center justify-center gap-2 px-6 py-3 font-semibold text-white bg-green-600 rounded-lg hover:bg-green-500 disabled:bg-gray-600">
+            <Button onClick={handleImport} disabled={isLoading} className="w-full max-w-xs bg-green-600 hover:bg-green-500 text-white">
               {isLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : <FileText className="h-5 w-5" />}
               {isLoading ? 'Importando...' : 'Paso 3: Confirmar e Importar'}
-            </button>
+            </Button>
           </div>
         </div>
       )}
 
-      {/* Resultados de la Importación */}
+      {/* Resultados de la Importacion */}
       {importResult && (
-        <div className="p-4 rounded-lg bg-gray-900">
-          <h3 className="text-lg font-semibold text-white mb-2">Resultado de la Importación</h3>
-          <div className="flex items-center gap-2 text-green-400">
+        <Card className="p-4">
+          <h3 className="text-lg font-semibold mb-2">Resultado de la Importacion</h3>
+          <div className="flex items-center gap-2 text-green-600 dark:text-green-400">
             <CheckCircle className="h-5 w-5" />
-            <p>{importResult.successCount} socios importados con éxito.</p>
+            <p>{importResult.successCount} socios importados con exito.</p>
           </div>
           {importResult.errors.length > 0 && (
             <div className="mt-4">
-              <div className="flex items-center gap-2 text-red-400">
+              <div className="flex items-center gap-2 text-destructive">
                 <XCircle className="h-5 w-5" />
                 <p>{importResult.errors.length} socios no se pudieron importar:</p>
               </div>
-              <ul className="list-disc list-inside text-sm text-red-400/80 mt-2 max-h-40 overflow-auto">
+              <ul className="list-disc list-inside text-sm text-destructive/80 mt-2 max-h-40 overflow-auto">
                 {importResult.errors.map((error, index) => (
                   <li key={index}>{error}</li>
                 ))}
               </ul>
             </div>
           )}
-        </div>
+        </Card>
       )}
     </div>
   );

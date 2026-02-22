@@ -5,7 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { useSession, signOut } from 'next-auth/react';
 import {
   User, Mail, Phone, Calendar, MapPin, Loader2,
-  LogOut, Save, History,
+  LogOut, Save, History, X,
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -13,6 +13,16 @@ import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { toast } from '@/hooks/use-toast';
 
 interface UserProfile {
@@ -44,6 +54,12 @@ export default function PlayerProfilePage() {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+  const [cancelDialog, setCancelDialog] = useState<{
+    open: boolean;
+    bookingId: string;
+    descripcion: string;
+  }>({ open: false, bookingId: '', descripcion: '' });
+  const [isCancelling, setIsCancelling] = useState(false);
 
   // Form state
   const [name, setName] = useState('');
@@ -103,6 +119,28 @@ export default function PlayerProfilePage() {
       toast({ title: "Error", description: "Error de conexion.", variant: "destructive" });
     } finally {
       setIsSaving(false);
+    }
+  };
+
+  const handleCancelBooking = async () => {
+    setIsCancelling(true);
+    try {
+      const res = await fetch(`/api/player/bookings?bookingId=${cancelDialog.bookingId}`, {
+        method: 'DELETE',
+      });
+
+      if (res.ok) {
+        toast({ title: "Reserva cancelada", description: "Tu reserva ha sido cancelada correctamente." });
+        loadBookings();
+      } else {
+        const data = await res.json();
+        toast({ title: "Error", description: data.error || "No se pudo cancelar la reserva.", variant: "destructive" });
+      }
+    } catch {
+      toast({ title: "Error", description: "Error de conexion.", variant: "destructive" });
+    } finally {
+      setIsCancelling(false);
+      setCancelDialog({ open: false, bookingId: '', descripcion: '' });
     }
   };
 
@@ -189,8 +227,11 @@ export default function PlayerProfilePage() {
             <p className="text-sm text-muted-foreground">No tienes reservas.</p>
           ) : (
             <div className="space-y-2">
-              {bookings.slice(0, 10).map((booking) => {
+              {bookings.slice(0, 20).map((booking) => {
                 const isPast = new Date(booking.startTime) < new Date();
+                const isCancelled = booking.status === 'cancelled';
+                const canCancel = !isPast && booking.status === 'confirmed';
+
                 return (
                   <div
                     key={booking.id}
@@ -210,9 +251,37 @@ export default function PlayerProfilePage() {
                         {new Date(booking.endTime).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}
                       </p>
                     </div>
-                    <Badge variant={isPast ? 'outline' : booking.status === 'confirmed' ? 'default' : 'secondary'}>
-                      {isPast ? 'Pasada' : booking.status === 'confirmed' ? 'Confirmada' : booking.status}
-                    </Badge>
+                    <div className="flex items-center gap-2">
+                      {canCancel && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="text-destructive hover:text-destructive hover:bg-destructive/10 h-8 px-2"
+                          onClick={() => {
+                            const fecha = new Date(booking.startTime).toLocaleDateString('es-ES', {
+                              weekday: 'long', day: 'numeric', month: 'long',
+                            });
+                            const hora = new Date(booking.startTime).toLocaleTimeString('es-ES', {
+                              hour: '2-digit', minute: '2-digit',
+                            });
+                            setCancelDialog({
+                              open: true,
+                              bookingId: booking.id,
+                              descripcion: `${booking.court.name} · ${fecha} a las ${hora}`,
+                            });
+                          }}
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      )}
+                      <Badge variant={
+                        isCancelled ? 'destructive' :
+                        isPast ? 'outline' :
+                        booking.status === 'confirmed' ? 'default' : 'secondary'
+                      }>
+                        {isCancelled ? 'Cancelada' : isPast ? 'Pasada' : booking.status === 'confirmed' ? 'Confirmada' : booking.status}
+                      </Badge>
+                    </div>
                   </div>
                 );
               })}
@@ -220,6 +289,34 @@ export default function PlayerProfilePage() {
           )}
         </CardContent>
       </Card>
+
+      {/* Dialog de confirmacion de cancelacion */}
+      <AlertDialog open={cancelDialog.open} onOpenChange={(open) => setCancelDialog((prev) => ({ ...prev, open }))}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Cancelar reserva</AlertDialogTitle>
+            <AlertDialogDescription>
+              ¿Seguro que quieres cancelar esta reserva?
+              <br />
+              <span className="font-medium text-foreground">{cancelDialog.descripcion}</span>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isCancelling}>Volver</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleCancelBooking}
+              disabled={isCancelling}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {isCancelling ? (
+                <><Loader2 className="h-4 w-4 animate-spin mr-2" /> Cancelando...</>
+              ) : (
+                'Cancelar reserva'
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

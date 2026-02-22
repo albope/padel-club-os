@@ -29,9 +29,10 @@ export async function PATCH(req: Request) {
     const {
       name, openingTime, closingTime,
       description, phone, email, primaryColor,
+      bannerUrl, instagramUrl, facebookUrl,
       maxAdvanceBooking, cancellationHours,
       enableOpenMatches, enablePlayerBooking,
-      bookingPaymentMode,
+      bookingPaymentMode, bookingDuration,
     } = body;
 
     const updatedClub = await db.club.update({
@@ -39,9 +40,12 @@ export async function PATCH(req: Request) {
       data: {
         name, openingTime, closingTime,
         description, phone, email, primaryColor,
+        bannerUrl: bannerUrl || null,
+        instagramUrl: instagramUrl || null,
+        facebookUrl: facebookUrl || null,
         maxAdvanceBooking, cancellationHours,
         enableOpenMatches, enablePlayerBooking,
-        bookingPaymentMode,
+        bookingPaymentMode, bookingDuration,
       },
     });
 

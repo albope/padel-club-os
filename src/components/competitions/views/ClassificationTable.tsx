@@ -1,5 +1,13 @@
 import React from 'react';
 import { type TeamWithPlayers } from '@/types/competition.types';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
 
 interface ClassificationTableProps {
   teams: TeamWithPlayers[];
@@ -7,46 +15,46 @@ interface ClassificationTableProps {
 
 const ClassificationTable: React.FC<ClassificationTableProps> = ({ teams }) => (
   <div className="overflow-x-auto">
-    <table className="w-full text-left text-sm whitespace-nowrap">
-      <thead className="text-xs text-gray-400 uppercase bg-gray-700/50">
-        <tr>
-          <th className="px-3 py-3">#</th>
-          <th className="px-4 py-3">Pareja</th>
-          <th className="px-2 py-3 text-center" title="Partidos Jugados">PJ</th>
-          <th className="px-2 py-3 text-center" title="Puntos">PT</th>
-          <th className="px-2 py-3 text-center" title="Partidos Ganados">PG</th>
-          <th className="px-2 py-3 text-center" title="Partidos Perdidos">PP</th>
-          <th className="px-2 py-3 text-center" title="Sets a Favor">SF</th>
-          <th className="px-2 py-3 text-center" title="Sets en Contra">SC</th>
-          <th className="px-2 py-3 text-center" title="Diferencia de Sets">DS</th>
-          <th className="px-2 py-3 text-center" title="Juegos a Favor">JF</th>
-          <th className="px-2 py-3 text-center" title="Juegos en Contra">JG</th>
-          <th className="px-2 py-3 text-center" title="Diferencia de Juegos">DG</th>
-        </tr>
-      </thead>
-      <tbody>
+    <Table>
+      <TableHeader>
+        <TableRow>
+          <TableHead className="w-10">#</TableHead>
+          <TableHead>Pareja</TableHead>
+          <TableHead className="text-center" title="Partidos Jugados">PJ</TableHead>
+          <TableHead className="text-center" title="Puntos">PT</TableHead>
+          <TableHead className="text-center" title="Partidos Ganados">PG</TableHead>
+          <TableHead className="text-center" title="Partidos Perdidos">PP</TableHead>
+          <TableHead className="text-center" title="Sets a Favor">SF</TableHead>
+          <TableHead className="text-center" title="Sets en Contra">SC</TableHead>
+          <TableHead className="text-center" title="Diferencia de Sets">DS</TableHead>
+          <TableHead className="text-center" title="Juegos a Favor">JF</TableHead>
+          <TableHead className="text-center" title="Juegos en Contra">JG</TableHead>
+          <TableHead className="text-center" title="Diferencia de Juegos">DG</TableHead>
+        </TableRow>
+      </TableHeader>
+      <TableBody>
         {teams.map((team, index) => {
           const setDiff = team.setsFor - team.setsAgainst;
           const gameDiff = team.gamesFor - team.gamesAgainst;
           return (
-            <tr key={team.id} className="border-b border-gray-700 hover:bg-gray-700/50">
-              <td className="px-3 py-3 text-center font-medium">{index + 1}</td>
-              <td className="px-4 py-3 font-medium text-white">{team.name}</td>
-              <td className="px-2 py-3 text-center">{team.played}</td>
-              <td className="px-2 py-3 text-center font-bold text-lg text-indigo-400">{team.points}</td>
-              <td className="px-2 py-3 text-center text-green-400">{team.won}</td>
-              <td className="px-2 py-3 text-center text-red-400">{team.lost}</td>
-              <td className="px-2 py-3 text-center">{team.setsFor}</td>
-              <td className="px-2 py-3 text-center">{team.setsAgainst}</td>
-              <td className={`px-2 py-3 text-center font-semibold ${setDiff >= 0 ? 'text-green-400' : 'text-red-400'}`}>{setDiff > 0 ? `+${setDiff}`: setDiff}</td>
-              <td className="px-2 py-3 text-center">{team.gamesFor}</td>
-              <td className="px-2 py-3 text-center">{team.gamesAgainst}</td>
-              <td className={`px-2 py-3 text-center font-semibold ${gameDiff >= 0 ? 'text-green-400' : 'text-red-400'}`}>{gameDiff > 0 ? `+${gameDiff}`: gameDiff}</td>
-            </tr>
+            <TableRow key={team.id}>
+              <TableCell className="text-center font-medium">{index + 1}</TableCell>
+              <TableCell className="font-medium">{team.name}</TableCell>
+              <TableCell className="text-center">{team.played}</TableCell>
+              <TableCell className="text-center font-bold text-lg text-primary">{team.points}</TableCell>
+              <TableCell className="text-center text-green-600 dark:text-green-400">{team.won}</TableCell>
+              <TableCell className="text-center text-red-600 dark:text-red-400">{team.lost}</TableCell>
+              <TableCell className="text-center">{team.setsFor}</TableCell>
+              <TableCell className="text-center">{team.setsAgainst}</TableCell>
+              <TableCell className={`text-center font-semibold ${setDiff >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>{setDiff > 0 ? `+${setDiff}`: setDiff}</TableCell>
+              <TableCell className="text-center">{team.gamesFor}</TableCell>
+              <TableCell className="text-center">{team.gamesAgainst}</TableCell>
+              <TableCell className={`text-center font-semibold ${gameDiff >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>{gameDiff > 0 ? `+${gameDiff}`: gameDiff}</TableCell>
+            </TableRow>
           );
         })}
-      </tbody>
-    </table>
+      </TableBody>
+    </Table>
   </div>
 );
 

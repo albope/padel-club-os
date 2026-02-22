@@ -28,10 +28,14 @@ model Club {
   phone             String?
   email             String?
   primaryColor      String?  @default("#4f46e5")
+  bannerUrl         String?
+  instagramUrl      String?
+  facebookUrl       String?
   maxAdvanceBooking Int?     @default(7)     // dias de antelacion para reservar
   cancellationHours Int?     @default(2)     // horas antes para cancelar
   enableOpenMatches Boolean  @default(true)
   enablePlayerBooking Boolean @default(true)
+  bookingDuration   Int?     @default(90)    // duracion de reserva en minutos (60, 90, 120)
 
   // Stripe - Suscripcion SaaS
   stripeSubscriptionId    String?
@@ -335,4 +339,31 @@ model CourtPricing {
   club      Club   @relation(fields: [clubId], references: [id], onDelete: Cascade)
 
   @@unique([courtId, dayOfWeek, startHour])
+}
+
+// --- FORMULARIO DE CONTACTO (plataforma) ---
+model ContactSubmission {
+  id        String   @id @default(cuid())
+  nombre    String
+  email     String
+  asunto    String
+  mensaje   String   @db.Text
+  leido     Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
+
+// --- BLOG DE LA PLATAFORMA ---
+model BlogPost {
+  id         String   @id @default(cuid())
+  title      String
+  slug       String   @unique
+  content    String   @db.Text
+  excerpt    String
+  category   String
+  imageUrl   String?
+  published  Boolean  @default(false)
+  authorName String
+  readTime   String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 }

@@ -5,12 +5,11 @@ import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import {
   CalendarDays, Users, Trophy, Clock, MapPin, Phone, Mail,
-  Newspaper, ChevronRight,
+  Newspaper, ChevronRight, Instagram, Facebook,
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Separator } from '@/components/ui/separator';
 
 interface ClubHomeProps {
   club: {
@@ -23,6 +22,9 @@ interface ClubHomeProps {
     openingTime: string | null;
     closingTime: string | null;
     primaryColor: string | null;
+    bannerUrl: string | null;
+    instagramUrl: string | null;
+    facebookUrl: string | null;
     enableOpenMatches: boolean;
     enablePlayerBooking: boolean;
   };
@@ -34,18 +36,42 @@ interface ClubHomeProps {
 export default function ClubHome({ club, openMatches, competitions, news }: ClubHomeProps) {
   const params = useParams();
   const basePath = `/club/${params.slug}`;
+  const color = club.primaryColor || '#4f46e5';
 
   return (
     <div className="space-y-6">
-      {/* Hero / Bienvenida */}
-      <div className="space-y-2">
-        <h1 className="text-3xl font-bold tracking-tight text-foreground">
-          {club.name}
-        </h1>
-        {club.description && (
-          <p className="text-muted-foreground max-w-2xl">{club.description}</p>
-        )}
-      </div>
+      {/* Hero */}
+      {club.bannerUrl ? (
+        <div
+          className="relative rounded-xl overflow-hidden h-48 sm:h-64 flex items-end"
+          style={{
+            backgroundImage: `url(${club.bannerUrl})`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+          }}
+        >
+          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+          <div className="relative z-10 p-6">
+            <h1 className="text-3xl font-bold text-white tracking-tight">
+              {club.name}
+            </h1>
+            {club.description && (
+              <p className="text-white/80 max-w-2xl mt-1 text-sm">
+                {club.description}
+              </p>
+            )}
+          </div>
+        </div>
+      ) : (
+        <div className="space-y-2">
+          <h1 className="text-3xl font-bold tracking-tight text-foreground">
+            {club.name}
+          </h1>
+          {club.description && (
+            <p className="text-muted-foreground max-w-2xl">{club.description}</p>
+          )}
+        </div>
+      )}
 
       {/* Acciones rapidas */}
       <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
@@ -55,7 +81,7 @@ export default function ClubHome({ club, openMatches, competitions, news }: Club
               <CardContent className="flex items-center gap-4 p-6">
                 <div
                   className="h-12 w-12 rounded-lg flex items-center justify-center text-white shrink-0"
-                  style={{ backgroundColor: club.primaryColor || '#4f46e5' }}
+                  style={{ backgroundColor: color }}
                 >
                   <CalendarDays className="h-6 w-6" />
                 </div>
@@ -78,7 +104,7 @@ export default function ClubHome({ club, openMatches, competitions, news }: Club
               <CardContent className="flex items-center gap-4 p-6">
                 <div
                   className="h-12 w-12 rounded-lg flex items-center justify-center text-white shrink-0"
-                  style={{ backgroundColor: club.primaryColor || '#4f46e5' }}
+                  style={{ backgroundColor: color }}
                 >
                   <Users className="h-6 w-6" />
                 </div>
@@ -100,7 +126,7 @@ export default function ClubHome({ club, openMatches, competitions, news }: Club
             <CardContent className="flex items-center gap-4 p-6">
               <div
                 className="h-12 w-12 rounded-lg flex items-center justify-center text-white shrink-0"
-                style={{ backgroundColor: club.primaryColor || '#4f46e5' }}
+                style={{ backgroundColor: color }}
               >
                 <Trophy className="h-6 w-6" />
               </div>
@@ -198,16 +224,25 @@ export default function ClubHome({ club, openMatches, competitions, news }: Club
       {/* Noticias */}
       {news.length > 0 && (
         <Card>
-          <CardHeader>
+          <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle className="text-lg flex items-center gap-2">
               <Newspaper className="h-5 w-5" />
               Noticias del club
             </CardTitle>
+            <Link href={`${basePath}/noticias`}>
+              <Button variant="ghost" size="sm" className="text-xs">
+                Ver todas <ChevronRight className="h-3 w-3 ml-1" />
+              </Button>
+            </Link>
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
               {news.map((item) => (
-                <div key={item.id} className="p-3 rounded-lg border">
+                <Link
+                  key={item.id}
+                  href={`${basePath}/noticias/${item.id}`}
+                  className="block p-3 rounded-lg border hover:bg-muted/50 transition-colors"
+                >
                   <h3 className="font-medium text-foreground">{item.title}</h3>
                   <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{item.content}</p>
                   <p className="text-xs text-muted-foreground mt-2">
@@ -215,7 +250,7 @@ export default function ClubHome({ club, openMatches, competitions, news }: Club
                       day: 'numeric', month: 'long', year: 'numeric',
                     })}
                   </p>
-                </div>
+                </Link>
               ))}
             </div>
           </CardContent>
@@ -252,6 +287,28 @@ export default function ClubHome({ club, openMatches, competitions, news }: Club
                 <Mail className="h-4 w-4 text-muted-foreground shrink-0" />
                 <span>{club.email}</span>
               </div>
+            )}
+            {club.instagramUrl && (
+              <a
+                href={club.instagramUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-3 text-sm hover:text-foreground text-muted-foreground transition-colors"
+              >
+                <Instagram className="h-4 w-4 shrink-0" />
+                <span>Instagram</span>
+              </a>
+            )}
+            {club.facebookUrl && (
+              <a
+                href={club.facebookUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-3 text-sm hover:text-foreground text-muted-foreground transition-colors"
+              >
+                <Facebook className="h-4 w-4 shrink-0" />
+                <span>Facebook</span>
+              </a>
             )}
           </div>
         </CardContent>

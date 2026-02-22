@@ -197,8 +197,8 @@ export default async function AnaliticasPage() {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-3xl font-bold text-white">Analiticas</h1>
-        <p className="mt-1 text-gray-400">Resumen del rendimiento de tu club.</p>
+        <h1 className="text-3xl font-bold">Analiticas</h1>
+        <p className="mt-1 text-muted-foreground">Resumen del rendimiento de tu club.</p>
       </div>
 
       <AnaliticasClient

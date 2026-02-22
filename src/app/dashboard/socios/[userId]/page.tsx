@@ -6,6 +6,8 @@ import { redirect } from 'next/navigation';
 import { ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 import EditSocioForm from '@/components/socios/EditSocioForm';
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
 
 interface EditSocioPageProps {
   params: {
@@ -29,9 +31,9 @@ const EditSocioPage = async ({ params }: EditSocioPageProps) => {
 
   if (!socio) {
     return (
-      <div>
-        <h1 className="text-white">Socio no encontrado</h1>
-        <p className="text-gray-400">El socio que buscas no existe o no pertenece a tu club.</p>
+      <div className="text-center py-12">
+        <h1 className="text-2xl font-bold">Socio no encontrado</h1>
+        <p className="mt-2 text-muted-foreground">El socio que buscas no existe o no pertenece a tu club.</p>
       </div>
     );
   }
@@ -39,18 +41,20 @@ const EditSocioPage = async ({ params }: EditSocioPageProps) => {
   return (
     <div className="space-y-8">
       <div className="flex items-center gap-4">
-        <Link href="/dashboard/socios">
-          <span className="p-2 rounded-lg bg-gray-800 hover:bg-gray-700"><ArrowLeft className="h-5 w-5" /></span>
-        </Link>
+        <Button variant="ghost" size="icon" asChild>
+          <Link href="/dashboard/socios">
+            <ArrowLeft className="h-5 w-5" />
+          </Link>
+        </Button>
         <div>
-          <h1 className="text-3xl font-bold text-white">Editar Socio</h1>
-          <p className="mt-1 text-gray-400">Modifica los detalles de "{socio.name}".</p>
+          <h1 className="text-3xl font-bold">Editar Socio</h1>
+          <p className="mt-1 text-muted-foreground">Modifica los detalles de &quot;{socio.name}&quot;.</p>
         </div>
       </div>
 
-      <div className="bg-gray-800 p-6 sm:p-8 rounded-xl shadow-lg">
+      <Card className="p-6 sm:p-8">
         <EditSocioForm socio={socio} />
-      </div>
+      </Card>
     </div>
   );
 };

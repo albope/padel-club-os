@@ -5,13 +5,15 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { useRouter } from 'next/navigation';
-import { Loader2, Trash2 } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import { User } from '@prisma/client';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Button } from '@/components/ui/button';
 
-// --- MODIFICADO ---
 const SocioSchema = z.object({
   name: z.string().min(3, "El nombre es requerido."),
-  email: z.string().email("El email no es válido."),
+  email: z.string().email("El email no es valido."),
   phone: z.string().optional(),
   position: z.string().optional(),
   level: z.string().optional(),
@@ -29,14 +31,12 @@ const EditSocioForm: React.FC<EditSocioFormProps> = ({ socio }) => {
 
   const form = useForm<z.infer<typeof SocioSchema>>({
     resolver: zodResolver(SocioSchema),
-    // --- MODIFICADO ---: Añadimos los valores por defecto de los nuevos campos
     defaultValues: {
       name: socio.name || '',
       email: socio.email || '',
       phone: socio.phone || '',
       position: socio.position || '',
       level: socio.level || '',
-      // Formateamos la fecha para el input type="date"
       birthDate: socio.birthDate ? new Date(socio.birthDate).toISOString().split('T')[0] : '',
     },
   });
@@ -64,49 +64,46 @@ const EditSocioForm: React.FC<EditSocioFormProps> = ({ socio }) => {
 
   return (
     <form onSubmit={form.handleSubmit(onUpdate)} className="space-y-6 max-w-lg">
-        {/* Campos de Nombre, Email, Teléfono (sin cambios) */}
-        <div>
-            <label htmlFor="name" className="block text-sm font-medium text-gray-300">Nombre Completo</label>
-            <input id="name" {...form.register('name')} disabled={isLoading} className="mt-1 block w-full bg-gray-700 text-white rounded-md p-3" />
+      <div className="space-y-2">
+        <Label htmlFor="name">Nombre Completo</Label>
+        <Input id="name" {...form.register('name')} disabled={isLoading} />
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="email">Email</Label>
+        <Input id="email" type="email" {...form.register('email')} disabled={isLoading} />
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="phone">Telefono (Opcional)</Label>
+        <Input id="phone" type="tel" {...form.register('phone')} disabled={isLoading} />
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Label htmlFor="position">Posicion de Juego</Label>
+          <select id="position" {...form.register('position')} disabled={isLoading} className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm">
+            <option value="">No especificada</option>
+            <option value="Derecha">Derecha</option>
+            <option value="Reves">Reves</option>
+            <option value="Indiferente">Indiferente</option>
+          </select>
         </div>
-        <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-300">Email</label>
-            <input id="email" type="email" {...form.register('email')} disabled={isLoading} className="mt-1 block w-full bg-gray-700 text-white rounded-md p-3" />
+        <div className="space-y-2">
+          <Label htmlFor="level">Nivel</Label>
+          <Input id="level" {...form.register('level')} disabled={isLoading} placeholder="Ej: 3.5, Avanzado..." />
         </div>
-        <div>
-            <label htmlFor="phone" className="block text-sm font-medium text-gray-300">Teléfono (Opcional)</label>
-            <input id="phone" type="tel" {...form.register('phone')} disabled={isLoading} className="mt-1 block w-full bg-gray-700 text-white rounded-md p-3" />
-        </div>
-        
-        {/* --- AÑADIDO: Nuevos campos en el formulario --- */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-            <div>
-                <label htmlFor="position" className="block text-sm font-medium text-gray-300">Posición de Juego</label>
-                <select id="position" {...form.register('position')} disabled={isLoading} className="mt-1 block w-full bg-gray-700 text-white rounded-md p-3">
-                    <option value="">No especificada</option>
-                    <option value="Derecha">Derecha</option>
-                    <option value="Revés">Revés</option>
-                    <option value="Indiferente">Indiferente</option>
-                </select>
-            </div>
-            <div>
-                <label htmlFor="level" className="block text-sm font-medium text-gray-300">Nivel</label>
-                <input id="level" {...form.register('level')} disabled={isLoading} placeholder="Ej: 3.5, Avanzado..." className="mt-1 block w-full bg-gray-700 text-white rounded-md p-3" />
-            </div>
-        </div>
-        <div>
-            <label htmlFor="birthDate" className="block text-sm font-medium text-gray-300">Fecha de Nacimiento</label>
-            <input id="birthDate" type="date" {...form.register('birthDate')} disabled={isLoading} className="mt-1 block w-full bg-gray-700 text-white rounded-md p-3" />
-        </div>
-        
-        {error && <p className="text-sm text-red-500">{error}</p>}
-        <div className="flex justify-between items-center pt-4">
-            {/* Botón de Eliminar (sin cambios) */}
-            <button type="submit" disabled={isLoading} className="flex items-center justify-center px-6 py-3 font-semibold text-white bg-indigo-600 rounded-lg hover:bg-indigo-500 disabled:bg-gray-500">
-                {isLoading && <Loader2 className="mr-2 h-5 w-5 animate-spin" />}
-                Guardar Cambios
-            </button>
-        </div>
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="birthDate">Fecha de Nacimiento</Label>
+        <Input id="birthDate" type="date" {...form.register('birthDate')} disabled={isLoading} />
+      </div>
+
+      {error && <p className="text-sm text-destructive">{error}</p>}
+      <div className="flex justify-end pt-4">
+        <Button type="submit" disabled={isLoading}>
+          {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+          Guardar Cambios
+        </Button>
+      </div>
     </form>
   );
 };

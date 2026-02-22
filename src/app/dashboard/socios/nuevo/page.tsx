@@ -2,24 +2,26 @@ import React from 'react';
 import AddSocioForm from '@/components/socios/AddSocioForm';
 import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
 
 const AddSocioPage = () => {
   return (
     <div className="space-y-8">
       <div className="flex items-center gap-4">
-        <Link href="/dashboard/socios">
-          <span className="p-2 rounded-lg bg-gray-800 hover:bg-gray-700 text-gray-400 hover:text-white transition-colors cursor-pointer">
+        <Button variant="ghost" size="icon" asChild>
+          <Link href="/dashboard/socios">
             <ArrowLeft className="h-5 w-5" />
-          </span>
-        </Link>
+          </Link>
+        </Button>
         <div>
-          <h1 className="text-3xl font-bold text-white">Añadir Nuevo Socio</h1>
-          <p className="mt-1 text-gray-400">Rellena los datos para registrar un nuevo socio en tu club.</p>
+          <h1 className="text-3xl font-bold">Anadir Nuevo Socio</h1>
+          <p className="mt-1 text-muted-foreground">Rellena los datos para registrar un nuevo socio en tu club.</p>
         </div>
       </div>
-      <div className="bg-gray-800 p-6 sm:p-8 rounded-xl shadow-lg">
+      <Card className="p-6 sm:p-8">
         <AddSocioForm />
-      </div>
+      </Card>
     </div>
   );
 };

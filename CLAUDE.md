@@ -14,22 +14,34 @@ App fullstack de gestion de clubes de padel. Next.js 14 + TypeScript + Prisma + 
 - **Formularios**: react-hook-form + zod
 - **Tema**: next-themes (light/dark)
 - **i18n**: next-intl 4 (es/en, locale fijo por ahora)
+- **Charts**: recharts 3.7
+- **Email**: resend (notificaciones de contacto)
 
 ## Estructura
 
 ```
 src/
   app/
-    (public)/       # Landing page marketing (layout con Navbar + Footer)
+    (public)/       # Landing + paginas marketing (layout con Navbar + Footer)
+      sobre-nosotros/ # Pagina "Quienes somos"
+      contacto/     # Pagina de contacto con formulario
+      cookies/      # Politica de cookies
+      blog/         # Blog publico (listado + detalle por slug)
+        [slug]/      # Articulo individual
     api/            # API Routes (REST)
       auth/         # NextAuth handler
+      blog/         # CRUD blog plataforma (blog:read/create/update/delete)
+        public/     # API publica blog (listado + detalle por slug)
       bookings/     # CRUD reservas (admin)
       club/         # Ajustes club + API publica /club/[slug]
       competitions/ # CRUD competiciones, equipos, partidos
-      courts/       # CRUD pistas
+      contact/      # Formulario contacto (publico, guarda en DB + email)
+      courts/       # CRUD pistas + pricing
+      news/         # CRUD noticias (news:read/create/update/delete)
       open-matches/ # CRUD partidas abiertas (admin)
       player/       # APIs de jugador (bookings, open-matches, profile)
       register/     # Registro admin + /register/player
+      stripe/       # Checkout, portal, webhook
       users/        # CRUD socios + importacion
     club/[slug]/    # Portal publico del club (jugadores)
       login/        # Login jugador
@@ -37,26 +49,38 @@ src/
       reservar/     # Reservar pista
       partidas/     # Partidas abiertas (unirse/salir)
       competiciones/ # Ver competiciones (solo lectura)
+      noticias/     # Ver noticias del club (listado + detalle)
       perfil/       # Perfil del jugador
     dashboard/      # Panel admin (layout con sidebar)
+      noticias/     # CRUD noticias (nueva, editar, listar)
+      blog/         # CRUD blog plataforma (nuevo, editar, listar)
+      analiticas/   # Dashboard de analiticas con graficos
+      facturacion/  # Facturacion Stripe
     login/          # Login admin
     register/       # Registro admin (crea club)
   components/
-    ui/             # shadcn/ui (16 componentes)
+    ui/             # shadcn/ui (17 componentes, incluye textarea)
     layout/         # Header, Sidebar, MobileNavBar, MobileSidebar, Breadcrumbs, ThemeToggle
+    dashboard/      # DashboardClient (resumen del club)
     club/           # ClubLayout, ClubHome (portal jugadores)
-    marketing/      # Hero, Features, Pricing, Testimonials, CTA, Navbar, Footer
+    marketing/      # Hero, Features, Pricing, Testimonials, CTA, Navbar, Footer, ContactForm
+    noticias/       # NoticiasClient, NewsForm (admin CRUD noticias)
+    blog/           # BlogListClient, BlogForm (admin CRUD blog plataforma)
+    analiticas/     # AnaliticasClient, StatsCards, BookingTrends, MemberGrowth, CourtUtilization, PeakHours
     competitions/   # Ligas y torneos
-    reservas/       # Reservas de pistas
+    reservas/       # Reservas de pistas (CalendarView, CourtGridView, BookingModal)
     pistas/         # Gestion de pistas
     socios/         # Gestion de socios
     partidas-abiertas/ # Buscar partidas
     ajustes/        # Configuracion del club
     auth/           # AuthForm, AuthBrandingPanel
   lib/
-    auth.ts         # Config de NextAuth (role en JWT/session)
+    auth.ts         # Config de NextAuth (role + clubName en JWT/session)
     api-auth.ts     # requireAuth() helper con permisos RBAC
-    permissions.ts  # Definicion de permisos por rol
+    permissions.ts  # Definicion de permisos por rol (~39 permisos)
+    stripe.ts       # Cliente Stripe lazy (Proxy pattern), PLAN_PRICES
+    email.ts        # Cliente Resend lazy, enviarEmailContacto()
+    pricing.ts      # calcularPrecioReserva(), obtenerPreciosPista()
     db.ts           # Prisma client singleton
     utils.ts        # cn() helper
     nav-items.ts    # Items de navegacion admin
@@ -70,7 +94,7 @@ messages/
   es.json           # Traducciones espanol
   en.json           # Traducciones ingles
 prisma/
-  schema.prisma     # 10 modelos (ver seccion Modelos)
+  schema.prisma     # 14 modelos (ver seccion Modelos)
 ```
 
 ## Convenciones
@@ -109,14 +133,16 @@ npx prisma db push # Sincronizar schema con DB
 - **OpenMatch**: Partidas abiertas por nivel (OPEN, FULL, CONFIRMED, CANCELLED)
 - **OpenMatchPlayer**: Jugadores en partida abierta (tabla pivot)
 - **News**: Noticias del club (title, content, published)
+- **ContactSubmission**: Mensajes del formulario de contacto (nombre, email, asunto, mensaje, leido). Sin clubId (plataforma)
+- **BlogPost**: Articulos del blog (title, slug unique, content, excerpt, category, imageUrl, published, authorName, readTime). Sin clubId (plataforma)
 
 ## Auth y RBAC
 
-- Session extiende con `id`, `clubId` y `role` (ver `src/types/next-auth.d.ts`)
+- Session extiende con `id`, `clubId`, `clubName` y `role` (ver `src/types/next-auth.d.ts`)
 - **requireAuth(permission)**: valida sesion + clubId + permiso en una llamada
 - **isAuthError(result)**: type guard para verificar si es NextResponse de error
-- **Middleware**: protege /dashboard (solo ADMIN_ROLES), permite /club/* publicamente
-- **Permisos**: definidos en `src/lib/permissions.ts`, ~30 permisos por 4 roles
+- **Middleware**: protege /dashboard (solo ADMIN_ROLES), permite /club/* publicamente, excluye /api/stripe/webhook, /api/contact, /api/blog/public
+- **Permisos**: definidos en `src/lib/permissions.ts`, ~39 permisos por 4 roles
 
 ### Patron de uso en API routes:
 ```typescript
@@ -130,8 +156,8 @@ export async function GET() {
 ```
 
 ### Roles y permisos:
-- **SUPER_ADMIN / CLUB_ADMIN**: acceso total
-- **STAFF**: gestionar reservas, pistas, competiciones; ver socios (no crear/editar/eliminar)
+- **SUPER_ADMIN / CLUB_ADMIN**: acceso total (incluye news:*, blog:*, analytics:read, billing:*)
+- **STAFF**: gestionar reservas, pistas, competiciones; ver socios, noticias y analiticas (no crear/editar/eliminar socios ni noticias)
 - **PLAYER**: crear reserva propia, unirse a partidas, ver competiciones, gestionar perfil
 
 ## Plan maestro
@@ -153,8 +179,8 @@ El plan completo de 5 fases esta en: `C:\Users\alber\.claude\plans\jaunty-tumbli
 **Fases**:
 1. Fundacion (design system, mobile, UX) - COMPLETADA
 2. Portal publico + RBAC - COMPLETADA
-3. Pagos, notificaciones, reservas avanzadas
-4. Rankings, social, analiticas
+3. Pagos, noticias, analiticas, marketing - EN PROGRESO
+4. Rankings, social, notificaciones push
 5. Crecimiento (multi-deporte, API, white-label, real-time)
 
 ## Estado - Fase 1 (Fundacion) - COMPLETADA
@@ -202,12 +228,28 @@ El plan completo de 5 fases esta en: `C:\Users\alber\.claude\plans\jaunty-tumbli
 - [x] Formulario ajustes expandido: bookingPaymentMode, description, phone, email, toggles
 - [x] Build exitoso sin errores
 
-**Siguiente: Fase 3.2+ - Notificaciones, Reservas Avanzadas, PWA**
+## Estado - Fase 3.2 (Noticias, Analiticas, Marketing) - COMPLETADA
+
+- [x] Sistema de noticias completo: CRUD admin (/dashboard/noticias) + vista publica (/club/[slug]/noticias)
+- [x] API noticias: /api/news (GET, POST), /api/news/[newsId] (GET, PATCH, DELETE)
+- [x] Permisos RBAC: news:read/create/update/delete, analytics:read, blog:read/create/update/delete
+- [x] Dashboard analiticas: /dashboard/analiticas (recharts: tendencias, crecimiento, utilizacion pistas, horas punta)
+- [x] Componentes analiticas: StatsCards, BookingTrends, MemberGrowth, CourtUtilization, PeakHours
+- [x] Paginas marketing: /sobre-nosotros, /contacto, /cookies, /blog
+- [x] Navegacion admin: items Noticias, Blog y Analiticas en sidebar
+- [x] Auth: clubName en JWT/session (se muestra en Header dropdown y Dashboard)
+- [x] Formulario contacto: react-hook-form + zod, API /api/contact (guarda en DB + envia email con Resend), rate limiting
+- [x] Blog completo: modelo BlogPost, CRUD admin /dashboard/blog, API /api/blog, pagina publica dinamica /blog + /blog/[slug]
+- [x] Resend instalado para emails de contacto (lazy init como Stripe)
+- [x] Navbar marketing: link al blog con navegacion SPA
+- [x] Build exitoso sin errores
+
+**Siguiente: Notificaciones push, PWA, Reservas Avanzadas**
 
 ## Notas
 
 - El postinstall ejecuta `prisma generate` automaticamente
-- Variables de entorno: `DATABASE_URL`, `AUTH_SECRET` (en .env)
+- Variables de entorno: `DATABASE_URL`, `AUTH_SECRET`, `RESEND_API_KEY`, `CONTACT_EMAIL` (en .env)
 - Componentes shadcn se generan en `src/components/ui/`
 - Node.js 20.16.0 - no soporta Prisma 7 (necesita 20.19+)
 - Prisma generate puede fallar con EPERM si el dev server tiene el DLL bloqueado - parar dev server primero

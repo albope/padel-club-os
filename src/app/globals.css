@@ -227,3 +227,182 @@
   );
   background-size: 24px 24px;
 }
+
+/* ─── Landing page: animaciones ───────────────────────────────────────── */
+
+/* Scroll-triggered reveal */
+@keyframes landing-fade-up {
+  from { opacity: 0; transform: translateY(32px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes landing-fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes landing-fade-left {
+  from { opacity: 0; transform: translateX(32px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes landing-fade-right {
+  from { opacity: 0; transform: translateX(-32px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes landing-scale-in {
+  from { opacity: 0; transform: scale(0.92); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+/* Hero entrance sequence */
+@keyframes hero-text-reveal {
+  from { opacity: 0; transform: translateY(24px); filter: blur(4px); }
+  to   { opacity: 1; transform: translateY(0); filter: blur(0); }
+}
+
+@keyframes hero-badge-enter {
+  from { opacity: 0; transform: translateY(-12px) scale(0.95); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes hero-mockup-rise {
+  from { opacity: 0; transform: translateY(60px) scale(0.96); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* Efectos continuos */
+@keyframes landing-float {
+  0%, 100% { transform: translateY(0px); }
+  50%      { transform: translateY(-12px); }
+}
+
+@keyframes landing-gradient-shift {
+  0%   { background-position: 0% center; }
+  100% { background-position: 200% center; }
+}
+
+@keyframes landing-pulse-ring {
+  0%   { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.3); }
+  70%  { box-shadow: 0 0 0 10px rgba(255, 255, 255, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0); }
+}
+
+@keyframes landing-scroll-logos {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+
+/* Estado base: oculto */
+.landing-reveal {
+  opacity: 0;
+  will-change: transform, opacity;
+}
+
+/* Estados activados por IntersectionObserver */
+.landing-reveal[data-visible="true"].anim-fade-up {
+  animation: landing-fade-up 0.7s cubic-bezier(0.25, 0.1, 0.25, 1) forwards;
+}
+
+.landing-reveal[data-visible="true"].anim-fade-in {
+  animation: landing-fade-in 0.6s ease-out forwards;
+}
+
+.landing-reveal[data-visible="true"].anim-fade-left {
+  animation: landing-fade-left 0.7s cubic-bezier(0.25, 0.1, 0.25, 1) forwards;
+}
+
+.landing-reveal[data-visible="true"].anim-fade-right {
+  animation: landing-fade-right 0.7s cubic-bezier(0.25, 0.1, 0.25, 1) forwards;
+}
+
+.landing-reveal[data-visible="true"].anim-scale-in {
+  animation: landing-scale-in 0.6s cubic-bezier(0.25, 0.1, 0.25, 1) forwards;
+}
+
+/* Secuencia hero */
+.hero-badge-enter {
+  animation: hero-badge-enter 0.5s cubic-bezier(0.25, 0.1, 0.25, 1) 0.1s both;
+}
+.hero-text-1 {
+  animation: hero-text-reveal 0.6s cubic-bezier(0.25, 0.1, 0.25, 1) 0.2s both;
+}
+.hero-text-2 {
+  animation: hero-text-reveal 0.6s cubic-bezier(0.25, 0.1, 0.25, 1) 0.35s both;
+}
+.hero-text-3 {
+  animation: hero-text-reveal 0.6s cubic-bezier(0.25, 0.1, 0.25, 1) 0.5s both;
+}
+.hero-cta-enter {
+  animation: hero-text-reveal 0.6s cubic-bezier(0.25, 0.1, 0.25, 1) 0.6s both;
+}
+.hero-mockup-enter {
+  animation: hero-mockup-rise 0.8s cubic-bezier(0.25, 0.1, 0.25, 1) 0.7s both;
+}
+
+/* Texto con gradiente shimmer */
+.landing-gradient-text {
+  background: linear-gradient(
+    92deg,
+    hsl(217, 91%, 65%) 0%,
+    hsl(197, 85%, 60%) 30%,
+    hsl(160, 70%, 55%) 60%,
+    hsl(217, 91%, 65%) 100%
+  );
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: landing-gradient-shift 4s linear infinite;
+}
+
+/* Pulso CTA */
+.landing-cta-pulse {
+  animation: landing-pulse-ring 2s ease-out infinite;
+}
+
+/* Hover micro-interacciones para cards */
+.landing-card-hover {
+  transition: transform 0.25s cubic-bezier(0.25, 0.1, 0.25, 1),
+              box-shadow 0.25s cubic-bezier(0.25, 0.1, 0.25, 1);
+}
+.landing-card-hover:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 40px -12px hsl(var(--primary) / 0.15),
+              0 4px 16px -4px hsl(0 0% 0% / 0.08);
+}
+
+/* Scroll logos */
+.landing-logo-scroll {
+  animation: landing-scroll-logos 30s linear infinite;
+}
+
+/* Delays escalonados para grids */
+.stagger-1 { animation-delay: 0.05s !important; }
+.stagger-2 { animation-delay: 0.10s !important; }
+.stagger-3 { animation-delay: 0.15s !important; }
+.stagger-4 { animation-delay: 0.20s !important; }
+.stagger-5 { animation-delay: 0.25s !important; }
+.stagger-6 { animation-delay: 0.30s !important; }
+.stagger-7 { animation-delay: 0.35s !important; }
+.stagger-8 { animation-delay: 0.40s !important; }
+
+/* Patron de puntos para hero landing */
+.landing-dot-pattern {
+  background-image: radial-gradient(
+    circle,
+    rgba(255, 255, 255, 0.04) 1px,
+    transparent 1px
+  );
+  background-size: 24px 24px;
+}
+
+/* Orbe decorativo para landing (dark sections) */
+.landing-orb {
+  border-radius: 50%;
+  filter: blur(80px);
+  position: absolute;
+  pointer-events: none;
+  animation: auth-glow-pulse 8s ease-in-out infinite;
+}

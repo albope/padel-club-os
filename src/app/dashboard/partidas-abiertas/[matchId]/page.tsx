@@ -6,6 +6,8 @@ import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
 import AddPartidaForm from '@/components/partidas-abiertas/AddPartidaForm';
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
 
 const EditPartidaPage = async ({ params }: { params: { matchId: string }}) => {
   const session = await getServerSession(authOptions);
@@ -24,15 +26,19 @@ const EditPartidaPage = async ({ params }: { params: { matchId: string }}) => {
   return (
     <div className="space-y-8">
       <div className="flex items-center gap-4">
-        <Link href="/dashboard/partidas-abiertas"><span className="p-2 rounded-lg bg-gray-800 hover:bg-gray-700"><ArrowLeft className="h-5 w-5" /></span></Link>
+        <Button variant="ghost" size="icon" asChild>
+          <Link href="/dashboard/partidas-abiertas">
+            <ArrowLeft className="h-5 w-5" />
+          </Link>
+        </Button>
         <div>
-          <h1 className="text-3xl font-bold text-white">Editar Partida Abierta</h1>
-          <p className="mt-1 text-gray-400">Modifica los detalles de la partida.</p>
+          <h1 className="text-3xl font-bold">Editar Partida Abierta</h1>
+          <p className="mt-1 text-muted-foreground">Modifica los detalles de la partida.</p>
         </div>
       </div>
-      <div className="bg-gray-800 p-6 sm:p-8 rounded-xl shadow-lg">
+      <Card className="p-6 sm:p-8">
         <AddPartidaForm courts={courts} users={users} partidaToEdit={JSON.parse(JSON.stringify(partidaToEdit))} />
-      </div>
+      </Card>
     </div>
   );
 };

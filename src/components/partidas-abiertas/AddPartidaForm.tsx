@@ -7,24 +7,25 @@ import * as z from 'zod';
 import { useRouter } from 'next/navigation';
 import { Loader2 } from 'lucide-react';
 import { Court, User, OpenMatch } from '@prisma/client';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Button } from '@/components/ui/button';
 
-// --- AÑADIDO: La definición del esquema que faltaba ---
 const PartidaSchema = z.object({
   courtId: z.string().min(1, "Debes seleccionar una pista."),
   matchDate: z.string().min(1, "La fecha es requerida."),
   matchTime: z.string().min(1, "La hora es requerida."),
-  playerIds: z.array(z.string()).min(1, "Debes seleccionar al menos un jugador inicial.").max(4, "No puedes seleccionar más de 4 jugadores."),
+  playerIds: z.array(z.string()).min(1, "Debes seleccionar al menos un jugador inicial.").max(4, "No puedes seleccionar mas de 4 jugadores."),
   levelMin: z.coerce.number().min(1, "El nivel debe ser mayor que 0.").optional().or(z.literal('')),
   levelMax: z.coerce.number().min(1, "El nivel debe ser mayor que 0.").optional().or(z.literal('')),
 }).refine(data => {
-  // Si ambos niveles están definidos, el mínimo no puede ser mayor que el máximo.
   if (data.levelMin && data.levelMax) {
     return data.levelMin <= data.levelMax;
   }
   return true;
 }, {
-  message: "El nivel mínimo no puede ser mayor que el máximo.",
-  path: ["levelMin"], // Dónde mostrar el error
+  message: "El nivel minimo no puede ser mayor que el maximo.",
+  path: ["levelMin"],
 });
 
 type PartidaToEdit = (OpenMatch & { players: { userId: string }[] });
@@ -99,62 +100,62 @@ const AddPartidaForm: React.FC<AddPartidaFormProps> = ({ courts, users, partidaT
 
   return (
     <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 max-w-lg">
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-        <div>
-          <label htmlFor="courtId" className="block text-sm font-medium text-gray-300">Pista</label>
-          <select id="courtId" {...form.register('courtId')} className="mt-1 block w-full bg-gray-700 text-white rounded-md p-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Label htmlFor="courtId">Pista</Label>
+          <select id="courtId" {...form.register('courtId')} className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm">
             <option value="">Selecciona una pista...</option>
             {courts.map(court => <option key={court.id} value={court.id}>{court.name}</option>)}
           </select>
-          {form.formState.errors.courtId && <p className="text-sm text-red-400 mt-1">{form.formState.errors.courtId.message}</p>}
+          {form.formState.errors.courtId && <p className="text-sm text-destructive mt-1">{form.formState.errors.courtId.message}</p>}
         </div>
-        <div>
-          <label htmlFor="playerIds" className="block text-sm font-medium text-gray-300">Jugadores Iniciales</label>
+        <div className="space-y-2">
+          <Label htmlFor="playerIds">Jugadores Iniciales</Label>
           <select
             id="playerIds"
             multiple
             {...form.register('playerIds')}
-            className="mt-1 block w-full bg-gray-700 text-white rounded-md p-3 h-32"
+            className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm h-32"
           >
             {users.map(user => <option key={user.id} value={user.id}>{user.name}</option>)}
           </select>
-          <p className="text-xs text-gray-500 mt-1">Mantén Ctrl (o Cmd) para seleccionar varios.</p>
-          {form.formState.errors.playerIds && <p className="text-sm text-red-400 mt-1">{form.formState.errors.playerIds.message}</p>}
+          <p className="text-xs text-muted-foreground">Manten Ctrl (o Cmd) para seleccionar varios.</p>
+          {form.formState.errors.playerIds && <p className="text-sm text-destructive">{form.formState.errors.playerIds.message}</p>}
         </div>
       </div>
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-        <div>
-          <label htmlFor="levelMin" className="block text-sm font-medium text-gray-300">Nivel Mín. (Opcional)</label>
-          <input type="number" id="levelMin" {...form.register('levelMin')} step="0.25" className="mt-1 block w-full bg-gray-700 text-white rounded-md p-3" placeholder="Ej: 3.0" />
-          {form.formState.errors.levelMin && <p className="text-sm text-red-400 mt-1">{form.formState.errors.levelMin.message}</p>}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Label htmlFor="levelMin">Nivel Min. (Opcional)</Label>
+          <Input type="number" id="levelMin" {...form.register('levelMin')} step="0.25" placeholder="Ej: 3.0" />
+          {form.formState.errors.levelMin && <p className="text-sm text-destructive">{form.formState.errors.levelMin.message}</p>}
         </div>
-        <div>
-          <label htmlFor="levelMax" className="block text-sm font-medium text-gray-300">Nivel Máx. (Opcional)</label>
-          <input type="number" id="levelMax" {...form.register('levelMax')} step="0.25" className="mt-1 block w-full bg-gray-700 text-white rounded-md p-3" placeholder="Ej: 4.5" />
-          {form.formState.errors.levelMax && <p className="text-sm text-red-400 mt-1">{form.formState.errors.levelMax.message}</p>}
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-        <div>
-          <label htmlFor="matchDate" className="block text-sm font-medium text-gray-300">Fecha</label>
-          <input type="date" id="matchDate" {...form.register('matchDate')} className="mt-1 block w-full bg-gray-700 text-white rounded-md p-3" />
-          {form.formState.errors.matchDate && <p className="text-sm text-red-400 mt-1">{form.formState.errors.matchDate.message}</p>}
-        </div>
-        <div>
-          <label htmlFor="matchTime" className="block text-sm font-medium text-gray-300">Hora</label>
-          <input type="time" id="matchTime" {...form.register('matchTime')} className="mt-1 block w-full bg-gray-700 text-white rounded-md p-3" />
-          {form.formState.errors.matchTime && <p className="text-sm text-red-400 mt-1">{form.formState.errors.matchTime.message}</p>}
+        <div className="space-y-2">
+          <Label htmlFor="levelMax">Nivel Max. (Opcional)</Label>
+          <Input type="number" id="levelMax" {...form.register('levelMax')} step="0.25" placeholder="Ej: 4.5" />
+          {form.formState.errors.levelMax && <p className="text-sm text-destructive">{form.formState.errors.levelMax.message}</p>}
         </div>
       </div>
 
-      {error && <p className="text-sm text-center text-red-500">{error}</p>}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Label htmlFor="matchDate">Fecha</Label>
+          <Input type="date" id="matchDate" {...form.register('matchDate')} />
+          {form.formState.errors.matchDate && <p className="text-sm text-destructive">{form.formState.errors.matchDate.message}</p>}
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="matchTime">Hora</Label>
+          <Input type="time" id="matchTime" {...form.register('matchTime')} />
+          {form.formState.errors.matchTime && <p className="text-sm text-destructive">{form.formState.errors.matchTime.message}</p>}
+        </div>
+      </div>
+
+      {error && <p className="text-sm text-center text-destructive">{error}</p>}
 
       <div className="flex justify-end pt-4">
-        <button type="submit" disabled={isLoading} className="flex items-center justify-center px-6 py-3 font-semibold text-white bg-indigo-600 rounded-lg hover:bg-indigo-500 disabled:bg-gray-500">
-          {isLoading && <Loader2 className="mr-2 h-5 w-5 animate-spin" />}
+        <Button type="submit" disabled={isLoading}>
+          {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
           {isEditMode ? 'Guardar Cambios' : 'Crear Partida'}
-        </button>
+        </Button>
       </div>
     </form>
   );

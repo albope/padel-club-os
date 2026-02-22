@@ -3,11 +3,18 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
-import { Users, Clock, Loader2, UserPlus, UserMinus } from 'lucide-react';
+import { Users, Clock, Loader2, UserPlus, UserMinus, Plus } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { toast } from '@/hooks/use-toast';
+import NuevaPartidaJugadorForm from '@/components/club/NuevaPartidaJugadorForm';
 
 interface OpenMatch {
   id: string;
@@ -28,6 +35,7 @@ export default function ClubOpenMatchesPage() {
   const [matches, setMatches] = useState<OpenMatch[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const [showCreateDialog, setShowCreateDialog] = useState(false);
 
   const fetchMatches = async () => {
     try {
@@ -126,10 +134,34 @@ export default function ClubOpenMatchesPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight">Partidas abiertas</h1>
-        <p className="text-muted-foreground">Encuentra jugadores y unete a una partida</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">Partidas abiertas</h1>
+          <p className="text-muted-foreground">Encuentra jugadores y unete a una partida</p>
+        </div>
+        {session?.user && (
+          <Button onClick={() => setShowCreateDialog(true)}>
+            <Plus className="h-4 w-4 mr-2" />
+            Crear partida
+          </Button>
+        )}
       </div>
+
+      {/* Dialog para crear partida */}
+      <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Crear partida abierta</DialogTitle>
+          </DialogHeader>
+          <NuevaPartidaJugadorForm
+            slug={slug}
+            onExito={() => {
+              setShowCreateDialog(false);
+              fetchMatches();
+            }}
+          />
+        </DialogContent>
+      </Dialog>
 
       {matches.length === 0 ? (
         <Card>

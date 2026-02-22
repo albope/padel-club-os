@@ -5,8 +5,18 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { useRouter } from 'next/navigation';
-import { X, Loader2, Trash2 } from 'lucide-react';
+import { Loader2, Trash2 } from 'lucide-react';
 import { User, Team } from '@prisma/client';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Button } from '@/components/ui/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from '@/components/ui/dialog';
 
 const TeamSchema = z.object({
   name: z.string().min(3, "El nombre del equipo es requerido."),
@@ -39,7 +49,7 @@ const AddTeamModal: React.FC<AddTeamModalProps> = ({ isOpen, onClose, competitio
   });
 
   useEffect(() => {
-    if (isOpen) { // Resetear el formulario solo cuando el modal se abre
+    if (isOpen) {
       if (isEditMode && teamToEdit) {
         form.reset({
           name: teamToEdit.name,
@@ -55,10 +65,6 @@ const AddTeamModal: React.FC<AddTeamModalProps> = ({ isOpen, onClose, competitio
   const handleFormSubmit = async (data: TeamFormValues) => {
     setIsLoading(true);
     setError(null);
-    
-    // --- LÍNEA DE DEPURACIÓN ---
-    console.log("Datos que se envían desde el formulario:", data);
-    // -------------------------
 
     const url = isEditMode
       ? `/api/competitions/${competitionId}/teams/${teamToEdit!.id}`
@@ -74,7 +80,7 @@ const AddTeamModal: React.FC<AddTeamModalProps> = ({ isOpen, onClose, competitio
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({ message: 'Error desconocido en el servidor.' }));
-        throw new Error(errorData.message || `No se pudo ${isEditMode ? 'actualizar' : 'añadir'} el equipo.`);
+        throw new Error(errorData.message || `No se pudo ${isEditMode ? 'actualizar' : 'anadir'} el equipo.`);
       }
       onClose();
       router.refresh();
@@ -87,53 +93,52 @@ const AddTeamModal: React.FC<AddTeamModalProps> = ({ isOpen, onClose, competitio
 
   const onDelete = async () => { /* ...sin cambios... */ };
 
-  if (!isOpen) return null;
-
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50">
-      <div className="bg-gray-800 rounded-xl shadow-lg p-8 w-full max-w-md relative">
-        <button onClick={onClose} className="absolute top-4 right-4 text-gray-400 hover:text-white"><X /></button>
-        <h2 className="text-2xl font-bold text-white mb-6">{isEditMode ? 'Editar Equipo' : 'Añadir Nuevo Equipo'}</h2>
+    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>{isEditMode ? 'Editar Equipo' : 'Anadir Nuevo Equipo'}</DialogTitle>
+        </DialogHeader>
         <form onSubmit={form.handleSubmit(handleFormSubmit)} className="space-y-4">
-          <div>
-            <label htmlFor="name" className="block text-sm font-medium text-gray-300">Nombre del Equipo</label>
-            <input id="name" {...form.register('name')} className="mt-1 block w-full bg-gray-700 text-white rounded-md p-2" />
-            {form.formState.errors.name && <p className="mt-1 text-sm text-red-400">{form.formState.errors.name.message}</p>}
+          <div className="space-y-2">
+            <Label htmlFor="name">Nombre del Equipo</Label>
+            <Input id="name" {...form.register('name')} />
+            {form.formState.errors.name && <p className="text-sm text-destructive">{form.formState.errors.name.message}</p>}
           </div>
-          <div>
-            <label htmlFor="player1Id" className="block text-sm font-medium text-gray-300">Jugador 1</label>
-            <select id="player1Id" {...form.register('player1Id')} className="mt-1 block w-full bg-gray-700 text-white rounded-md p-2">
+          <div className="space-y-2">
+            <Label htmlFor="player1Id">Jugador 1</Label>
+            <select id="player1Id" {...form.register('player1Id')} className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm">
               <option value="">Selecciona un socio</option>
               {users.map(user => <option key={user.id} value={user.id}>{user.name}</option>)}
             </select>
-            {form.formState.errors.player1Id && <p className="mt-1 text-sm text-red-400">{form.formState.errors.player1Id.message}</p>}
+            {form.formState.errors.player1Id && <p className="text-sm text-destructive">{form.formState.errors.player1Id.message}</p>}
           </div>
-          <div>
-            <label htmlFor="player2Id" className="block text-sm font-medium text-gray-300">Jugador 2</label>
-            <select id="player2Id" {...form.register('player2Id')} className="mt-1 block w-full bg-gray-700 text-white rounded-md p-2">
+          <div className="space-y-2">
+            <Label htmlFor="player2Id">Jugador 2</Label>
+            <select id="player2Id" {...form.register('player2Id')} className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm">
               <option value="">Selecciona un socio</option>
               {users.map(user => <option key={user.id} value={user.id}>{user.name}</option>)}
             </select>
-            {form.formState.errors.player2Id && <p className="mt-1 text-sm text-red-400">{form.formState.errors.player2Id.message}</p>}
+            {form.formState.errors.player2Id && <p className="text-sm text-destructive">{form.formState.errors.player2Id.message}</p>}
           </div>
-          {error && <p className="text-sm text-red-500">{error}</p>}
-          <div className="flex justify-between items-center pt-4">
+          {error && <p className="text-sm text-destructive">{error}</p>}
+          <DialogFooter className="flex justify-between items-center pt-4">
             {isEditMode && (
-              <button type="button" onClick={onDelete} disabled={isLoading} className="flex items-center px-4 py-2 text-sm font-medium text-red-400 hover:bg-red-500/10 rounded-lg">
+              <Button type="button" variant="ghost" onClick={onDelete} disabled={isLoading} className="text-destructive hover:text-destructive">
                 <Trash2 className="mr-2 h-4 w-4" /> Eliminar
-              </button>
+              </Button>
             )}
             <div className="flex-grow flex justify-end gap-3">
-              <button type="button" onClick={onClose} className="px-4 py-2 bg-gray-700 rounded-lg hover:bg-gray-600">Cancelar</button>
-              <button type="submit" disabled={isLoading} className="flex items-center px-4 py-2 text-white bg-indigo-600 rounded-lg hover:bg-indigo-500 disabled:bg-gray-500">
+              <Button type="button" variant="outline" onClick={onClose}>Cancelar</Button>
+              <Button type="submit" disabled={isLoading}>
                 {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                {isEditMode ? 'Guardar Cambios' : 'Añadir Equipo'}
-              </button>
+                {isEditMode ? 'Guardar Cambios' : 'Anadir Equipo'}
+              </Button>
             </div>
-          </div>
+          </DialogFooter>
         </form>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 };
 

@@ -35,6 +35,8 @@ export default withAuth(
           pathname.startsWith("/api/auth") ||
           pathname.startsWith("/api/register") ||
           pathname.startsWith("/api/stripe/webhook") ||
+          pathname.startsWith("/api/contact") ||
+          pathname.startsWith("/api/blog/public") ||
           pathname.startsWith("/club")
         ) {
           return true

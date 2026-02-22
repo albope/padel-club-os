@@ -30,6 +30,9 @@ export default async function ClubSlugLayout({ children, params }: ClubLayoutPro
       slug: true,
       logoUrl: true,
       primaryColor: true,
+      bannerUrl: true,
+      instagramUrl: true,
+      facebookUrl: true,
       enableOpenMatches: true,
       enablePlayerBooking: true,
     },
@@ -38,8 +41,14 @@ export default async function ClubSlugLayout({ children, params }: ClubLayoutPro
   if (!club) notFound();
 
   return (
-    <ClubLayout club={club}>
-      {children}
-    </ClubLayout>
+    <div
+      style={{
+        '--club-primary': club.primaryColor || '#4f46e5',
+      } as React.CSSProperties}
+    >
+      <ClubLayout club={club}>
+        {children}
+      </ClubLayout>
+    </div>
   );
 }

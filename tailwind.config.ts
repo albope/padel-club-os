@@ -16,6 +16,10 @@ const config: Config = {
       },
     },
     extend: {
+      fontFamily: {
+        sans: ["var(--font-inter)", "system-ui", "sans-serif"],
+        display: ["var(--font-sora)", "var(--font-inter)", "system-ui", "sans-serif"],
+      },
       colors: {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
@@ -75,10 +79,20 @@ const config: Config = {
           from: { height: "var(--radix-accordion-content-height)" },
           to: { height: "0" },
         },
+        "landing-fade-up": {
+          from: { opacity: "0", transform: "translateY(32px)" },
+          to: { opacity: "1", transform: "translateY(0)" },
+        },
+        "landing-float": {
+          "0%, 100%": { transform: "translateY(0px)" },
+          "50%": { transform: "translateY(-12px)" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
+        "landing-fade-up": "landing-fade-up 0.7s cubic-bezier(0.25, 0.1, 0.25, 1) forwards",
+        "landing-float": "landing-float 6s ease-in-out infinite",
       },
     },
   },

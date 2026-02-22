@@ -46,6 +46,11 @@ export type Permission =
   | "court-pricing:update"
   // Analiticas
   | "analytics:read"
+  // Blog (plataforma)
+  | "blog:read"
+  | "blog:create"
+  | "blog:update"
+  | "blog:delete"
   // Perfil propio
   | "profile:read"
   | "profile:update"
@@ -63,6 +68,7 @@ const rolePermissions: Record<UserRole, Permission[]> = {
     "billing:read", "billing:update",
     "court-pricing:read", "court-pricing:update",
     "analytics:read",
+    "blog:read", "blog:create", "blog:update", "blog:delete",
     "profile:read", "profile:update",
   ],
   CLUB_ADMIN: [
@@ -76,6 +82,7 @@ const rolePermissions: Record<UserRole, Permission[]> = {
     "billing:read", "billing:update",
     "court-pricing:read", "court-pricing:update",
     "analytics:read",
+    "blog:read", "blog:create", "blog:update", "blog:delete",
     "profile:read", "profile:update",
   ],
   STAFF: [

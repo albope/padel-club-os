@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import {
-  CalendarDays, Users, Trophy, User, Home, LogIn, Newspaper,
+  CalendarDays, Users, Trophy, User, Home, LogIn, Newspaper, DollarSign,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -15,6 +15,9 @@ interface ClubInfo {
   slug: string;
   logoUrl: string | null;
   primaryColor: string | null;
+  bannerUrl: string | null;
+  instagramUrl: string | null;
+  facebookUrl: string | null;
   enableOpenMatches: boolean;
   enablePlayerBooking: boolean;
 }
@@ -28,6 +31,7 @@ export default function ClubLayout({ club, children }: ClubLayoutProps) {
   const pathname = usePathname();
   const { data: session } = useSession();
   const basePath = `/club/${club.slug}`;
+  const color = club.primaryColor || '#4f46e5';
 
   const navItems = [
     { label: 'Inicio', href: basePath, icon: Home },
@@ -39,6 +43,7 @@ export default function ClubLayout({ club, children }: ClubLayoutProps) {
       : []),
     { label: 'Competiciones', href: `${basePath}/competiciones`, icon: Trophy },
     { label: 'Noticias', href: `${basePath}/noticias`, icon: Newspaper },
+    { label: 'Tarifas', href: `${basePath}/tarifas`, icon: DollarSign },
   ];
 
   const isActive = (href: string) => {
@@ -60,7 +65,7 @@ export default function ClubLayout({ club, children }: ClubLayoutProps) {
             ) : (
               <div
                 className="h-8 w-8 rounded-full flex items-center justify-center text-white font-bold text-sm"
-                style={{ backgroundColor: club.primaryColor || '#4f46e5' }}
+                style={{ backgroundColor: color }}
               >
                 {club.name.charAt(0).toUpperCase()}
               </div>
@@ -72,21 +77,26 @@ export default function ClubLayout({ club, children }: ClubLayoutProps) {
 
           {/* Desktop nav */}
           <nav className="hidden md:flex items-center gap-1">
-            {navItems.map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={cn(
-                  'flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-colors',
-                  isActive(item.href)
-                    ? 'bg-primary/10 text-primary'
-                    : 'text-muted-foreground hover:text-foreground hover:bg-muted'
-                )}
-              >
-                <item.icon className="h-4 w-4" />
-                {item.label}
-              </Link>
-            ))}
+            {navItems.map((item) => {
+              const active = isActive(item.href);
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={cn(
+                    'flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-colors',
+                    !active && 'text-muted-foreground hover:text-foreground hover:bg-muted'
+                  )}
+                  style={active ? {
+                    backgroundColor: `${color}1a`,
+                    color: color,
+                  } : undefined}
+                >
+                  <item.icon className="h-4 w-4" />
+                  {item.label}
+                </Link>
+              );
+            })}
           </nav>
 
           {/* Auth button */}
@@ -96,10 +106,12 @@ export default function ClubLayout({ club, children }: ClubLayoutProps) {
                 href={`${basePath}/perfil`}
                 className={cn(
                   'flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-colors',
-                  pathname.includes('/perfil')
-                    ? 'bg-primary/10 text-primary'
-                    : 'text-muted-foreground hover:text-foreground hover:bg-muted'
+                  !pathname.includes('/perfil') && 'text-muted-foreground hover:text-foreground hover:bg-muted'
                 )}
+                style={pathname.includes('/perfil') ? {
+                  backgroundColor: `${color}1a`,
+                  color: color,
+                } : undefined}
               >
                 <User className="h-4 w-4" />
                 <span className="hidden sm:inline">Mi perfil</span>
@@ -125,28 +137,31 @@ export default function ClubLayout({ club, children }: ClubLayoutProps) {
       {/* Mobile bottom nav */}
       <nav className="md:hidden fixed bottom-0 inset-x-0 z-50 border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="flex items-center justify-around h-14">
-          {navItems.map((item) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={cn(
-                'flex flex-col items-center gap-0.5 px-2 py-1 text-xs transition-colors',
-                isActive(item.href)
-                  ? 'text-primary'
-                  : 'text-muted-foreground'
-              )}
-            >
-              <item.icon className="h-5 w-5" />
-              {item.label}
-            </Link>
-          ))}
+          {navItems.slice(0, 5).map((item) => {
+            const active = isActive(item.href);
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={cn(
+                  'flex flex-col items-center gap-0.5 px-2 py-1 text-xs transition-colors',
+                  !active && 'text-muted-foreground'
+                )}
+                style={active ? { color: color } : undefined}
+              >
+                <item.icon className="h-5 w-5" />
+                {item.label}
+              </Link>
+            );
+          })}
           {isPlayerOfClub ? (
             <Link
               href={`${basePath}/perfil`}
               className={cn(
                 'flex flex-col items-center gap-0.5 px-2 py-1 text-xs transition-colors',
-                pathname.includes('/perfil') ? 'text-primary' : 'text-muted-foreground'
+                !pathname.includes('/perfil') && 'text-muted-foreground'
               )}
+              style={pathname.includes('/perfil') ? { color: color } : undefined}
             >
               <User className="h-5 w-5" />
               Perfil

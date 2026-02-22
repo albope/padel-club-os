@@ -137,3 +137,77 @@ export async function POST(req: Request) {
     return new NextResponse("Internal Server Error", { status: 500 });
   }
 }
+
+// DELETE: Cancelar una reserva propia
+export async function DELETE(req: Request) {
+  try {
+    const auth = await requireAuth("bookings:read");
+    if (isAuthError(auth)) return auth;
+
+    const { searchParams } = new URL(req.url);
+    const bookingId = searchParams.get("bookingId");
+
+    if (!bookingId) {
+      return NextResponse.json(
+        { error: "ID de reserva requerido." },
+        { status: 400 }
+      );
+    }
+
+    const reserva = await db.booking.findFirst({
+      where: {
+        id: bookingId,
+        userId: auth.session.user.id,
+        clubId: auth.session.user.clubId,
+        status: "confirmed",
+      },
+    });
+
+    if (!reserva) {
+      return NextResponse.json(
+        { error: "Reserva no encontrada." },
+        { status: 404 }
+      );
+    }
+
+    if (new Date(reserva.startTime) < new Date()) {
+      return NextResponse.json(
+        { error: "No puedes cancelar una reserva pasada." },
+        { status: 400 }
+      );
+    }
+
+    const club = await db.club.findUnique({
+      where: { id: auth.session.user.clubId },
+      select: { cancellationHours: true },
+    });
+
+    if (club?.cancellationHours) {
+      const limite = new Date(
+        new Date(reserva.startTime).getTime() - club.cancellationHours * 3600000
+      );
+      if (new Date() > limite) {
+        return NextResponse.json(
+          {
+            error: `Solo puedes cancelar con ${club.cancellationHours} horas de antelacion.`,
+          },
+          { status: 400 }
+        );
+      }
+    }
+
+    await db.booking.update({
+      where: { id: bookingId },
+      data: {
+        status: "cancelled",
+        cancelledAt: new Date(),
+        cancelReason: "Cancelado por el jugador",
+      },
+    });
+
+    return NextResponse.json({ message: "Reserva cancelada correctamente." });
+  } catch (error) {
+    console.error("[CANCEL_PLAYER_BOOKING_ERROR]", error);
+    return new NextResponse("Internal Server Error", { status: 500 });
+  }
+}

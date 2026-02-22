@@ -6,6 +6,7 @@ import { redirect } from 'next/navigation'
 import { PlusCircle } from 'lucide-react'
 import Link from 'next/link'
 import NoticiasClient from '@/components/noticias/NoticiasClient'
+import { Button } from '@/components/ui/button'
 
 const NoticiasPage = async () => {
   const session = await getServerSession(authOptions)
@@ -22,15 +23,15 @@ const NoticiasPage = async () => {
     <div className="space-y-8">
       <div className="flex flex-wrap justify-between items-center gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-white">Gestion de Noticias</h1>
-          <p className="mt-1 text-gray-400">Crea y administra las noticias de tu club.</p>
+          <h1 className="text-3xl font-bold">Gestion de Noticias</h1>
+          <p className="mt-1 text-muted-foreground">Crea y administra las noticias de tu club.</p>
         </div>
-        <Link href="/dashboard/noticias/nueva">
-          <span className="flex items-center gap-2 px-4 py-2 font-semibold text-white bg-indigo-600 rounded-lg shadow-md hover:bg-indigo-500">
+        <Button asChild>
+          <Link href="/dashboard/noticias/nueva">
             <PlusCircle className="h-5 w-5" />
             Nueva Noticia
-          </span>
-        </Link>
+          </Link>
+        </Button>
       </div>
 
       <NoticiasClient initialNews={JSON.parse(JSON.stringify(news))} />

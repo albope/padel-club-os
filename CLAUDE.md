@@ -325,3 +325,109 @@ El plan completo de 5 fases esta en: `C:\Users\alber\.claude\plans\jaunty-tumbli
 - Para usar toast: `import { toast } from '@/hooks/use-toast'`
 - Toast de error: `toast({ title: "Error", description: "...", variant: "destructive" })`
 - Toast de exito: `toast({ title: "Exito", description: "...", variant: "success" })`
+
+## Continuacion de sesion
+
+Cuando el usuario diga "CONTINUACION DE SESION ANTERIOR", lee estos archivos para retomar contexto:
+1. Este CLAUDE.md - plan maestro, stack, convenciones, estado actual
+2. `C:\Users\alber\.claude\projects\c--Users-alber-Desktop-Projects-padel-club-os\memory\MEMORY.md` - memoria persistente
+3. `FUNCIONAL.md` (raiz) - documento funcional completo con estado de cada seccion
+4. `C:\Users\alber\.claude\plans\jaunty-tumbling-sunrise.md` - plan completo de 5 fases
+
+Revisa las secciones de estado en CLAUDE.md y MEMORY.md para ver que esta COMPLETADO y que esta PENDIENTE. Identifica la fase actual y continua desde donde lo dejamos con la siguiente tarea pendiente. Pregunta si no tienes claro por donde seguir.
+
+## Roadmap para lanzamiento al mercado
+
+### BLOQUE A: CRITICO (sin esto no se lanza)
+
+**Sesion A1 - Enforcement de suscripcion Stripe** `[ ]`
+- Middleware/helper que valide `subscriptionStatus` en `requireAuth()` - bloquear operaciones si trial expirado/cancelado
+- Gating de features por plan (Starter: max 4 pistas, Pro: ilimitado, etc.)
+- Redirigir a `/dashboard/facturacion` cuando la suscripcion no esta activa
+- Manejar webhook `customer.subscription.trial_will_end` (aviso 3 dias antes)
+
+**Sesion A2 - Cabeceras de seguridad** `[ ]`
+- Añadir en `next.config.mjs`: Content-Security-Policy, Strict-Transport-Security, X-Frame-Options, X-Content-Type-Options, Referrer-Policy
+- Revisar rate limiting en APIs criticas (bookings, users, auth/login)
+- Sanitizacion de inputs HTML (noticias, blog - prevenir XSS)
+
+**Sesion A3 - SEO basico** `[ ]`
+- `robots.ts` (dynamic) + `sitemap.ts` (dynamic, incluir paginas publicas + clubs + blog posts)
+- Open Graph + Twitter Cards en layout.tsx raiz
+- `generateMetadata` en todas las paginas publicas (landing, sobre-nosotros, contacto, blog, club portal)
+- JSON-LD de Organization en landing
+
+**Sesion A4 - Compliance RGPD real** `[ ]`
+- Cookie banner que realmente bloquee scripts no esenciales (carga condicional)
+- API `/api/player/data-export` (derecho de portabilidad - exportar datos personales)
+- API `/api/player/data-delete` (derecho al olvido - anonimizar/eliminar datos)
+- Log de consentimiento (guardar cuando el usuario acepto cookies y que tipo)
+
+**Sesion A5 - Error boundaries + health check** `[ ]`
+- `error.tsx` en raiz, `(public)`, `club/[slug]`, sub-rutas dashboard
+- `loading.tsx` en paginas principales (dashboard, reservas, socios)
+- API `/api/health` (check DB connection, devuelve status)
+
+### BLOQUE B: IMPORTANTE (lanzamiento beta robusto)
+
+**Sesion B1 - Emails transaccionales** `[ ]`
+- Email de bienvenida al registrar club
+- Email de confirmacion de reserva (jugador)
+- Email de cancelacion de reserva
+- Email de recordatorio (complemento al push del cron)
+- Plantilla HTML base reutilizable con branding
+
+**Sesion B2 - Validacion completa APIs** `[ ]`
+- Zod schemas para todas las API routes que faltan (~45 rutas)
+- Middleware de validacion reutilizable (`validateBody(schema)`)
+
+**Sesion B3 - Onboarding admin** `[ ]`
+- Wizard post-registro: 4 pasos (info club -> crear pistas -> configurar precios -> configurar portal)
+- Checklist de progreso en dashboard home ("3 de 6 pasos completados")
+- Estados vacios mejorados ("Aun no tienes pistas. Crea tu primera pista")
+
+**Sesion B4 - Monitoring + logging** `[ ]`
+- Integrar Sentry (error tracking)
+- Logging estructurado en APIs criticas
+- Documentar variables de entorno completas en `.env.example`
+
+**Sesion B5 - Performance basica** `[ ]`
+- Reemplazar `<img>` por `next/image` en rankings, socios, leaderboard
+- Añadir `@@index` en Prisma para queries frecuentes (Booking por clubId+date, User por clubId)
+- Cache de datos publicos del club (revalidate en API publica)
+
+### BLOQUE C: VALOR AÑADIDO (diferenciador competitivo)
+
+**Sesion C1 - Tests criticos** `[ ]`
+- Tests unitarios para: `requireAuth`, `pricing.ts`, `tokens.ts`, `csv.ts`, `notifications.ts`
+- Tests de API: auth flows, bookings CRUD, stripe webhook
+- Target: 40-50% coverage en rutas criticas
+
+**Sesion C2 - Stripe Connect (pagos de reservas)** `[ ]`
+- Onboarding Stripe Connect para clubs
+- Cobro al jugador al reservar (modo "online")
+- Split payment: club recibe el pago, plataforma cobra comision
+
+**Sesion C3 - Comunicacion masiva** `[ ]`
+- Enviar email/push a todos los socios del club
+- Segmentacion basica (todos, por nivel, activos/inactivos)
+
+**Sesion C4 - Reservas recurrentes** `[ ]`
+- Modelo `RecurringBooking` (dia semana, hora, pista, usuario, fecha fin)
+- Cron job que genera reservas automaticas semanalmente
+- UI admin para crear/editar/cancelar clases fijas
+
+**Sesion C5 - i18n completo** `[ ]`
+- Migrar strings hardcoded de marketing y dashboard a `messages/`
+- Selector de idioma en navbar + portal club
+
+### BLOQUE D: PULIDO (post-lanzamiento)
+
+**Sesion D1** - Accesibilidad (skip-to-content, focus trap modals, aria-describedby, WCAG 2.1 AA) `[ ]`
+**Sesion D2** - E2E tests con Playwright `[ ]`
+**Sesion D3** - Dashboard mejorado (revenue chart, agenda del dia) `[ ]`
+**Sesion D4** - Social (chat jugadores, valoraciones, buscar jugadores) `[ ]`
+**Sesion D5** - CI/CD (GitHub Actions: lint + test + build en PR) `[ ]`
+
+### Orden recomendado
+Sprint 1: A1, A2 → Sprint 2: A3, A5 → Sprint 3: A4, B4 → Sprint 4: B1, B3 → Sprint 5: B2, B5 → Sprint 6: C1 → Beta launch → Sprint 7+: C2-C5, D1-D5

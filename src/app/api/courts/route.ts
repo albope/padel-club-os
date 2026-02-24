@@ -1,6 +1,7 @@
 import { db } from "@/lib/db";
 import { requireAuth, isAuthError } from "@/lib/api-auth";
 import { NextResponse } from "next/server";
+import { canCreateCourt } from "@/lib/subscription";
 
 // GET: Obtener todas las pistas del club
 export async function GET() {
@@ -23,8 +24,17 @@ export async function GET() {
 // POST: Crear una nueva pista
 export async function POST(req: Request) {
   try {
-    const auth = await requireAuth("courts:create")
+    const auth = await requireAuth("courts:create", { requireSubscription: true })
     if (isAuthError(auth)) return auth
+
+    // Verificar limite de pistas del plan
+    const check = await canCreateCourt(auth.session.user.clubId)
+    if (!check.allowed) {
+      return NextResponse.json(
+        { error: check.reason, code: "PLAN_LIMIT_REACHED" },
+        { status: 403 }
+      )
+    }
 
     const body = await req.json();
     const { name, type } = body;

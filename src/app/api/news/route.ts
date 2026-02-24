@@ -32,7 +32,7 @@ export async function GET() {
 // POST: Crear nueva noticia
 export async function POST(req: Request) {
   try {
-    const auth = await requireAuth("news:create")
+    const auth = await requireAuth("news:create", { requireSubscription: true })
     if (isAuthError(auth)) return auth
 
     const body = await req.json()

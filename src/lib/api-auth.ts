@@ -1,8 +1,9 @@
 import { getServerSession } from "next-auth"
 import { NextResponse } from "next/server"
 import { authOptions } from "./auth"
-import { Permission, hasPermission } from "./permissions"
+import { Permission, hasPermission, ADMIN_ROLES } from "./permissions"
 import { UserRole } from "@prisma/client"
+import { isSubscriptionActive } from "./subscription"
 
 interface AuthResult {
   session: {
@@ -12,8 +13,15 @@ interface AuthResult {
       role: UserRole
       name?: string | null
       email?: string | null
+      subscriptionStatus?: string | null
+      trialEndsAt?: string | null
     }
   }
+}
+
+interface RequireAuthOptions {
+  /** Si true, verifica que la suscripcion este activa (solo aplica a roles admin) */
+  requireSubscription?: boolean
 }
 
 /**
@@ -22,11 +30,16 @@ interface AuthResult {
  *
  * Uso:
  *   const auth = await requireAuth("bookings:create")
- *   if (auth instanceof NextResponse) return auth
+ *   if (isAuthError(auth)) return auth
  *   const { session } = auth
+ *
+ * Con verificacion de suscripcion:
+ *   const auth = await requireAuth("courts:create", { requireSubscription: true })
+ *   if (isAuthError(auth)) return auth
  */
 export async function requireAuth(
-  permission?: Permission
+  permission?: Permission,
+  options?: RequireAuthOptions
 ): Promise<AuthResult | NextResponse> {
   const session = await getServerSession(authOptions)
 
@@ -51,6 +64,24 @@ export async function requireAuth(
     )
   }
 
+  // Verificar suscripcion activa si se solicita (solo para roles admin)
+  if (options?.requireSubscription && ADMIN_ROLES.includes(session.user.role as UserRole)) {
+    const status = session.user.subscriptionStatus ?? "trialing"
+    const trialEndsAt = session.user.trialEndsAt ? new Date(session.user.trialEndsAt) : null
+    const activa = isSubscriptionActive(status, trialEndsAt)
+
+    if (!activa) {
+      return NextResponse.json(
+        {
+          error: "Suscripcion inactiva",
+          code: "SUBSCRIPTION_INACTIVE",
+          message: "Tu suscripcion ha expirado o fue cancelada. Actualiza tu plan en Facturacion para continuar.",
+        },
+        { status: 403 }
+      )
+    }
+  }
+
   return {
     session: {
       user: {
@@ -59,6 +90,8 @@ export async function requireAuth(
         role: session.user.role as UserRole,
         name: session.user.name,
         email: session.user.email,
+        subscriptionStatus: session.user.subscriptionStatus,
+        trialEndsAt: session.user.trialEndsAt,
       },
     },
   }

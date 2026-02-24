@@ -27,7 +27,7 @@ export async function GET() {
 // POST: Crear una nueva reserva con deteccion de solapamiento
 export async function POST(req: Request) {
   try {
-    const auth = await requireAuth("bookings:create")
+    const auth = await requireAuth("bookings:create", { requireSubscription: true })
     if (isAuthError(auth)) return auth
 
     const body = await req.json();

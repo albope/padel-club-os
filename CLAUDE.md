@@ -340,11 +340,18 @@ Revisa las secciones de estado en CLAUDE.md y MEMORY.md para ver que esta COMPLE
 
 ### BLOQUE A: CRITICO (sin esto no se lanza)
 
-**Sesion A1 - Enforcement de suscripcion Stripe** `[ ]`
-- Middleware/helper que valide `subscriptionStatus` en `requireAuth()` - bloquear operaciones si trial expirado/cancelado
-- Gating de features por plan (Starter: max 4 pistas, Pro: ilimitado, etc.)
-- Redirigir a `/dashboard/facturacion` cuando la suscripcion no esta activa
-- Manejar webhook `customer.subscription.trial_will_end` (aviso 3 dias antes)
+**Sesion A1 - Enforcement de suscripcion Stripe** `[x]`
+- [x] src/lib/subscription.ts: isSubscriptionActive(), getSubscriptionInfo(), canCreateCourt/Member/Admin()
+- [x] subscriptionStatus y trialEndsAt en JWT token (auth.ts) para verificacion sin DB en middleware
+- [x] requireAuth() acepta `{ requireSubscription: true }` - bloquea operaciones si trial expirado/cancelado
+- [x] Middleware redirige /dashboard/* a /dashboard/facturacion si suscripcion inactiva (excepto /facturacion y /ajustes)
+- [x] Gating por plan: canCreateCourt (Starter: max 4), canCreateMember (Starter: 50, Pro: 500), canCreateAdmin
+- [x] API routes protegidas: courts:create, users:create, bookings:create, competitions:create, open-matches:create, news:create
+- [x] Registro jugador: verifica suscripcion activa + limite socios del club
+- [x] Webhook customer.subscription.trial_will_end: notifica admins 3 dias antes
+- [x] SubscriptionBanner mejorado: banners criticos no cerrables (canceled, trial expirado)
+- [x] SubscriptionGate.tsx: componente reutilizable para bloqueo visual
+- [x] Build exitoso
 
 **Sesion A2 - Cabeceras de seguridad** `[ ]`
 - Añadir en `next.config.mjs`: Content-Security-Policy, Strict-Transport-Security, X-Frame-Options, X-Content-Type-Options, Referrer-Policy

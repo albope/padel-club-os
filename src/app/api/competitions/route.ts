@@ -27,7 +27,7 @@ export async function GET() {
 // POST: Crear una nueva competicion
 export async function POST(req: Request) {
   try {
-    const auth = await requireAuth("competitions:create")
+    const auth = await requireAuth("competitions:create", { requireSubscription: true })
     if (isAuthError(auth)) return auth
 
     const body = await req.json();

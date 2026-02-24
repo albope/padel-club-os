@@ -7,7 +7,7 @@ import { calcularPrecioReserva } from "@/lib/pricing";
 // POST: Crear una nueva partida abierta
 export async function POST(req: Request) {
   try {
-    const auth = await requireAuth("open-matches:create")
+    const auth = await requireAuth("open-matches:create", { requireSubscription: true })
     if (isAuthError(auth)) return auth
     const clubId = auth.session.user.clubId;
 

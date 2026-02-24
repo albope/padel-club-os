@@ -75,6 +75,17 @@ export const authOptions: NextAuthOptions = {
           token.role = dbUser.role;
         }
       }
+      // Refrescar estado de suscripcion periodicamente (cada request de JWT)
+      if (token.clubId) {
+        const club = await db.club.findUnique({
+          where: { id: token.clubId },
+          select: { subscriptionStatus: true, trialEndsAt: true },
+        });
+        if (club) {
+          token.subscriptionStatus = club.subscriptionStatus;
+          token.trialEndsAt = club.trialEndsAt?.toISOString() ?? null;
+        }
+      }
       return token;
     },
     async session({ session, token }) {
@@ -83,6 +94,8 @@ export const authOptions: NextAuthOptions = {
         session.user.clubId = token.clubId as string | null;
         session.user.clubName = token.clubName as string | null;
         session.user.role = token.role;
+        session.user.subscriptionStatus = token.subscriptionStatus as string | null;
+        session.user.trialEndsAt = token.trialEndsAt as string | null;
       }
       return session;
     }

@@ -1,6 +1,31 @@
 import { withAuth } from "next-auth/middleware"
 import { NextResponse } from "next/server"
 
+// Rutas del dashboard exentas de verificacion de suscripcion
+// (el admin necesita acceder a estas aunque la suscripcion este inactiva)
+const SUBSCRIPTION_EXEMPT_PATHS = [
+  "/dashboard/facturacion",
+  "/dashboard/ajustes",
+]
+
+/**
+ * Verifica si la suscripcion esta activa basandose en el token JWT.
+ * Replica la logica de isSubscriptionActive() de subscription.ts
+ * para evitar imports dinamicos en middleware Edge.
+ */
+function isTokenSubscriptionActive(token: { subscriptionStatus?: string | null; trialEndsAt?: string | null }): boolean {
+  const status = token.subscriptionStatus ?? "trialing"
+
+  if (status === "active") return true
+
+  if (status === "trialing") {
+    if (!token.trialEndsAt) return true
+    return new Date(token.trialEndsAt) > new Date()
+  }
+
+  return false
+}
+
 export default withAuth(
   function middleware(req) {
     const { pathname } = req.nextUrl
@@ -12,10 +37,15 @@ export default withAuth(
       if (!token?.role || !adminRoles.includes(token.role as string)) {
         // Si es PLAYER, redirigir al portal de su club
         if (token?.role === "PLAYER" && token?.clubId) {
-          // Buscar slug no es posible en middleware, redirigir a /
           return NextResponse.redirect(new URL("/", req.url))
         }
         return NextResponse.redirect(new URL("/login", req.url))
+      }
+
+      // Verificar suscripcion activa para rutas del dashboard
+      const isExempt = SUBSCRIPTION_EXEMPT_PATHS.some((p) => pathname.startsWith(p))
+      if (!isExempt && !isTokenSubscriptionActive(token)) {
+        return NextResponse.redirect(new URL("/dashboard/facturacion", req.url))
       }
     }
 
@@ -31,10 +61,14 @@ export default withAuth(
           pathname === "/" ||
           pathname.startsWith("/login") ||
           pathname.startsWith("/register") ||
+          pathname.startsWith("/forgot-password") ||
+          pathname.startsWith("/reset-password") ||
           pathname.startsWith("/auth") ||
           pathname.startsWith("/api/auth") ||
           pathname.startsWith("/api/register") ||
           pathname.startsWith("/api/stripe/webhook") ||
+          pathname.startsWith("/api/stripe/checkout") ||
+          pathname.startsWith("/api/stripe/portal") ||
           pathname.startsWith("/api/cron") ||
           pathname.startsWith("/api/contact") ||
           pathname.startsWith("/api/blog/public") ||

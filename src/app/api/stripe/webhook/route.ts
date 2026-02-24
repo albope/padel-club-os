@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
-import { stripe, constructWebhookEvent, getPlanKeyFromPriceId } from "@/lib/stripe"
+import { constructWebhookEvent, getPlanKeyFromPriceId } from "@/lib/stripe"
 import { db } from "@/lib/db"
+import { crearNotificacion } from "@/lib/notifications"
 import type Stripe from "stripe"
 
 export async function POST(req: Request) {
@@ -136,6 +137,36 @@ export async function POST(req: Request) {
           where: { id: club.id },
           data: { subscriptionStatus: "past_due" },
         })
+        break
+      }
+
+      case "customer.subscription.trial_will_end": {
+        // Stripe envia este evento 3 dias antes de que expire el trial
+        const subscription = event.data.object as Stripe.Subscription
+        const club = await db.club.findFirst({
+          where: { stripeSubscriptionId: subscription.id },
+        })
+        if (!club) break
+
+        // Notificar a todos los admins del club
+        const admins = await db.user.findMany({
+          where: {
+            clubId: club.id,
+            role: { in: ["SUPER_ADMIN", "CLUB_ADMIN"] },
+          },
+          select: { id: true },
+        })
+
+        for (const admin of admins) {
+          await crearNotificacion({
+            tipo: "subscription_trial_ending",
+            titulo: "Tu prueba gratuita termina pronto",
+            mensaje: "Quedan 3 dias de prueba gratuita. Elige un plan para seguir usando Padel Club OS sin interrupciones.",
+            userId: admin.id,
+            clubId: club.id,
+            url: "/dashboard/facturacion",
+          })
+        }
         break
       }
     }

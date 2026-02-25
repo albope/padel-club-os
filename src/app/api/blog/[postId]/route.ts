@@ -7,27 +7,31 @@ const BlogUpdateSchema = z.object({
   title: z
     .string()
     .min(3, "El titulo debe tener al menos 3 caracteres.")
+    .max(200, "El titulo no puede superar 200 caracteres.")
     .optional(),
   slug: z
     .string()
     .min(3, "El slug debe tener al menos 3 caracteres.")
+    .max(200)
     .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, "Slug no valido.")
     .optional(),
-  content: z.string().min(1, "El contenido es requerido.").optional(),
+  content: z.string().min(1, "El contenido es requerido.").max(100000, "El contenido es demasiado largo.").optional(),
   excerpt: z
     .string()
     .min(10, "El extracto debe tener al menos 10 caracteres.")
+    .max(500, "El extracto no puede superar 500 caracteres.")
     .optional(),
-  category: z.string().min(1).optional(),
+  category: z.string().min(1).max(50).optional(),
   published: z.boolean().optional(),
   imageUrl: z
     .string()
     .url("URL no valida")
+    .max(2000)
     .optional()
     .nullable()
     .or(z.literal("")),
-  authorName: z.string().min(2).optional(),
-  readTime: z.string().optional().nullable().or(z.literal("")),
+  authorName: z.string().min(2).max(100).optional(),
+  readTime: z.string().max(20).optional().nullable().or(z.literal("")),
 })
 
 // GET: Obtener un post por ID (admin)

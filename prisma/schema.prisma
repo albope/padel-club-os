@@ -100,6 +100,7 @@ model User {
   playerStats   PlayerStats[]
   notifications     Notification[]
   pushSubscriptions PushSubscription[]
+  cookieConsents    CookieConsent[]
 }
 
 // --- NextAuth Models ---
@@ -412,4 +413,17 @@ model PushSubscription {
   createdAt DateTime @default(now())
 
   @@unique([endpoint])
+}
+
+// --- REGISTRO DE CONSENTIMIENTO RGPD ---
+model CookieConsent {
+  id        String   @id @default(cuid())
+  tipo      String   // "all" | "essential"
+  ip        String?  // IP anonimizada (ultimo octeto → xxx)
+  userAgent String?
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  createdAt DateTime @default(now())
+
+  @@index([userId])
 }

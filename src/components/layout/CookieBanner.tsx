@@ -1,32 +1,29 @@
 'use client'
 
-import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useTranslations } from 'next-intl'
 import { Cookie } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-
-const COOKIE_CONSENT_KEY = 'padel-cookie-consent'
-
-type ConsentValue = 'all' | 'essential'
+import { useConsentimiento } from '@/hooks/use-consentimiento'
 
 export default function CookieBanner() {
   const t = useTranslations('cookies')
-  const [visible, setVisible] = useState(false)
+  const { decidido, aceptar } = useConsentimiento()
 
-  useEffect(() => {
-    const consent = localStorage.getItem(COOKIE_CONSENT_KEY)
-    if (!consent) {
-      setVisible(true)
-    }
-  }, [])
+  function handleAccept(tipo: 'all' | 'essential') {
+    aceptar(tipo)
 
-  function handleAccept(value: ConsentValue) {
-    localStorage.setItem(COOKIE_CONSENT_KEY, value)
-    setVisible(false)
+    // Log de consentimiento en DB (fire-and-forget)
+    fetch('/api/consent', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ tipo }),
+    }).catch(() => {
+      // Silenciar: el consentimiento ya se guardo en localStorage
+    })
   }
 
-  if (!visible) return null
+  if (decidido) return null
 
   return (
     <div className="fixed bottom-0 left-0 right-0 z-50 border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">

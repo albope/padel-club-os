@@ -70,7 +70,9 @@ export default withAuth(
           pathname.startsWith("/api/stripe/checkout") ||
           pathname.startsWith("/api/stripe/portal") ||
           pathname.startsWith("/api/cron") ||
+          pathname.startsWith("/api/consent") ||
           pathname.startsWith("/api/contact") ||
+          pathname.startsWith("/api/health") ||
           pathname.startsWith("/api/blog/public") ||
           pathname.startsWith("/api/club/") ||
           pathname.startsWith("/club")

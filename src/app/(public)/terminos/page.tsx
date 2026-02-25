@@ -3,8 +3,9 @@ import Link from "next/link"
 import { ArrowLeft } from "lucide-react"
 
 export const metadata: Metadata = {
-  title: "Terminos de Uso | Padel Club OS",
+  title: "Terminos de Uso",
   description: "Terminos y condiciones de uso de Padel Club OS.",
+  alternates: { canonical: "/terminos" },
 }
 
 export default function TerminosPage() {

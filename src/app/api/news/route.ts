@@ -5,10 +5,10 @@ import * as z from "zod"
 import { notificarClub } from "@/lib/notifications"
 
 const NewsCreateSchema = z.object({
-  title: z.string().min(3, "El titulo debe tener al menos 3 caracteres."),
-  content: z.string().min(1, "El contenido es requerido."),
+  title: z.string().min(3, "El titulo debe tener al menos 3 caracteres.").max(200, "El titulo no puede superar 200 caracteres."),
+  content: z.string().min(1, "El contenido es requerido.").max(50000, "El contenido es demasiado largo."),
   published: z.boolean().optional().default(false),
-  imageUrl: z.string().url("URL no valida").optional().or(z.literal("")).or(z.literal(null)),
+  imageUrl: z.string().url("URL no valida").max(2000).optional().or(z.literal("")).or(z.literal(null)),
 })
 
 // GET: Listar todas las noticias del club (admin)

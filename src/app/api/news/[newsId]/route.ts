@@ -4,10 +4,10 @@ import { NextResponse } from "next/server"
 import * as z from "zod"
 
 const NewsUpdateSchema = z.object({
-  title: z.string().min(3, "El titulo debe tener al menos 3 caracteres.").optional(),
-  content: z.string().min(1, "El contenido es requerido.").optional(),
+  title: z.string().min(3, "El titulo debe tener al menos 3 caracteres.").max(200, "El titulo no puede superar 200 caracteres.").optional(),
+  content: z.string().min(1, "El contenido es requerido.").max(50000, "El contenido es demasiado largo.").optional(),
   published: z.boolean().optional(),
-  imageUrl: z.string().url("URL no valida").optional().nullable().or(z.literal("")),
+  imageUrl: z.string().url("URL no valida").max(2000).optional().nullable().or(z.literal("")),
 })
 
 // GET: Obtener una noticia por ID

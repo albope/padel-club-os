@@ -4,26 +4,28 @@ import { NextResponse } from "next/server"
 import * as z from "zod"
 
 const BlogCreateSchema = z.object({
-  title: z.string().min(3, "El titulo debe tener al menos 3 caracteres."),
+  title: z.string().min(3, "El titulo debe tener al menos 3 caracteres.").max(200, "El titulo no puede superar 200 caracteres."),
   slug: z
     .string()
     .min(3, "El slug debe tener al menos 3 caracteres.")
+    .max(200)
     .regex(
       /^[a-z0-9]+(?:-[a-z0-9]+)*$/,
       "El slug solo puede contener letras minusculas, numeros y guiones."
     ),
-  content: z.string().min(1, "El contenido es requerido."),
-  excerpt: z.string().min(10, "El extracto debe tener al menos 10 caracteres."),
-  category: z.string().min(1, "La categoria es requerida."),
+  content: z.string().min(1, "El contenido es requerido.").max(100000, "El contenido es demasiado largo."),
+  excerpt: z.string().min(10, "El extracto debe tener al menos 10 caracteres.").max(500, "El extracto no puede superar 500 caracteres."),
+  category: z.string().min(1, "La categoria es requerida.").max(50),
   published: z.boolean().optional().default(false),
   imageUrl: z
     .string()
     .url("URL no valida")
+    .max(2000)
     .optional()
     .or(z.literal(""))
     .or(z.literal(null)),
-  authorName: z.string().min(2, "El nombre del autor es requerido."),
-  readTime: z.string().optional().or(z.literal("")),
+  authorName: z.string().min(2, "El nombre del autor es requerido.").max(100),
+  readTime: z.string().max(20).optional().or(z.literal("")),
 })
 
 // GET: Listar todos los posts del blog (admin)

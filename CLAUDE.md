@@ -102,6 +102,7 @@ src/
     web-push.ts     # Cliente web-push lazy (Proxy pattern)
     elo.ts          # Sistema ELO para padel dobles (calculateMatchRatings, eloANivel)
     csv.ts          # Utilidades CSV (escaparCSV, generarCSV, formatearFechaCSV)
+    rate-limit.ts   # Rate limiting en memoria (crearRateLimiter, obtenerIP)
     tokens.ts       # Tokens de recuperacion de contraseña (SHA-256, 1h expiracion)
     db.ts           # Prisma client singleton
     utils.ts        # cn() helper
@@ -353,10 +354,13 @@ Revisa las secciones de estado en CLAUDE.md y MEMORY.md para ver que esta COMPLE
 - [x] SubscriptionGate.tsx: componente reutilizable para bloqueo visual
 - [x] Build exitoso
 
-**Sesion A2 - Cabeceras de seguridad** `[ ]`
-- Añadir en `next.config.mjs`: Content-Security-Policy, Strict-Transport-Security, X-Frame-Options, X-Content-Type-Options, Referrer-Policy
-- Revisar rate limiting en APIs criticas (bookings, users, auth/login)
-- Sanitizacion de inputs HTML (noticias, blog - prevenir XSS)
+**Sesion A2 - Cabeceras de seguridad** `[x]`
+- [x] Security headers en next.config.mjs: CSP, HSTS, X-Frame-Options, X-Content-Type-Options, Referrer-Policy, Permissions-Policy, X-DNS-Prefetch-Control
+- [x] src/lib/rate-limit.ts: crearRateLimiter() factory + obtenerIP() (reemplaza codigo duplicado)
+- [x] Rate limiting centralizado: forgot-password (3/15min), reset-password (5/15min), contact (3/15min), register admin (5/1h), register player (5/1h)
+- [x] Zod validation en /api/register y /api/register/player (antes no tenian schemas)
+- [x] .max() constraints en todos los schemas Zod: news, blog, contact, register
+- [x] Build exitoso
 
 **Sesion A3 - SEO basico** `[ ]`
 - `robots.ts` (dynamic) + `sitemap.ts` (dynamic, incluir paginas publicas + clubs + blog posts)

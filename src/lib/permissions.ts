@@ -54,6 +54,8 @@ export type Permission =
   // Perfil propio
   | "profile:read"
   | "profile:update"
+  | "profile:export"
+  | "profile:delete"
   // Notificaciones
   | "notifications:read"
   | "notifications:update"
@@ -72,7 +74,7 @@ const rolePermissions: Record<UserRole, Permission[]> = {
     "court-pricing:read", "court-pricing:update",
     "analytics:read",
     "blog:read", "blog:create", "blog:update", "blog:delete",
-    "profile:read", "profile:update",
+    "profile:read", "profile:update", "profile:export", "profile:delete",
     "notifications:read", "notifications:update",
   ],
   CLUB_ADMIN: [
@@ -87,7 +89,7 @@ const rolePermissions: Record<UserRole, Permission[]> = {
     "court-pricing:read", "court-pricing:update",
     "analytics:read",
     "blog:read", "blog:create", "blog:update", "blog:delete",
-    "profile:read", "profile:update",
+    "profile:read", "profile:update", "profile:export", "profile:delete",
     "notifications:read", "notifications:update",
   ],
   STAFF: [
@@ -98,7 +100,7 @@ const rolePermissions: Record<UserRole, Permission[]> = {
     "open-matches:read", "open-matches:create", "open-matches:join", "open-matches:update", "open-matches:delete",
     "news:read",
     "court-pricing:read",
-    "profile:read", "profile:update",
+    "profile:read", "profile:update", "profile:export", "profile:delete",
     "notifications:read", "notifications:update",
   ],
   PLAYER: [
@@ -106,7 +108,7 @@ const rolePermissions: Record<UserRole, Permission[]> = {
     "courts:read",
     "competitions:read",
     "open-matches:read", "open-matches:create", "open-matches:join",
-    "profile:read", "profile:update",
+    "profile:read", "profile:update", "profile:export", "profile:delete",
     "notifications:read", "notifications:update",
   ],
 }

@@ -14,9 +14,18 @@ import { Button } from "@/components/ui/button"
 import ContactForm from "@/components/marketing/ContactForm"
 
 export const metadata: Metadata = {
-  title: "Contacto | Padel Club OS",
+  title: "Contacto",
   description:
     "Contacta con el equipo de Padel Club OS. Estamos aqui para ayudarte a digitalizar tu club de padel.",
+  openGraph: {
+    title: "Contacto - Padel Club OS",
+    description:
+      "Contacta con el equipo de Padel Club OS. Estamos aqui para ayudarte a digitalizar tu club de padel.",
+    url: "/contacto",
+  },
+  alternates: {
+    canonical: "/contacto",
+  },
 }
 
 const infoContacto = [

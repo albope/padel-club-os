@@ -1,11 +1,12 @@
 import { db } from "@/lib/db"
 import { enviarEmailContacto } from "@/lib/email"
+import { crearRateLimiter, obtenerIP } from "@/lib/rate-limit"
 import { NextResponse } from "next/server"
 import * as z from "zod"
 
 const ContactoSchema = z.object({
-  nombre: z.string().min(2, "El nombre debe tener al menos 2 caracteres."),
-  email: z.string().email("Email no valido."),
+  nombre: z.string().min(2, "El nombre debe tener al menos 2 caracteres.").max(100),
+  email: z.string().email("Email no valido.").max(255),
   asunto: z.enum(
     [
       "Informacion general",
@@ -16,37 +17,16 @@ const ContactoSchema = z.object({
     ],
     { errorMap: () => ({ message: "Selecciona un asunto valido." }) }
   ),
-  mensaje: z.string().min(10, "El mensaje debe tener al menos 10 caracteres."),
+  mensaje: z.string().min(10, "El mensaje debe tener al menos 10 caracteres.").max(5000),
 })
 
-// Rate limiting en memoria: max 3 envios por IP cada 15 minutos
-const rateLimitMap = new Map<string, { count: number; resetAt: number }>()
-const RATE_LIMIT_MAX = 3
-const RATE_LIMIT_WINDOW = 15 * 60 * 1000
-
-function checkRateLimit(ip: string): boolean {
-  const now = Date.now()
-  const entry = rateLimitMap.get(ip)
-
-  if (!entry || now > entry.resetAt) {
-    rateLimitMap.set(ip, { count: 1, resetAt: now + RATE_LIMIT_WINDOW })
-    return true
-  }
-
-  if (entry.count >= RATE_LIMIT_MAX) {
-    return false
-  }
-
-  entry.count++
-  return true
-}
+const limiter = crearRateLimiter({ maxRequests: 3, windowMs: 15 * 60 * 1000 })
 
 // POST: Enviar formulario de contacto (publico, sin auth)
 export async function POST(req: Request) {
   try {
-    const forwarded = req.headers.get("x-forwarded-for")
-    const ip = forwarded?.split(",")[0]?.trim() || "unknown"
-    if (!checkRateLimit(ip)) {
+    const ip = obtenerIP(req)
+    if (!limiter.verificar(ip)) {
       return NextResponse.json(
         { error: "Demasiadas solicitudes. Intentalo de nuevo en unos minutos." },
         { status: 429 }

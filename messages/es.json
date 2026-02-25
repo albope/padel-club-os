@@ -169,5 +169,26 @@
     "learnMore": "Mas informacion",
     "acceptAll": "Aceptar todas",
     "onlyEssential": "Solo esenciales"
+  },
+  "rgpd": {
+    "title": "Mis datos y privacidad",
+    "description": "Segun el Reglamento General de Proteccion de Datos (RGPD), tienes derecho a exportar y eliminar tus datos personales.",
+    "exportData": "Exportar mis datos",
+    "exporting": "Exportando...",
+    "exportSuccess": "Exportacion completada",
+    "exportSuccessDesc": "Tus datos se han descargado correctamente.",
+    "exportError": "No se pudieron exportar tus datos.",
+    "deleteAccount": "Eliminar mi cuenta",
+    "deleteTitle": "Eliminar cuenta y datos personales",
+    "deleteWarning": "Esta accion es irreversible. Se eliminaran tus datos personales, estadisticas, notificaciones y suscripciones push.",
+    "deleteKeepBookings": "Tu historial de reservas se conservara de forma anonima para la contabilidad del club.",
+    "deletePasswordLabel": "Introduce tu contrasena para confirmar",
+    "deleteConfirmLabel": "Escribe ELIMINAR MIS DATOS para confirmar",
+    "deleteButton": "Eliminar permanentemente",
+    "deleting": "Eliminando...",
+    "deleteSuccess": "Cuenta eliminada",
+    "deleteSuccessDesc": "Tus datos personales han sido eliminados.",
+    "deleteError": "No se pudo eliminar la cuenta.",
+    "incorrectPassword": "Contrasena incorrecta."
   }
 }

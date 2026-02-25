@@ -5,7 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { useSession, signOut } from 'next-auth/react';
 import {
   User, Mail, Phone, Calendar, MapPin, Loader2,
-  LogOut, Save, History, X,
+  LogOut, Save, History, X, ShieldCheck, Download, Trash2,
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -60,6 +60,13 @@ export default function PlayerProfilePage() {
     descripcion: string;
   }>({ open: false, bookingId: '', descripcion: '' });
   const [isCancelling, setIsCancelling] = useState(false);
+
+  // RGPD - Eliminacion de cuenta
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [deletePassword, setDeletePassword] = useState('');
+  const [deleteConfirmation, setDeleteConfirmation] = useState('');
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
 
   // Form state
   const [name, setName] = useState('');
@@ -147,6 +154,64 @@ export default function PlayerProfilePage() {
   const handleLogout = async () => {
     await signOut({ redirect: false });
     router.push(`/club/${slug}`);
+  };
+
+  const handleExportData = async () => {
+    setIsExporting(true);
+    try {
+      const res = await fetch('/api/player/data-export');
+      if (res.ok) {
+        const blob = await res.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `mis-datos-padel-${new Date().toISOString().slice(0, 10)}.json`;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        a.remove();
+        toast({ title: "Exportacion completada", description: "Tus datos se han descargado correctamente.", variant: "success" });
+      } else {
+        const data = await res.json();
+        toast({ title: "Error", description: data.error || "No se pudieron exportar tus datos.", variant: "destructive" });
+      }
+    } catch {
+      toast({ title: "Error", description: "Error de conexión.", variant: "destructive" });
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
+  const handleDeleteAccount = async () => {
+    if (deleteConfirmation !== 'ELIMINAR MIS DATOS') {
+      toast({ title: "Error", description: "Debes escribir ELIMINAR MIS DATOS exactamente.", variant: "destructive" });
+      return;
+    }
+
+    setIsDeleting(true);
+    try {
+      const res = await fetch('/api/player/data-delete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contrasena: deletePassword,
+          confirmacion: deleteConfirmation,
+        }),
+      });
+
+      if (res.ok) {
+        toast({ title: "Cuenta eliminada", description: "Tus datos personales han sido eliminados.", variant: "success" });
+        await signOut({ redirect: false });
+        router.push(`/club/${slug}`);
+      } else {
+        const data = await res.json();
+        toast({ title: "Error", description: data.error || "No se pudo eliminar la cuenta.", variant: "destructive" });
+      }
+    } catch {
+      toast({ title: "Error", description: "Error de conexión.", variant: "destructive" });
+    } finally {
+      setIsDeleting(false);
+    }
   };
 
   if (isLoading || status === 'loading') {
@@ -290,6 +355,42 @@ export default function PlayerProfilePage() {
         </CardContent>
       </Card>
 
+      {/* Seccion RGPD - Datos y privacidad */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg flex items-center gap-2">
+            <ShieldCheck className="h-5 w-5" />
+            Mis datos y privacidad
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <p className="text-sm text-muted-foreground">
+            Segun el Reglamento General de Proteccion de Datos (RGPD), tienes
+            derecho a exportar y eliminar tus datos personales.
+          </p>
+          <div className="flex flex-col gap-3 sm:flex-row">
+            <Button
+              variant="outline"
+              onClick={handleExportData}
+              disabled={isExporting}
+            >
+              {isExporting ? (
+                <><Loader2 className="h-4 w-4 animate-spin mr-2" /> Exportando...</>
+              ) : (
+                <><Download className="h-4 w-4 mr-2" /> Exportar mis datos</>
+              )}
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={() => setDeleteDialogOpen(true)}
+            >
+              <Trash2 className="h-4 w-4 mr-2" />
+              Eliminar mi cuenta
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Dialog de confirmacion de cancelacion */}
       <AlertDialog open={cancelDialog.open} onOpenChange={(open) => setCancelDialog((prev) => ({ ...prev, open }))}>
         <AlertDialogContent>
@@ -312,6 +413,70 @@ export default function PlayerProfilePage() {
                 <><Loader2 className="h-4 w-4 animate-spin mr-2" /> Cancelando...</>
               ) : (
                 'Cancelar reserva'
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Dialog de confirmacion de eliminacion de cuenta */}
+      <AlertDialog open={deleteDialogOpen} onOpenChange={(open) => {
+        setDeleteDialogOpen(open);
+        if (!open) {
+          setDeletePassword('');
+          setDeleteConfirmation('');
+        }
+      }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Eliminar cuenta y datos personales</AlertDialogTitle>
+            <AlertDialogDescription asChild>
+              <div className="space-y-3">
+                <p>
+                  Esta accion es <strong className="text-foreground">irreversible</strong>. Se eliminaran
+                  tus datos personales, estadisticas, notificaciones y suscripciones push.
+                </p>
+                <p>
+                  Tu historial de reservas se conservara de forma anonima para la
+                  contabilidad del club.
+                </p>
+                <div className="space-y-2 pt-2">
+                  <div className="space-y-1.5">
+                    <Label htmlFor="delete-password">Introduce tu contraseña para confirmar</Label>
+                    <Input
+                      id="delete-password"
+                      type="password"
+                      value={deletePassword}
+                      onChange={(e) => setDeletePassword(e.target.value)}
+                      placeholder="Tu contraseña actual"
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label htmlFor="delete-confirmation">
+                      Escribe <span className="font-mono font-semibold">ELIMINAR MIS DATOS</span> para confirmar
+                    </Label>
+                    <Input
+                      id="delete-confirmation"
+                      value={deleteConfirmation}
+                      onChange={(e) => setDeleteConfirmation(e.target.value)}
+                      placeholder="ELIMINAR MIS DATOS"
+                    />
+                  </div>
+                </div>
+              </div>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeleting}>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteAccount}
+              disabled={isDeleting || deleteConfirmation !== 'ELIMINAR MIS DATOS' || !deletePassword}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {isDeleting ? (
+                <><Loader2 className="h-4 w-4 animate-spin mr-2" /> Eliminando...</>
+              ) : (
+                'Eliminar permanentemente'
               )}
             </AlertDialogAction>
           </AlertDialogFooter>

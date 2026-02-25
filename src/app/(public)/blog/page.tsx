@@ -5,9 +5,18 @@ import { Badge } from "@/components/ui/badge"
 import { db } from "@/lib/db"
 
 export const metadata: Metadata = {
-  title: "Blog | Padel Club OS",
+  title: "Blog",
   description:
     "Articulos sobre gestion de clubes de padel, producto, consejos y novedades de Padel Club OS.",
+  openGraph: {
+    title: "Blog - Padel Club OS",
+    description:
+      "Articulos sobre gestion de clubes de padel, producto, consejos y novedades de Padel Club OS.",
+    url: "/blog",
+  },
+  alternates: {
+    canonical: "/blog",
+  },
 }
 
 function obtenerIniciales(nombre: string) {

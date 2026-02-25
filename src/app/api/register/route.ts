@@ -1,6 +1,16 @@
 import { db } from "@/lib/db";
 import { hash } from "bcrypt";
+import { crearRateLimiter, obtenerIP } from "@/lib/rate-limit";
 import { NextResponse } from "next/server";
+import * as z from "zod";
+
+const RegistroAdminSchema = z.object({
+  email: z.string().email("Email no valido.").max(255),
+  password: z.string().min(8, "La contrasena debe tener al menos 8 caracteres.").max(128),
+  name: z.string().min(2, "El nombre debe tener al menos 2 caracteres.").max(100),
+});
+
+const limiter = crearRateLimiter({ maxRequests: 5, windowMs: 60 * 60 * 1000 });
 
 // Genera un slug unico a partir de un nombre
 async function generateUniqueSlug(name: string): Promise<string> {
@@ -23,12 +33,25 @@ async function generateUniqueSlug(name: string): Promise<string> {
 
 export async function POST(req: Request) {
   try {
-    const body = await req.json();
-    const { email, password, name } = body;
-
-    if (!email || !password || !name) {
-      return new NextResponse("Faltan campos requeridos.", { status: 400 });
+    const ip = obtenerIP(req);
+    if (!limiter.verificar(ip)) {
+      return NextResponse.json(
+        { error: "Demasiadas solicitudes. Intentalo de nuevo mas tarde." },
+        { status: 429 }
+      );
     }
+
+    const body = await req.json();
+    const parsed = RegistroAdminSchema.safeParse(body);
+
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: parsed.error.errors[0].message },
+        { status: 400 }
+      );
+    }
+
+    const { email, password, name } = parsed.data;
 
     const existingUserByEmail = await db.user.findUnique({
       where: { email: email },

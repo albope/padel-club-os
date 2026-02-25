@@ -15,9 +15,18 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 
 export const metadata: Metadata = {
-  title: "Sobre mí | Padel Club OS",
+  title: "Sobre mi",
   description:
-    "Conoce a Alberto Bort, el desarrollador detrás de Padel Club OS. Mi misión es que cada club de pádel en España tenga el software que merece.",
+    "Conoce a Alberto Bort, el desarrollador detras de Padel Club OS. Mi mision es que cada club de padel en Espana tenga el software que merece.",
+  openGraph: {
+    title: "Sobre mi - Padel Club OS",
+    description:
+      "Conoce a Alberto Bort, el desarrollador detras de Padel Club OS. Mi mision es que cada club de padel en Espana tenga el software que merece.",
+    url: "/sobre-nosotros",
+  },
+  alternates: {
+    canonical: "/sobre-nosotros",
+  },
 }
 
 const principios = [

@@ -10,14 +10,30 @@ interface ClubLayoutProps {
 export async function generateMetadata({ params }: { params: { slug: string } }) {
   const club = await db.club.findUnique({
     where: { slug: params.slug },
-    select: { name: true, description: true },
+    select: { name: true, description: true, logoUrl: true },
   });
 
   if (!club) return { title: "Club no encontrado" };
 
+  const descripcion = club.description || `Portal del club ${club.name} - Reservas, partidas y mas`;
+
   return {
-    title: `${club.name} | Padel Club OS`,
-    description: club.description || `Portal del club ${club.name}`,
+    title: {
+      default: club.name,
+      template: `%s | ${club.name}`,
+    },
+    description: descripcion,
+    openGraph: {
+      title: club.name,
+      description: descripcion,
+      url: `/club/${params.slug}`,
+      ...(club.logoUrl && {
+        images: [{ url: club.logoUrl, alt: club.name }],
+      }),
+    },
+    alternates: {
+      canonical: `/club/${params.slug}`,
+    },
   };
 }
 

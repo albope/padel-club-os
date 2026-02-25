@@ -14,14 +14,28 @@ export async function generateMetadata({
 }: BlogPostPageProps): Promise<Metadata> {
   const post = await db.blogPost.findFirst({
     where: { slug: params.slug, published: true },
-    select: { title: true, excerpt: true },
+    select: { title: true, excerpt: true, imageUrl: true, authorName: true, createdAt: true },
   })
 
-  if (!post) return { title: "Articulo no encontrado | Padel Club OS" }
+  if (!post) return { title: "Articulo no encontrado" }
 
   return {
-    title: `${post.title} | Blog Padel Club OS`,
+    title: post.title,
     description: post.excerpt,
+    openGraph: {
+      title: post.title,
+      description: post.excerpt || undefined,
+      url: `/blog/${params.slug}`,
+      type: "article",
+      publishedTime: post.createdAt.toISOString(),
+      authors: [post.authorName],
+      ...(post.imageUrl && {
+        images: [{ url: post.imageUrl, alt: post.title }],
+      }),
+    },
+    alternates: {
+      canonical: `/blog/${params.slug}`,
+    },
   }
 }
 

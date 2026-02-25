@@ -3,8 +3,9 @@ import Link from "next/link"
 import { ArrowLeft } from "lucide-react"
 
 export const metadata: Metadata = {
-  title: "Politica de Privacidad | Padel Club OS",
+  title: "Politica de Privacidad",
   description: "Politica de privacidad de Padel Club OS. Informacion sobre el tratamiento de datos personales.",
+  alternates: { canonical: "/privacidad" },
 }
 
 export default function PrivacidadPage() {
@@ -147,7 +148,9 @@ export default function PrivacidadPage() {
             <li><strong className="text-foreground">Oposicion:</strong> oponerte al tratamiento basado en interes legitimo.</li>
           </ul>
           <p className="mt-3">
-            Para ejercer estos derechos, contactanos en{" "}
+            Puedes ejercer tus derechos de <strong className="text-foreground">portabilidad</strong> y{" "}
+            <strong className="text-foreground">supresion</strong> directamente desde tu perfil de jugador,
+            en la seccion &quot;Mis datos y privacidad&quot;. Para el resto de derechos, contactanos en{" "}
             <a href="mailto:contacto@padelclubos.com" className="text-primary hover:underline">
               contacto@padelclubos.com
             </a>. Responderemos en un plazo maximo de 30 dias.

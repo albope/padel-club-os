@@ -1,42 +1,22 @@
 import { db } from "@/lib/db"
 import { crearTokenRecuperacion } from "@/lib/tokens"
 import { enviarEmailResetPassword } from "@/lib/email"
+import { crearRateLimiter, obtenerIP } from "@/lib/rate-limit"
 import { NextResponse } from "next/server"
 import * as z from "zod"
 
 const ForgotPasswordSchema = z.object({
-  email: z.string().email("Email no valido."),
-  redirectUrl: z.string().optional(),
+  email: z.string().email("Email no valido.").max(255),
+  redirectUrl: z.string().max(500).optional(),
 })
 
-// Rate limiting en memoria: max 3 solicitudes por IP cada 15 minutos
-const rateLimitMap = new Map<string, { count: number; resetAt: number }>()
-const RATE_LIMIT_MAX = 3
-const RATE_LIMIT_WINDOW = 15 * 60 * 1000
-
-function checkRateLimit(ip: string): boolean {
-  const now = Date.now()
-  const entry = rateLimitMap.get(ip)
-
-  if (!entry || now > entry.resetAt) {
-    rateLimitMap.set(ip, { count: 1, resetAt: now + RATE_LIMIT_WINDOW })
-    return true
-  }
-
-  if (entry.count >= RATE_LIMIT_MAX) {
-    return false
-  }
-
-  entry.count++
-  return true
-}
+const limiter = crearRateLimiter({ maxRequests: 3, windowMs: 15 * 60 * 1000 })
 
 export async function POST(req: Request) {
   try {
-    const forwarded = req.headers.get("x-forwarded-for")
-    const ip = forwarded?.split(",")[0]?.trim() || "unknown"
+    const ip = obtenerIP(req)
 
-    if (!checkRateLimit(ip)) {
+    if (!limiter.verificar(ip)) {
       return NextResponse.json(
         { error: "Demasiadas solicitudes. Intentalo de nuevo en unos minutos." },
         { status: 429 }

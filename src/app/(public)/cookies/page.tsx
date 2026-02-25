@@ -3,8 +3,9 @@ import Link from "next/link"
 import { ArrowLeft } from "lucide-react"
 
 export const metadata: Metadata = {
-  title: "Politica de Cookies | Padel Club OS",
+  title: "Politica de Cookies",
   description: "Politica de cookies de Padel Club OS. Informacion sobre el uso de cookies en nuestra plataforma.",
+  alternates: { canonical: "/cookies" },
 }
 
 export default function CookiesPage() {

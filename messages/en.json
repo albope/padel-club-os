@@ -169,5 +169,26 @@
     "learnMore": "Learn more",
     "acceptAll": "Accept all",
     "onlyEssential": "Essential only"
+  },
+  "rgpd": {
+    "title": "My data and privacy",
+    "description": "Under the General Data Protection Regulation (GDPR), you have the right to export and delete your personal data.",
+    "exportData": "Export my data",
+    "exporting": "Exporting...",
+    "exportSuccess": "Export completed",
+    "exportSuccessDesc": "Your data has been downloaded successfully.",
+    "exportError": "Could not export your data.",
+    "deleteAccount": "Delete my account",
+    "deleteTitle": "Delete account and personal data",
+    "deleteWarning": "This action is irreversible. Your personal data, statistics, notifications and push subscriptions will be deleted.",
+    "deleteKeepBookings": "Your booking history will be kept anonymously for the club's accounting.",
+    "deletePasswordLabel": "Enter your password to confirm",
+    "deleteConfirmLabel": "Type DELETE MY DATA to confirm",
+    "deleteButton": "Delete permanently",
+    "deleting": "Deleting...",
+    "deleteSuccess": "Account deleted",
+    "deleteSuccessDesc": "Your personal data has been deleted.",
+    "deleteError": "Could not delete account.",
+    "incorrectPassword": "Incorrect password."
   }
 }

@@ -1,5 +1,7 @@
 import { db } from "@/lib/db"
 import { crearNotificacion } from "@/lib/notifications"
+import { enviarEmailRecordatorioReserva } from "@/lib/email"
+import { logger } from "@/lib/logger"
 import { NextResponse } from "next/server"
 
 // Tiempo de antelacion para enviar recordatorio (1 hora)
@@ -41,7 +43,8 @@ export async function POST(req: Request) {
       },
       include: {
         court: { select: { name: true } },
-        club: { select: { slug: true } },
+        club: { select: { slug: true, name: true } },
+        user: { select: { email: true, name: true } },
       },
     })
 
@@ -68,6 +71,20 @@ export async function POST(req: Request) {
           url: `/club/${reserva.club.slug}/reservar`,
         })
 
+        // Enviar email de recordatorio
+        if (reserva.user?.email) {
+          enviarEmailRecordatorioReserva({
+            email: reserva.user.email,
+            nombre: reserva.user.name || "Jugador",
+            pistaNombre: reserva.court.name,
+            fechaHoraInicio: reserva.startTime,
+            clubNombre: reserva.club.name,
+            clubSlug: reserva.club.slug,
+          }).catch((err) => {
+            logger.error("BOOKING_REMINDER_EMAIL", "Error enviando email de recordatorio", { ruta: "/api/cron/booking-reminders", reservaId: reserva.id }, err)
+          })
+        }
+
         // Marcar como recordatorio enviado
         await db.booking.update({
           where: { id: reserva.id },
@@ -76,12 +93,12 @@ export async function POST(req: Request) {
 
         enviados++
       } catch (error) {
-        console.error(`[BOOKING_REMINDER_ERROR] Reserva ${reserva.id}:`, error)
+        logger.error("BOOKING_REMINDER", "Error procesando recordatorio", { ruta: "/api/cron/booking-reminders", reservaId: reserva.id }, error)
         errores++
       }
     }
 
-    console.log(`[BOOKING_REMINDERS] Procesadas: ${reservas.length}, Enviadas: ${enviados}, Errores: ${errores}`)
+    logger.info("BOOKING_REMINDERS", `Procesadas: ${reservas.length}, Enviadas: ${enviados}, Errores: ${errores}`)
 
     return NextResponse.json({
       procesadas: reservas.length,
@@ -89,7 +106,7 @@ export async function POST(req: Request) {
       errores,
     })
   } catch (error) {
-    console.error("[CRON_BOOKING_REMINDERS_ERROR]", error)
+    logger.error("CRON_BOOKING_REMINDERS", "Error en cron de recordatorios", { ruta: "/api/cron/booking-reminders" }, error)
     return NextResponse.json({ error: "Error interno" }, { status: 500 })
   }
 }

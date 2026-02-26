@@ -1,6 +1,8 @@
 import { db } from "@/lib/db";
 import { hash } from "bcrypt";
 import { crearRateLimiter, obtenerIP } from "@/lib/rate-limit";
+import { enviarEmailBienvenidaJugador } from "@/lib/email";
+import { logger } from "@/lib/logger";
 import { NextResponse } from "next/server";
 import { isSubscriptionActive, canCreateMember } from "@/lib/subscription";
 import * as z from "zod";
@@ -41,7 +43,7 @@ export async function POST(req: Request) {
     // Verificar que el club existe
     const club = await db.club.findUnique({
       where: { slug },
-      select: { id: true, subscriptionStatus: true, trialEndsAt: true },
+      select: { id: true, name: true, subscriptionStatus: true, trialEndsAt: true },
     });
     if (!club) {
       return NextResponse.json(
@@ -89,13 +91,21 @@ export async function POST(req: Request) {
       },
     });
 
+    // Enviar email de bienvenida (no bloquear si falla)
+    enviarEmailBienvenidaJugador({
+      email,
+      nombre: name,
+      clubNombre: club.name,
+      clubSlug: slug,
+    }).catch(() => {})
+
     const { password: _, ...userWithoutPassword } = newUser;
     return NextResponse.json(
       { user: userWithoutPassword, message: "Registro exitoso." },
       { status: 201 }
     );
   } catch (error) {
-    console.error("[REGISTER_PLAYER_ERROR]", error);
+    logger.error("REGISTER_PLAYER", "Error en registro de jugador", { ruta: "/api/register/player" }, error);
     return NextResponse.json(
       { error: "Error interno del servidor." },
       { status: 500 }

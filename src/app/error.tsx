@@ -13,6 +13,7 @@ export default function GlobalError({
 }) {
   useEffect(() => {
     console.error(error)
+    import('@sentry/nextjs').then(Sentry => Sentry.captureException(error))
   }, [error])
 
   return (

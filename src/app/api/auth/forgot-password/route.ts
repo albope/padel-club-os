@@ -2,6 +2,7 @@ import { db } from "@/lib/db"
 import { crearTokenRecuperacion } from "@/lib/tokens"
 import { enviarEmailResetPassword } from "@/lib/email"
 import { crearRateLimiter, obtenerIP } from "@/lib/rate-limit"
+import { logger } from "@/lib/logger"
 import { NextResponse } from "next/server"
 import * as z from "zod"
 
@@ -56,14 +57,14 @@ export async function POST(req: Request) {
           redirectUrl,
         })
       } catch (emailError) {
-        console.error("[FORGOT_PASSWORD_EMAIL_ERROR]", emailError)
+        logger.error("FORGOT_PASSWORD_EMAIL", "Error enviando email de recuperacion", { ruta: "/api/auth/forgot-password" }, emailError)
         // No revelar el error al usuario
       }
     }
 
     return NextResponse.json({ message: mensaje }, { status: 200 })
   } catch (error) {
-    console.error("[FORGOT_PASSWORD_ERROR]", error)
+    logger.error("FORGOT_PASSWORD", "Error en recuperacion de contrasena", { ruta: "/api/auth/forgot-password" }, error)
     return NextResponse.json(
       { error: "Error interno del servidor." },
       { status: 500 }

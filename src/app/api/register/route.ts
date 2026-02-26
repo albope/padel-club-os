@@ -1,6 +1,8 @@
 import { db } from "@/lib/db";
 import { hash } from "bcrypt";
 import { crearRateLimiter, obtenerIP } from "@/lib/rate-limit";
+import { enviarEmailBienvenidaAdmin } from "@/lib/email";
+import { logger } from "@/lib/logger";
 import { NextResponse } from "next/server";
 import * as z from "zod";
 
@@ -68,8 +70,8 @@ export async function POST(req: Request) {
     const clubName = `${name}'s Club`;
     const slug = await generateUniqueSlug(clubName);
 
-    const newUser = await db.$transaction(async (prisma) => {
-      const newClub = await prisma.club.create({
+    const { newUser, newClub } = await db.$transaction(async (prisma) => {
+      const club = await prisma.club.create({
         data: {
           name: clubName,
           slug,
@@ -83,13 +85,22 @@ export async function POST(req: Request) {
           email,
           name,
           password: hashedPassword,
-          clubId: newClub.id,
+          clubId: club.id,
           role: "CLUB_ADMIN",
         },
       });
 
-      return user;
+      return { newUser: user, newClub: club };
     });
+
+    // Enviar email de bienvenida (no bloquear si falla)
+    enviarEmailBienvenidaAdmin({
+      email,
+      nombre: name,
+      clubNombre: clubName,
+      clubSlug: slug,
+      trialEndsAt: newClub.trialEndsAt!,
+    }).catch(() => {})
 
     const { password: newUserPassword, ...rest } = newUser;
     return NextResponse.json(
@@ -98,7 +109,7 @@ export async function POST(req: Request) {
     );
 
   } catch (error) {
-    console.error("[REGISTER_ERROR]", error);
+    logger.error("REGISTER_ADMIN", "Error en registro de administrador", { ruta: "/api/register" }, error);
     return new NextResponse("Internal Server Error", { status: 500 });
   }
 }

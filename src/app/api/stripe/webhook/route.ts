@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { constructWebhookEvent, getPlanKeyFromPriceId } from "@/lib/stripe"
 import { db } from "@/lib/db"
 import { crearNotificacion } from "@/lib/notifications"
+import { logger } from "@/lib/logger"
 import type Stripe from "stripe"
 
 export async function POST(req: Request) {
@@ -23,7 +24,7 @@ export async function POST(req: Request) {
       process.env.STRIPE_WEBHOOK_SECRET!
     )
   } catch (err) {
-    console.error("[STRIPE_WEBHOOK_SIGNATURE_ERROR]", err)
+    logger.error("STRIPE_WEBHOOK_SIGNATURE", "Firma de webhook invalida", { ruta: "/api/stripe/webhook" }, err)
     return NextResponse.json(
       { error: "Firma invalida" },
       { status: 400 }
@@ -173,7 +174,7 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ received: true })
   } catch (error) {
-    console.error("[STRIPE_WEBHOOK_HANDLER_ERROR]", error)
+    logger.error("STRIPE_WEBHOOK_HANDLER", "Error procesando evento webhook", { ruta: "/api/stripe/webhook" }, error)
     return NextResponse.json(
       { error: "Error procesando webhook" },
       { status: 500 }

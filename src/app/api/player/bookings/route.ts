@@ -3,6 +3,8 @@ import { requireAuth, isAuthError } from "@/lib/api-auth";
 import { NextResponse } from "next/server";
 import { calcularPrecioReserva } from "@/lib/pricing";
 import { crearNotificacion } from "@/lib/notifications";
+import { enviarEmailConfirmacionReserva, enviarEmailCancelacionReserva } from "@/lib/email";
+import { logger } from "@/lib/logger";
 
 // GET: Obtener reservas del jugador autenticado
 export async function GET() {
@@ -23,7 +25,7 @@ export async function GET() {
 
     return NextResponse.json(bookings);
   } catch (error) {
-    console.error("[GET_PLAYER_BOOKINGS_ERROR]", error);
+    logger.error("GET_PLAYER_BOOKINGS", "Error obteniendo reservas del jugador", { ruta: "/api/player/bookings", metodo: "GET" }, error);
     return new NextResponse("Internal Server Error", { status: 500 });
   }
 }
@@ -143,9 +145,28 @@ export async function POST(req: Request) {
       url: "/reservar",
     }).catch(() => {})
 
+    // Enviar email de confirmacion (no bloquear si falla)
+    const datosEmailConfirmacion = await db.user.findUnique({
+      where: { id: auth.session.user.id },
+      select: { email: true, name: true, club: { select: { name: true, slug: true } } },
+    })
+    if (datosEmailConfirmacion?.email) {
+      enviarEmailConfirmacionReserva({
+        email: datosEmailConfirmacion.email,
+        nombre: datosEmailConfirmacion.name || "Jugador",
+        pistaNombre: court.name,
+        fechaHoraInicio: newStartTime,
+        fechaHoraFin: newEndTime,
+        precioTotal: totalPrice,
+        estadoPago: booking.paymentStatus || "pending",
+        clubNombre: datosEmailConfirmacion.club?.name || "",
+        clubSlug: datosEmailConfirmacion.club?.slug || "",
+      }).catch(() => {})
+    }
+
     return NextResponse.json(booking, { status: 201 });
   } catch (error) {
-    console.error("[CREATE_PLAYER_BOOKING_ERROR]", error);
+    logger.error("CREATE_PLAYER_BOOKING", "Error creando reserva de jugador", { ruta: "/api/player/bookings", metodo: "POST" }, error);
     return new NextResponse("Internal Server Error", { status: 500 });
   }
 }
@@ -173,6 +194,7 @@ export async function DELETE(req: Request) {
         clubId: auth.session.user.clubId,
         status: "confirmed",
       },
+      include: { court: { select: { name: true } } },
     });
 
     if (!reserva) {
@@ -228,9 +250,26 @@ export async function DELETE(req: Request) {
       url: "/reservar",
     }).catch(() => {})
 
+    // Enviar email de cancelacion (no bloquear si falla)
+    const datosEmailCancelacion = await db.user.findUnique({
+      where: { id: auth.session.user.id },
+      select: { email: true, name: true, club: { select: { name: true, slug: true } } },
+    })
+    if (datosEmailCancelacion?.email) {
+      enviarEmailCancelacionReserva({
+        email: datosEmailCancelacion.email,
+        nombre: datosEmailCancelacion.name || "Jugador",
+        pistaNombre: reserva.court?.name || "Pista",
+        fechaHoraInicio: reserva.startTime,
+        precioTotal: reserva.totalPrice,
+        clubNombre: datosEmailCancelacion.club?.name || "",
+        clubSlug: datosEmailCancelacion.club?.slug || "",
+      }).catch(() => {})
+    }
+
     return NextResponse.json({ message: "Reserva cancelada correctamente." });
   } catch (error) {
-    console.error("[CANCEL_PLAYER_BOOKING_ERROR]", error);
+    logger.error("CANCEL_PLAYER_BOOKING", "Error cancelando reserva de jugador", { ruta: "/api/player/bookings", metodo: "DELETE" }, error);
     return new NextResponse("Internal Server Error", { status: 500 });
   }
 }

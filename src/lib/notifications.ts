@@ -1,5 +1,6 @@
 import { db } from "@/lib/db"
 import { enviarPush, type PushPayload } from "@/lib/web-push"
+import { logger } from "@/lib/logger"
 
 // Tipos de notificacion soportados
 export type TipoNotificacion =
@@ -80,7 +81,7 @@ export async function crearNotificacion({
 
     return notificacion
   } catch (error) {
-    console.error("[CREAR_NOTIFICACION_ERROR]", error)
+    logger.error("CREAR_NOTIFICACION", "Error al crear notificacion", { userId, clubId, tipo }, error)
     return null
   }
 }
@@ -127,6 +128,6 @@ export async function notificarClub({
       )
     }
   } catch (error) {
-    console.error("[NOTIFICAR_CLUB_ERROR]", error)
+    logger.error("NOTIFICAR_CLUB", "Error al notificar al club", { clubId, tipo }, error)
   }
 }

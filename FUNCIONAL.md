@@ -48,7 +48,7 @@ Sirve como hoja de ruta para saber que hay, que falta y que se puede mejorar.
 - [ ] **Chat en vivo / widget de soporte**: alternativa al formulario de contacto
 - [ ] **Casos de exito**: pagina dedicada con clubes reales usando la plataforma
 - [ ] **Comparativa vs competencia**: pagina tipo "PadelOS vs Matchpoint"
-- [ ] **SEO mejorado**: sitemap.xml, robots.txt, structured data (JSON-LD)
+- [x] **SEO mejorado**: robots.ts, sitemap.ts, generateMetadata en paginas publicas, JSON-LD Organization + SoftwareApplication
 - [ ] **Animaciones mas suaves**: algunas transiciones son basicas
 
 ---
@@ -235,7 +235,7 @@ Items condicionales segun config del club (enablePlayerBooking, enableOpenMatche
 - [ ] **Valoraciones post-partido**: puntuar compañeros
 - [ ] **Buscar jugadores**: encontrar jugadores por nivel para crear partidas
 - [ ] **Mis competiciones**: ver solo las competiciones donde participo
-- [x] **Recordatorios**: cron job envia push 1h antes de reserva (/api/cron/booking-reminders)
+- [x] **Recordatorios**: cron job envia push + email 1h antes de reserva (/api/cron/booking-reminders)
 - [ ] **Repetir reserva**: re-reservar mismo slot la semana siguiente
 - [ ] **Invitar amigos al club**: generar link de invitacion
 - [x] **Recuperar password**: flujo completo con email, token seguro SHA-256 y pagina de reset
@@ -273,7 +273,7 @@ Items condicionales segun config del club (enablePlayerBooking, enableOpenMatche
 
 ## 5. SISTEMA DE NOTIFICACIONES
 
-### Estado: INFRAESTRUCTURA COMPLETA, INTEGRACION PARCIAL
+### Estado: COMPLETA (push + email)
 
 | Componente | Estado |
 |---|---|
@@ -292,7 +292,7 @@ Items condicionales segun config del club (enablePlayerBooking, enableOpenMatche
 ### Tipos de notificacion definidos
 - `booking_confirmed` - Reserva confirmada
 - `booking_cancelled` - Reserva cancelada
-- `booking_reminder` - Recordatorio de reserva (NO implementado el trigger)
+- `booking_reminder` - Recordatorio de reserva (push + email 1h antes via cron)
 - `open_match_created` - Nueva partida abierta
 - `open_match_full` - Partida completa
 - `open_match_joined` - Alguien se unio a tu partida
@@ -301,16 +301,25 @@ Items condicionales segun config del club (enablePlayerBooking, enableOpenMatche
 
 ### Donde se envian notificaciones actualmente
 - **Noticias**: al publicar una noticia, se llama `notificarClub()` (push a todos los jugadores)
-- **Reserva jugador**: `crearNotificacion()` con tipo `booking_confirmed` al crear reserva
-- **Cancelacion jugador**: `crearNotificacion()` con tipo `booking_cancelled` al cancelar
+- **Reserva jugador**: `crearNotificacion()` con tipo `booking_confirmed` + email confirmacion
+- **Cancelacion jugador**: `crearNotificacion()` con tipo `booking_cancelled` + email cancelacion
+- **Recordatorio reserva**: cron push 1h antes + email recordatorio (`/api/cron/booking-reminders`)
 - **Partida abierta creada**: `notificarClub()` a todos los jugadores del club
 - **Unirse a partida**: `crearNotificacion()` al creador de la partida
 - **Partida llena**: notificacion a todos los jugadores de la partida
+- **Registro admin**: email de bienvenida con info trial y primeros pasos
+- **Registro jugador**: email de bienvenida con acciones disponibles del club
+
+### Emails transaccionales (src/lib/email.ts)
+- Plantilla HTML branded: header gradiente azul/cyan con logo SVG, footer legal, boton CTA
+- 7 emails: bienvenida admin, bienvenida jugador, confirmacion reserva, cancelacion reserva, recordatorio reserva, reset password, contacto
+- Helpers: escaparHtml (XSS), cajaDetalle (ficha datos), formatearFecha/Hora
+- Todos fire-and-forget (.catch), nunca bloquean APIs
+- From: `Padel Club OS <onboarding@resend.dev>` (constante EMAIL_FROM)
 
 ### Pendiente por integrar
-- [x] **Recordatorio de reserva**: /api/cron/booking-reminders (push 1h antes, compatible Vercel Cron, CRON_SECRET)
 - [ ] **Resultado competicion**: notificar al introducir resultados
-- [ ] **Variables de entorno**: configurar VAPID keys en produccion
+- [ ] **Variables de entorno**: configurar VAPID keys y RESEND_API_KEY en produccion
 
 ---
 
@@ -320,14 +329,18 @@ Items condicionales segun config del club (enablePlayerBooking, enableOpenMatche
 - NextAuth v4 con Credentials provider + JWT
 - 4 roles: SUPER_ADMIN, CLUB_ADMIN, STAFF, PLAYER
 - ~41 permisos definidos, verificados en cada API route
-- Middleware protege /dashboard (solo admin roles)
-- Registro admin (crea club con trial 14 dias)
-- Registro jugador (requiere slug de club valido)
-- Session incluye: id, clubId, clubName, role
-- Rate limiting en formulario de contacto (3/IP/15min)
-- Recuperacion de contraseña: tokens SHA-256, un solo uso, expiran en 1h, rate limiting (3/IP/15min)
+- Middleware protege /dashboard (solo admin roles), redirige a /facturacion si suscripcion inactiva
+- Registro admin (crea club con trial 14 dias) + email bienvenida
+- Registro jugador (requiere slug de club valido, verifica suscripcion + limites) + email bienvenida
+- Session incluye: id, clubId, clubName, role, subscriptionStatus, trialEndsAt
+- Rate limiting centralizado (src/lib/rate-limit.ts): contacto, forgot/reset-password, register admin/player
+- Recuperacion de contraseña: tokens SHA-256, un solo uso, expiran en 1h, email branded
 - Flujo reset password para admin (/forgot-password, /reset-password) y jugadores (/club/[slug]/forgot-password)
-- Banner de cookies RGPD con consentimiento (solo esenciales / aceptar todo)
+- Banner de cookies RGPD con consentimiento real (bloquea scripts no esenciales)
+- RGPD: /api/player/data-export (portabilidad), /api/player/data-delete (olvido), /api/consent (log consentimiento)
+- Security headers: CSP, HSTS, X-Frame-Options, X-Content-Type-Options, Referrer-Policy, Permissions-Policy
+- Enforcement suscripcion Stripe: gating por plan (courts, members), SubscriptionGate.tsx
+- Logger estructurado: src/lib/logger.ts (JSON en prod, legible en dev)
 
 ### Posibles mejoras
 - [x] **Recuperar contraseña**: flujo email con token de reset (admin + jugador)
@@ -348,7 +361,10 @@ Items condicionales segun config del club (enablePlayerBooking, enableOpenMatche
 | 3.1 | Stripe + Precios dinamicos | COMPLETADA |
 | 3.2 | Noticias + Analiticas + Marketing + Blog | COMPLETADA |
 | 3.3 | Notificaciones push + PWA | COMPLETADA |
-| 4 | Rankings ELO, seguridad, mejoras admin | EN PROGRESO (~60%) |
+| 4 | Rankings ELO, seguridad, mejoras admin | COMPLETADA |
+| Roadmap A | Critico para lanzamiento (Stripe enforcement, seguridad, SEO, RGPD, error boundaries) | COMPLETADA |
+| Roadmap B1 | Emails transaccionales con identidad visual | COMPLETADA |
+| Roadmap B4 | Monitoring + logging | PARCIAL (logger listo, falta Sentry) |
 | 5 | Crecimiento (multi-deporte, API, white-label) | NO INICIADA |
 
 ---
@@ -356,31 +372,28 @@ Items condicionales segun config del club (enablePlayerBooking, enableOpenMatche
 ## 8. TOP PRIORIDADES SUGERIDAS (hoja de ruta)
 
 ### Completado recientemente
-- [x] **Recuperar contraseña** - Admin + jugador, tokens seguros, rate limiting
-- [x] **Banner de cookies RGPD** - CookieBanner.tsx con opciones esenciales/aceptar
-- [x] **Recordatorio de reserva** - Cron job push 1h antes (/api/cron/booking-reminders)
-- [x] **Rankings de jugadores** - Sistema ELO completo, leaderboard con tabs
-- [x] **Exportar datos** (CSV) - Reservas, socios, pagos con filtros fecha
-- [x] **Busqueda global** - Ctrl+K, busca socios/pistas/reservas
-- [x] **Pagina 404** - Diseño personalizado con tematica padel
+- [x] **Enforcement suscripcion Stripe** - Middleware, API routes, gating por plan (A1)
+- [x] **Cabeceras de seguridad** - CSP, HSTS, rate limiting centralizado (A2)
+- [x] **SEO basico** - robots, sitemap, OG, JSON-LD, generateMetadata (A3)
+- [x] **Compliance RGPD real** - Data export/delete, consent logging, script blocking (A4)
+- [x] **Error boundaries + health check** - error.tsx, loading.tsx, /api/health (A5)
+- [x] **Emails transaccionales** - 7 emails branded: bienvenida, reservas, reset, contacto (B1)
+- [x] **Logger estructurado** - JSON prod, legible dev, integrado en APIs criticas (B4 parcial)
 
-### Corto plazo (siguiente)
-1. **Testear PWA en produccion** - La SW esta deshabilitada en dev
-2. **Stripe Connect para pagos de pistas** - El modo "online" esta configurado pero falta la integracion real de cobro al jugador
-3. **Reservas recurrentes** - Clases fijas semanales
-4. **Comunicacion masiva** - Email/push a todos los socios
-5. **Dashboard mejorado** - Revenue, graficos inline, agenda del dia
+### Corto plazo (siguiente - rumbo a beta)
+1. **Onboarding admin** (B3) - Wizard post-registro, checklist, estados vacios
+2. **Validacion completa APIs** (B2) - Zod schemas en todas las rutas, middleware validateBody
+3. **Performance basica** (B5) - next/image, @@index Prisma, cache datos publicos
+4. **Tests criticos** (C1) - Unit tests para auth, pricing, tokens, CSV, notifications
 
 ### Medio plazo (valor añadido)
-6. **Historial de actividad / audit log** - Quien hizo que y cuando
-7. **Multi-admin** - Invitar mas administradores al club
-8. **Gestion de pagos de pistas** - Ver cobros pendientes, marcar como pagado
-9. **Notificaciones de competiciones** - Resultados, proximos partidos
-10. **Perfil con foto** - Subir avatar
+5. **Stripe Connect** (C2) - Pagos de reservas online, split payment
+6. **Comunicacion masiva** (C3) - Email/push a todos los socios, segmentacion
+7. **Reservas recurrentes** (C4) - Clases fijas semanales
+8. **i18n completo** (C5) - Migrar strings hardcoded, selector idioma
 
 ### Largo plazo (crecimiento)
-11. **Multi-deporte** - Extender a tenis, futbol sala, etc.
-12. **API publica** - Para integraciones terceros
-13. **White-label** - Dominio personalizado por club
-14. **Real-time** - Websockets para actualizaciones en vivo
-15. **App nativa** - React Native o similar (si PWA no es suficiente)
+9. **Multi-deporte** - Extender a tenis, futbol sala, etc.
+10. **API publica** - Para integraciones terceros
+11. **White-label** - Dominio personalizado por club
+12. **Real-time** - Websockets para actualizaciones en vivo

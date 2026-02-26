@@ -15,8 +15,9 @@ App fullstack de gestion de clubes de padel. Next.js 14 + TypeScript + Prisma + 
 - **Tema**: next-themes (light/dark)
 - **i18n**: next-intl 4 (es/en, locale fijo por ahora)
 - **Charts**: recharts 3.7
-- **Email**: resend (notificaciones de contacto)
+- **Email**: resend (emails transaccionales con plantilla branded)
 - **Push**: web-push (notificaciones push via VAPID)
+- **Logging**: logger estructurado (JSON en prod, legible en dev)
 
 ## Estructura
 
@@ -96,14 +97,17 @@ src/
     api-auth.ts     # requireAuth() helper con permisos RBAC
     permissions.ts  # Definicion de permisos por rol (~41 permisos)
     stripe.ts       # Cliente Stripe lazy (Proxy pattern), PLAN_PRICES
-    email.ts        # Cliente Resend lazy, enviarEmailContacto(), enviarEmailResetPassword()
+    email.ts        # Cliente Resend lazy, plantilla branded, 7 emails transaccionales
     pricing.ts      # calcularPrecioReserva(), obtenerPreciosPista()
     notifications.ts # Crear notificaciones + enviar push
     web-push.ts     # Cliente web-push lazy (Proxy pattern)
     elo.ts          # Sistema ELO para padel dobles (calculateMatchRatings, eloANivel)
     csv.ts          # Utilidades CSV (escaparCSV, generarCSV, formatearFechaCSV)
     rate-limit.ts   # Rate limiting en memoria (crearRateLimiter, obtenerIP)
+    logger.ts       # Logger estructurado (JSON en prod, legible en dev)
     tokens.ts       # Tokens de recuperacion de contraseña (SHA-256, 1h expiracion)
+    seo.ts          # Constantes SEO (SITE_URL, SITE_NAME, SITE_DESCRIPTION)
+    subscription.ts # Validacion de suscripcion Stripe (isSubscriptionActive, canCreate*)
     db.ts           # Prisma client singleton
     utils.ts        # cn() helper
     nav-items.ts    # Items de navegacion admin
@@ -129,7 +133,7 @@ public/
 - **Idioma**: Todo en espanol (variables, UI, comentarios, commits)
 - **Componentes**: PascalCase, `'use client'` solo cuando hay hooks/formularios
 - **API Routes**: Usar `requireAuth(permission)` de `@/lib/api-auth`, NUNCA getServerSession directo
-- **Errores API**: `console.error("[CONTEXTO_ERROR]", error)` + try/catch
+- **Errores API**: `logger.error("TAG", "mensaje", contexto, error)` de `@/lib/logger` + try/catch
 - **Validacion**: Zod schemas, tanto en forms como en API
 - **CSS**: Usar `cn()` para clases condicionales, nunca inline styles
 - **Imports**: Alias `@/*` apunta a `./src/*`
@@ -296,7 +300,7 @@ El plan completo de 5 fases esta en: `C:\Users\alber\.claude\plans\jaunty-tumbli
 - [x] Recuperacion de contraseña: /forgot-password, /reset-password, /club/[slug]/forgot-password
 - [x] API auth: /api/auth/forgot-password (rate limiting 3/IP/15min), /api/auth/reset-password (tokens SHA-256, 1h expiracion)
 - [x] src/lib/tokens.ts: generarToken(), hashToken(), guardarToken(), verificarToken() (tokens de un solo uso)
-- [x] src/lib/email.ts: enviarEmailResetPassword() con Resend
+- [x] src/lib/email.ts: 7 emails transaccionales con plantilla branded (ver Roadmap B1)
 - [x] Schema Prisma: modelo PasswordResetToken
 - [x] Banner cookies RGPD: CookieBanner.tsx con opciones esenciales/aceptar todo (localStorage)
 - [x] Paginas legales: /privacidad (RGPD), /terminos
@@ -314,14 +318,14 @@ El plan completo de 5 fases esta en: `C:\Users\alber\.claude\plans\jaunty-tumbli
 - [x] Pagina 404 personalizada: not-found.tsx (SVG padel, orbes animados, gradiente azul/cyan)
 - [x] i18n: secciones cookies, auth en es.json y en.json
 
-**Siguiente: Social, reservas avanzadas, Stripe Connect**
+**Siguiente: Onboarding admin (B3), validacion APIs (B2), performance (B5), tests (C1)**
 
 ## Notas
 
 - El postinstall ejecuta `prisma generate` automaticamente
 - Variables de entorno: `DATABASE_URL`, `AUTH_SECRET`, `RESEND_API_KEY`, `CONTACT_EMAIL`, `NEXT_PUBLIC_VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `CRON_SECRET` (en .env)
 - Componentes shadcn se generan en `src/components/ui/`
-- Node.js 20.16.0 - no soporta Prisma 7 (necesita 20.19+)
+- Node.js 20.19.0
 - Prisma generate puede fallar con EPERM si el dev server tiene el DLL bloqueado - parar dev server primero
 - Para usar toast: `import { toast } from '@/hooks/use-toast'`
 - Toast de error: `toast({ title: "Error", description: "...", variant: "destructive" })`
@@ -331,11 +335,9 @@ El plan completo de 5 fases esta en: `C:\Users\alber\.claude\plans\jaunty-tumbli
 
 Cuando el usuario diga "CONTINUACION DE SESION ANTERIOR", lee estos archivos para retomar contexto:
 1. Este CLAUDE.md - plan maestro, stack, convenciones, estado actual
-2. `C:\Users\alber\.claude\projects\c--Users-alber-Desktop-Projects-padel-club-os\memory\MEMORY.md` - memoria persistente
-3. `FUNCIONAL.md` (raiz) - documento funcional completo con estado de cada seccion
-4. `C:\Users\alber\.claude\plans\jaunty-tumbling-sunrise.md` - plan completo de 5 fases
+2. `FUNCIONAL.md` (raiz) - documento funcional completo con estado de cada seccion
 
-Revisa las secciones de estado en CLAUDE.md y MEMORY.md para ver que esta COMPLETADO y que esta PENDIENTE. Identifica la fase actual y continua desde donde lo dejamos con la siguiente tarea pendiente. Pregunta si no tienes claro por donde seguir.
+Revisa las secciones de estado en CLAUDE.md y el roadmap para ver que esta COMPLETADO y que esta PENDIENTE. Identifica la fase actual y continua desde donde lo dejamos con la siguiente tarea pendiente. Pregunta si no tienes claro por donde seguir.
 
 ## Roadmap para lanzamiento al mercado
 
@@ -362,31 +364,40 @@ Revisa las secciones de estado en CLAUDE.md y MEMORY.md para ver que esta COMPLE
 - [x] .max() constraints en todos los schemas Zod: news, blog, contact, register
 - [x] Build exitoso
 
-**Sesion A3 - SEO basico** `[ ]`
-- `robots.ts` (dynamic) + `sitemap.ts` (dynamic, incluir paginas publicas + clubs + blog posts)
-- Open Graph + Twitter Cards en layout.tsx raiz
-- `generateMetadata` en todas las paginas publicas (landing, sobre-nosotros, contacto, blog, club portal)
-- JSON-LD de Organization en landing
+**Sesion A3 - SEO basico** `[x]`
+- [x] `robots.ts` (dynamic) + `sitemap.ts` (dynamic, incluir paginas publicas + clubs + blog posts)
+- [x] Open Graph + Twitter Cards en layout.tsx raiz
+- [x] `generateMetadata` en todas las paginas publicas (landing, sobre-nosotros, contacto, blog, club portal)
+- [x] JSON-LD de Organization + SoftwareApplication en landing
+- [x] src/lib/seo.ts: SITE_URL, SITE_NAME, SITE_DESCRIPTION, SITE_LOCALE
+- [x] Build exitoso
 
-**Sesion A4 - Compliance RGPD real** `[ ]`
-- Cookie banner que realmente bloquee scripts no esenciales (carga condicional)
-- API `/api/player/data-export` (derecho de portabilidad - exportar datos personales)
-- API `/api/player/data-delete` (derecho al olvido - anonimizar/eliminar datos)
-- Log de consentimiento (guardar cuando el usuario acepto cookies y que tipo)
+**Sesion A4 - Compliance RGPD real** `[x]`
+- [x] Cookie banner que realmente bloquee scripts no esenciales (ScriptConsentido.tsx + use-consentimiento.ts)
+- [x] API `/api/player/data-export` (derecho de portabilidad - exportar datos personales)
+- [x] API `/api/player/data-delete` (derecho al olvido - anonimizar/eliminar datos)
+- [x] API `/api/consent` - Log de consentimiento (guardar cuando el usuario acepto cookies y que tipo)
+- [x] Build exitoso
 
-**Sesion A5 - Error boundaries + health check** `[ ]`
-- `error.tsx` en raiz, `(public)`, `club/[slug]`, sub-rutas dashboard
-- `loading.tsx` en paginas principales (dashboard, reservas, socios)
-- API `/api/health` (check DB connection, devuelve status)
+**Sesion A5 - Error boundaries + health check** `[x]`
+- [x] `error.tsx` en raiz, `(public)`, `club/[slug]`, `dashboard`
+- [x] `loading.tsx` en paginas principales (ajustes, analiticas, blog, facturacion, noticias, rankings)
+- [x] API `/api/health` (check DB connection, devuelve status)
+- [x] Build exitoso
 
 ### BLOQUE B: IMPORTANTE (lanzamiento beta robusto)
 
-**Sesion B1 - Emails transaccionales** `[ ]`
-- Email de bienvenida al registrar club
-- Email de confirmacion de reserva (jugador)
-- Email de cancelacion de reserva
-- Email de recordatorio (complemento al push del cron)
-- Plantilla HTML base reutilizable con branding
+**Sesion B1 - Emails transaccionales** `[x]`
+- [x] Plantilla HTML base reutilizable: header gradiente azul/cyan con logo SVG, footer legal, boton CTA
+- [x] Helpers: escaparHtml (XSS), cajaDetalle, formatearFecha/Hora, traducirEstadoPago
+- [x] Email bienvenida admin (registro club, info trial 14 dias, pasos rapidos)
+- [x] Email bienvenida jugador (registro en club, acciones disponibles)
+- [x] Email confirmacion de reserva (ficha detalle: pista, fecha, hora, precio, estado pago)
+- [x] Email cancelacion de reserva (ficha tachada, CTA re-reservar)
+- [x] Email recordatorio de reserva (1h antes, complemento al push del cron)
+- [x] Rebrandeados emails existentes (reset password, contacto) con la plantilla
+- [x] Todos los envios fire-and-forget (.catch), nunca bloquean APIs
+- [x] Build exitoso
 
 **Sesion B2 - Validacion completa APIs** `[ ]`
 - Zod schemas para todas las API routes que faltan (~45 rutas)
@@ -397,10 +408,11 @@ Revisa las secciones de estado en CLAUDE.md y MEMORY.md para ver que esta COMPLE
 - Checklist de progreso en dashboard home ("3 de 6 pasos completados")
 - Estados vacios mejorados ("Aun no tienes pistas. Crea tu primera pista")
 
-**Sesion B4 - Monitoring + logging** `[ ]`
-- Integrar Sentry (error tracking)
-- Logging estructurado en APIs criticas
-- Documentar variables de entorno completas en `.env.example`
+**Sesion B4 - Monitoring + logging** `[~]`
+- [x] src/lib/logger.ts: logger estructurado (JSON en prod, legible en dev, etiquetas y contexto)
+- [x] Logger integrado en APIs criticas (register, bookings, cron, webhook, notifications)
+- [ ] Integrar Sentry (error tracking) - logger preparado para extension
+- [ ] Documentar variables de entorno completas en `.env.example`
 
 **Sesion B5 - Performance basica** `[ ]`
 - Reemplazar `<img>` por `next/image` en rankings, socios, leaderboard
@@ -441,4 +453,4 @@ Revisa las secciones de estado en CLAUDE.md y MEMORY.md para ver que esta COMPLE
 **Sesion D5** - CI/CD (GitHub Actions: lint + test + build en PR) `[ ]`
 
 ### Orden recomendado
-Sprint 1: A1, A2 → Sprint 2: A3, A5 → Sprint 3: A4, B4 → Sprint 4: B1, B3 → Sprint 5: B2, B5 → Sprint 6: C1 → Beta launch → Sprint 7+: C2-C5, D1-D5
+Sprint 1: A1, A2 [DONE] → Sprint 2: A3, A5 [DONE] → Sprint 3: A4, B1 [DONE] → Sprint 4: B4 (parcial), B3 → Sprint 5: B2, B5 → Sprint 6: C1 → Beta launch → Sprint 7+: C2-C5, D1-D5

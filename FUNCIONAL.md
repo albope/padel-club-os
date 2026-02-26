@@ -340,7 +340,9 @@ Items condicionales segun config del club (enablePlayerBooking, enableOpenMatche
 - RGPD: /api/player/data-export (portabilidad), /api/player/data-delete (olvido), /api/consent (log consentimiento)
 - Security headers: CSP, HSTS, X-Frame-Options, X-Content-Type-Options, Referrer-Policy, Permissions-Policy
 - Enforcement suscripcion Stripe: gating por plan (courts, members), SubscriptionGate.tsx
-- Logger estructurado: src/lib/logger.ts (JSON en prod, legible en dev)
+- Logger estructurado: src/lib/logger.ts (JSON en prod, legible en dev, reporta a Sentry)
+- Sentry SDK: error tracking automatico en server/edge/client con onRequestError
+- .env.example: 17 variables de entorno documentadas
 
 ### Posibles mejoras
 - [x] **Recuperar contraseña**: flujo email con token de reset (admin + jugador)
@@ -364,7 +366,7 @@ Items condicionales segun config del club (enablePlayerBooking, enableOpenMatche
 | 4 | Rankings ELO, seguridad, mejoras admin | COMPLETADA |
 | Roadmap A | Critico para lanzamiento (Stripe enforcement, seguridad, SEO, RGPD, error boundaries) | COMPLETADA |
 | Roadmap B1 | Emails transaccionales con identidad visual | COMPLETADA |
-| Roadmap B4 | Monitoring + logging | PARCIAL (logger listo, falta Sentry) |
+| Roadmap B4 | Monitoring + logging | COMPLETADA |
 | 5 | Crecimiento (multi-deporte, API, white-label) | NO INICIADA |
 
 ---

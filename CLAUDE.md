@@ -408,11 +408,16 @@ Revisa las secciones de estado en CLAUDE.md y el roadmap para ver que esta COMPL
 - Checklist de progreso en dashboard home ("3 de 6 pasos completados")
 - Estados vacios mejorados ("Aun no tienes pistas. Crea tu primera pista")
 
-**Sesion B4 - Monitoring + logging** `[~]`
-- [x] src/lib/logger.ts: logger estructurado (JSON en prod, legible en dev, etiquetas y contexto)
+**Sesion B4 - Monitoring + logging** `[x]`
+- [x] src/lib/logger.ts: logger estructurado (JSON en prod, legible en dev, reporta a Sentry)
 - [x] Logger integrado en APIs criticas (register, bookings, cron, webhook, notifications)
-- [ ] Integrar Sentry (error tracking) - logger preparado para extension
-- [ ] Documentar variables de entorno completas en `.env.example`
+- [x] Sentry SDK: @sentry/nextjs con configs server/edge/client, instrumentation hook, onRequestError
+- [x] next.config.mjs: withSentryConfig wrapper, instrumentationHook, CSP (sentry-cdn + ingest.sentry.io)
+- [x] global-error.tsx: error boundary de ultimo recurso con Sentry
+- [x] 4 error.tsx existentes: +Sentry.captureException via import dinamico
+- [x] .env.example: 17 variables documentadas en espanol
+- [x] .gitignore: excepcion para .env.example
+- [x] Build exitoso
 
 **Sesion B5 - Performance basica** `[ ]`
 - Reemplazar `<img>` por `next/image` en rankings, socios, leaderboard

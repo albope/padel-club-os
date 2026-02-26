@@ -1,3 +1,4 @@
+import { withSentryConfig } from "@sentry/nextjs";
 import createNextIntlPlugin from 'next-intl/plugin';
 import withSerwistInit from "@serwist/next";
 
@@ -39,11 +40,11 @@ const securityHeaders = [
     key: 'Content-Security-Policy',
     value: [
       "default-src 'self'",
-      "script-src 'self' 'unsafe-inline'",
+      "script-src 'self' 'unsafe-inline' https://browser.sentry-cdn.com",
       "style-src 'self' 'unsafe-inline'",
       "img-src 'self' data: blob: https://ui-avatars.com https://*.public.blob.vercel-storage.com https:",
       "font-src 'self'",
-      "connect-src 'self' https://*.vercel-storage.com https://api.stripe.com",
+      "connect-src 'self' https://*.vercel-storage.com https://api.stripe.com https://*.ingest.sentry.io",
       "frame-src 'none'",
       "object-src 'none'",
       "base-uri 'self'",
@@ -56,6 +57,9 @@ const securityHeaders = [
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  experimental: {
+    instrumentationHook: true,
+  },
   async headers() {
     return [
       {
@@ -66,4 +70,15 @@ const nextConfig = {
   },
 };
 
-export default withSerwist(withNextIntl(nextConfig));
+// Sentry como wrapper mas externo para source maps y error tracking
+export default withSentryConfig(
+  withSerwist(withNextIntl(nextConfig)),
+  {
+    // Silenciar logs de Sentry en builds locales
+    silent: !process.env.CI,
+
+    // Solo subir source maps si hay token de auth (CI/produccion)
+    disableServerWebpackPlugin: !process.env.SENTRY_AUTH_TOKEN,
+    disableClientWebpackPlugin: !process.env.SENTRY_AUTH_TOKEN,
+  }
+);

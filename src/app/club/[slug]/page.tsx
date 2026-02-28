@@ -2,6 +2,8 @@ import { db } from "@/lib/db";
 import { notFound } from "next/navigation";
 import ClubHome from "@/components/club/ClubHome";
 
+export const revalidate = 1800 // 30min
+
 export default async function ClubHomePage({ params }: { params: { slug: string } }) {
   const club = await db.club.findUnique({
     where: { slug: params.slug },

@@ -21,7 +21,9 @@ export async function GET(
       orderBy: { name: 'asc' },
     });
 
-    return NextResponse.json(courts);
+    return NextResponse.json(courts, {
+      headers: { 'Cache-Control': 'public, s-maxage=3600, stale-while-revalidate=600' },
+    });
   } catch (error) {
     console.error("[GET_CLUB_COURTS_ERROR]", error);
     return new NextResponse("Internal Server Error", { status: 500 });

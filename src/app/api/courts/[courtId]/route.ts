@@ -1,6 +1,13 @@
 import { db } from "@/lib/db";
 import { requireAuth, isAuthError } from "@/lib/api-auth";
 import { NextResponse } from "next/server";
+import { validarBody } from "@/lib/validation";
+import * as z from "zod";
+
+const CourtUpdateSchema = z.object({
+  name: z.string().min(1, "El nombre es requerido.").max(100, "El nombre no puede superar 100 caracteres.").optional(),
+  type: z.string().min(1).max(50, "El tipo no puede superar 50 caracteres.").optional(),
+})
 
 // PATCH: Actualizar una pista
 export async function PATCH(
@@ -12,7 +19,9 @@ export async function PATCH(
     if (isAuthError(auth)) return auth
 
     const body = await req.json();
-    const { name, type } = body;
+    const result = validarBody(CourtUpdateSchema, body);
+    if (!result.success) return result.response;
+    const { name, type } = result.data;
 
     if (!params.courtId) {
       return new NextResponse("ID de pista requerido", { status: 400 });

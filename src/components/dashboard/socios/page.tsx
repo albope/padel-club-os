@@ -5,6 +5,7 @@ import { getServerSession } from 'next-auth';
 import { redirect } from 'next/navigation';
 import { Users, PlusCircle, Mail, Phone } from 'lucide-react';
 import Link from 'next/link';
+import Image from 'next/image';
 
 const SociosPage = async () => {
   const session = await getServerSession(authOptions);
@@ -39,9 +40,11 @@ const SociosPage = async () => {
               {users.map((user) => (
                 <li key={user.id} className="flex items-center justify-between py-4">
                   <div className="flex items-center gap-4">
-                    <img 
+                    <Image
                       src={user.image || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name || 'S')}&background=random&color=fff`}
                       alt="Avatar"
+                      width={40}
+                      height={40}
                       className="h-10 w-10 rounded-full"
                     />
                     <div>

@@ -11,6 +11,7 @@ import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from '@/components/ui/table';
 import { Skeleton } from '@/components/ui/skeleton';
+import Image from 'next/image';
 
 interface RankingEntry {
   posicion: number;
@@ -58,8 +59,9 @@ const MEDAL_COLORS = [
 
 function AvatarInicial({ nombre, imagen, size = 'sm' }: { nombre: string; imagen: string | null; size?: 'sm' | 'lg' }) {
   const dimensiones = size === 'lg' ? 'h-12 w-12 text-lg' : 'h-8 w-8 text-xs';
+  const sizePixels = size === 'lg' ? 48 : 32;
   if (imagen) {
-    return <img src={imagen} alt={nombre} className={cn(dimensiones, 'rounded-full object-cover')} />;
+    return <Image src={imagen} alt={nombre} width={sizePixels} height={sizePixels} className={cn(dimensiones, 'rounded-full object-cover')} />;
   }
   return (
     <div className={cn(dimensiones, 'rounded-full bg-primary/10 text-primary flex items-center justify-center font-semibold')}>

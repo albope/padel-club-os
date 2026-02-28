@@ -3,6 +3,16 @@ import { requireAuth, isAuthError } from "@/lib/api-auth";
 import { NextResponse } from "next/server";
 import { OpenMatchStatus } from "@prisma/client";
 import { calcularPrecioReserva } from "@/lib/pricing";
+import { validarBody } from "@/lib/validation";
+import * as z from "zod";
+
+const OpenMatchCreateSchema = z.object({
+  courtId: z.string().min(1, "El ID de pista es requerido."),
+  matchTime: z.string().min(1, "La hora del partido es requerida."),
+  playerIds: z.array(z.string().min(1)).min(1, "Se requiere al menos un jugador.").max(4, "Maximo 4 jugadores."),
+  levelMin: z.number().min(1).max(7).optional().nullable(),
+  levelMax: z.number().min(1).max(7).optional().nullable(),
+})
 
 // POST: Crear una nueva partida abierta
 export async function POST(req: Request) {
@@ -12,11 +22,9 @@ export async function POST(req: Request) {
     const clubId = auth.session.user.clubId;
 
     const body = await req.json();
-    const { courtId, matchTime, playerIds, levelMin, levelMax } = body;
-
-    if (!courtId || !matchTime || !playerIds || !Array.isArray(playerIds) || playerIds.length === 0) {
-      return new NextResponse("Faltan datos requeridos (courtId, matchTime, playerIds)", { status: 400 });
-    }
+    const result = validarBody(OpenMatchCreateSchema, body);
+    if (!result.success) return result.response;
+    const { courtId, matchTime, playerIds, levelMin, levelMax } = result.data;
 
     const startTime = new Date(matchTime);
     const endTime = new Date(startTime.getTime() + 90 * 60 * 1000);

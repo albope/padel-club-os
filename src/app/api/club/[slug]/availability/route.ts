@@ -118,6 +118,8 @@ export async function GET(
       openingTime: club.openingTime || "09:00",
       closingTime: club.closingTime || "23:00",
       bloques,
+    }, {
+      headers: { 'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=30' },
     });
   } catch (error) {
     console.error("[GET_CLUB_AVAILABILITY_ERROR]", error);

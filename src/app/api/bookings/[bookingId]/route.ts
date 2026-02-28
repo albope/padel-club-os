@@ -1,6 +1,15 @@
 import { db } from "@/lib/db";
 import { requireAuth, isAuthError } from "@/lib/api-auth";
 import { NextResponse } from "next/server";
+import { validarBody } from "@/lib/validation";
+import * as z from "zod";
+
+const BookingUpdateSchema = z.object({
+  courtId: z.string().min(1, "El ID de pista es requerido."),
+  userId: z.string().optional().nullable(),
+  startTime: z.string().min(1, "La hora de inicio es requerida."),
+  endTime: z.string().min(1, "La hora de fin es requerida."),
+})
 
 // PATCH: Actualizar una reserva con deteccion de solapamiento
 export async function PATCH(
@@ -12,7 +21,9 @@ export async function PATCH(
     if (isAuthError(auth)) return auth
 
     const body = await req.json();
-    const { courtId, userId, startTime, endTime } = body;
+    const result = validarBody(BookingUpdateSchema, body);
+    if (!result.success) return result.response;
+    const { courtId, userId, startTime, endTime } = result.data;
 
     if (!params.bookingId) {
       return new NextResponse("ID de reserva requerido", { status: 400 });

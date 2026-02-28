@@ -1,8 +1,11 @@
 import { db } from "@/lib/db"
 import { notFound } from "next/navigation"
 import Link from "next/link"
+import Image from "next/image"
 import { ArrowLeft } from "lucide-react"
 import { Button } from "@/components/ui/button"
+
+export const revalidate = 1800 // 30min
 
 export default async function ClubNewsDetailPage({
   params,
@@ -33,11 +36,15 @@ export default async function ClubNewsDetailPage({
 
       <article className="max-w-3xl">
         {noticia.imageUrl && (
-          <img
-            src={noticia.imageUrl}
-            alt={noticia.title}
-            className="w-full h-64 object-cover rounded-lg mb-6"
-          />
+          <div className="relative w-full h-64 mb-6">
+            <Image
+              src={noticia.imageUrl}
+              alt={noticia.title}
+              fill
+              className="object-cover rounded-lg"
+              sizes="(max-width: 768px) 100vw, 768px"
+            />
+          </div>
         )}
 
         <h1 className="text-3xl font-bold tracking-tight text-foreground">

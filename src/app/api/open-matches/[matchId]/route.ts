@@ -1,6 +1,14 @@
 import { db } from "@/lib/db";
 import { requireAuth, isAuthError } from "@/lib/api-auth";
 import { NextResponse } from "next/server";
+import { validarBody } from "@/lib/validation";
+import * as z from "zod";
+
+const OpenMatchUpdateSchema = z.object({
+  courtId: z.string().min(1, "El ID de pista es requerido."),
+  matchTime: z.string().min(1, "La hora del partido es requerida."),
+  playerIds: z.array(z.string().min(1)).min(1, "Se requiere al menos un jugador.").max(4, "Maximo 4 jugadores."),
+})
 
 // PATCH: Modificar una partida abierta
 export async function PATCH(
@@ -12,7 +20,9 @@ export async function PATCH(
     if (isAuthError(auth)) return auth
 
     const body = await req.json();
-    const { courtId, matchTime, playerIds } = body;
+    const result = validarBody(OpenMatchUpdateSchema, body);
+    if (!result.success) return result.response;
+    const { courtId, matchTime, playerIds } = result.data;
 
     // Verificar que la partida pertenece al club
     const openMatch = await db.openMatch.findFirst({

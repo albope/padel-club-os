@@ -1,8 +1,11 @@
 import { Metadata } from "next"
 import Link from "next/link"
+import Image from "next/image"
 import { ArrowLeft, FileText } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { db } from "@/lib/db"
+
+export const revalidate = 86400 // 24h
 
 export const metadata: Metadata = {
   title: "Blog",
@@ -84,11 +87,16 @@ export default async function BlogPage() {
                   <div className="grid md:grid-cols-5">
                     <div className="flex items-center justify-center bg-muted/50 p-12 md:col-span-3 md:p-16">
                       {postDestacado.imageUrl ? (
-                        <img
-                          src={postDestacado.imageUrl}
-                          alt={postDestacado.title}
-                          className="w-full h-full object-cover rounded-lg"
-                        />
+                        <div className="relative w-full h-full min-h-[200px]">
+                          <Image
+                            src={postDestacado.imageUrl}
+                            alt={postDestacado.title}
+                            fill
+                            className="object-cover rounded-lg"
+                            sizes="(max-width: 768px) 100vw, 60vw"
+                            priority
+                          />
+                        </div>
                       ) : (
                         <div className="text-center">
                           <FileText className="mx-auto h-12 w-12 text-muted-foreground/30" />
@@ -142,10 +150,12 @@ export default async function BlogPage() {
                       <div className="group relative overflow-hidden rounded-xl border bg-card transition-shadow hover:shadow-md h-full">
                         <div className="relative aspect-[16/9] bg-muted/50">
                           {articulo.imageUrl ? (
-                            <img
+                            <Image
                               src={articulo.imageUrl}
                               alt={articulo.title}
-                              className="w-full h-full object-cover"
+                              fill
+                              className="object-cover"
+                              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
                             />
                           ) : (
                             <div className="flex h-full items-center justify-center">

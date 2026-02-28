@@ -4,6 +4,12 @@ import { NextResponse } from "next/server";
 import { CompetitionFormat, Prisma } from "@prisma/client";
 import { calculateMatchRatings, eloANivel } from "@/lib/elo";
 import { crearNotificacion } from "@/lib/notifications";
+import { validarBody } from "@/lib/validation";
+import * as z from "zod";
+
+const MatchResultSchema = z.object({
+  result: z.string().max(50, "El resultado no puede superar 50 caracteres.").optional().nullable(),
+})
 
 // --- Tipos ---
 interface TeamInfo {
@@ -236,7 +242,9 @@ export async function PATCH(
     if (isAuthError(auth)) return auth
 
     const body = await req.json();
-    const { result: newResult } = body;
+    const validacion = validarBody(MatchResultSchema, body);
+    if (!validacion.success) return validacion.response;
+    const newResult = validacion.data.result;
     const clubId = auth.session.user.clubId;
 
     // Verificar que la competicion pertenece al club

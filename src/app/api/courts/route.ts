@@ -2,6 +2,13 @@ import { db } from "@/lib/db";
 import { requireAuth, isAuthError } from "@/lib/api-auth";
 import { NextResponse } from "next/server";
 import { canCreateCourt } from "@/lib/subscription";
+import { validarBody } from "@/lib/validation";
+import * as z from "zod";
+
+const CourtCreateSchema = z.object({
+  name: z.string().min(1, "El nombre es requerido.").max(100, "El nombre no puede superar 100 caracteres."),
+  type: z.string().min(1, "El tipo es requerido.").max(50, "El tipo no puede superar 50 caracteres."),
+})
 
 // GET: Obtener todas las pistas del club
 export async function GET() {
@@ -37,11 +44,9 @@ export async function POST(req: Request) {
     }
 
     const body = await req.json();
-    const { name, type } = body;
-
-    if (!name || !type) {
-      return new NextResponse("Faltan nombre o tipo de pista", { status: 400 });
-    }
+    const result = validarBody(CourtCreateSchema, body);
+    if (!result.success) return result.response;
+    const { name, type } = result.data;
 
     const court = await db.court.create({
       data: {

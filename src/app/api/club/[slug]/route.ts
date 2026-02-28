@@ -35,7 +35,9 @@ export async function GET(
       return NextResponse.json({ error: "Club no encontrado." }, { status: 404 });
     }
 
-    return NextResponse.json(club);
+    return NextResponse.json(club, {
+      headers: { 'Cache-Control': 'public, s-maxage=3600, stale-while-revalidate=600' },
+    });
   } catch (error) {
     console.error("[GET_CLUB_BY_SLUG_ERROR]", error);
     return new NextResponse("Internal Server Error", { status: 500 });

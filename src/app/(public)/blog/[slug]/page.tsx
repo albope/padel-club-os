@@ -1,9 +1,12 @@
 import { Metadata } from "next"
 import Link from "next/link"
+import Image from "next/image"
 import { notFound } from "next/navigation"
 import { ArrowLeft } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { db } from "@/lib/db"
+
+export const revalidate = 86400 // 24h
 
 interface BlogPostPageProps {
   params: { slug: string }
@@ -102,11 +105,16 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
         </div>
 
         {post.imageUrl && (
-          <img
-            src={post.imageUrl}
-            alt={post.title}
-            className="mt-8 w-full rounded-xl object-cover"
-          />
+          <div className="relative mt-8 w-full aspect-[16/9]">
+            <Image
+              src={post.imageUrl}
+              alt={post.title}
+              fill
+              className="rounded-xl object-cover"
+              sizes="(max-width: 768px) 100vw, 768px"
+              priority
+            />
+          </div>
         )}
 
         <div className="mt-8 space-y-4 text-foreground leading-relaxed">

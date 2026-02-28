@@ -11,6 +11,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { cn } from '@/lib/utils';
+import Image from 'next/image';
 import EmptyState from '@/components/onboarding/EmptyState';
 
 type SocioWithStats = User & {
@@ -129,9 +130,11 @@ const SociosClient: React.FC<SociosClientProps> = ({ initialSocios }) => {
                     )}
                   >
                     <div className="flex items-center gap-4">
-                      <img
+                      <Image
                         src={socio.image || `https://ui-avatars.com/api/?name=${encodeURIComponent(socio.name || 'S')}&background=random&color=fff`}
                         alt="Avatar"
+                        width={40}
+                        height={40}
                         className="h-10 w-10 rounded-full"
                       />
                       <div className="flex items-center gap-2">

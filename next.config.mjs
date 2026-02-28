@@ -60,6 +60,19 @@ const nextConfig = {
   experimental: {
     instrumentationHook: true,
   },
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'ui-avatars.com',
+        pathname: '/api/**',
+      },
+      {
+        protocol: 'https',
+        hostname: '*.public.blob.vercel-storage.com',
+      },
+    ],
+  },
   async headers() {
     return [
       {

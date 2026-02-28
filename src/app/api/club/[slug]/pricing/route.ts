@@ -55,7 +55,9 @@ export async function GET(
       },
     })
 
-    return NextResponse.json(pricings)
+    return NextResponse.json(pricings, {
+      headers: { 'Cache-Control': 'public, s-maxage=43200, stale-while-revalidate=3600' },
+    })
   } catch (error) {
     console.error("[GET_CLUB_PRICING_ERROR]", error)
     return new NextResponse("Internal Server Error", { status: 500 })

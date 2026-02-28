@@ -5,6 +5,14 @@ import { calcularPrecioReserva } from "@/lib/pricing";
 import { crearNotificacion } from "@/lib/notifications";
 import { enviarEmailConfirmacionReserva, enviarEmailCancelacionReserva } from "@/lib/email";
 import { logger } from "@/lib/logger";
+import { validarBody } from "@/lib/validation";
+import * as z from "zod";
+
+const PlayerBookingCreateSchema = z.object({
+  courtId: z.string().min(1, "El ID de pista es requerido."),
+  startTime: z.string().min(1, "La hora de inicio es requerida."),
+  endTime: z.string().min(1, "La hora de fin es requerida."),
+})
 
 // GET: Obtener reservas del jugador autenticado
 export async function GET() {
@@ -37,14 +45,9 @@ export async function POST(req: Request) {
     if (isAuthError(auth)) return auth
 
     const body = await req.json();
-    const { courtId, startTime, endTime } = body;
-
-    if (!courtId || !startTime || !endTime) {
-      return NextResponse.json(
-        { error: "Faltan campos requeridos (courtId, startTime, endTime)." },
-        { status: 400 }
-      );
-    }
+    const result = validarBody(PlayerBookingCreateSchema, body);
+    if (!result.success) return result.response;
+    const { courtId, startTime, endTime } = result.data;
 
     // Verificar configuracion del club
     const club = await db.club.findUnique({

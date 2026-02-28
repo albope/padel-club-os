@@ -1,6 +1,17 @@
 import { db } from "@/lib/db";
 import { requireAuth, isAuthError } from "@/lib/api-auth";
 import { NextResponse } from "next/server";
+import { validarBody } from "@/lib/validation";
+import * as z from "zod";
+
+const MatchesBulkUpdateSchema = z.object({
+  matchesToUpdate: z.array(
+    z.object({
+      id: z.string().min(1, "El ID del partido es requerido."),
+      matchDate: z.string().min(1, "La fecha del partido es requerida."),
+    })
+  ).min(1, "Se requiere al menos un partido."),
+})
 
 // PATCH: Actualizar fechas de partidos en bulk
 export async function PATCH(
@@ -12,11 +23,9 @@ export async function PATCH(
     if (isAuthError(auth)) return auth
 
     const body = await req.json();
-    const { matchesToUpdate } = body;
-
-    if (!Array.isArray(matchesToUpdate) || matchesToUpdate.length === 0) {
-      return new NextResponse("Datos de partidos invalidos.", { status: 400 });
-    }
+    const result = validarBody(MatchesBulkUpdateSchema, body);
+    if (!result.success) return result.response;
+    const { matchesToUpdate } = result.data;
 
     // Verificar que la competicion pertenece al club
     const competition = await db.competition.findFirst({

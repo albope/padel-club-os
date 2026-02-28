@@ -50,7 +50,9 @@ export async function GET(
       mejorRacha: r.bestWinStreak,
     }));
 
-    return NextResponse.json(response);
+    return NextResponse.json(response, {
+      headers: { 'Cache-Control': 'public, s-maxage=1800, stale-while-revalidate=600' },
+    });
   } catch (error) {
     console.error("[GET_CLUB_RANKINGS_ERROR]", error);
     return new NextResponse("Internal Server Error", { status: 500 });

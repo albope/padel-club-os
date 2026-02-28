@@ -9,6 +9,7 @@ import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from '@/components/ui/table';
 import { eloANivel } from '@/lib/elo';
+import Image from 'next/image';
 
 const MEDAL_EMOJI = ['🥇', '🥈', '🥉'];
 
@@ -93,7 +94,7 @@ export default async function AdminRankingsPage() {
                     <TableCell>
                       <div className="flex items-center gap-2">
                         {r.user.image ? (
-                          <img src={r.user.image} alt={r.user.name || ''} className="h-8 w-8 rounded-full object-cover" />
+                          <Image src={r.user.image} alt={r.user.name || ''} width={32} height={32} className="h-8 w-8 rounded-full object-cover" />
                         ) : (
                           <div className="h-8 w-8 rounded-full bg-primary/10 text-primary flex items-center justify-center text-xs font-semibold">
                             {(r.user.name || '?').charAt(0).toUpperCase()}

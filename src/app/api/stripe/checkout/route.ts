@@ -2,21 +2,24 @@ import { NextResponse } from "next/server"
 import { requireAuth, isAuthError } from "@/lib/api-auth"
 import { stripe, PLAN_PRICES, PlanKey } from "@/lib/stripe"
 import { db } from "@/lib/db"
+import { validarBody } from "@/lib/validation"
+import * as z from "zod"
+
+const CheckoutSchema = z.object({
+  planKey: z.enum(["starter", "pro", "enterprise"] as const, {
+    errorMap: () => ({ message: "Plan no valido." }),
+  }),
+})
 
 export async function POST(req: Request) {
   try {
     const auth = await requireAuth("billing:update")
     if (isAuthError(auth)) return auth
 
-    const { planKey } = (await req.json()) as { planKey: string }
-
-    // Validar plan
-    if (!planKey || !(planKey in PLAN_PRICES)) {
-      return NextResponse.json(
-        { error: "Plan no valido" },
-        { status: 400 }
-      )
-    }
+    const body = await req.json()
+    const result = validarBody(CheckoutSchema, body)
+    if (!result.success) return result.response
+    const { planKey } = result.data
 
     const plan = PLAN_PRICES[planKey as PlanKey]
 

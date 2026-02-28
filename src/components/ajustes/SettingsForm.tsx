@@ -14,6 +14,7 @@ import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { toast } from '@/hooks/use-toast';
+import Image from 'next/image';
 
 const SettingsSchema = z.object({
   name: z.string().min(3, "El nombre del club es requerido."),
@@ -250,9 +251,11 @@ const SettingsForm: React.FC<SettingsFormProps> = ({ club }) => {
             <div className="flex items-center gap-4">
               {logoUrl ? (
                 <div className="relative">
-                  <img
+                  <Image
                     src={logoUrl}
                     alt="Logo del club"
+                    width={64}
+                    height={64}
                     className="h-16 w-16 rounded-full object-cover ring-2 ring-border"
                   />
                   <button

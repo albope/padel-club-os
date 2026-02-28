@@ -3,6 +3,16 @@ import { requireAuth, isAuthError } from "@/lib/api-auth";
 import { NextResponse } from "next/server";
 import { calcularPrecioReserva } from "@/lib/pricing";
 import { notificarClub } from "@/lib/notifications";
+import { validarBody } from "@/lib/validation";
+import * as z from "zod";
+
+const PlayerOpenMatchCreateSchema = z.object({
+  courtId: z.string().min(1, "El ID de pista es requerido."),
+  matchDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Formato de fecha invalido (YYYY-MM-DD)."),
+  matchTime: z.string().regex(/^\d{2}:\d{2}$/, "Formato de hora invalido (HH:MM)."),
+  levelMin: z.coerce.number().min(1).max(7).optional().nullable(),
+  levelMax: z.coerce.number().min(1).max(7).optional().nullable(),
+})
 
 // POST: El jugador crea una nueva partida abierta (queda inscrito automaticamente)
 export async function POST(req: Request) {
@@ -11,14 +21,9 @@ export async function POST(req: Request) {
     if (isAuthError(auth)) return auth;
 
     const body = await req.json();
-    const { courtId, matchDate, matchTime, levelMin, levelMax } = body;
-
-    if (!courtId || !matchDate || !matchTime) {
-      return NextResponse.json(
-        { error: "Faltan datos requeridos (courtId, matchDate, matchTime)." },
-        { status: 400 }
-      );
-    }
+    const result = validarBody(PlayerOpenMatchCreateSchema, body);
+    if (!result.success) return result.response;
+    const { courtId, matchDate, matchTime, levelMin, levelMax } = result.data;
 
     const club = await db.club.findUnique({
       where: { id: auth.session.user.clubId },
@@ -117,8 +122,8 @@ export async function POST(req: Request) {
           clubId: auth.session.user.clubId,
           courtId,
           matchTime: startTime,
-          levelMin: levelMin ? parseFloat(levelMin) : null,
-          levelMax: levelMax ? parseFloat(levelMax) : null,
+          levelMin: levelMin ?? null,
+          levelMax: levelMax ?? null,
           status: "OPEN",
           bookingId: booking.id,
         },

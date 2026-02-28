@@ -19,6 +19,7 @@ import { MobileSidebar } from '@/components/layout/MobileSidebar';
 import { Breadcrumbs } from '@/components/layout/Breadcrumbs';
 import { NotificationBell } from '@/components/layout/NotificationBell';
 import { GlobalSearch } from '@/components/layout/GlobalSearch';
+import Image from 'next/image';
 
 const Header = () => {
   const { data: session, status } = useSession();
@@ -46,10 +47,12 @@ const Header = () => {
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="relative h-9 w-9 rounded-full p-0 overflow-hidden">
-                  <img
+                  <Image
                     className="h-full w-full rounded-full object-cover"
                     src={user.image || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name || 'U')}&background=6366f1&color=fff`}
                     alt="Avatar"
+                    width={36}
+                    height={36}
                   />
                 </Button>
               </DropdownMenuTrigger>

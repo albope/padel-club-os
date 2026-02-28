@@ -1,7 +1,14 @@
 import { db } from "@/lib/db";
 import { requireAuth, isAuthError } from "@/lib/api-auth";
 import { NextResponse } from "next/server";
-import { CompetitionStatus } from "@prisma/client";
+import { validarBody } from "@/lib/validation";
+import * as z from "zod";
+
+const CompetitionUpdateSchema = z.object({
+  status: z.enum(["ACTIVE", "FINISHED"], {
+    errorMap: () => ({ message: "Estado no valido." }),
+  }),
+})
 
 // PATCH: Actualizar estado de una competicion
 export async function PATCH(
@@ -13,11 +20,9 @@ export async function PATCH(
     if (isAuthError(auth)) return auth
 
     const body = await req.json();
-    const { status } = body;
-
-    if (!status || !Object.values(CompetitionStatus).includes(status)) {
-      return new NextResponse("Estado no válido.", { status: 400 });
-    }
+    const result = validarBody(CompetitionUpdateSchema, body);
+    if (!result.success) return result.response;
+    const { status } = result.data;
 
     const updatedCompetition = await db.competition.update({
       where: { id: params.competitionId, clubId: auth.session.user.clubId },

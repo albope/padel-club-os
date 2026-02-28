@@ -1,6 +1,19 @@
 import { db } from "@/lib/db";
 import { requireAuth, isAuthError } from "@/lib/api-auth";
 import { NextResponse } from "next/server";
+import { validarBody } from "@/lib/validation";
+import * as z from "zod";
+
+const UserUpdateSchema = z.object({
+  name: z.string().min(2, "El nombre debe tener al menos 2 caracteres.").max(100, "El nombre no puede superar 100 caracteres.").optional(),
+  email: z.string().email("Email no valido.").max(255).optional(),
+  phone: z.string().max(20, "El telefono no puede superar 20 caracteres.").optional().or(z.literal("")).or(z.literal(null)),
+  position: z.string().max(50, "La posicion no puede superar 50 caracteres.").optional().or(z.literal("")).or(z.literal(null)),
+  level: z.string().max(10, "El nivel no puede superar 10 caracteres.").optional().or(z.literal("")).or(z.literal(null)),
+  birthDate: z.string().optional().or(z.literal("")).or(z.literal(null)),
+  isActive: z.boolean().optional(),
+  adminNotes: z.string().max(5000, "Las notas no pueden superar 5000 caracteres.").optional().or(z.literal("")).or(z.literal(null)),
+})
 
 // PATCH: Actualizar datos de un socio
 export async function PATCH(
@@ -12,7 +25,9 @@ export async function PATCH(
     if (isAuthError(auth)) return auth
 
     const body = await req.json();
-    const { name, email, phone, position, level, birthDate, isActive, adminNotes } = body;
+    const result = validarBody(UserUpdateSchema, body);
+    if (!result.success) return result.response;
+    const { name, email, phone, position, level, birthDate, isActive, adminNotes } = result.data;
 
     if (!params.userId) {
       return new NextResponse("ID de usuario requerido", { status: 400 });

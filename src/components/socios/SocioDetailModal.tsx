@@ -6,6 +6,7 @@ import { Mail, Phone, Gamepad2, BarChart3, Cake, CalendarClock, CalendarCheck2, 
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
+import Image from 'next/image';
 
 type SocioWithStats = User & {
   _count: {
@@ -36,9 +37,11 @@ const SocioDetailModal: React.FC<SocioDetailModalProps> = ({ isOpen, onClose, so
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <div className="flex items-center gap-4">
-            <img
+            <Image
               src={socio.image || `https://ui-avatars.com/api/?name=${encodeURIComponent(socio.name || 'S')}&background=random&color=fff`}
               alt="Avatar"
+              width={64}
+              height={64}
               className="h-16 w-16 rounded-full"
             />
             <div>

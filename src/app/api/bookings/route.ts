@@ -2,6 +2,19 @@ import { db } from "@/lib/db";
 import { requireAuth, isAuthError } from "@/lib/api-auth";
 import { NextResponse } from "next/server";
 import { calcularPrecioReserva } from "@/lib/pricing";
+import { validarBody } from "@/lib/validation";
+import * as z from "zod";
+
+const BookingCreateSchema = z.object({
+  courtId: z.string().min(1, "El ID de pista es requerido."),
+  startTime: z.string().min(1, "La hora de inicio es requerida."),
+  endTime: z.string().min(1, "La hora de fin es requerida."),
+  userId: z.string().optional(),
+  guestName: z.string().max(100, "El nombre del invitado no puede superar 100 caracteres.").optional(),
+}).refine(
+  (data) => data.userId || data.guestName,
+  { message: "Se requiere un socio o nombre de invitado.", path: ["userId"] }
+)
 
 // GET: Obtener todas las reservas del club
 export async function GET() {
@@ -31,11 +44,9 @@ export async function POST(req: Request) {
     if (isAuthError(auth)) return auth
 
     const body = await req.json();
-    const { courtId, userId, guestName, startTime, endTime } = body;
-
-    if (!courtId || (!userId && !guestName) || !startTime || !endTime) {
-      return new NextResponse("Faltan campos requeridos.", { status: 400 });
-    }
+    const result = validarBody(BookingCreateSchema, body);
+    if (!result.success) return result.response;
+    const { courtId, userId, guestName, startTime, endTime } = result.data;
 
     const newStartTime = new Date(startTime);
     const newEndTime = new Date(endTime);

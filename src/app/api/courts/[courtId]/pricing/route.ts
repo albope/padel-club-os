@@ -1,6 +1,22 @@
 import { NextResponse } from "next/server"
 import { requireAuth, isAuthError } from "@/lib/api-auth"
 import { db } from "@/lib/db"
+import { validarBody } from "@/lib/validation"
+import * as z from "zod"
+
+const PricingRuleSchema = z.object({
+  dayOfWeek: z.number().int().min(0, "Dia debe ser 0-6.").max(6, "Dia debe ser 0-6."),
+  startHour: z.number().int().min(0, "Hora inicio debe ser 0-23.").max(23, "Hora inicio debe ser 0-23."),
+  endHour: z.number().int().min(1, "Hora fin debe ser 1-24.").max(24, "Hora fin debe ser 1-24."),
+  price: z.number().min(0, "El precio no puede ser negativo."),
+}).refine(
+  (data) => data.startHour < data.endHour,
+  { message: "La hora de inicio debe ser menor que la hora de fin.", path: ["startHour"] }
+)
+
+const CourtPricingSchema = z.object({
+  rules: z.array(PricingRuleSchema),
+})
 
 // GET: Obtener reglas de precio de una pista
 export async function GET(
@@ -50,16 +66,10 @@ export async function POST(
     if (isAuthError(auth)) return auth
 
     const { courtId } = params
-    const { rules } = (await req.json()) as {
-      rules: { dayOfWeek: number; startHour: number; endHour: number; price: number }[]
-    }
-
-    if (!rules || !Array.isArray(rules)) {
-      return NextResponse.json(
-        { error: "Se requiere un array de reglas de precio" },
-        { status: 400 }
-      )
-    }
+    const body = await req.json()
+    const result = validarBody(CourtPricingSchema, body)
+    if (!result.success) return result.response
+    const { rules } = result.data
 
     // Verificar que la pista pertenece al club
     const court = await db.court.findFirst({
@@ -71,22 +81,6 @@ export async function POST(
         { error: "Pista no encontrada" },
         { status: 404 }
       )
-    }
-
-    // Validar reglas
-    for (const rule of rules) {
-      if (
-        rule.dayOfWeek < 0 || rule.dayOfWeek > 6 ||
-        rule.startHour < 0 || rule.startHour > 23 ||
-        rule.endHour < 1 || rule.endHour > 24 ||
-        rule.startHour >= rule.endHour ||
-        rule.price < 0
-      ) {
-        return NextResponse.json(
-          { error: "Datos de precio invalidos" },
-          { status: 400 }
-        )
-      }
     }
 
     // Upsert masivo dentro de una transaccion

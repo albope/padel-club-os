@@ -3,6 +3,12 @@ import { requireAuth, isAuthError } from "@/lib/api-auth";
 import { NextResponse } from "next/server";
 import { OpenMatchStatus } from "@prisma/client";
 import { crearNotificacion } from "@/lib/notifications";
+import { validarBody } from "@/lib/validation";
+import * as z from "zod";
+
+const JoinOpenMatchSchema = z.object({
+  openMatchId: z.string().min(1, "El ID de partida es requerido."),
+})
 
 // GET: Obtener partidas abiertas del club del jugador
 export async function GET() {
@@ -39,11 +45,9 @@ export async function POST(req: Request) {
     if (isAuthError(auth)) return auth
 
     const body = await req.json();
-    const { openMatchId } = body;
-
-    if (!openMatchId) {
-      return NextResponse.json({ error: "ID de partida requerido." }, { status: 400 });
-    }
+    const result = validarBody(JoinOpenMatchSchema, body);
+    if (!result.success) return result.response;
+    const { openMatchId } = result.data;
 
     const openMatch = await db.openMatch.findFirst({
       where: {

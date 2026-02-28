@@ -2,6 +2,18 @@ import { db } from "@/lib/db";
 import { requireAuth, isAuthError } from "@/lib/api-auth";
 import { NextResponse } from "next/server";
 import { CompetitionFormat } from "@prisma/client";
+import { validarBody } from "@/lib/validation";
+import * as z from "zod";
+
+const CompetitionCreateSchema = z.object({
+  name: z.string().min(1, "El nombre es requerido.").max(100, "El nombre no puede superar 100 caracteres."),
+  format: z.enum(["LEAGUE", "KNOCKOUT", "GROUP_AND_KNOCKOUT"], {
+    errorMap: () => ({ message: "Formato de competicion no valido." }),
+  }),
+  rounds: z.number().int().min(1).max(4).optional(),
+  groupSize: z.number().int().min(2).max(16).optional().nullable(),
+  teamsPerGroupToAdvance: z.number().int().min(1).max(8).optional().nullable(),
+})
 
 // GET: Obtener todas las competiciones del club
 export async function GET() {
@@ -31,15 +43,9 @@ export async function POST(req: Request) {
     if (isAuthError(auth)) return auth
 
     const body = await req.json();
-    const { name, format, rounds, groupSize, teamsPerGroupToAdvance } = body;
-
-    if (!name || !format) {
-      return new NextResponse("El nombre y el formato son requeridos", { status: 400 });
-    }
-
-    if (!Object.values(CompetitionFormat).includes(format)) {
-      return new NextResponse("Formato de competición no válido", { status: 400 });
-    }
+    const result = validarBody(CompetitionCreateSchema, body);
+    if (!result.success) return result.response;
+    const { name, format, rounds, groupSize, teamsPerGroupToAdvance } = result.data;
 
     const competition = await db.competition.create({
       data: {

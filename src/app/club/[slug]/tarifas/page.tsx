@@ -3,6 +3,8 @@ import { notFound } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 
+export const revalidate = 43200 // 12h
+
 interface Franja {
   nombre: string;
   horario: string;

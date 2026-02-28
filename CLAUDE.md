@@ -318,7 +318,7 @@ El plan completo de 5 fases esta en: `C:\Users\alber\.claude\plans\jaunty-tumbli
 - [x] Pagina 404 personalizada: not-found.tsx (SVG padel, orbes animados, gradiente azul/cyan)
 - [x] i18n: secciones cookies, auth en es.json y en.json
 
-**Siguiente: Validacion APIs (B2), performance (B5), tests (C1)**
+**Siguiente: Performance basica (B5), tests (C1)**
 
 ## Notas
 
@@ -399,9 +399,12 @@ Revisa las secciones de estado en CLAUDE.md y el roadmap para ver que esta COMPL
 - [x] Todos los envios fire-and-forget (.catch), nunca bloquean APIs
 - [x] Build exitoso
 
-**Sesion B2 - Validacion completa APIs** `[ ]`
-- Zod schemas para todas las API routes que faltan (~45 rutas)
-- Middleware de validacion reutilizable (`validateBody(schema)`)
+**Sesion B2 - Validacion completa APIs** `[x]`
+- [x] src/lib/validation.ts: helper `validarBody(schema, body)` con discriminated union tipado
+- [x] Zod schemas en 22 rutas API con mutaciones (5 grupos: CRUD core, competiciones, partidas, precios, player bookings)
+- [x] Schemas con validaciones estrictas: .min(), .max(), regex, enums, .refine() para reglas de negocio
+- [x] Reemplazada validacion manual (`if (!field)`) por schemas Zod en todas las rutas con body
+- [x] Build exitoso
 
 **Sesion B3 - Onboarding admin** `[x]`
 - [x] EmptyState.tsx: componente reutilizable para estados vacios (icono, titulo, descripcion, CTA opcional)
@@ -474,4 +477,4 @@ Revisa las secciones de estado en CLAUDE.md y el roadmap para ver que esta COMPL
 **Sesion D5** - CI/CD (GitHub Actions: lint + test + build en PR) `[ ]`
 
 ### Orden recomendado
-Sprint 1: A1, A2 [DONE] → Sprint 2: A3, A5 [DONE] → Sprint 3: A4, B1 [DONE] → Sprint 4: B4, B3 [DONE] → Sprint 5: B2, B5 → Sprint 6: C1 → Beta launch → Sprint 7+: C2-C5, D1-D5
+Sprint 1: A1, A2 [DONE] → Sprint 2: A3, A5 [DONE] → Sprint 3: A4, B1 [DONE] → Sprint 4: B4, B3 [DONE] → Sprint 5: B2 [DONE], B5 → Sprint 6: C1 → Beta launch → Sprint 7+: C2-C5, D1-D5

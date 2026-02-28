@@ -3,6 +3,18 @@ import { requireAuth, isAuthError } from "@/lib/api-auth";
 import { NextResponse } from "next/server";
 import { hash } from "bcrypt";
 import { canCreateMember } from "@/lib/subscription";
+import { validarBody } from "@/lib/validation";
+import * as z from "zod";
+
+const UserCreateSchema = z.object({
+  email: z.string().email("Email no valido.").max(255, "El email no puede superar 255 caracteres."),
+  name: z.string().min(2, "El nombre debe tener al menos 2 caracteres.").max(100, "El nombre no puede superar 100 caracteres."),
+  password: z.string().min(8, "La contrasena debe tener al menos 8 caracteres.").max(128, "La contrasena no puede superar 128 caracteres."),
+  phone: z.string().max(20, "El telefono no puede superar 20 caracteres.").optional().or(z.literal("")),
+  position: z.string().max(50, "La posicion no puede superar 50 caracteres.").optional().or(z.literal("")),
+  level: z.string().max(10, "El nivel no puede superar 10 caracteres.").optional().or(z.literal("")),
+  birthDate: z.string().optional().or(z.literal("")).or(z.literal(null)),
+})
 
 // POST: Crear un nuevo socio
 export async function POST(req: Request) {
@@ -20,11 +32,9 @@ export async function POST(req: Request) {
     }
 
     const body = await req.json();
-    const { email, name, password, phone, position, level, birthDate } = body;
-
-    if (!email || !name || !password) {
-      return new NextResponse("Faltan campos requeridos", { status: 400 });
-    }
+    const result = validarBody(UserCreateSchema, body);
+    if (!result.success) return result.response;
+    const { email, name, password, phone, position, level, birthDate } = result.data;
 
     const existingUser = await db.user.findUnique({ where: { email } });
     if (existingUser) {

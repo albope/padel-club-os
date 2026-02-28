@@ -1,6 +1,30 @@
 import { db } from "@/lib/db";
 import { requireAuth, isAuthError } from "@/lib/api-auth";
 import { NextResponse } from "next/server";
+import { validarBody } from "@/lib/validation";
+import * as z from "zod";
+
+const urlOpcional = z.string().url("URL no valida.").max(2000).optional().or(z.literal("")).or(z.literal(null))
+
+const ClubUpdateSchema = z.object({
+  name: z.string().min(1, "El nombre es requerido.").max(100, "El nombre no puede superar 100 caracteres.").optional(),
+  openingTime: z.string().regex(/^\d{2}:\d{2}$/, "Formato de hora invalido (HH:MM).").optional(),
+  closingTime: z.string().regex(/^\d{2}:\d{2}$/, "Formato de hora invalido (HH:MM).").optional(),
+  description: z.string().max(1000, "La descripcion no puede superar 1000 caracteres.").optional().or(z.literal("")).or(z.literal(null)),
+  phone: z.string().max(20, "El telefono no puede superar 20 caracteres.").optional().or(z.literal("")).or(z.literal(null)),
+  email: z.string().email("Email no valido.").max(255).optional().or(z.literal("")).or(z.literal(null)),
+  primaryColor: z.string().regex(/^#[0-9a-fA-F]{6}$/, "Color invalido (formato hex #RRGGBB).").optional(),
+  logoUrl: urlOpcional,
+  bannerUrl: urlOpcional,
+  instagramUrl: urlOpcional,
+  facebookUrl: urlOpcional,
+  maxAdvanceBooking: z.number().int().min(1).max(90).optional().nullable(),
+  cancellationHours: z.number().int().min(0).max(48).optional().nullable(),
+  enableOpenMatches: z.boolean().optional(),
+  enablePlayerBooking: z.boolean().optional(),
+  bookingPaymentMode: z.enum(["online", "presential", "both"], { errorMap: () => ({ message: "Modo de pago no valido." }) }).optional(),
+  bookingDuration: z.number().int().refine(v => [60, 90, 120].includes(v), "Duracion debe ser 60, 90 o 120 minutos.").optional().nullable(),
+})
 
 // GET: Obtener datos del club
 export async function GET() {
@@ -26,6 +50,8 @@ export async function PATCH(req: Request) {
     if (isAuthError(auth)) return auth
 
     const body = await req.json();
+    const result = validarBody(ClubUpdateSchema, body);
+    if (!result.success) return result.response;
     const {
       name, openingTime, closingTime,
       description, phone, email, primaryColor,
@@ -33,7 +59,7 @@ export async function PATCH(req: Request) {
       maxAdvanceBooking, cancellationHours,
       enableOpenMatches, enablePlayerBooking,
       bookingPaymentMode, bookingDuration,
-    } = body;
+    } = result.data;
 
     const updatedClub = await db.club.update({
       where: { id: auth.session.user.clubId },

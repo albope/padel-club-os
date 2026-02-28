@@ -3,6 +3,8 @@ import { notFound } from "next/navigation";
 import { eloANivel } from "@/lib/elo";
 import Leaderboard from "@/components/club/Leaderboard";
 
+export const revalidate = 1800 // 30min
+
 export default async function ClubRankingsPage({ params }: { params: { slug: string } }) {
   const club = await db.club.findUnique({
     where: { slug: params.slug },

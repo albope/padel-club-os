@@ -24,6 +24,7 @@ import {
   SheetTrigger,
 } from '@/components/ui/sheet';
 import { useScrollDirection } from '@/hooks/use-scroll-direction';
+import Image from 'next/image';
 
 interface ClubInfo {
   id: string;
@@ -107,9 +108,11 @@ export default function ClubLayout({ club, children }: ClubLayoutProps) {
           {/* Logo + nombre */}
           <Link href={basePath} className="flex items-center gap-2.5 group shrink-0">
             {club.logoUrl ? (
-              <img
+              <Image
                 src={club.logoUrl}
                 alt={club.name}
+                width={36}
+                height={36}
                 className="h-9 w-9 rounded-full object-cover ring-2 ring-offset-2 ring-offset-background"
                 style={{ borderColor: color, boxShadow: `0 0 0 2px ${color}` }}
               />

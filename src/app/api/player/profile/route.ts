@@ -1,6 +1,15 @@
 import { db } from "@/lib/db";
 import { requireAuth, isAuthError } from "@/lib/api-auth";
 import { NextResponse } from "next/server";
+import { validarBody } from "@/lib/validation";
+import * as z from "zod";
+
+const ProfileUpdateSchema = z.object({
+  name: z.string().min(2, "El nombre debe tener al menos 2 caracteres.").max(100, "El nombre no puede superar 100 caracteres.").optional(),
+  phone: z.string().max(20, "El telefono no puede superar 20 caracteres.").optional().or(z.literal("")).or(z.literal(null)),
+  position: z.string().max(50, "La posicion no puede superar 50 caracteres.").optional().or(z.literal("")).or(z.literal(null)),
+  level: z.string().max(10, "El nivel no puede superar 10 caracteres.").optional().or(z.literal("")).or(z.literal(null)),
+})
 
 // GET: Obtener perfil del jugador autenticado
 export async function GET() {
@@ -36,7 +45,9 @@ export async function PATCH(req: Request) {
     if (isAuthError(auth)) return auth
 
     const body = await req.json();
-    const { name, phone, position, level } = body;
+    const result = validarBody(ProfileUpdateSchema, body);
+    if (!result.success) return result.response;
+    const { name, phone, position, level } = result.data;
 
     const updatedUser = await db.user.update({
       where: { id: auth.session.user.id },

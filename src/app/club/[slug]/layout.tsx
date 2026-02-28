@@ -2,6 +2,8 @@ import { db } from "@/lib/db";
 import { notFound } from "next/navigation";
 import ClubLayout from "@/components/club/ClubLayout";
 
+export const revalidate = 3600 // 1h
+
 interface ClubLayoutProps {
   children: React.ReactNode;
   params: { slug: string };

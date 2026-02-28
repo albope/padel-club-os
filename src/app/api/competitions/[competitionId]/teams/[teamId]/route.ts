@@ -1,6 +1,14 @@
 import { db } from "@/lib/db";
 import { requireAuth, isAuthError } from "@/lib/api-auth";
 import { NextResponse } from "next/server";
+import { validarBody } from "@/lib/validation";
+import * as z from "zod";
+
+const TeamUpdateSchema = z.object({
+  name: z.string().min(1, "El nombre del equipo es requerido.").max(100, "El nombre no puede superar 100 caracteres.").optional(),
+  player1Id: z.string().min(1).optional(),
+  player2Id: z.string().min(1).optional(),
+})
 
 // PATCH: Actualizar un equipo
 export async function PATCH(
@@ -12,7 +20,9 @@ export async function PATCH(
     if (isAuthError(auth)) return auth
 
     const body = await req.json();
-    const { name, player1Id, player2Id } = body;
+    const result = validarBody(TeamUpdateSchema, body);
+    if (!result.success) return result.response;
+    const { name, player1Id, player2Id } = result.data;
 
     if (!params.teamId) {
       return new NextResponse("ID de equipo requerido", { status: 400 });

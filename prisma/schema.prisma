@@ -101,6 +101,9 @@ model User {
   notifications     Notification[]
   pushSubscriptions PushSubscription[]
   cookieConsents    CookieConsent[]
+
+  @@index([clubId])
+  @@index([clubId, role])
 }
 
 // --- NextAuth Models ---
@@ -156,6 +159,8 @@ model Court {
   bookings Booking[]
   openMatches OpenMatch[]
   pricings CourtPricing[]
+
+  @@index([clubId])
 }
 
 model Booking {
@@ -180,6 +185,10 @@ model Booking {
   payment         Payment?
 
   @@unique([courtId, startTime])
+  @@index([clubId])
+  @@index([clubId, startTime])
+  @@index([userId])
+  @@index([status, startTime])
 }
 
 // --- UNIFIED COMPETITION MODULE ---
@@ -207,6 +216,8 @@ model Competition {
   teamsPerGroupToAdvance Int?
   teams     Team[]
   matches   Match[]
+
+  @@index([clubId])
 }
 
 model Team {
@@ -274,6 +285,9 @@ model OpenMatch {
   
   booking   Booking? @relation(fields: [bookingId], references: [id])
   bookingId String?  @unique
+
+  @@index([clubId])
+  @@index([clubId, status])
 }
 
 model OpenMatchPlayer {
@@ -299,6 +313,9 @@ model News {
   club      Club     @relation(fields: [clubId], references: [id], onDelete: Cascade)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@index([clubId])
+  @@index([clubId, published])
 }
 
 // --- PAGOS ---
@@ -320,6 +337,9 @@ model Payment {
   club            Club     @relation(fields: [clubId], references: [id], onDelete: Cascade)
 
   createdAt       DateTime @default(now())
+
+  @@index([clubId])
+  @@index([userId])
 }
 
 // --- RANKING / ESTADISTICAS DE JUGADOR ---
@@ -341,6 +361,8 @@ model PlayerStats {
   updatedAt     DateTime @updatedAt
 
   @@unique([userId, clubId])
+  @@index([clubId])
+  @@index([clubId, eloRating])
 }
 
 // --- PRECIOS POR PISTA ---
@@ -356,6 +378,7 @@ model CourtPricing {
   club      Club   @relation(fields: [clubId], references: [id], onDelete: Cascade)
 
   @@unique([courtId, dayOfWeek, startHour])
+  @@index([clubId])
 }
 
 // --- FORMULARIO DE CONTACTO (plataforma) ---
@@ -383,6 +406,8 @@ model BlogPost {
   readTime   String?
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
+
+  @@index([published, createdAt])
 }
 
 // --- NOTIFICACIONES ---

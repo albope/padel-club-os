@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { OpenMatch, Court } from '@prisma/client';
 import { Calendar, Clock, MapPin, Users, ShieldCheck, Hourglass, XCircle, Pencil, BarChart3 } from 'lucide-react';
+import EmptyState from '@/components/onboarding/EmptyState';
 import Link from 'next/link';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -190,9 +191,14 @@ const PartidasAbiertasClient: React.FC<PartidasAbiertasClientProps> = ({ initial
           </div>
         ) : (
           <Card>
-            <CardContent className="text-center py-16">
-              <p className="text-muted-foreground">No hay ninguna partida abierta en este momento.</p>
-              <p className="text-sm text-muted-foreground/70 mt-1">Haz clic en &quot;Abrir Partida&quot; para crear una.</p>
+            <CardContent className="p-6">
+              <EmptyState
+                icon={Users}
+                title="Sin partidas abiertas"
+                description="Crea partidas abiertas para que los jugadores encuentren companeros."
+                actionLabel="Abrir primera partida"
+                actionHref="/dashboard/partidas-abiertas/nueva"
+              />
             </CardContent>
           </Card>
         )}

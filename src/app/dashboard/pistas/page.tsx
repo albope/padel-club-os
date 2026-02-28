@@ -6,6 +6,7 @@ import { redirect } from 'next/navigation';
 import { Fence, PlusCircle, Pencil } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
+import EmptyState from '@/components/onboarding/EmptyState';
 
 const PistasPage = async () => {
   const session = await getServerSession(authOptions);
@@ -59,10 +60,13 @@ const PistasPage = async () => {
               ))}
             </ul>
           ) : (
-            <div className="text-center py-12">
-              <p className="text-muted-foreground">Aun no has añadido ninguna pista.</p>
-              <p className="text-sm text-muted-foreground mt-1">Haz clic en &quot;Añadir Pista&quot; para empezar.</p>
-            </div>
+            <EmptyState
+              icon={Fence}
+              title="Sin pistas configuradas"
+              description="Añade las pistas de tu club para empezar a gestionar reservas."
+              actionLabel="Añadir primera pista"
+              actionHref="/dashboard/pistas/nueva"
+            />
           )}
         </div>
       </div>

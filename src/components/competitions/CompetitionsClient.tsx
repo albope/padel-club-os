@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Competition, CompetitionFormat, CompetitionStatus } from '@prisma/client';
 import { Trophy, Users, Loader2 } from 'lucide-react';
+import EmptyState from '@/components/onboarding/EmptyState';
 import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
@@ -93,6 +94,22 @@ const CompetitionsClient: React.FC<CompetitionsClientProps> = ({ initialCompetit
       },
     });
   };
+
+  if (competitions.length === 0) {
+    return (
+      <Card>
+        <CardContent className="p-6">
+          <EmptyState
+            icon={Trophy}
+            title="Sin competiciones"
+            description="Crea ligas y torneos para que tus socios compitan entre ellos."
+            actionLabel="Crear primera competicion"
+            actionHref="/dashboard/competitions/nueva"
+          />
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <>

@@ -4,6 +4,7 @@ import React, { useState, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Newspaper, Pencil, Trash2, Loader2 } from 'lucide-react'
+import EmptyState from '@/components/onboarding/EmptyState'
 import { Card, CardContent } from '@/components/ui/card'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Badge } from '@/components/ui/badge'
@@ -129,6 +130,22 @@ const NoticiasClient: React.FC<NoticiasClientProps> = ({ initialNews }) => {
       case 'published': return 'Publicadas'
       case 'draft': return 'Borradores'
     }
+  }
+
+  if (news.length === 0) {
+    return (
+      <Card>
+        <CardContent className="p-6">
+          <EmptyState
+            icon={Newspaper}
+            title="Sin noticias publicadas"
+            description="Publica noticias para mantener informados a tus socios."
+            actionLabel="Crear primera noticia"
+            actionHref="/dashboard/noticias/nueva"
+          />
+        </CardContent>
+      </Card>
+    );
   }
 
   return (

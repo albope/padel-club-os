@@ -190,5 +190,50 @@
     "deleteSuccessDesc": "Tus datos personales han sido eliminados.",
     "deleteError": "No se pudo eliminar la cuenta.",
     "incorrectPassword": "Contrasena incorrecta."
+  },
+  "onboarding": {
+    "title": "Configura tu club",
+    "subtitle": "Completa estos pasos para que tu club este listo",
+    "progress": "{completed} de {total} pasos completados",
+    "dismiss": "Ocultar",
+    "show": "Mostrar pasos de configuracion",
+    "startWizard": "Configuracion guiada",
+    "steps": {
+      "clubInfo": "Completar informacion del club",
+      "clubInfoDesc": "Añade descripcion, telefono o email de contacto",
+      "createCourt": "Crear al menos una pista",
+      "createCourtDesc": "Añade las pistas de tu club para empezar a recibir reservas",
+      "configurePricing": "Configurar precios",
+      "configurePricingDesc": "Establece precios por pista, dia y franja horaria",
+      "customizePortal": "Personalizar portal",
+      "customizePortalDesc": "Sube el logo o banner de tu club y personaliza los colores",
+      "invitePlayers": "Invitar jugadores",
+      "invitePlayersDesc": "Comparte el enlace del portal para que tus socios se registren"
+    },
+    "wizard": {
+      "title": "Configuracion inicial",
+      "subtitle": "Configura los aspectos basicos de tu club en unos minutos",
+      "next": "Siguiente",
+      "previous": "Anterior",
+      "finish": "Finalizar configuracion",
+      "skip": "Saltar este paso",
+      "clubInfoTitle": "Informacion del club",
+      "clubInfoSubtitle": "Datos basicos que veran tus jugadores en el portal",
+      "courtsTitle": "Pistas de tu club",
+      "courtsSubtitle": "Añade las pistas disponibles. Podras editar o añadir mas desde el panel",
+      "pricingTitle": "Precios basicos",
+      "pricingSubtitle": "Establece un precio base por hora. Podras personalizar por dia y franja despues",
+      "reviewTitle": "Todo listo",
+      "reviewSubtitle": "Tu club esta configurado. Aqui tienes los siguientes pasos",
+      "addCourt": "Añadir pista",
+      "courtName": "Nombre de la pista",
+      "courtType": "Tipo de pista",
+      "pricePerHour": "Precio por hora (EUR)",
+      "applyToAll": "Aplicar a todas las pistas",
+      "portalLink": "Enlace del portal",
+      "copyLink": "Copiar enlace",
+      "linkCopied": "Enlace copiado",
+      "goToDashboard": "Ir al dashboard"
+    }
   }
 }

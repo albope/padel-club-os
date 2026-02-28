@@ -40,7 +40,7 @@ const securityHeaders = [
     key: 'Content-Security-Policy',
     value: [
       "default-src 'self'",
-      "script-src 'self' 'unsafe-inline' https://browser.sentry-cdn.com",
+      `script-src 'self' 'unsafe-inline'${process.env.NODE_ENV === 'development' ? " 'unsafe-eval'" : ''} https://browser.sentry-cdn.com`,
       "style-src 'self' 'unsafe-inline'",
       "img-src 'self' data: blob: https://ui-avatars.com https://*.public.blob.vercel-storage.com https:",
       "font-src 'self'",

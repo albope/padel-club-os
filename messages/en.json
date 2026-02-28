@@ -190,5 +190,50 @@
     "deleteSuccessDesc": "Your personal data has been deleted.",
     "deleteError": "Could not delete account.",
     "incorrectPassword": "Incorrect password."
+  },
+  "onboarding": {
+    "title": "Set up your club",
+    "subtitle": "Complete these steps to get your club ready",
+    "progress": "{completed} of {total} steps completed",
+    "dismiss": "Hide",
+    "show": "Show setup steps",
+    "startWizard": "Guided setup",
+    "steps": {
+      "clubInfo": "Complete club information",
+      "clubInfoDesc": "Add description, phone or contact email",
+      "createCourt": "Create at least one court",
+      "createCourtDesc": "Add your club courts to start receiving bookings",
+      "configurePricing": "Configure pricing",
+      "configurePricingDesc": "Set prices by court, day and time slot",
+      "customizePortal": "Customize portal",
+      "customizePortalDesc": "Upload your club logo or banner and customize colors",
+      "invitePlayers": "Invite players",
+      "invitePlayersDesc": "Share the portal link for your members to register"
+    },
+    "wizard": {
+      "title": "Initial setup",
+      "subtitle": "Configure the basics of your club in a few minutes",
+      "next": "Next",
+      "previous": "Previous",
+      "finish": "Finish setup",
+      "skip": "Skip this step",
+      "clubInfoTitle": "Club information",
+      "clubInfoSubtitle": "Basic details your players will see on the portal",
+      "courtsTitle": "Your club courts",
+      "courtsSubtitle": "Add available courts. You can edit or add more from the panel later",
+      "pricingTitle": "Basic pricing",
+      "pricingSubtitle": "Set a base price per hour. You can customize by day and time slot later",
+      "reviewTitle": "All set",
+      "reviewSubtitle": "Your club is configured. Here are the next steps",
+      "addCourt": "Add court",
+      "courtName": "Court name",
+      "courtType": "Court type",
+      "pricePerHour": "Price per hour (EUR)",
+      "applyToAll": "Apply to all courts",
+      "portalLink": "Portal link",
+      "copyLink": "Copy link",
+      "linkCopied": "Link copied",
+      "goToDashboard": "Go to dashboard"
+    }
   }
 }

@@ -11,6 +11,8 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import BroadcastDialog from '@/components/dashboard/BroadcastDialog';
+import OnboardingChecklist from '@/components/onboarding/OnboardingChecklist';
+import EmptyState from '@/components/onboarding/EmptyState';
 
 const StatCard = ({ title, value, icon: Icon, tooltipText }: { title: string, value: string, icon: React.ElementType, tooltipText?: string }) => {
   return (
@@ -133,11 +135,13 @@ interface DashboardClientProps {
   todayBookings: TodayBooking[];
   openingTime: string;
   closingTime: string;
+  onboardingPasos: { id: string; completado: boolean; href: string }[];
+  clubSlug: string;
 }
 
 const DashboardClient: React.FC<DashboardClientProps> = ({
   user, clubName, upcomingBookings, stats, courts, users,
-  todayBookings, openingTime, closingTime,
+  todayBookings, openingTime, closingTime, onboardingPasos, clubSlug,
 }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedInfoForModal, setSelectedInfoForModal] = useState<Date | null>(null);
@@ -185,7 +189,11 @@ const DashboardClient: React.FC<DashboardClientProps> = ({
         </div>
 
         <main>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          {onboardingPasos.length > 0 && !onboardingPasos.every(p => p.completado) && (
+            <OnboardingChecklist pasos={onboardingPasos} clubSlug={clubSlug} />
+          )}
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mt-8">
             <StatCard title="Reservas de Hoy" value={stats.bookingsToday.toString()} icon={Calendar} />
             <StatCard title="Socios Activos" value={stats.activeMembers.toString()} icon={Users} />
             <StatCard
@@ -216,7 +224,12 @@ const DashboardClient: React.FC<DashboardClientProps> = ({
                     ))}
                   </ul>
                 ) : (
-                  <p className="text-muted-foreground text-center py-12">No hay proximas reservas.</p>
+                  <EmptyState
+                    icon={Calendar}
+                    title="Sin reservas proximas"
+                    description="Las proximas reservas de tu club apareceran aqui."
+                    className="py-12"
+                  />
                 )}
               </CardContent>
 

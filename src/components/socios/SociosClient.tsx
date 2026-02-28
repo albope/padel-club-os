@@ -2,7 +2,7 @@
 
 import React, { useState, useMemo } from 'react';
 import { User } from '@prisma/client';
-import { Pencil, ShieldCheck, Search, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Pencil, ShieldCheck, Search, ChevronLeft, ChevronRight, Users } from 'lucide-react';
 import Link from 'next/link';
 import SocioDetailModal from './SocioDetailModal';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
@@ -11,6 +11,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { cn } from '@/lib/utils';
+import EmptyState from '@/components/onboarding/EmptyState';
 
 type SocioWithStats = User & {
   _count: {
@@ -60,6 +61,24 @@ const SociosClient: React.FC<SociosClientProps> = ({ initialSocios }) => {
     setIsModalOpen(false);
     setSelectedSocio(null);
   };
+
+  const tieneSocios = initialSocios.some(s => !s.isAdmin);
+
+  if (!tieneSocios && !searchTerm) {
+    return (
+      <Card>
+        <CardContent className="p-6">
+          <EmptyState
+            icon={Users}
+            title="Sin socios registrados"
+            description="Comparte el enlace del portal con tus jugadores para que se registren, o añade socios manualmente."
+            actionLabel="Añadir socio"
+            actionHref="/dashboard/socios/nuevo"
+          />
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <>

@@ -20,6 +20,8 @@ const getDashboardData = async (clubId: string) => {
       club,
       courts,
       users,
+      courtPricingsCount,
+      playerCount,
     ] = await Promise.all([
       // --- INICIO DE LA MODIFICACIÓN ---
       db.booking.findMany({
@@ -61,6 +63,14 @@ const getDashboardData = async (clubId: string) => {
           courts: { select: { id: true } },
           openingTime: true,
           closingTime: true,
+          // Campos para onboarding checklist
+          description: true,
+          phone: true,
+          email: true,
+          logoUrl: true,
+          bannerUrl: true,
+          primaryColor: true,
+          slug: true,
         },
       }),
       db.court.findMany({
@@ -71,6 +81,9 @@ const getDashboardData = async (clubId: string) => {
         where: { clubId },
         orderBy: { name: 'asc' },
       }),
+      // Queries para onboarding
+      db.courtPricing.count({ where: { clubId } }),
+      db.user.count({ where: { clubId, role: "PLAYER" } }),
     ]);
 
     let occupancyRate = 0;
@@ -113,6 +126,35 @@ const getDashboardData = async (clubId: string) => {
       user: b.user,
     }));
 
+    // Calcular pasos de onboarding
+    const onboardingPasos = [
+      {
+        id: 'clubInfo',
+        completado: !!(club?.description || club?.phone || club?.email),
+        href: '/dashboard/ajustes',
+      },
+      {
+        id: 'createCourt',
+        completado: courts.length > 0,
+        href: '/dashboard/pistas/nueva',
+      },
+      {
+        id: 'configurePricing',
+        completado: courtPricingsCount > 0,
+        href: courts.length > 0 ? `/dashboard/pistas/${courts[0].id}/precios` : '/dashboard/pistas',
+      },
+      {
+        id: 'customizePortal',
+        completado: !!(club?.logoUrl || club?.bannerUrl || (club?.primaryColor && club.primaryColor !== '#4f46e5')),
+        href: '/dashboard/ajustes',
+      },
+      {
+        id: 'invitePlayers',
+        completado: playerCount > 0,
+        href: '',
+      },
+    ];
+
     return JSON.parse(JSON.stringify({
       upcomingBookings,
       stats,
@@ -121,6 +163,8 @@ const getDashboardData = async (clubId: string) => {
       todayBookings,
       openingTime: club?.openingTime || '09:00',
       closingTime: club?.closingTime || '23:00',
+      onboardingPasos,
+      clubSlug: club?.slug || '',
     }));
   } catch (error) {
     console.error('Failed to fetch dashboard data:', error);
@@ -137,6 +181,8 @@ const getDashboardData = async (clubId: string) => {
       todayBookings: [],
       openingTime: '09:00',
       closingTime: '23:00',
+      onboardingPasos: [],
+      clubSlug: '',
     };
   }
 };
@@ -148,7 +194,7 @@ const DashboardPage = async () => {
     redirect('/login');
   }
 
-  const { upcomingBookings, stats, courts, users, todayBookings, openingTime, closingTime } = await getDashboardData(
+  const { upcomingBookings, stats, courts, users, todayBookings, openingTime, closingTime, onboardingPasos, clubSlug } = await getDashboardData(
     session.user.clubId
   );
 
@@ -163,6 +209,8 @@ const DashboardPage = async () => {
       todayBookings={todayBookings}
       openingTime={openingTime}
       closingTime={closingTime}
+      onboardingPasos={onboardingPasos}
+      clubSlug={clubSlug}
     />
   );
 };

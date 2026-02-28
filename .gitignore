@@ -50,5 +50,8 @@ public/swe-worker-*.js
 public/workbox-*.js
 public/workbox-*.js.map
 
+# credenciales de prueba
+TEST-CREDENTIALS.md
+
 # claude code
 .claude/

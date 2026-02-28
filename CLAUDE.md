@@ -318,7 +318,7 @@ El plan completo de 5 fases esta en: `C:\Users\alber\.claude\plans\jaunty-tumbli
 - [x] Pagina 404 personalizada: not-found.tsx (SVG padel, orbes animados, gradiente azul/cyan)
 - [x] i18n: secciones cookies, auth en es.json y en.json
 
-**Siguiente: Onboarding admin (B3), validacion APIs (B2), performance (B5), tests (C1)**
+**Siguiente: Validacion APIs (B2), performance (B5), tests (C1)**
 
 ## Notas
 
@@ -403,10 +403,16 @@ Revisa las secciones de estado en CLAUDE.md y el roadmap para ver que esta COMPL
 - Zod schemas para todas las API routes que faltan (~45 rutas)
 - Middleware de validacion reutilizable (`validateBody(schema)`)
 
-**Sesion B3 - Onboarding admin** `[ ]`
-- Wizard post-registro: 4 pasos (info club -> crear pistas -> configurar precios -> configurar portal)
-- Checklist de progreso en dashboard home ("3 de 6 pasos completados")
-- Estados vacios mejorados ("Aun no tienes pistas. Crea tu primera pista")
+**Sesion B3 - Onboarding admin** `[x]`
+- [x] EmptyState.tsx: componente reutilizable para estados vacios (icono, titulo, descripcion, CTA opcional)
+- [x] Empty states mejorados en 6 paginas: Pistas, Socios, Competiciones, Noticias, Partidas, Dashboard
+- [x] OnboardingChecklist.tsx: widget de progreso en dashboard (5 pasos, barra progreso, dismiss localStorage)
+- [x] SetupWizard.tsx: wizard 4 pasos (info club, crear pistas, configurar precios, resumen)
+- [x] /dashboard/configuracion-inicial: pagina del wizard + loading skeleton
+- [x] Dashboard ampliado: queries de courtPricing.count, player count, calculo onboardingPasos
+- [x] Middleware: /dashboard/configuracion-inicial en SUBSCRIPTION_EXEMPT_PATHS
+- [x] i18n: seccion "onboarding" en es.json y en.json
+- [x] Build exitoso
 
 **Sesion B4 - Monitoring + logging** `[x]`
 - [x] src/lib/logger.ts: logger estructurado (JSON en prod, legible en dev, reporta a Sentry)
@@ -449,6 +455,16 @@ Revisa las secciones de estado en CLAUDE.md y el roadmap para ver que esta COMPL
 - Migrar strings hardcoded de marketing y dashboard a `messages/`
 - Selector de idioma en navbar + portal club
 
+**Sesion C6 - Pago por jugador en reservas y partidas abiertas** `[ ]`
+- Modelo `BookingPayment` (bookingId, userId, amount, status pending/paid, paidAt, collectedBy)
+- Dividir totalPrice entre jugadores de la reserva (2 o 4 jugadores)
+- Aplica a reservas normales (Booking) y partidas abiertas (OpenMatch con su Booking asociado)
+- En partidas abiertas: division automatica al confirmar partida (4 jugadores de OpenMatchPlayer)
+- API admin: marcar pago individual por jugador (PATCH /api/bookings/[id]/player-payment)
+- UI admin: en PendingPayments mostrar desglose por jugador con boton "Cobrar" individual
+- Booking.paymentStatus se marca "paid" automaticamente cuando todos los jugadores han pagado
+- Vista recepcion: ver quien ha pagado y quien falta
+
 ### BLOQUE D: PULIDO (post-lanzamiento)
 
 **Sesion D1** - Accesibilidad (skip-to-content, focus trap modals, aria-describedby, WCAG 2.1 AA) `[ ]`
@@ -458,4 +474,4 @@ Revisa las secciones de estado en CLAUDE.md y el roadmap para ver que esta COMPL
 **Sesion D5** - CI/CD (GitHub Actions: lint + test + build en PR) `[ ]`
 
 ### Orden recomendado
-Sprint 1: A1, A2 [DONE] → Sprint 2: A3, A5 [DONE] → Sprint 3: A4, B1 [DONE] → Sprint 4: B4 (parcial), B3 → Sprint 5: B2, B5 → Sprint 6: C1 → Beta launch → Sprint 7+: C2-C5, D1-D5
+Sprint 1: A1, A2 [DONE] → Sprint 2: A3, A5 [DONE] → Sprint 3: A4, B1 [DONE] → Sprint 4: B4, B3 [DONE] → Sprint 5: B2, B5 → Sprint 6: C1 → Beta launch → Sprint 7+: C2-C5, D1-D5

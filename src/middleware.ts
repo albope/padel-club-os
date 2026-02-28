@@ -6,6 +6,7 @@ import { NextResponse } from "next/server"
 const SUBSCRIPTION_EXEMPT_PATHS = [
   "/dashboard/facturacion",
   "/dashboard/ajustes",
+  "/dashboard/configuracion-inicial",
 ]
 
 /**

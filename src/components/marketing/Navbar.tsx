@@ -40,7 +40,7 @@ export default function Navbar() {
           : "border-b bg-background/95 backdrop-blur-xl shadow-sm"
       )}
     >
-      <nav className="container flex h-16 items-center justify-between">
+      <nav aria-label="Navegacion principal" className="container flex h-16 items-center justify-between">
         <Link href="/" className="flex items-center gap-2">
           <LogoIcon tamano="md" />
           <span
@@ -109,9 +109,11 @@ export default function Navbar() {
 
         {/* Mobile toggle */}
         <button
-          className="md:hidden"
+          className="md:hidden p-2"
           onClick={() => setMobileOpen(!mobileOpen)}
           aria-label={mobileOpen ? "Cerrar menú" : "Abrir menú"}
+          aria-expanded={mobileOpen}
+          aria-controls="mobile-menu"
         >
           {mobileOpen ? (
             <X className={cn("h-6 w-6", isTransparent ? "text-white" : "text-foreground")} />
@@ -123,6 +125,8 @@ export default function Navbar() {
 
       {/* Mobile menu */}
       <div
+        id="mobile-menu"
+        aria-hidden={!mobileOpen}
         className={cn(
           "overflow-hidden md:hidden transition-all duration-200",
           mobileOpen

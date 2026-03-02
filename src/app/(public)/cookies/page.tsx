@@ -47,10 +47,10 @@ export default function CookiesPage() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b bg-muted/50">
-                  <th className="px-4 py-3 text-left font-semibold text-foreground">Cookie</th>
-                  <th className="px-4 py-3 text-left font-semibold text-foreground">Tipo</th>
-                  <th className="px-4 py-3 text-left font-semibold text-foreground">Duracion</th>
-                  <th className="px-4 py-3 text-left font-semibold text-foreground">Finalidad</th>
+                  <th scope="col" className="px-4 py-3 text-left font-semibold text-foreground">Cookie</th>
+                  <th scope="col" className="px-4 py-3 text-left font-semibold text-foreground">Tipo</th>
+                  <th scope="col" className="px-4 py-3 text-left font-semibold text-foreground">Duracion</th>
+                  <th scope="col" className="px-4 py-3 text-left font-semibold text-foreground">Finalidad</th>
                 </tr>
               </thead>
               <tbody className="divide-y">

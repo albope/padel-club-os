@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react'
 import { Search, Users, Calendar, LayoutGrid, Loader2 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
-import { Dialog, DialogContent } from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
@@ -122,9 +122,13 @@ export function GlobalSearch() {
 
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="sm:max-w-lg p-0 gap-0 [&>button]:hidden">
+          <DialogTitle className="sr-only">Busqueda global</DialogTitle>
+          <DialogDescription className="sr-only">Busca socios, pistas y reservas</DialogDescription>
           <div className="flex items-center gap-2 border-b px-4 py-3">
             <Search className="h-4 w-4 text-muted-foreground shrink-0" />
+            <label htmlFor="global-search" className="sr-only">Buscar</label>
             <Input
+              id="global-search"
               ref={inputRef}
               value={query}
               onChange={(e) => handleQueryChange(e.target.value)}
@@ -138,7 +142,7 @@ export function GlobalSearch() {
             </kbd>
           </div>
 
-          <div className="max-h-[300px] overflow-y-auto py-2">
+          <div className="max-h-[300px] overflow-y-auto py-2" aria-live="polite">
             {query.length >= 2 && results.length === 0 && !loading && (
               <p className="text-center py-8 text-sm text-muted-foreground">
                 Sin resultados para &quot;{query}&quot;

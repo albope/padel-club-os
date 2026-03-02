@@ -12,7 +12,7 @@ export default async function ComunicacionPage() {
   if (!session?.user?.clubId) redirect("/dashboard")
 
   // Solo admins pueden ver esta pagina
-  if (!["SUPER_ADMIN", "CLUB_ADMIN"].includes(session.user.role)) {
+  if (!session.user.role || !["SUPER_ADMIN", "CLUB_ADMIN"].includes(session.user.role)) {
     redirect("/dashboard")
   }
 

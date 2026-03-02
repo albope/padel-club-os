@@ -53,7 +53,7 @@ export function PushNotificationPrompt() {
       <Button size="sm" onClick={activar}>
         Activar
       </Button>
-      <Button variant="ghost" size="icon" className="h-7 w-7 shrink-0" onClick={descartar}>
+      <Button variant="ghost" size="icon" className="h-7 w-7 shrink-0" onClick={descartar} aria-label="Descartar">
         <X className="h-4 w-4" />
       </Button>
     </div>

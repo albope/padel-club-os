@@ -29,7 +29,7 @@ const AddPartidaAbiertaPage = async () => {
     <div className="space-y-8">
       <div className="flex items-center gap-4">
         <Button variant="ghost" size="icon" asChild>
-          <Link href="/dashboard/partidas-abiertas">
+          <Link href="/dashboard/partidas-abiertas" aria-label="Volver">
             <ArrowLeft className="h-5 w-5" />
           </Link>
         </Button>

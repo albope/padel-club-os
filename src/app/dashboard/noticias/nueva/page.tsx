@@ -10,7 +10,7 @@ const NuevaNoticiaPage = () => {
     <div className="space-y-8">
       <div className="flex items-center gap-4">
         <Button variant="ghost" size="icon" asChild>
-          <Link href="/dashboard/noticias">
+          <Link href="/dashboard/noticias" aria-label="Volver">
             <ArrowLeft className="h-5 w-5" />
           </Link>
         </Button>

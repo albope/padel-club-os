@@ -20,16 +20,17 @@ const Sidebar = () => {
       <div className="h-16 flex items-center justify-center border-b">
         <div className="flex items-center gap-2.5">
           <LogoIcon tamano="md" />
-          <h1 className="text-2xl font-bold text-sidebar-primary">PadelClub OS</h1>
+          <span className="text-2xl font-bold text-sidebar-primary">PadelClub OS</span>
         </div>
       </div>
 
-      <nav className="flex-grow p-4">
+      <nav aria-label="Navegacion principal" className="flex-grow p-4">
         <ul className="space-y-1">
           {navItems.map((item) => (
             <li key={item.name}>
               <Link
                 href={item.href}
+                aria-current={isActive(item.href) ? 'page' : undefined}
                 className={cn(
                   'flex items-center px-3 py-2.5 rounded-lg text-sm font-medium transition-colors',
                   isActive(item.href)

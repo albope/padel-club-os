@@ -28,6 +28,8 @@ export async function GET(
         maxAdvanceBooking: true,
         enableOpenMatches: true,
         enablePlayerBooking: true,
+        bookingPaymentMode: true,
+        stripeConnectOnboarded: true,
       },
     });
 

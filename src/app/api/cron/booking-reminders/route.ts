@@ -100,10 +100,51 @@ export async function POST(req: Request) {
 
     logger.info("BOOKING_REMINDERS", `Procesadas: ${reservas.length}, Enviadas: ${enviados}, Errores: ${errores}`)
 
+    // Auto-cancelar reservas pendientes de pago online que llevan mas de 15 minutos
+    const limiteExpiracion = new Date(ahora.getTime() - 15 * 60 * 1000)
+
+    const reservasExpiradas = await db.booking.findMany({
+      where: {
+        status: "confirmed",
+        paymentStatus: "pending",
+        startTime: { lt: limiteExpiracion },
+        // Solo cancelar si NO tienen un pago ya registrado
+        payment: null,
+        // Solo reservas que pertenecen a clubs con pagos online configurados
+        club: {
+          bookingPaymentMode: { in: ["online", "both"] },
+          stripeConnectOnboarded: true,
+        },
+      },
+      select: { id: true },
+    })
+
+    let canceladas = 0
+    for (const reserva of reservasExpiradas) {
+      try {
+        await db.booking.update({
+          where: { id: reserva.id },
+          data: {
+            status: "cancelled",
+            cancelledAt: new Date(),
+            cancelReason: "Pago no completado en el plazo de 15 minutos",
+          },
+        })
+        canceladas++
+      } catch (cancelError) {
+        logger.error("BOOKING_AUTO_CANCEL", "Error cancelando reserva expirada", { reservaId: reserva.id }, cancelError)
+      }
+    }
+
+    if (canceladas > 0) {
+      logger.info("BOOKING_AUTO_CANCEL", `Canceladas ${canceladas} reservas sin pago completado`)
+    }
+
     return NextResponse.json({
       procesadas: reservas.length,
       enviadas: enviados,
       errores,
+      canceladasPorPago: canceladas,
     })
   } catch (error) {
     logger.error("CRON_BOOKING_REMINDERS", "Error en cron de recordatorios", { ruta: "/api/cron/booking-reminders" }, error)

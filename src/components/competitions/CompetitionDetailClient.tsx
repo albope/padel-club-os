@@ -213,7 +213,7 @@ const CompetitionDetailClient: React.FC<CompetitionDetailClientProps> = ({ compe
                       <p className="text-sm text-muted-foreground">{team.player1.name} / {team.player2.name}</p>
                     </div>
                     {competition.status === 'ACTIVE' && (
-                      <Button variant="ghost" size="icon" onClick={() => handleOpenTeamModal(team)} className="opacity-0 group-hover:opacity-100 transition-opacity">
+                      <Button variant="ghost" size="icon" onClick={() => handleOpenTeamModal(team)} className="opacity-0 group-hover:opacity-100 transition-opacity" aria-label="Editar equipo">
                         <Pencil className="h-4 w-4" />
                       </Button>
                     )}

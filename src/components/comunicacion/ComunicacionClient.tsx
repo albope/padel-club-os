@@ -4,8 +4,6 @@ import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
 import EmptyState from "@/components/onboarding/EmptyState"
 import { Megaphone, Mail, Bell, Users, Clock, CheckCircle2, XCircle } from "lucide-react"
-import { formatDistanceToNow } from "date-fns"
-import { es } from "date-fns/locale"
 
 interface BroadcastItem {
   id: string
@@ -112,7 +110,13 @@ export default function ComunicacionClient({ initialBroadcasts }: ComunicacionCl
                 </Badge>
                 <BadgeCanal channels={broadcast.channels} />
                 <span>
-                  {formatDistanceToNow(new Date(broadcast.createdAt), { addSuffix: true, locale: es })}
+                  {new Date(broadcast.createdAt).toLocaleDateString("es-ES", {
+                    day: "numeric",
+                    month: "short",
+                    year: "numeric",
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })}
                 </span>
                 {broadcast.sentBy.name && (
                   <span>por {broadcast.sentBy.name}</span>

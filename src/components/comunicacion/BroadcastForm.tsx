@@ -166,10 +166,13 @@ export default function BroadcastForm() {
             id="titulo"
             placeholder="Titulo que veran los socios"
             {...register("titulo")}
+            aria-required="true"
+            aria-invalid={!!errors.titulo}
+            aria-describedby={errors.titulo ? "titulo-error" : undefined}
             maxLength={100}
           />
           {errors.titulo && (
-            <p className="text-sm text-destructive">{errors.titulo.message}</p>
+            <p id="titulo-error" role="alert" className="text-sm text-destructive">{errors.titulo.message}</p>
           )}
         </div>
 
@@ -181,10 +184,13 @@ export default function BroadcastForm() {
             placeholder="Escribe el contenido del comunicado..."
             className="min-h-[150px]"
             {...register("mensaje")}
+            aria-required="true"
+            aria-invalid={!!errors.mensaje}
+            aria-describedby={errors.mensaje ? "mensaje-error" : undefined}
             maxLength={2000}
           />
           {errors.mensaje && (
-            <p className="text-sm text-destructive">{errors.mensaje.message}</p>
+            <p id="mensaje-error" role="alert" className="text-sm text-destructive">{errors.mensaje.message}</p>
           )}
         </div>
 
@@ -220,12 +226,12 @@ export default function BroadcastForm() {
 
         {/* Segmento */}
         <div className="space-y-2">
-          <Label>Destinatarios</Label>
+          <Label htmlFor="segmento">Destinatarios</Label>
           <Select
             value={segmento}
             onValueChange={(value) => setValue("segmento", value)}
           >
-            <SelectTrigger>
+            <SelectTrigger id="segmento">
               <SelectValue placeholder="Selecciona destinatarios" />
             </SelectTrigger>
             <SelectContent>

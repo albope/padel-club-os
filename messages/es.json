@@ -285,5 +285,35 @@
       "segmentLevel": "Nivel {level}",
       "segmentStaff": "Staff"
     }
+  },
+  "stripeConnect": {
+    "title": "Pagos online de reservas",
+    "description": "Recibe pagos de tus jugadores directamente al reservar pista",
+    "upgradeMessage": "Los pagos online estan disponibles en los planes Pro y Enterprise.",
+    "upgradeAction": "Ver planes",
+    "connectAction": "Conectar cuenta de Stripe",
+    "connectDescription": "Al conectar tu cuenta de Stripe, tus jugadores podran pagar las reservas online.",
+    "platformFee": "Comision de la plataforma: 5% por transaccion",
+    "pendingVerification": "Verificacion pendiente",
+    "completeVerification": "Completar verificacion",
+    "pendingMessage": "Tu cuenta de Stripe esta creada pero la verificacion no se ha completado.",
+    "active": "Pagos activos",
+    "activeDescription": "Tu cuenta de Stripe esta configurada y lista para recibir pagos",
+    "chargesEnabled": "Cobros habilitados",
+    "chargesPending": "Cobros pendiente",
+    "payoutsEnabled": "Transferencias habilitadas",
+    "payoutsPending": "Transferencias pendiente",
+    "stripeDashboard": "Dashboard de Stripe",
+    "payoutInfo": "Los fondos se transfieren a tu cuenta bancaria segun el calendario de Stripe.",
+    "payNow": "Pagar ahora",
+    "payAndBook": "Pagar y reservar",
+    "payAtClub": "Pagar en el club",
+    "paymentConfirmed": "Pago confirmado",
+    "paymentConfirmedDesc": "Tu reserva ha sido pagada correctamente.",
+    "paymentCancelled": "Pago cancelado",
+    "paymentCancelledDesc": "El pago no se ha completado. Si no pagas en 15 minutos, la reserva se cancelara automaticamente.",
+    "paymentError": "Error en el pago",
+    "paymentErrorDesc": "No se pudo iniciar el pago online.",
+    "requiresConnect": "Para habilitar pagos online, conecta tu cuenta de Stripe en la seccion de Facturacion."
   }
 }

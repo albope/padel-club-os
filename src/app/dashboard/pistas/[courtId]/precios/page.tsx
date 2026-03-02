@@ -51,7 +51,7 @@ const CourtPricingPage = async ({ params }: CourtPricingPageProps) => {
   return (
     <div className="space-y-8">
       <div className="flex items-center gap-4">
-        <Link href={`/dashboard/pistas/${params.courtId}`}>
+        <Link href={`/dashboard/pistas/${params.courtId}`} aria-label="Volver">
           <span className="p-2 rounded-lg bg-muted hover:bg-muted/80 text-muted-foreground hover:text-foreground transition-colors cursor-pointer">
             <ArrowLeft className="h-5 w-5" />
           </span>

@@ -34,6 +34,8 @@ interface GridReservasProps {
     openingTime: string | null;
     closingTime: string | null;
     bookingDuration: number | null;
+    bookingPaymentMode: string | null;
+    stripeConnectOnboarded: boolean;
   };
   pistas: Pista[];
   sesionUserId: string | null;
@@ -226,7 +228,7 @@ export default function GridReservas({ club, pistas, sesionUserId, slug }: GridR
     <div className="space-y-4">
       {/* Navegacion de fecha */}
       <div className="flex items-center justify-between rounded-lg border bg-card p-3">
-        <Button variant="ghost" size="icon" onClick={() => moverFecha(-1)}>
+        <Button variant="ghost" size="icon" onClick={() => moverFecha(-1)} aria-label="Dia anterior">
           <ChevronLeft className="h-5 w-5" />
         </Button>
         <div className="flex items-center gap-2 text-center">
@@ -244,7 +246,7 @@ export default function GridReservas({ club, pistas, sesionUserId, slug }: GridR
             </Button>
           )}
         </div>
-        <Button variant="ghost" size="icon" onClick={() => moverFecha(1)}>
+        <Button variant="ghost" size="icon" onClick={() => moverFecha(1)} aria-label="Dia siguiente">
           <ChevronRight className="h-5 w-5" />
         </Button>
       </div>
@@ -340,38 +342,51 @@ export default function GridReservas({ club, pistas, sesionUserId, slug }: GridR
                       const horaInicioStr = `${String(inicio.getHours()).padStart(2, '0')}:${String(inicio.getMinutes()).padStart(2, '0')}`;
                       const horaFinStr = `${String(fin.getHours()).padStart(2, '0')}:${String(fin.getMinutes()).padStart(2, '0')}`;
 
+                      const gridStyle = {
+                        gridRow: `${filaIdx + 2} / span ${filas}`,
+                        gridColumn: colIdx + 2,
+                      };
+
+                      if (esPartida) {
+                        return (
+                          <button
+                            type="button"
+                            key={celdaKey}
+                            style={gridStyle}
+                            className="w-full text-left mx-0.5 my-px rounded-sm flex flex-col items-center justify-center text-[10px] font-medium overflow-hidden select-none bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 border border-green-200 dark:border-green-800 cursor-pointer hover:bg-green-200 dark:hover:bg-green-900/50"
+                            onClick={() => handlePartidaAbierta(bloque.openMatchId!)}
+                            aria-label={`Ver partida abierta de ${horaInicioStr} a ${horaFinStr}, ${bloque.plazasLibres} plazas libres`}
+                          >
+                            <span className="font-semibold leading-tight">
+                              {horaInicioStr}-{horaFinStr}
+                            </span>
+                            <span className="flex items-center gap-0.5 leading-tight">
+                              <Users className="h-2.5 w-2.5" />
+                              {bloque.plazasLibres} libres
+                            </span>
+                            {bloque.nivelMin != null && (
+                              <span className="opacity-75 leading-tight">
+                                Nivel {bloque.nivelMin}-{bloque.nivelMax}
+                              </span>
+                            )}
+                          </button>
+                        );
+                      }
+
                       return (
                         <div
                           key={celdaKey}
-                          style={{
-                            gridRow: `${filaIdx + 2} / span ${filas}`,
-                            gridColumn: colIdx + 2,
-                          }}
+                          style={gridStyle}
                           className={cn(
                             'mx-0.5 my-px rounded-sm flex flex-col items-center justify-center text-[10px] font-medium overflow-hidden select-none',
-                            esPartida && 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 border border-green-200 dark:border-green-800 cursor-pointer hover:bg-green-200 dark:hover:bg-green-900/50',
-                            !esPartida && propia && 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800',
-                            !esPartida && !propia && 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 border border-red-200 dark:border-red-800',
+                            propia && 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800',
+                            !propia && 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 border border-red-200 dark:border-red-800',
                           )}
-                          onClick={esPartida ? () => handlePartidaAbierta(bloque.openMatchId!) : undefined}
                         >
                           <span className="font-semibold leading-tight">
                             {horaInicioStr}-{horaFinStr}
                           </span>
-                          {esPartida && (
-                            <>
-                              <span className="flex items-center gap-0.5 leading-tight">
-                                <Users className="h-2.5 w-2.5" />
-                                {bloque.plazasLibres} libres
-                              </span>
-                              {bloque.nivelMin != null && (
-                                <span className="opacity-75 leading-tight">
-                                  Nivel {bloque.nivelMin}-{bloque.nivelMax}
-                                </span>
-                              )}
-                            </>
-                          )}
-                          {!esPartida && propia && (
+                          {propia && (
                             <span className="leading-tight">Tu reserva</span>
                           )}
                         </div>
@@ -385,25 +400,45 @@ export default function GridReservas({ club, pistas, sesionUserId, slug }: GridR
                     const precio = precios[pista.id]?.[parseInt(franja.split(':')[0])];
                     const puedeReservar = slotLibre(pista.id, filaIdx);
 
+                    const gridStyle = {
+                      gridRow: filaIdx + 2,
+                      gridColumn: colIdx + 2,
+                    };
+
+                    const contenidoPrecio = esHoraEnPunto && precio !== undefined && precio > 0 ? (
+                      <span className="text-[9px] text-muted-foreground/60 pl-0.5">
+                        {precio}€
+                      </span>
+                    ) : null;
+
+                    if (puedeReservar) {
+                      return (
+                        <button
+                          type="button"
+                          key={celdaKey}
+                          style={gridStyle}
+                          className={cn(
+                            'w-full text-left border-r border-b border-border/20 transition-colors cursor-pointer hover:bg-primary/5 active:bg-primary/10',
+                            esHoraEnPunto && 'border-t border-t-border/40',
+                          )}
+                          onClick={() => handleClickSlot(pista, franja, filaIdx)}
+                          aria-label={`Reservar ${pista.name} a las ${franja}${precio ? `, ${precio}€` : ''}`}
+                        >
+                          {contenidoPrecio}
+                        </button>
+                      );
+                    }
+
                     return (
                       <div
                         key={celdaKey}
-                        style={{
-                          gridRow: filaIdx + 2,
-                          gridColumn: colIdx + 2,
-                        }}
+                        style={gridStyle}
                         className={cn(
                           'border-r border-b border-border/20 transition-colors',
                           esHoraEnPunto && 'border-t border-t-border/40',
-                          puedeReservar && 'cursor-pointer hover:bg-primary/5 active:bg-primary/10',
                         )}
-                        onClick={puedeReservar ? () => handleClickSlot(pista, franja, filaIdx) : undefined}
                       >
-                        {esHoraEnPunto && precio !== undefined && precio > 0 && (
-                          <span className="text-[9px] text-muted-foreground/60 pl-0.5">
-                            {precio}€
-                          </span>
-                        )}
+                        {contenidoPrecio}
                       </div>
                     );
                   })}
@@ -425,6 +460,8 @@ export default function GridReservas({ club, pistas, sesionUserId, slug }: GridR
         precio={slotSeleccionado?.precio ?? null}
         slug={slug}
         onReservaConfirmada={cargarDatos}
+        bookingPaymentMode={club.bookingPaymentMode || 'presential'}
+        stripeConnectOnboarded={club.stripeConnectOnboarded}
       />
     </div>
   );

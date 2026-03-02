@@ -1,9 +1,9 @@
 'use client';
 
-import React, { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import React, { useState, useEffect } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useSession } from 'next-auth/react';
-import { CalendarDays, Clock, MapPin, Loader2, CheckCircle2 } from 'lucide-react';
+import { CalendarDays, Clock, MapPin, Loader2, CheckCircle2, CreditCard } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Sheet,
@@ -25,6 +25,8 @@ interface ConfirmacionReservaProps {
   precio: number | null;
   slug: string;
   onReservaConfirmada: () => void;
+  bookingPaymentMode: string;
+  stripeConnectOnboarded: boolean;
 }
 
 export default function ConfirmacionReserva({
@@ -37,10 +39,34 @@ export default function ConfirmacionReserva({
   precio,
   slug,
   onReservaConfirmada,
+  bookingPaymentMode,
+  stripeConnectOnboarded,
 }: ConfirmacionReservaProps) {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { data: session } = useSession();
   const [isBooking, setIsBooking] = useState(false);
+
+  // Mostrar toast segun resultado del pago (query params de retorno de Stripe)
+  useEffect(() => {
+    const pago = searchParams.get('pago');
+    if (pago === 'exito') {
+      toast({
+        title: "Pago confirmado",
+        description: "Tu reserva ha sido pagada correctamente.",
+        variant: "success",
+      });
+      onReservaConfirmada();
+      // Limpiar query params
+      router.replace(`/club/${slug}/reservar`, { scroll: false });
+    } else if (pago === 'cancelado') {
+      toast({
+        title: "Pago cancelado",
+        description: "El pago no se ha completado. Si no pagas en 15 minutos, la reserva se cancelara automaticamente.",
+      });
+      router.replace(`/club/${slug}/reservar`, { scroll: false });
+    }
+  }, [searchParams, slug, router, onReservaConfirmada]);
 
   if (!pista) return null;
 
@@ -56,7 +82,12 @@ export default function ConfirmacionReserva({
     year: 'numeric',
   });
 
-  const handleReservar = async () => {
+  // Determinar modo de pago
+  const modoOnline = bookingPaymentMode !== 'presential' && stripeConnectOnboarded;
+  const modoBoth = bookingPaymentMode === 'both' && stripeConnectOnboarded;
+  const modoSoloOnline = bookingPaymentMode === 'online' && stripeConnectOnboarded;
+
+  const handleReservar = async (payAtClub?: boolean) => {
     if (!session?.user) {
       router.push(`/club/${slug}/login`);
       return;
@@ -71,10 +102,38 @@ export default function ConfirmacionReserva({
           courtId: pista.id,
           startTime: startTime.toISOString(),
           endTime: endTime.toISOString(),
+          payAtClub: payAtClub ?? false,
         }),
       });
 
       if (res.ok) {
+        const data = await res.json();
+
+        // Si requiere pago online, redirigir a Stripe Checkout
+        if (data.requiresPayment && !payAtClub) {
+          const checkoutRes = await fetch('/api/player/bookings/checkout', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ bookingId: data.id }),
+          });
+
+          if (checkoutRes.ok) {
+            const { url } = await checkoutRes.json();
+            window.location.href = url;
+            return; // No cerrar el sheet, se redirige
+          } else {
+            toast({
+              title: "Error en el pago",
+              description: "No se pudo iniciar el pago online. La reserva se cancelara automaticamente si no se paga en 15 minutos.",
+              variant: "destructive",
+            });
+            onOpenChange(false);
+            onReservaConfirmada();
+            return;
+          }
+        }
+
+        // Flujo presencial o pago en club
         toast({
           title: "Reserva confirmada",
           description: `${pista.name} · ${horaInicio} - ${horaFin}`,
@@ -153,10 +212,57 @@ export default function ConfirmacionReserva({
             >
               Iniciar sesión para reservar
             </Button>
+          ) : modoSoloOnline ? (
+            <Button
+              className="w-full"
+              onClick={() => handleReservar(false)}
+              disabled={isBooking}
+            >
+              {isBooking ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                  Procesando...
+                </>
+              ) : (
+                <>
+                  <CreditCard className="h-4 w-4 mr-2" />
+                  Pagar y reservar{precio !== null && precio > 0 ? ` (${precio.toFixed(2)}€)` : ''}
+                </>
+              )}
+            </Button>
+          ) : modoBoth ? (
+            <div className="space-y-2">
+              <Button
+                className="w-full"
+                onClick={() => handleReservar(false)}
+                disabled={isBooking}
+              >
+                {isBooking ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                    Procesando...
+                  </>
+                ) : (
+                  <>
+                    <CreditCard className="h-4 w-4 mr-2" />
+                    Pagar ahora{precio !== null && precio > 0 ? ` (${precio.toFixed(2)}€)` : ''}
+                  </>
+                )}
+              </Button>
+              <Button
+                variant="outline"
+                className="w-full"
+                onClick={() => handleReservar(true)}
+                disabled={isBooking}
+              >
+                <CheckCircle2 className="h-4 w-4 mr-2" />
+                Pagar en el club
+              </Button>
+            </div>
           ) : (
             <Button
               className="w-full"
-              onClick={handleReservar}
+              onClick={() => handleReservar()}
               disabled={isBooking}
             >
               {isBooking ? (

@@ -480,12 +480,21 @@ const SettingsForm: React.FC<SettingsFormProps> = ({ club }) => {
               className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
             >
               <option value="presential">Solo presencial (pago en club)</option>
-              <option value="online">Solo online (Stripe)</option>
-              <option value="both">Ambos (jugador elige)</option>
+              <option value="online" disabled={!club.stripeConnectOnboarded}>
+                Solo online (Stripe){!club.stripeConnectOnboarded ? ' - Requiere conectar Stripe' : ''}
+              </option>
+              <option value="both" disabled={!club.stripeConnectOnboarded}>
+                Ambos (jugador elige){!club.stripeConnectOnboarded ? ' - Requiere conectar Stripe' : ''}
+              </option>
             </select>
             <p className="text-xs text-muted-foreground">
               Como cobran las reservas a los jugadores.
             </p>
+            {!club.stripeConnectOnboarded && (
+              <p className="text-xs text-amber-600">
+                Para habilitar pagos online, conecta tu cuenta de Stripe en la seccion de Facturacion.
+              </p>
+            )}
           </div>
         </CardContent>
       </Card>

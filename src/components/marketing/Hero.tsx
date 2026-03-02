@@ -35,11 +35,11 @@ export default function Hero() {
 
         {/* Headline */}
         <h1 className="hero-text-1 max-w-4xl font-display text-4xl font-extrabold tracking-tight text-white sm:text-5xl md:text-6xl lg:text-7xl">
-          Tu club de pádel merece
+          Tu club de pádel merece{' '}
+          <span className="hero-text-2 landing-gradient-text">
+            algo mejor
+          </span>
         </h1>
-        <span className="hero-text-2 landing-gradient-text max-w-4xl font-display text-4xl font-extrabold tracking-tight sm:text-5xl md:text-6xl lg:text-7xl">
-          algo mejor
-        </span>
 
         {/* Subtitulo */}
         <p className="hero-text-3 max-w-2xl text-base text-slate-300 md:text-lg lg:text-xl">

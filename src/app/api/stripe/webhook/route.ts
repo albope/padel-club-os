@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { constructWebhookEvent, getPlanKeyFromPriceId } from "@/lib/stripe"
 import { db } from "@/lib/db"
 import { crearNotificacion } from "@/lib/notifications"
+import { enviarEmailConfirmacionReserva } from "@/lib/email"
 import { logger } from "@/lib/logger"
 import type Stripe from "stripe"
 
@@ -36,15 +37,86 @@ export async function POST(req: Request) {
       case "checkout.session.completed": {
         const session = event.data.object as Stripe.Checkout.Session
         const clubId = session.metadata?.clubId
-        if (!clubId || session.mode !== "subscription") break
 
-        await db.club.update({
-          where: { id: clubId },
-          data: {
-            stripeSubscriptionId: session.subscription as string,
-            subscriptionStatus: "active",
-          },
-        })
+        // Pago de suscripcion SaaS
+        if (session.mode === "subscription" && clubId) {
+          await db.club.update({
+            where: { id: clubId },
+            data: {
+              stripeSubscriptionId: session.subscription as string,
+              subscriptionStatus: "active",
+            },
+          })
+        }
+
+        // Pago de reserva via Stripe Connect
+        if (session.mode === "payment" && session.metadata?.type === "booking_payment") {
+          const bookingId = session.metadata.bookingId
+          const paymentClubId = session.metadata.clubId
+          const userId = session.metadata.userId
+
+          if (!bookingId || !paymentClubId) break
+
+          // Idempotencia: verificar que no existe ya un pago para esta reserva
+          const existingPayment = await db.payment.findUnique({
+            where: { bookingId },
+          })
+          if (existingPayment) break
+
+          // Actualizar reserva y crear registro de pago en transaccion
+          const [updatedBooking] = await db.$transaction([
+            db.booking.update({
+              where: { id: bookingId },
+              data: { paymentStatus: "paid" },
+              include: {
+                court: { select: { name: true } },
+                user: { select: { email: true, name: true, club: { select: { name: true, slug: true } } } },
+              },
+            }),
+            db.payment.create({
+              data: {
+                amount: (session.amount_total ?? 0) / 100,
+                currency: session.currency?.toUpperCase() ?? "EUR",
+                status: "succeeded",
+                type: "booking",
+                stripePaymentId: session.payment_intent as string,
+                bookingId,
+                userId,
+                clubId: paymentClubId,
+              },
+            }),
+          ])
+
+          logger.info("STRIPE_BOOKING_PAYMENT", "Pago de reserva confirmado", { bookingId, amount: (session.amount_total ?? 0) / 100 })
+
+          // Notificacion y email de confirmacion (fire-and-forget)
+          if (userId) {
+            crearNotificacion({
+              tipo: "booking_confirmed",
+              titulo: "Pago confirmado",
+              mensaje: `Tu pago para la reserva en ${updatedBooking.court.name} ha sido confirmado.`,
+              userId,
+              clubId: paymentClubId,
+              metadata: { bookingId },
+              url: "/reservar",
+            }).catch(() => {})
+          }
+
+          if (updatedBooking.user?.email) {
+            enviarEmailConfirmacionReserva({
+              email: updatedBooking.user.email,
+              nombre: updatedBooking.user.name || "Jugador",
+              pistaNombre: updatedBooking.court.name,
+              fechaHoraInicio: updatedBooking.startTime,
+              fechaHoraFin: updatedBooking.endTime,
+              precioTotal: updatedBooking.totalPrice,
+              estadoPago: "paid",
+              clubNombre: updatedBooking.user.club?.name || "",
+              clubSlug: updatedBooking.user.club?.slug || "",
+            }).catch(() => {})
+          }
+        }
+
         break
       }
 
@@ -138,6 +210,25 @@ export async function POST(req: Request) {
           where: { id: club.id },
           data: { subscriptionStatus: "past_due" },
         })
+        break
+      }
+
+      case "charge.refunded": {
+        const charge = event.data.object as Stripe.Charge
+        const paymentIntentId = charge.payment_intent as string
+        if (!paymentIntentId) break
+
+        const payment = await db.payment.findFirst({
+          where: { stripePaymentId: paymentIntentId, type: "booking" },
+        })
+        if (!payment || payment.status === "refunded") break
+
+        await db.payment.update({
+          where: { id: payment.id },
+          data: { status: "refunded" },
+        })
+
+        logger.info("STRIPE_REFUND", "Reembolso de reserva procesado", { paymentId: payment.id, bookingId: payment.bookingId })
         break
       }
 

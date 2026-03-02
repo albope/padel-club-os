@@ -347,15 +347,16 @@ export default function ClubHome({ club, openMatches, competitions, news }: Club
         {/* Redes sociales */}
         {(club.instagramUrl || club.facebookUrl) && (
           <div className="flex items-center gap-3 mt-6 pt-6 border-t border-white/10">
-            <span className="text-xs text-white/40 uppercase tracking-wide">Síguenos</span>
+            <span className="text-xs text-white/60 uppercase tracking-wide">Síguenos</span>
             {club.instagramUrl && (
               <a
                 href={club.instagramUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="h-9 w-9 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20 transition-colors"
+                aria-label="Instagram del club"
+                className="h-11 w-11 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20 transition-colors"
               >
-                <Instagram className="h-4 w-4" />
+                <Instagram className="h-5 w-5" />
               </a>
             )}
             {club.facebookUrl && (
@@ -363,9 +364,10 @@ export default function ClubHome({ club, openMatches, competitions, news }: Club
                 href={club.facebookUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="h-9 w-9 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20 transition-colors"
+                aria-label="Facebook del club"
+                className="h-11 w-11 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20 transition-colors"
               >
-                <Facebook className="h-4 w-4" />
+                <Facebook className="h-5 w-5" />
               </a>
             )}
           </div>

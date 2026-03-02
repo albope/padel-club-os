@@ -105,7 +105,7 @@ const LeagueView: React.FC<LeagueViewProps> = ({
             size="icon"
             onClick={() => onExportImage('clasificacion-container', `clasificacion-${matches[0]?.competitionId}.png`)}
             disabled={exporting}
-            title="Descargar Clasificacion como imagen"
+            aria-label="Descargar Clasificacion como imagen"
           >
             {exporting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
           </Button>

@@ -122,6 +122,14 @@ export async function canCreateMember(clubId: string): Promise<{ allowed: boolea
 }
 
 /**
+ * Verifica si el plan del club permite pagos online (Stripe Connect).
+ * Solo disponible para Pro y Enterprise.
+ */
+export function canUseOnlinePayments(tier: PlanKey): boolean {
+  return tier === "pro" || tier === "enterprise"
+}
+
+/**
  * Verifica si un club puede tener mas admins/staff segun su plan.
  */
 export async function canCreateAdmin(clubId: string): Promise<{ allowed: boolean; reason?: string }> {

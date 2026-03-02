@@ -285,5 +285,35 @@
       "segmentLevel": "Level {level}",
       "segmentStaff": "Staff"
     }
+  },
+  "stripeConnect": {
+    "title": "Online booking payments",
+    "description": "Receive payments from your players when they book a court",
+    "upgradeMessage": "Online payments are available on Pro and Enterprise plans.",
+    "upgradeAction": "View plans",
+    "connectAction": "Connect Stripe account",
+    "connectDescription": "By connecting your Stripe account, your players can pay for bookings online.",
+    "platformFee": "Platform fee: 5% per transaction",
+    "pendingVerification": "Verification pending",
+    "completeVerification": "Complete verification",
+    "pendingMessage": "Your Stripe account is created but verification is not complete.",
+    "active": "Payments active",
+    "activeDescription": "Your Stripe account is configured and ready to receive payments",
+    "chargesEnabled": "Charges enabled",
+    "chargesPending": "Charges pending",
+    "payoutsEnabled": "Payouts enabled",
+    "payoutsPending": "Payouts pending",
+    "stripeDashboard": "Stripe Dashboard",
+    "payoutInfo": "Funds are transferred to your bank account according to Stripe's schedule.",
+    "payNow": "Pay now",
+    "payAndBook": "Pay and book",
+    "payAtClub": "Pay at the club",
+    "paymentConfirmed": "Payment confirmed",
+    "paymentConfirmedDesc": "Your booking has been paid successfully.",
+    "paymentCancelled": "Payment cancelled",
+    "paymentCancelledDesc": "Payment was not completed. If you don't pay within 15 minutes, the booking will be automatically cancelled.",
+    "paymentError": "Payment error",
+    "paymentErrorDesc": "Could not initiate online payment.",
+    "requiresConnect": "To enable online payments, connect your Stripe account in the Billing section."
   }
 }

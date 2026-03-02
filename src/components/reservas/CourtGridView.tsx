@@ -118,7 +118,7 @@ const CourtGridView: React.FC<CourtGridViewProps> = ({ courts, bookings, selecte
                             }
 
                             return (
-                                <div key={slot} onClick={() => onBookingClick(booking)} className="bg-green-600 rounded-lg p-3 text-white cursor-pointer hover:bg-green-500 transition-colors space-y-1">
+                                <button type="button" key={slot} onClick={() => onBookingClick(booking)} className="w-full text-left bg-green-600 rounded-lg p-3 text-white cursor-pointer hover:bg-green-500 transition-colors space-y-1" aria-label={`Ver partida abierta a las ${timeRange}`}>
                                     <div className="flex items-center gap-2 font-semibold text-sm">
                                         <Users className="h-4 w-4" /> Partida Abierta
                                     </div>
@@ -126,23 +126,23 @@ const CourtGridView: React.FC<CourtGridViewProps> = ({ courts, bookings, selecte
                                     {levelText && (
                                         <p className="flex items-center gap-1 text-xs text-green-200"><BarChart3 className="h-3 w-3" /> Nivel: {levelText}</p>
                                     )}
-                                </div>
+                                </button>
                             );
                         }
 
                         const displayName = booking.guestName || booking.user?.name || 'Reservado';
                         return (
-                        <div key={slot} onClick={() => onBookingClick(booking)} className="bg-primary rounded-lg p-3 text-primary-foreground cursor-pointer hover:bg-primary/90 transition-colors">
+                        <button type="button" key={slot} onClick={() => onBookingClick(booking)} className="w-full text-left bg-primary rounded-lg p-3 text-primary-foreground cursor-pointer hover:bg-primary/90 transition-colors" aria-label={`Ver reserva de ${displayName} a las ${timeRange}`}>
                             <p className="font-semibold text-sm truncate">{displayName}</p>
                             <p className="text-xs opacity-75">{timeRange}</p>
-                        </div>
+                        </button>
                         );
                     } else {
                         return (
-                        <div key={slot} onClick={() => onSlotClick(slotDate, court.id)} className="bg-muted/50 rounded-lg p-3 text-muted-foreground flex items-center justify-between cursor-pointer hover:bg-muted transition-colors">
+                        <button type="button" key={slot} onClick={() => onSlotClick(slotDate, court.id)} className="w-full text-left bg-muted/50 rounded-lg p-3 text-muted-foreground flex items-center justify-between cursor-pointer hover:bg-muted transition-colors" aria-label={`Crear reserva a las ${slot} en ${court.name}`}>
                             <div className="flex items-center"><Clock className="h-4 w-4 mr-2" /><span className="text-sm">{slot}</span></div>
                             <PlusCircle className="h-5 w-5 opacity-50" />
-                        </div>
+                        </button>
                         );
                     }
                     })}

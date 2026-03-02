@@ -81,9 +81,16 @@ const EditCourtForm: React.FC<EditCourtFormProps> = ({ court }) => {
         <CardContent className="space-y-6">
           <div className="space-y-2">
             <Label htmlFor="name">Nombre de la Pista</Label>
-            <Input id="name" {...form.register('name')} disabled={isLoading} />
+            <Input
+              id="name"
+              {...form.register('name')}
+              aria-required="true"
+              aria-invalid={!!form.formState.errors.name}
+              aria-describedby={form.formState.errors.name ? "name-error" : undefined}
+              disabled={isLoading}
+            />
             {form.formState.errors.name && (
-              <p className="text-sm text-destructive">{form.formState.errors.name.message}</p>
+              <p id="name-error" role="alert" className="text-sm text-destructive">{form.formState.errors.name.message}</p>
             )}
           </div>
 
@@ -94,7 +101,7 @@ const EditCourtForm: React.FC<EditCourtFormProps> = ({ court }) => {
               onValueChange={(value) => form.setValue('type', value)}
               disabled={isLoading}
             >
-              <SelectTrigger>
+              <SelectTrigger id="type">
                 <SelectValue placeholder="Selecciona un tipo" />
               </SelectTrigger>
               <SelectContent>

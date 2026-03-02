@@ -78,11 +78,14 @@ const BroadcastDialog: React.FC<BroadcastDialogProps> = ({ open, onOpenChange })
             <Input
               id="titulo"
               {...form.register('titulo')}
+              aria-required="true"
+              aria-invalid={!!form.formState.errors.titulo}
+              aria-describedby={form.formState.errors.titulo ? "titulo-error" : undefined}
               placeholder="Ej: Torneo de verano"
               disabled={isLoading}
             />
             {form.formState.errors.titulo && (
-              <p className="text-sm text-destructive">{form.formState.errors.titulo.message}</p>
+              <p id="titulo-error" role="alert" className="text-sm text-destructive">{form.formState.errors.titulo.message}</p>
             )}
           </div>
 
@@ -91,13 +94,16 @@ const BroadcastDialog: React.FC<BroadcastDialogProps> = ({ open, onOpenChange })
             <Textarea
               id="mensaje"
               {...form.register('mensaje')}
+              aria-required="true"
+              aria-invalid={!!form.formState.errors.mensaje}
+              aria-describedby={form.formState.errors.mensaje ? "mensaje-error" : undefined}
               placeholder="Escribe el mensaje que recibiran todos los jugadores..."
               rows={4}
               disabled={isLoading}
             />
             <div className="flex justify-between">
               {form.formState.errors.mensaje && (
-                <p className="text-sm text-destructive">{form.formState.errors.mensaje.message}</p>
+                <p id="mensaje-error" role="alert" className="text-sm text-destructive">{form.formState.errors.mensaje.message}</p>
               )}
               <p className="text-xs text-muted-foreground ml-auto">
                 {form.watch('mensaje')?.length || 0}/500

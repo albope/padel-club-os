@@ -86,7 +86,9 @@ const SociosClient: React.FC<SociosClientProps> = ({ initialSocios }) => {
       <div className="mb-4">
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <label htmlFor="buscar-socio" className="sr-only">Buscar socio por nombre</label>
           <Input
+            id="buscar-socio"
             placeholder="Buscar socio por nombre..."
             value={searchTerm}
             onChange={(e) => {
@@ -123,16 +125,20 @@ const SociosClient: React.FC<SociosClientProps> = ({ initialSocios }) => {
                 <React.Fragment key={socio.id}>
                   {index > 0 && <Separator />}
                   <li
-                    onClick={() => handleOpenModal(socio)}
                     className={cn(
-                      "group flex items-center justify-between py-3 px-2 -mx-2 rounded-lg transition-colors hover:bg-muted cursor-pointer",
+                      "group flex items-center justify-between py-3 px-2 -mx-2 rounded-lg transition-colors hover:bg-muted",
                       !socio.isActive && "opacity-50"
                     )}
                   >
-                    <div className="flex items-center gap-4">
+                    <button
+                      type="button"
+                      onClick={() => handleOpenModal(socio)}
+                      className="flex items-center gap-4 flex-1 text-left cursor-pointer"
+                      aria-label={`Ver detalles de ${socio.name}`}
+                    >
                       <Image
                         src={socio.image || `https://ui-avatars.com/api/?name=${encodeURIComponent(socio.name || 'S')}&background=random&color=fff`}
-                        alt="Avatar"
+                        alt={socio.name || 'Foto de socio'}
                         width={40}
                         height={40}
                         className="h-10 w-10 rounded-full"
@@ -151,11 +157,10 @@ const SociosClient: React.FC<SociosClientProps> = ({ initialSocios }) => {
                           </Badge>
                         )}
                       </div>
-                    </div>
+                    </button>
                     {!socio.isAdmin && (
                       <Link
                         href={`/dashboard/socios/${socio.id}`}
-                        onClick={(e) => e.stopPropagation()}
                         className="p-2 text-muted-foreground opacity-0 group-hover:opacity-100 hover:text-foreground rounded-full hover:bg-muted transition-all"
                       >
                         <Pencil className="h-4 w-4" />

@@ -183,11 +183,11 @@ export default function CourtPricingForm({
             <table className="w-full text-sm">
               <thead>
                 <tr>
-                  <th className="text-left p-2 font-medium text-muted-foreground sticky left-0 bg-card z-10">
+                  <th scope="col" className="text-left p-2 font-medium text-muted-foreground sticky left-0 bg-card z-10">
                     Hora
                   </th>
                   {[1, 2, 3, 4, 5, 6, 0].map((day) => (
-                    <th key={day} className="p-2 font-medium text-center min-w-[72px]">
+                    <th key={day} scope="col" className="p-2 font-medium text-center min-w-[72px]">
                       <span className="hidden sm:inline">{DAY_NAMES_FULL[day]}</span>
                       <span className="sm:hidden">{DAY_NAMES[day]}</span>
                     </th>
@@ -197,9 +197,9 @@ export default function CourtPricingForm({
               <tbody>
                 {hours.map((hour) => (
                   <tr key={hour} className="border-t border-border/50">
-                    <td className="p-2 font-mono text-muted-foreground sticky left-0 bg-card z-10 whitespace-nowrap">
+                    <th scope="row" className="p-2 font-mono font-medium text-muted-foreground sticky left-0 bg-card z-10 whitespace-nowrap">
                       {hour.toString().padStart(2, "0")}:00
-                    </td>
+                    </th>
                     {[1, 2, 3, 4, 5, 6, 0].map((day) => {
                       const key = `${day}-${hour}`
                       return (

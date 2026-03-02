@@ -24,6 +24,7 @@ import {
   SheetTrigger,
 } from '@/components/ui/sheet';
 import { useScrollDirection } from '@/hooks/use-scroll-direction';
+import { SkipToContent } from '@/components/layout/SkipToContent';
 import Image from 'next/image';
 
 interface ClubInfo {
@@ -86,6 +87,7 @@ export default function ClubLayout({ club, children }: ClubLayoutProps) {
         '--club-primary-shadow': `${color}66`,
       } as React.CSSProperties}
     >
+      <SkipToContent />
       {/* Header */}
       <header
         className={cn(
@@ -132,7 +134,7 @@ export default function ClubLayout({ club, children }: ClubLayoutProps) {
           </Link>
 
           {/* Desktop nav — solo texto, sin iconos (excepto Home) */}
-          <nav className="hidden md:flex items-center">
+          <nav aria-label="Navegacion del club" className="hidden md:flex items-center">
             <TooltipProvider delayDuration={200}>
               {navItems.map((item) => {
                 const active = isActive(item.href);
@@ -145,6 +147,7 @@ export default function ClubLayout({ club, children }: ClubLayoutProps) {
                         <Link
                           href={item.href}
                           data-active={active}
+                          aria-current={active ? 'page' : undefined}
                           className={cn(
                             'club-nav-item relative flex items-center justify-center w-10 h-14',
                             'transition-colors duration-150',
@@ -164,6 +167,7 @@ export default function ClubLayout({ club, children }: ClubLayoutProps) {
                     key={item.href}
                     href={item.href}
                     data-active={active}
+                    aria-current={active ? 'page' : undefined}
                     className={cn(
                       'club-nav-item relative flex items-center h-14 px-3',
                       'text-sm font-medium tracking-[-0.01em]',
@@ -215,12 +219,12 @@ export default function ClubLayout({ club, children }: ClubLayoutProps) {
       </header>
 
       {/* Main content */}
-      <main className="mx-auto max-w-5xl px-4 py-6">
+      <main id="contenido-principal" className="mx-auto max-w-5xl px-4 py-6">
         {children}
       </main>
 
       {/* Mobile bottom nav */}
-      <nav className="md:hidden fixed bottom-0 inset-x-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-t border-border/60">
+      <nav aria-label="Navegacion movil del club" className="md:hidden fixed bottom-0 inset-x-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-t border-border/60">
         <div className="flex items-stretch h-16">
           {/* Items principales */}
           {mainMobileItems.map((item) => {
@@ -230,6 +234,7 @@ export default function ClubLayout({ club, children }: ClubLayoutProps) {
                 key={item.href}
                 href={item.href}
                 data-active={active}
+                aria-current={active ? 'page' : undefined}
                 className={cn(
                   'relative flex flex-col items-center justify-center gap-0.5',
                   'flex-1 py-2 text-[10px] font-medium',

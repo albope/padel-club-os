@@ -205,9 +205,9 @@ export default function Pricing() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b bg-muted/50">
-                  <th className="px-4 py-3 text-left font-medium text-muted-foreground md:px-6">Aspecto</th>
-                  <th className="px-4 py-3 text-left font-medium text-red-600 dark:text-red-400 md:px-6">Tradicional</th>
-                  <th className="px-4 py-3 text-left font-medium text-primary md:px-6">Padel Club OS</th>
+                  <th scope="col" className="px-4 py-3 text-left font-medium text-muted-foreground md:px-6">Aspecto</th>
+                  <th scope="col" className="px-4 py-3 text-left font-medium text-red-600 dark:text-red-400 md:px-6">Tradicional</th>
+                  <th scope="col" className="px-4 py-3 text-left font-medium text-primary md:px-6">Padel Club OS</th>
                 </tr>
               </thead>
               <tbody>

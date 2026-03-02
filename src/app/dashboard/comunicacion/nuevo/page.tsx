@@ -11,7 +11,7 @@ export default async function NuevaComunicacionPage() {
   const session = await getServerSession(authOptions)
   if (!session?.user?.clubId) redirect("/dashboard")
 
-  if (!["SUPER_ADMIN", "CLUB_ADMIN"].includes(session.user.role)) {
+  if (!["SUPER_ADMIN", "CLUB_ADMIN"].includes(session.user.role as string)) {
     redirect("/dashboard")
   }
 
@@ -19,7 +19,7 @@ export default async function NuevaComunicacionPage() {
     <div className="space-y-6">
       <div className="flex items-center gap-4">
         <Button variant="ghost" size="icon" asChild>
-          <Link href="/dashboard/comunicacion">
+          <Link href="/dashboard/comunicacion" aria-label="Volver">
             <ArrowLeft className="h-4 w-4" />
           </Link>
         </Button>

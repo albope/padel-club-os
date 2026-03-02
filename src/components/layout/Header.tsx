@@ -46,13 +46,13 @@ const Header = () => {
           {status === 'authenticated' && user && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="relative h-9 w-9 rounded-full p-0 overflow-hidden">
+                <Button variant="ghost" className="relative h-11 w-11 rounded-full p-0 overflow-hidden">
                   <Image
                     className="h-full w-full rounded-full object-cover"
                     src={user.image || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name || 'U')}&background=6366f1&color=fff`}
-                    alt="Avatar"
-                    width={36}
-                    height={36}
+                    alt={user.name || 'Avatar de usuario'}
+                    width={44}
+                    height={44}
                   />
                 </Button>
               </DropdownMenuTrigger>

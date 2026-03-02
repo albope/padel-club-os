@@ -3,7 +3,7 @@
 import React from 'react';
 import { User } from '@prisma/client';
 import { Mail, Phone, Gamepad2, BarChart3, Cake, CalendarClock, CalendarCheck2, StickyNote } from 'lucide-react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
 import Image from 'next/image';
@@ -39,7 +39,7 @@ const SocioDetailModal: React.FC<SocioDetailModalProps> = ({ isOpen, onClose, so
           <div className="flex items-center gap-4">
             <Image
               src={socio.image || `https://ui-avatars.com/api/?name=${encodeURIComponent(socio.name || 'S')}&background=random&color=fff`}
-              alt="Avatar"
+              alt={socio.name || 'Foto de socio'}
               width={64}
               height={64}
               className="h-16 w-16 rounded-full"
@@ -47,6 +47,7 @@ const SocioDetailModal: React.FC<SocioDetailModalProps> = ({ isOpen, onClose, so
             <div>
               <div className="flex items-center gap-2">
                 <DialogTitle className="text-2xl">{socio.name}</DialogTitle>
+                <DialogDescription className="sr-only">Informacion detallada del socio</DialogDescription>
                 <Badge
                   variant="secondary"
                   className={socio.isActive !== false

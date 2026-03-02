@@ -145,6 +145,7 @@ const AuthForm: React.FC<AuthFormProps> = ({ isRegister = false }) => {
                 id="name"
                 type="text"
                 {...form.register('name')}
+                aria-required="true"
                 placeholder="Tu nombre"
                 className={cn(
                   'h-10 text-sm',
@@ -167,6 +168,9 @@ const AuthForm: React.FC<AuthFormProps> = ({ isRegister = false }) => {
               id="email"
               type="email"
               {...form.register('email')}
+              aria-required="true"
+              aria-invalid={!!form.formState.errors.email}
+              aria-describedby={form.formState.errors.email ? "email-error" : undefined}
               placeholder="tu@club.com"
               autoComplete="email"
               className={cn(
@@ -180,7 +184,7 @@ const AuthForm: React.FC<AuthFormProps> = ({ isRegister = false }) => {
             />
           </div>
           {form.formState.errors.email && (
-            <p className="flex items-center gap-1.5 text-xs text-destructive">
+            <p id="email-error" role="alert" className="flex items-center gap-1.5 text-xs text-destructive">
               <AlertCircle className="h-3.5 w-3.5 flex-shrink-0" />
               {form.formState.errors.email.message}
             </p>
@@ -211,6 +215,9 @@ const AuthForm: React.FC<AuthFormProps> = ({ isRegister = false }) => {
                 {...form.register('password', {
                   onChange: (e) => setPasswordValue(e.target.value),
                 })}
+                aria-required="true"
+                aria-invalid={!!form.formState.errors.password}
+                aria-describedby={form.formState.errors.password ? "password-error" : undefined}
                 placeholder={isRegister ? 'Min. 8 caracteres' : '••••••••'}
                 autoComplete={isRegister ? 'new-password' : 'current-password'}
                 className={cn(
@@ -241,7 +248,7 @@ const AuthForm: React.FC<AuthFormProps> = ({ isRegister = false }) => {
           </div>
 
           {form.formState.errors.password && (
-            <p className="flex items-center gap-1.5 text-xs text-destructive">
+            <p id="password-error" role="alert" className="flex items-center gap-1.5 text-xs text-destructive">
               <AlertCircle className="h-3.5 w-3.5 flex-shrink-0" />
               {form.formState.errors.password.message}
             </p>
@@ -263,7 +270,7 @@ const AuthForm: React.FC<AuthFormProps> = ({ isRegister = false }) => {
                   />
                 ))}
               </div>
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between" aria-live="polite">
                 <p className="text-[11px] text-muted-foreground">Seguridad de la contrasena</p>
                 <p className={cn(
                   'text-[11px] font-semibold',
@@ -281,7 +288,7 @@ const AuthForm: React.FC<AuthFormProps> = ({ isRegister = false }) => {
 
         {/* Error global */}
         {error && (
-          <div className="flex items-start gap-2.5 rounded-lg px-3 py-2.5 bg-destructive/[0.07] border border-destructive/15 auth-fade-up-1">
+          <div role="alert" className="flex items-start gap-2.5 rounded-lg px-3 py-2.5 bg-destructive/[0.07] border border-destructive/15 auth-fade-up-1">
             <AlertCircle className="h-4 w-4 text-destructive mt-0.5 flex-shrink-0" />
             <p className="text-sm text-destructive leading-snug">{error}</p>
           </div>

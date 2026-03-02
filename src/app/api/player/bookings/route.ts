@@ -4,6 +4,7 @@ import { NextResponse } from "next/server";
 import { calcularPrecioReserva } from "@/lib/pricing";
 import { crearNotificacion } from "@/lib/notifications";
 import { enviarEmailConfirmacionReserva, enviarEmailCancelacionReserva } from "@/lib/email";
+import { stripe } from "@/lib/stripe";
 import { logger } from "@/lib/logger";
 import { validarBody } from "@/lib/validation";
 import * as z from "zod";
@@ -12,6 +13,7 @@ const PlayerBookingCreateSchema = z.object({
   courtId: z.string().min(1, "El ID de pista es requerido."),
   startTime: z.string().min(1, "La hora de inicio es requerida."),
   endTime: z.string().min(1, "La hora de fin es requerida."),
+  payAtClub: z.boolean().optional(),
 })
 
 // GET: Obtener reservas del jugador autenticado
@@ -47,7 +49,7 @@ export async function POST(req: Request) {
     const body = await req.json();
     const result = validarBody(PlayerBookingCreateSchema, body);
     if (!result.success) return result.response;
-    const { courtId, startTime, endTime } = result.data;
+    const { courtId, startTime, endTime, payAtClub } = result.data;
 
     // Verificar configuracion del club
     const club = await db.club.findUnique({
@@ -59,6 +61,8 @@ export async function POST(req: Request) {
         openingTime: true,
         closingTime: true,
         bookingPaymentMode: true,
+        stripeConnectOnboarded: true,
+        slug: true,
       },
     });
 
@@ -124,6 +128,19 @@ export async function POST(req: Request) {
 
     const totalPrice = await calcularPrecioReserva(courtId, auth.session.user.clubId, newStartTime, newEndTime);
 
+    // Determinar estado de pago segun configuracion del club
+    const modoOnline = club.bookingPaymentMode !== "presential" && club.stripeConnectOnboarded
+    let paymentStatus: string
+    if (club.bookingPaymentMode === "presential" || !club.stripeConnectOnboarded) {
+      paymentStatus = "exempt"
+    } else if (club.bookingPaymentMode === "both" && payAtClub) {
+      paymentStatus = "pending" // pagara en el club
+    } else {
+      paymentStatus = "pending" // pagara online
+    }
+
+    const requiresPayment = modoOnline && !payAtClub && paymentStatus === "pending"
+
     const booking = await db.booking.create({
       data: {
         courtId,
@@ -131,7 +148,7 @@ export async function POST(req: Request) {
         startTime: newStartTime,
         endTime: newEndTime,
         totalPrice,
-        paymentStatus: club.bookingPaymentMode === "presential" ? "exempt" : "pending",
+        paymentStatus,
         status: "confirmed",
         clubId: auth.session.user.clubId,
       },
@@ -148,26 +165,29 @@ export async function POST(req: Request) {
       url: "/reservar",
     }).catch(() => {})
 
-    // Enviar email de confirmacion (no bloquear si falla)
-    const datosEmailConfirmacion = await db.user.findUnique({
-      where: { id: auth.session.user.id },
-      select: { email: true, name: true, club: { select: { name: true, slug: true } } },
-    })
-    if (datosEmailConfirmacion?.email) {
-      enviarEmailConfirmacionReserva({
-        email: datosEmailConfirmacion.email,
-        nombre: datosEmailConfirmacion.name || "Jugador",
-        pistaNombre: court.name,
-        fechaHoraInicio: newStartTime,
-        fechaHoraFin: newEndTime,
-        precioTotal: totalPrice,
-        estadoPago: booking.paymentStatus || "pending",
-        clubNombre: datosEmailConfirmacion.club?.name || "",
-        clubSlug: datosEmailConfirmacion.club?.slug || "",
-      }).catch(() => {})
+    // Email de confirmacion: solo enviar ahora si NO requiere pago online
+    // Para pagos online, el email se envia desde el webhook tras confirmar el pago
+    if (!requiresPayment) {
+      const datosEmailConfirmacion = await db.user.findUnique({
+        where: { id: auth.session.user.id },
+        select: { email: true, name: true, club: { select: { name: true, slug: true } } },
+      })
+      if (datosEmailConfirmacion?.email) {
+        enviarEmailConfirmacionReserva({
+          email: datosEmailConfirmacion.email,
+          nombre: datosEmailConfirmacion.name || "Jugador",
+          pistaNombre: court.name,
+          fechaHoraInicio: newStartTime,
+          fechaHoraFin: newEndTime,
+          precioTotal: totalPrice,
+          estadoPago: booking.paymentStatus || "pending",
+          clubNombre: datosEmailConfirmacion.club?.name || "",
+          clubSlug: datosEmailConfirmacion.club?.slug || "",
+        }).catch(() => {})
+      }
     }
 
-    return NextResponse.json(booking, { status: 201 });
+    return NextResponse.json({ ...booking, requiresPayment }, { status: 201 });
   } catch (error) {
     logger.error("CREATE_PLAYER_BOOKING", "Error creando reserva de jugador", { ruta: "/api/player/bookings", metodo: "POST" }, error);
     return new NextResponse("Internal Server Error", { status: 500 });
@@ -241,6 +261,33 @@ export async function DELETE(req: Request) {
         cancelReason: "Cancelado por el jugador",
       },
     });
+
+    // Reembolso automatico si la reserva fue pagada online
+    const payment = await db.payment.findUnique({
+      where: { bookingId },
+      select: { id: true, stripePaymentId: true, status: true, amount: true },
+    })
+
+    if (payment?.stripePaymentId && payment.status === "succeeded") {
+      try {
+        await stripe.refunds.create({
+          payment_intent: payment.stripePaymentId,
+          refund_application_fee: false, // la plataforma absorbe la comision perdida
+        })
+        await db.payment.update({
+          where: { id: payment.id },
+          data: { status: "refunded" },
+        })
+        logger.info("BOOKING_REFUND", "Reembolso procesado por cancelacion", {
+          bookingId,
+          paymentId: payment.id,
+          amount: payment.amount,
+        })
+      } catch (refundError) {
+        // Loguear error pero no bloquear la cancelacion
+        logger.error("BOOKING_REFUND", "Error al procesar reembolso", { bookingId, paymentId: payment.id }, refundError)
+      }
+    }
 
     // Notificar al jugador de la cancelacion
     crearNotificacion({

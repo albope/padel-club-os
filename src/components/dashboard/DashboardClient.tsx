@@ -25,8 +25,10 @@ const StatCard = ({ title, value, icon: Icon, tooltipText }: { title: string, va
               {tooltipText && (
                 <TooltipProvider>
                   <Tooltip>
-                    <TooltipTrigger>
-                      <Info className="h-4 w-4 text-muted-foreground" />
+                    <TooltipTrigger asChild>
+                      <button type="button" className="inline-flex" aria-label="Mas informacion">
+                        <Info className="h-4 w-4 text-muted-foreground" />
+                      </button>
                     </TooltipTrigger>
                     <TooltipContent>
                       <p>{tooltipText}</p>
@@ -188,7 +190,7 @@ const DashboardClient: React.FC<DashboardClientProps> = ({
           </div>
         </div>
 
-        <main>
+        <div>
           {onboardingPasos.length > 0 && !onboardingPasos.every(p => p.completado) && (
             <OnboardingChecklist pasos={onboardingPasos} clubSlug={clubSlug} />
           )}
@@ -260,7 +262,7 @@ const DashboardClient: React.FC<DashboardClientProps> = ({
               )}
             </Card>
           </div>
-        </main>
+        </div>
       </div>
 
       <BookingModal

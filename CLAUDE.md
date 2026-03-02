@@ -43,6 +43,7 @@ src/
       courts/       # CRUD pistas + pricing
       cron/         # Tareas programadas (booking-reminders)
       news/         # CRUD noticias (news:read/create/update/delete)
+      broadcasts/   # Comunicacion masiva (GET historial, POST enviar, preview)
       notifications/ # CRUD notificaciones + subscribe + vapid-key
       open-matches/ # CRUD partidas abiertas (admin)
       payments/     # Export pagos CSV
@@ -64,6 +65,7 @@ src/
       tarifas/      # Tarifas publicas del club
     dashboard/      # Panel admin (layout con sidebar)
       noticias/     # CRUD noticias (nueva, editar, listar)
+      comunicacion/ # Comunicacion masiva (historial + nuevo envio)
       blog/         # CRUD blog plataforma (nuevo, editar, listar)
       analiticas/   # Dashboard de analiticas con graficos
       facturacion/  # Facturacion Stripe
@@ -82,6 +84,7 @@ src/
     club/           # ClubLayout, ClubHome, GridReservas, NuevaPartidaJugadorForm, ConfirmacionReserva, Leaderboard
     marketing/      # Hero, Features, Pricing, Testimonials, CTA, Navbar, Footer, ContactForm
     noticias/       # NoticiasClient, NewsForm (admin CRUD noticias)
+    comunicacion/   # ComunicacionClient (historial), BroadcastForm (formulario envio)
     blog/           # BlogListClient, BlogForm (admin CRUD blog plataforma)
     analiticas/     # AnaliticasClient, StatsCards, BookingTrends, MemberGrowth, CourtUtilization, PeakHours
     competitions/   # Ligas y torneos
@@ -95,9 +98,10 @@ src/
   lib/
     auth.ts         # Config de NextAuth (role + clubName en JWT/session)
     api-auth.ts     # requireAuth() helper con permisos RBAC
-    permissions.ts  # Definicion de permisos por rol (~41 permisos)
+    permissions.ts  # Definicion de permisos por rol (~43 permisos)
     stripe.ts       # Cliente Stripe lazy (Proxy pattern), PLAN_PRICES
-    email.ts        # Cliente Resend lazy, plantilla branded, 7 emails transaccionales
+    email.ts        # Cliente Resend lazy, plantilla branded, 8 emails transaccionales
+    broadcast.ts    # Comunicacion masiva: resolverSegmento(), enviarBroadcast()
     pricing.ts      # calcularPrecioReserva(), obtenerPreciosPista()
     notifications.ts # Crear notificaciones + enviar push
     web-push.ts     # Cliente web-push lazy (Proxy pattern)
@@ -121,7 +125,7 @@ messages/
   es.json           # Traducciones espanol
   en.json           # Traducciones ingles
 prisma/
-  schema.prisma     # 18 modelos (ver seccion Modelos)
+  schema.prisma     # 19 modelos (ver seccion Modelos)
 scripts/
   generate-icons.js # Generador de iconos PWA
 public/
@@ -170,6 +174,7 @@ npx prisma db push # Sincronizar schema con DB
 - **ContactSubmission**: Mensajes del formulario de contacto (nombre, email, asunto, mensaje, leido). Sin clubId (plataforma)
 - **BlogPost**: Articulos del blog (title, slug unique, content, excerpt, category, imageUrl, published, authorName, readTime). Sin clubId (plataforma)
 - **PasswordResetToken**: Tokens de recuperacion de contraseña (email, token SHA-256, expires, @@index[email])
+- **Broadcast**: Comunicaciones masivas (title, message, channels push/email/push+email, segment all/active/inactive/level:X, recipientCount, status sending/sent/failed, sentById, clubId). @@index[clubId]
 
 ## Auth y RBAC
 
@@ -177,7 +182,7 @@ npx prisma db push # Sincronizar schema con DB
 - **requireAuth(permission)**: valida sesion + clubId + permiso en una llamada
 - **isAuthError(result)**: type guard para verificar si es NextResponse de error
 - **Middleware**: protege /dashboard (solo ADMIN_ROLES), permite /club/* publicamente, excluye /api/stripe/webhook, /api/contact, /api/blog/public, /api/auth/forgot-password, /api/auth/reset-password
-- **Permisos**: definidos en `src/lib/permissions.ts`, ~41 permisos por 4 roles
+- **Permisos**: definidos en `src/lib/permissions.ts`, ~43 permisos por 4 roles
 
 ### Patron de uso en API routes:
 ```typescript
@@ -191,7 +196,7 @@ export async function GET() {
 ```
 
 ### Roles y permisos:
-- **SUPER_ADMIN / CLUB_ADMIN**: acceso total (incluye news:*, blog:*, analytics:read, billing:*, notifications:*)
+- **SUPER_ADMIN / CLUB_ADMIN**: acceso total (incluye news:*, blog:*, analytics:read, billing:*, notifications:*, broadcast:*)
 - **STAFF**: gestionar reservas, pistas, competiciones; ver socios, noticias, analiticas y notificaciones
 - **PLAYER**: crear reserva propia, unirse a partidas, ver competiciones, gestionar perfil, ver notificaciones
 
@@ -318,7 +323,7 @@ El plan completo de 5 fases esta en: `C:\Users\alber\.claude\plans\jaunty-tumbli
 - [x] Pagina 404 personalizada: not-found.tsx (SVG padel, orbes animados, gradiente azul/cyan)
 - [x] i18n: secciones cookies, auth en es.json y en.json
 
-**Siguiente: Validacion APIs (B2), tests (C1)**
+**Siguiente: Reservas recurrentes (C4)**
 
 ## Notas
 
@@ -437,19 +442,44 @@ Revisa las secciones de estado en CLAUDE.md y el roadmap para ver que esta COMPL
 
 ### BLOQUE C: VALOR AÑADIDO (diferenciador competitivo)
 
-**Sesion C1 - Tests criticos** `[ ]`
-- Tests unitarios para: `requireAuth`, `pricing.ts`, `tokens.ts`, `csv.ts`, `notifications.ts`
-- Tests de API: auth flows, bookings CRUD, stripe webhook
-- Target: 40-50% coverage en rutas criticas
+**Sesion C1 - Tests criticos** `[x]`
+- [x] 11 archivos de test, 155 tests pasando
+- [x] Tests unitarios: requireAuth, pricing.ts, tokens.ts, csv.ts, email.ts, validation.ts, elo.ts, permissions.ts, utils.ts, rate-limit.ts, subscription.ts
+- [x] Build exitoso
 
-**Sesion C2 - Stripe Connect (pagos de reservas)** `[ ]`
-- Onboarding Stripe Connect para clubs
-- Cobro al jugador al reservar (modo "online")
-- Split payment: club recibe el pago, plataforma cobra comision
+**Sesion C2 - Stripe Connect (pagos de reservas)** `[x]`
+- [x] src/lib/stripe.ts: PLATFORM_FEE_PERCENT = 5
+- [x] src/lib/subscription.ts: canUseOnlinePayments() (solo Pro/Enterprise)
+- [x] APIs Connect: /api/stripe/connect/onboarding (POST), /api/stripe/connect/status (GET), /api/stripe/connect/dashboard (POST)
+- [x] API checkout: /api/player/bookings/checkout (POST) - Stripe Checkout Session con application_fee_amount 5%
+- [x] Webhook: checkout.session.completed para pagos de booking + charge.refunded para reembolsos
+- [x] API player bookings: payAtClub param, paymentStatus logic, requiresPayment response, refund on cancel
+- [x] API club/[slug]: expone bookingPaymentMode y stripeConnectOnboarded
+- [x] API club PATCH: valida Connect onboarded + plan Pro+ para habilitar pagos online
+- [x] StripeConnectCard.tsx: 4 estados (plan incompatible, sin cuenta, verificacion pendiente, activo)
+- [x] ConfirmacionReserva.tsx: 3 modos de boton (presential, online, both) + manejo ?pago=exito/cancelado
+- [x] GridReservas.tsx + reservar/page.tsx: pasan bookingPaymentMode y stripeConnectOnboarded
+- [x] SettingsForm.tsx: deshabilita opciones online/both sin Connect
+- [x] Cron booking-reminders: auto-cancelacion reservas sin pago en 15 min
+- [x] i18n: seccion stripeConnect en es.json y en.json
+- [x] Build exitoso
 
-**Sesion C3 - Comunicacion masiva** `[ ]`
-- Enviar email/push a todos los socios del club
-- Segmentacion basica (todos, por nivel, activos/inactivos)
+**Sesion C3 - Comunicacion masiva** `[x]`
+- [x] Modelo Broadcast (title, message, channels, segment, recipientCount, status, sentBy, club)
+- [x] src/lib/broadcast.ts: resolverSegmento(), enviarBroadcast() con batching (lotes 10)
+- [x] src/lib/email.ts: enviarEmailBroadcast() con plantilla branded
+- [x] API /api/broadcasts (GET historial, POST crear+enviar), /api/broadcasts/preview (GET count)
+- [x] Rate limiting: 5 broadcasts/hora, requireSubscription: true
+- [x] Segmentacion: todos, activos, inactivos, por nivel
+- [x] Canales: push+in-app, email, o ambos
+- [x] UI admin: /dashboard/comunicacion (historial), /dashboard/comunicacion/nuevo (formulario)
+- [x] Preview de destinatarios antes de enviar con debounce
+- [x] AlertDialog de confirmacion antes de envio
+- [x] Permisos RBAC: broadcast:create, broadcast:read (solo SUPER_ADMIN, CLUB_ADMIN)
+- [x] Navegacion: item "Comunicacion" en sidebar con icono Megaphone
+- [x] i18n: seccion "broadcast" en es.json y en.json
+- [x] Eliminado /api/notifications/broadcast (superseded)
+- [x] Build exitoso
 
 **Sesion C4 - Reservas recurrentes** `[ ]`
 - Modelo `RecurringBooking` (dia semana, hora, pista, usuario, fecha fin)
@@ -472,11 +502,29 @@ Revisa las secciones de estado en CLAUDE.md y el roadmap para ver que esta COMPL
 
 ### BLOQUE D: PULIDO (post-lanzamiento)
 
-**Sesion D1** - Accesibilidad (skip-to-content, focus trap modals, aria-describedby, WCAG 2.1 AA) `[ ]`
+**Sesion D1 - Accesibilidad WCAG 2.1 AA** `[x]`
+- [x] SkipToContent.tsx: enlace "Saltar al contenido principal" (sr-only, visible al focus)
+- [x] Skip-link + id="contenido-principal" en 3 layouts (public, dashboard, club portal)
+- [x] Heading hierarchy: h1→span en Sidebar, Hero h1 unificado, main anidado→div en Dashboard
+- [x] Nav landmarks: aria-label en 5 navs (Sidebar, MobileNavBar, ClubLayout x2, Navbar)
+- [x] aria-current="page" en links activos de Sidebar, MobileNavBar y ClubLayout
+- [x] Elementos interactivos: div/li onClick→button en CourtGridView (3), GridReservas (2), SociosClient
+- [x] Formularios: aria-describedby + aria-invalid + aria-required + role="alert" en 9 archivos
+- [x] Select labels: id en SelectTrigger + htmlFor en Label (BookingModal, EditCourtForm, BroadcastForm)
+- [x] Inputs busqueda: sr-only labels en SociosClient y GlobalSearch
+- [x] Icon buttons: aria-label en ~22 botones (15 back buttons + 7 componentes)
+- [x] DialogTitle/Description: GlobalSearch (sr-only), BookingModal, SocioDetailModal, AddTeamModal
+- [x] Table scope: scope="col" default en TableHead, scope="row" en CourtPricingForm, scope en 4 tablas raw
+- [x] Navbar mobile: aria-expanded, aria-controls, aria-hidden en menu colapsable
+- [x] Live regions: aria-live en NotificationBell (contador), AuthForm (fortaleza password), GlobalSearch (resultados)
+- [x] Contraste CSS: --primary 60%→50% (light), --destructive 30.6%→50% (dark), text-white/40→/60
+- [x] Touch targets 44px: Header avatar, NotificationBell, ThemeToggle, Footer social, ClubHome social
+- [x] Alt text: avatares usan nombre del usuario en lugar de "Avatar" generico
+- [x] Build exitoso
 **Sesion D2** - E2E tests con Playwright `[ ]`
 **Sesion D3** - Dashboard mejorado (revenue chart, agenda del dia) `[ ]`
 **Sesion D4** - Social (chat jugadores, valoraciones, buscar jugadores) `[ ]`
 **Sesion D5** - CI/CD (GitHub Actions: lint + test + build en PR) `[ ]`
 
 ### Orden recomendado
-Sprint 1: A1, A2 [DONE] → Sprint 2: A3, A5 [DONE] → Sprint 3: A4, B1 [DONE] → Sprint 4: B4, B3 [DONE] → Sprint 5: B2 [DONE], B5 [DONE] → Sprint 6: C1 → Beta launch → Sprint 7+: C2-C5, D1-D5
+Sprint 1: A1, A2 [DONE] → Sprint 2: A3, A5 [DONE] → Sprint 3: A4, B1 [DONE] → Sprint 4: B4, B3 [DONE] → Sprint 5: B2 [DONE], B5 [DONE] → Sprint 6: C1, C3 [DONE] → Sprint 7: D1 [DONE] → Sprint 8: C2 [DONE] → Beta launch → Sprint 9+: C4-C6, D2-D5

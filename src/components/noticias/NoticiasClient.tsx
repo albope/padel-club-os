@@ -207,7 +207,7 @@ const NoticiasClient: React.FC<NoticiasClientProps> = ({ initialNews }) => {
                             {item.published ? 'Despublicar' : 'Publicar'}
                           </Button>
                           <Link href={`/dashboard/noticias/${item.id}`}>
-                            <Button variant="outline" size="sm">
+                            <Button variant="outline" size="sm" aria-label="Editar">
                               <Pencil className="h-4 w-4" />
                             </Button>
                           </Link>

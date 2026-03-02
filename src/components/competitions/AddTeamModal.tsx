@@ -13,6 +13,7 @@ import { Button } from '@/components/ui/button';
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogFooter,
@@ -98,28 +99,49 @@ const AddTeamModal: React.FC<AddTeamModalProps> = ({ isOpen, onClose, competitio
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>{isEditMode ? 'Editar Equipo' : 'Anadir Nuevo Equipo'}</DialogTitle>
+          <DialogDescription>Introduce el nombre del equipo y selecciona los dos jugadores.</DialogDescription>
         </DialogHeader>
         <form onSubmit={form.handleSubmit(handleFormSubmit)} className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="name">Nombre del Equipo</Label>
-            <Input id="name" {...form.register('name')} />
-            {form.formState.errors.name && <p className="text-sm text-destructive">{form.formState.errors.name.message}</p>}
+            <Input
+              id="name"
+              {...form.register('name')}
+              aria-required="true"
+              aria-invalid={!!form.formState.errors.name}
+              aria-describedby={form.formState.errors.name ? "name-error" : undefined}
+            />
+            {form.formState.errors.name && <p id="name-error" role="alert" className="text-sm text-destructive">{form.formState.errors.name.message}</p>}
           </div>
           <div className="space-y-2">
             <Label htmlFor="player1Id">Jugador 1</Label>
-            <select id="player1Id" {...form.register('player1Id')} className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm">
+            <select
+              id="player1Id"
+              {...form.register('player1Id')}
+              aria-required="true"
+              aria-invalid={!!form.formState.errors.player1Id}
+              aria-describedby={form.formState.errors.player1Id ? "player1Id-error" : undefined}
+              className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
+            >
               <option value="">Selecciona un socio</option>
               {users.map(user => <option key={user.id} value={user.id}>{user.name}</option>)}
             </select>
-            {form.formState.errors.player1Id && <p className="text-sm text-destructive">{form.formState.errors.player1Id.message}</p>}
+            {form.formState.errors.player1Id && <p id="player1Id-error" role="alert" className="text-sm text-destructive">{form.formState.errors.player1Id.message}</p>}
           </div>
           <div className="space-y-2">
             <Label htmlFor="player2Id">Jugador 2</Label>
-            <select id="player2Id" {...form.register('player2Id')} className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm">
+            <select
+              id="player2Id"
+              {...form.register('player2Id')}
+              aria-required="true"
+              aria-invalid={!!form.formState.errors.player2Id}
+              aria-describedby={form.formState.errors.player2Id ? "player2Id-error" : undefined}
+              className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
+            >
               <option value="">Selecciona un socio</option>
               {users.map(user => <option key={user.id} value={user.id}>{user.name}</option>)}
             </select>
-            {form.formState.errors.player2Id && <p className="text-sm text-destructive">{form.formState.errors.player2Id.message}</p>}
+            {form.formState.errors.player2Id && <p id="player2Id-error" role="alert" className="text-sm text-destructive">{form.formState.errors.player2Id.message}</p>}
           </div>
           {error && <p className="text-sm text-destructive">{error}</p>}
           <DialogFooter className="flex justify-between items-center pt-4">

@@ -8,7 +8,7 @@ import { Loader2, Trash2 } from 'lucide-react';
 import { Court, User } from '@prisma/client';
 import { useRouter } from 'next/navigation';
 import { BookingWithDetails } from './CalendarView';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -173,16 +173,17 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, selectedIn
         <DialogContent className="sm:max-w-lg">
           <DialogHeader>
             <DialogTitle>{isEditMode ? 'Editar Reserva' : 'Nueva Reserva'}</DialogTitle>
+            <DialogDescription>Rellena los datos para crear una nueva reserva.</DialogDescription>
           </DialogHeader>
 
           <form onSubmit={form.handleSubmit(handleFormSubmit)} className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="md:col-span-1 space-y-2">
                 <Label htmlFor="startDate">Fecha</Label>
-                <Input type="date" id="startDate" {...form.register('startDate')} />
+                <Input type="date" id="startDate" {...form.register('startDate')} aria-required="true" />
               </div>
               <div className="space-y-2">
-                <Label>Hora Inicio</Label>
+                <Label htmlFor="startTime">Hora Inicio</Label>
                 <Select
                   value={form.watch('startTime')}
                   onValueChange={(value) => {
@@ -190,7 +191,7 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, selectedIn
                     form.setValue('endTime', calcularHoraFin(value));
                   }}
                 >
-                  <SelectTrigger>
+                  <SelectTrigger id="startTime">
                     <SelectValue placeholder="Hora inicio" />
                   </SelectTrigger>
                   <SelectContent>
@@ -201,12 +202,12 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, selectedIn
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label>Hora Fin</Label>
+                <Label htmlFor="endTime">Hora Fin</Label>
                 <Select
                   value={form.watch('endTime')}
                   onValueChange={(value) => form.setValue('endTime', value)}
                 >
-                  <SelectTrigger>
+                  <SelectTrigger id="endTime">
                     <SelectValue placeholder="Hora fin" />
                   </SelectTrigger>
                   <SelectContent>
@@ -218,7 +219,7 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, selectedIn
               </div>
             </div>
             {form.formState.errors.endTime && (
-              <p className="text-sm text-destructive">{form.formState.errors.endTime.message}</p>
+              <p id="endTime-error" role="alert" className="text-sm text-destructive">{form.formState.errors.endTime.message}</p>
             )}
 
             <div className="space-y-2">
@@ -227,7 +228,7 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, selectedIn
                 value={form.watch('courtId')}
                 onValueChange={(value) => form.setValue('courtId', value)}
               >
-                <SelectTrigger>
+                <SelectTrigger id="courtId">
                   <SelectValue placeholder="Selecciona una pista" />
                 </SelectTrigger>
                 <SelectContent>
@@ -237,7 +238,7 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, selectedIn
                 </SelectContent>
               </Select>
               {form.formState.errors.courtId && (
-                <p className="text-sm text-destructive">{form.formState.errors.courtId.message}</p>
+                <p id="courtId-error" role="alert" className="text-sm text-destructive">{form.formState.errors.courtId.message}</p>
               )}
             </div>
 
@@ -257,6 +258,9 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, selectedIn
                   onBlur={() => setTimeout(() => setShowUserList(false), 200)}
                   placeholder="Busca un socio o escribe un nombre..."
                   autoComplete="off"
+                  aria-required="true"
+                  aria-invalid={!!form.formState.errors.guestName}
+                  aria-describedby={form.formState.errors.guestName ? "guestName-error" : undefined}
                 />
                 {showUserList && searchTerm && (
                   <ul className="absolute z-10 w-full bg-popover border border-border rounded-md mt-1 max-h-40 overflow-y-auto shadow-md">
@@ -273,7 +277,7 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, selectedIn
                 )}
               </div>
               {form.formState.errors.guestName && (
-                <p className="text-sm text-destructive">{form.formState.errors.guestName.message}</p>
+                <p id="guestName-error" role="alert" className="text-sm text-destructive">{form.formState.errors.guestName.message}</p>
               )}
             </div>
 

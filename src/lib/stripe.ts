@@ -69,6 +69,9 @@ export function constructWebhookEvent(
   return getStripe().webhooks.constructEvent(body, signature, secret)
 }
 
+// Comision de la plataforma sobre pagos de reservas (porcentaje)
+export const PLATFORM_FEE_PERCENT = 5
+
 /** Obtiene el PlanKey a partir de un price ID de Stripe */
 export function getPlanKeyFromPriceId(priceId: string): PlanKey | null {
   for (const [key, plan] of Object.entries(PLAN_PRICES)) {

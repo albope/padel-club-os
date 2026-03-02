@@ -41,7 +41,7 @@ const EditCourtPage = async ({ params }: EditCourtPageProps) => {
     <div className="space-y-8">
       <div className="flex items-center gap-4">
         <Button variant="outline" size="icon" asChild>
-          <Link href="/dashboard/pistas">
+          <Link href="/dashboard/pistas" aria-label="Volver">
             <ArrowLeft className="h-5 w-5" />
           </Link>
         </Button>

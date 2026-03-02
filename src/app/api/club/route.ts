@@ -2,6 +2,7 @@ import { db } from "@/lib/db";
 import { requireAuth, isAuthError } from "@/lib/api-auth";
 import { NextResponse } from "next/server";
 import { validarBody } from "@/lib/validation";
+import { canUseOnlinePayments, getSubscriptionInfo } from "@/lib/subscription";
 import * as z from "zod";
 
 const urlOpcional = z.string().url("URL no valida.").max(2000).optional().or(z.literal("")).or(z.literal(null))
@@ -60,6 +61,28 @@ export async function PATCH(req: Request) {
       enableOpenMatches, enablePlayerBooking,
       bookingPaymentMode, bookingDuration,
     } = result.data;
+
+    // Validar que el club puede usar pagos online antes de permitir el cambio
+    if (bookingPaymentMode && bookingPaymentMode !== "presential") {
+      const club = await db.club.findUnique({
+        where: { id: auth.session.user.clubId },
+        select: { stripeConnectOnboarded: true },
+      })
+      if (!club?.stripeConnectOnboarded) {
+        return NextResponse.json(
+          { error: "Debes conectar tu cuenta de Stripe antes de habilitar pagos online." },
+          { status: 400 }
+        )
+      }
+
+      const subInfo = await getSubscriptionInfo(auth.session.user.clubId)
+      if (!canUseOnlinePayments(subInfo.tier)) {
+        return NextResponse.json(
+          { error: "Los pagos online estan disponibles en los planes Pro y Enterprise." },
+          { status: 403 }
+        )
+      }
+    }
 
     const updatedClub = await db.club.update({
       where: { id: auth.session.user.clubId },

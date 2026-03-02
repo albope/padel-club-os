@@ -62,9 +62,16 @@ const AddResultModal: React.FC<AddResultModalProps> = ({ isOpen, onClose, match 
         <form onSubmit={form.handleSubmit(handleFormSubmit)} className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="result">Resultado (Ej: 6-2 6-4)</Label>
-            <Input id="result" {...form.register('result')} placeholder="6-2 6-4" />
+            <Input
+              id="result"
+              {...form.register('result')}
+              aria-required="true"
+              aria-invalid={!!form.formState.errors.result}
+              aria-describedby={form.formState.errors.result ? "result-error" : undefined}
+              placeholder="6-2 6-4"
+            />
             {form.formState.errors.result && (
-              <p className="text-sm text-destructive">{form.formState.errors.result.message}</p>
+              <p id="result-error" role="alert" className="text-sm text-destructive">{form.formState.errors.result.message}</p>
             )}
           </div>
           <div className="flex justify-end gap-3 pt-2">

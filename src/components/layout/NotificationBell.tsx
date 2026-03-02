@@ -127,7 +127,7 @@ export function NotificationBell({ urlBase = '' }: NotificationBellProps) {
   return (
     <Popover open={abierto} onOpenChange={setAbierto}>
       <PopoverTrigger asChild>
-        <Button variant="ghost" size="icon" className="relative h-9 w-9">
+        <Button variant="ghost" size="icon" className="relative h-11 w-11">
           <Bell className="h-5 w-5" />
           {sinLeer > 0 && (
             <span className="absolute -top-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-destructive text-[10px] font-bold text-destructive-foreground">
@@ -135,6 +135,9 @@ export function NotificationBell({ urlBase = '' }: NotificationBellProps) {
             </span>
           )}
           <span className="sr-only">Notificaciones</span>
+          <span aria-live="polite" aria-atomic="true" className="sr-only">
+            {sinLeer > 0 ? `${sinLeer} notificaciones sin leer` : 'Sin notificaciones nuevas'}
+          </span>
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-80 p-0" align="end">

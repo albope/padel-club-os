@@ -11,6 +11,7 @@ import {
   BarChart3,
   FileText,
   Medal,
+  Megaphone,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -29,6 +30,7 @@ export const navItems: NavItem[] = [
   { name: 'Socios', href: '/dashboard/socios', icon: Users },
   { name: 'Partidas Abiertas', href: '/dashboard/partidas-abiertas', icon: CalendarPlus },
   { name: 'Noticias', href: '/dashboard/noticias', icon: Newspaper },
+  { name: 'Comunicacion', href: '/dashboard/comunicacion', icon: Megaphone },
   { name: 'Blog', href: '/dashboard/blog', icon: FileText },
   { name: 'Analiticas', href: '/dashboard/analiticas', icon: BarChart3 },
   { name: 'Facturacion', href: '/dashboard/facturacion', icon: CreditCard },

@@ -235,5 +235,55 @@
       "linkCopied": "Enlace copiado",
       "goToDashboard": "Ir al dashboard"
     }
+  },
+  "broadcast": {
+    "title": "Comunicacion",
+    "subtitle": "Envia comunicados a los socios de tu club",
+    "new": "Nuevo envio",
+    "form": {
+      "title": "Titulo del comunicado",
+      "titlePlaceholder": "Titulo que veran los socios",
+      "message": "Mensaje",
+      "messagePlaceholder": "Escribe el contenido del comunicado...",
+      "channels": "Canales de envio",
+      "channelPush": "Notificacion push (incluye in-app)",
+      "channelEmail": "Correo electronico",
+      "segment": "Destinatarios",
+      "segmentAll": "Todos los jugadores",
+      "segmentActive": "Solo activos",
+      "segmentInactive": "Solo inactivos",
+      "segmentLevel": "Por nivel",
+      "levelValue": "Nivel",
+      "levelPlaceholder": "Ej: 3.5",
+      "preview": "Se enviara a {count} socios",
+      "previewLoading": "Calculando destinatarios...",
+      "previewNone": "No hay socios que coincidan con este filtro",
+      "send": "Enviar comunicacion",
+      "sending": "Enviando...",
+      "confirmTitle": "Confirmar envio",
+      "confirmDescription": "Vas a enviar una comunicacion a {count} socios. Esta accion no se puede deshacer.",
+      "confirmAction": "Enviar",
+      "successTitle": "Comunicacion enviada",
+      "successDescription": "El comunicado se esta enviando a {count} socios.",
+      "errorTitle": "Error",
+      "errorDescription": "No se pudo enviar la comunicacion."
+    },
+    "history": {
+      "empty": "Sin comunicaciones",
+      "emptyDescription": "Envia comunicados a los socios de tu club.",
+      "firstAction": "Primer envio",
+      "sentBy": "Enviado por",
+      "recipients": "destinatarios",
+      "statusSending": "Enviando",
+      "statusSent": "Enviado",
+      "statusFailed": "Error",
+      "channelPush": "Push",
+      "channelEmail": "Email",
+      "segmentAll": "Todos",
+      "segmentActive": "Activos",
+      "segmentInactive": "Inactivos",
+      "segmentLevel": "Nivel {level}",
+      "segmentStaff": "Staff"
+    }
   }
 }

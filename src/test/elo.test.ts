@@ -6,6 +6,7 @@ import {
   calculateTeamRating,
   calculateMatchRatings,
   DEFAULT_RATING,
+  eloANivel,
 } from '@/lib/elo'
 
 describe('getExpectedScore', () => {
@@ -202,5 +203,35 @@ describe('calculateMatchRatings', () => {
 
   it('el DEFAULT_RATING es 1500', () => {
     expect(DEFAULT_RATING).toBe(1500)
+  })
+})
+
+describe('eloANivel', () => {
+  it('ELO 900 retorna nivel 1.0', () => {
+    expect(eloANivel(900)).toBe(1.0)
+  })
+
+  it('ELO 1500 retorna nivel 4.0', () => {
+    expect(eloANivel(1500)).toBe(4.0)
+  })
+
+  it('ELO 2100 retorna nivel 7.0', () => {
+    expect(eloANivel(2100)).toBe(7.0)
+  })
+
+  it('interpola linealmente (ELO 1200 = nivel 2.5)', () => {
+    expect(eloANivel(1200)).toBe(2.5)
+  })
+
+  it('clampea por debajo del minimo (ELO 500 = nivel 1.0)', () => {
+    expect(eloANivel(500)).toBe(1.0)
+  })
+
+  it('clampea por encima del maximo (ELO 3000 = nivel 7.0)', () => {
+    expect(eloANivel(3000)).toBe(7.0)
+  })
+
+  it('redondea a un decimal (ELO 1000 = 1.5)', () => {
+    expect(eloANivel(1000)).toBe(1.5)
   })
 })

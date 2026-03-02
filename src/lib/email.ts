@@ -651,3 +651,56 @@ export async function enviarEmailRecordatorioReserva({
     }),
   })
 }
+
+// --- Email de comunicacion masiva (broadcast) ---
+
+interface EnviarEmailBroadcastParams {
+  email: string
+  nombre: string | null
+  titulo: string
+  mensaje: string
+  clubNombre: string
+  clubSlug: string
+}
+
+export async function enviarEmailBroadcast({
+  email,
+  nombre,
+  titulo,
+  mensaje,
+  clubNombre,
+  clubSlug,
+}: EnviarEmailBroadcastParams) {
+  const resend = getResend()
+  const clubUrl = `${EMAIL_BRAND.siteUrl}/club/${escaparHtml(clubSlug)}`
+  const nombreSeguro = nombre ? escaparHtml(nombre) : null
+  const clubSeguro = escaparHtml(clubNombre)
+
+  const contenido = `
+    <p style="${estiloParrafo}">
+      ${nombreSeguro ? `Hola ${nombreSeguro},` : "Hola,"}
+    </p>
+    <p style="${estiloParrafo}">
+      <strong>${clubSeguro}</strong> te env&iacute;a el siguiente comunicado:
+    </p>
+    <div style="background-color:${EMAIL_BRAND.colorFondo};border-radius:8px;padding:20px;margin:20px 0;border-left:4px solid ${EMAIL_BRAND.colorBordeDetalle};">
+      <p style="font-size:14px;color:${EMAIL_BRAND.colorTexto};margin:0;line-height:1.6;white-space:pre-wrap;">${escaparHtml(mensaje)}</p>
+    </div>
+  `
+
+  await resend.emails.send({
+    from: EMAIL_FROM,
+    to: email,
+    subject: `${titulo} - ${clubNombre}`,
+    html: plantillaEmail({
+      titulo: escaparHtml(titulo),
+      preheader: `Comunicado de ${clubNombre}: ${titulo}`,
+      contenido,
+      boton: { texto: "Ir al club", url: clubUrl },
+      pieDePagina: `Recibes este email porque eres socio de ${clubSeguro}.`,
+    }),
+  })
+}
+
+// Exportar helpers para testing
+export { escaparHtml, cajaDetalle, formatearFecha, formatearHora, calcularDuracionMin, traducirEstadoPago }

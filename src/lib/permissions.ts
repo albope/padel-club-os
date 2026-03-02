@@ -59,6 +59,9 @@ export type Permission =
   // Notificaciones
   | "notifications:read"
   | "notifications:update"
+  // Comunicacion masiva
+  | "broadcast:create"
+  | "broadcast:read"
 
 // Permisos por rol
 const rolePermissions: Record<UserRole, Permission[]> = {
@@ -76,6 +79,7 @@ const rolePermissions: Record<UserRole, Permission[]> = {
     "blog:read", "blog:create", "blog:update", "blog:delete",
     "profile:read", "profile:update", "profile:export", "profile:delete",
     "notifications:read", "notifications:update",
+    "broadcast:create", "broadcast:read",
   ],
   CLUB_ADMIN: [
     "bookings:read", "bookings:create", "bookings:create-any", "bookings:update", "bookings:delete",
@@ -91,6 +95,7 @@ const rolePermissions: Record<UserRole, Permission[]> = {
     "blog:read", "blog:create", "blog:update", "blog:delete",
     "profile:read", "profile:update", "profile:export", "profile:delete",
     "notifications:read", "notifications:update",
+    "broadcast:create", "broadcast:read",
   ],
   STAFF: [
     "bookings:read", "bookings:create", "bookings:create-any", "bookings:update", "bookings:delete",

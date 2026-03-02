@@ -235,5 +235,55 @@
       "linkCopied": "Link copied",
       "goToDashboard": "Go to dashboard"
     }
+  },
+  "broadcast": {
+    "title": "Communication",
+    "subtitle": "Send announcements to your club members",
+    "new": "New broadcast",
+    "form": {
+      "title": "Broadcast title",
+      "titlePlaceholder": "Title that members will see",
+      "message": "Message",
+      "messagePlaceholder": "Write the announcement content...",
+      "channels": "Delivery channels",
+      "channelPush": "Push notification (includes in-app)",
+      "channelEmail": "Email",
+      "segment": "Recipients",
+      "segmentAll": "All players",
+      "segmentActive": "Active only",
+      "segmentInactive": "Inactive only",
+      "segmentLevel": "By level",
+      "levelValue": "Level",
+      "levelPlaceholder": "E.g.: 3.5",
+      "preview": "Will be sent to {count} members",
+      "previewLoading": "Counting recipients...",
+      "previewNone": "No members match this filter",
+      "send": "Send broadcast",
+      "sending": "Sending...",
+      "confirmTitle": "Confirm broadcast",
+      "confirmDescription": "You are about to send a broadcast to {count} members. This action cannot be undone.",
+      "confirmAction": "Send",
+      "successTitle": "Broadcast sent",
+      "successDescription": "The broadcast is being sent to {count} members.",
+      "errorTitle": "Error",
+      "errorDescription": "Could not send the broadcast."
+    },
+    "history": {
+      "empty": "No broadcasts",
+      "emptyDescription": "Send announcements to your club members.",
+      "firstAction": "First broadcast",
+      "sentBy": "Sent by",
+      "recipients": "recipients",
+      "statusSending": "Sending",
+      "statusSent": "Sent",
+      "statusFailed": "Failed",
+      "channelPush": "Push",
+      "channelEmail": "Email",
+      "segmentAll": "All",
+      "segmentActive": "Active",
+      "segmentInactive": "Inactive",
+      "segmentLevel": "Level {level}",
+      "segmentStaff": "Staff"
+    }
   }
 }

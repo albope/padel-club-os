@@ -318,7 +318,7 @@ El plan completo de 5 fases esta en: `C:\Users\alber\.claude\plans\jaunty-tumbli
 - [x] Pagina 404 personalizada: not-found.tsx (SVG padel, orbes animados, gradiente azul/cyan)
 - [x] i18n: secciones cookies, auth en es.json y en.json
 
-**Siguiente: Performance basica (B5), tests (C1)**
+**Siguiente: Validacion APIs (B2), tests (C1)**
 
 ## Notas
 
@@ -428,10 +428,12 @@ Revisa las secciones de estado en CLAUDE.md y el roadmap para ver que esta COMPL
 - [x] .gitignore: excepcion para .env.example
 - [x] Build exitoso
 
-**Sesion B5 - Performance basica** `[ ]`
-- Reemplazar `<img>` por `next/image` en rankings, socios, leaderboard
-- Añadir `@@index` en Prisma para queries frecuentes (Booking por clubId+date, User por clubId)
-- Cache de datos publicos del club (revalidate en API publica)
+**Sesion B5 - Performance basica** `[x]`
+- [x] 18 @@index en Prisma: Booking (4), User (2), Court (1), OpenMatch (2), News (2), Competition (1), Payment (2), PlayerStats (2), BlogPost (1), CourtPricing (1)
+- [x] Cache-Control headers en 7 API routes publicas (club, courts, pricing, rankings, availability, blog)
+- [x] revalidate en 8 Server Components (blog, club portal, tarifas, rankings, noticias)
+- [x] next/image: remotePatterns config + migradas 13 instancias <img> en 11 archivos (avatares + contenido)
+- [x] Build exitoso
 
 ### BLOQUE C: VALOR AÑADIDO (diferenciador competitivo)
 
@@ -477,4 +479,4 @@ Revisa las secciones de estado en CLAUDE.md y el roadmap para ver que esta COMPL
 **Sesion D5** - CI/CD (GitHub Actions: lint + test + build en PR) `[ ]`
 
 ### Orden recomendado
-Sprint 1: A1, A2 [DONE] → Sprint 2: A3, A5 [DONE] → Sprint 3: A4, B1 [DONE] → Sprint 4: B4, B3 [DONE] → Sprint 5: B2 [DONE], B5 → Sprint 6: C1 → Beta launch → Sprint 7+: C2-C5, D1-D5
+Sprint 1: A1, A2 [DONE] → Sprint 2: A3, A5 [DONE] → Sprint 3: A4, B1 [DONE] → Sprint 4: B4, B3 [DONE] → Sprint 5: B2 [DONE], B5 [DONE] → Sprint 6: C1 → Beta launch → Sprint 7+: C2-C5, D1-D5

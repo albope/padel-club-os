@@ -60,6 +60,7 @@ model Club {
   courtPricings CourtPricing[]
   playerStats   PlayerStats[]
   notifications Notification[]
+  broadcasts    Broadcast[]
 }
 
 // --- USER ROLES ---
@@ -101,6 +102,7 @@ model User {
   notifications     Notification[]
   pushSubscriptions PushSubscription[]
   cookieConsents    CookieConsent[]
+  broadcastsSent    Broadcast[]     @relation("BroadcastsSent")
 
   @@index([clubId])
   @@index([clubId, role])
@@ -451,4 +453,23 @@ model CookieConsent {
   createdAt DateTime @default(now())
 
   @@index([userId])
+}
+
+// --- COMUNICACIONES MASIVAS ---
+model Broadcast {
+  id             String   @id @default(cuid())
+  title          String
+  message        String   @db.Text
+  channels       String   // "push" | "email" | "push+email"
+  segment        String   // "all" | "active" | "inactive" | "level:X"
+  recipientCount Int
+  status         String   @default("sending") // "sending" | "sent" | "failed"
+
+  sentById       String
+  sentBy         User     @relation("BroadcastsSent", fields: [sentById], references: [id])
+  clubId         String
+  club           Club     @relation(fields: [clubId], references: [id], onDelete: Cascade)
+  createdAt      DateTime @default(now())
+
+  @@index([clubId])
 }

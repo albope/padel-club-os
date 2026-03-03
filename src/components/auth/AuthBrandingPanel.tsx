@@ -1,4 +1,7 @@
+'use client';
+
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 import {
   CalendarCheck2,
   Trophy,
@@ -15,36 +18,36 @@ interface AuthBrandingPanelProps {
   modo: 'registro' | 'login';
 }
 
-/* ─── Datos ──────────────────────────────────────────────────────────────── */
-
-const beneficios = [
-  {
-    icono: CalendarCheck2,
-    titulo: 'Reservas en tiempo real',
-    descripcion: 'Tus socios reservan pistas 24/7 desde cualquier dispositivo.',
-  },
-  {
-    icono: Trophy,
-    titulo: 'Ligas y torneos',
-    descripcion: 'Competiciones con cuadros y clasificaciones automaticas.',
-  },
-  {
-    icono: BarChart3,
-    titulo: 'Analiticas del club',
-    descripcion: 'Ocupacion, ingresos y actividad en tiempo real.',
-  },
-  {
-    icono: Shield,
-    titulo: 'Multi-rol y seguro',
-    descripcion: 'Admins, staff y socios con permisos diferenciados.',
-  },
-];
-
-const garantias = ['Sin permanencia', 'Soporte 24/7', 'RGPD compliant'];
-
 /* ─── Componente ─────────────────────────────────────────────────────────── */
 
 export default function AuthBrandingPanel({ modo }: AuthBrandingPanelProps) {
+  const t = useTranslations('authBranding');
+
+  const beneficios = [
+    {
+      icono: CalendarCheck2,
+      titulo: t('realTimeBookings'),
+      descripcion: t('realTimeBookingsDesc'),
+    },
+    {
+      icono: Trophy,
+      titulo: t('leaguesTournaments'),
+      descripcion: t('leaguesTournamentsDesc'),
+    },
+    {
+      icono: BarChart3,
+      titulo: t('clubAnalytics'),
+      descripcion: t('clubAnalyticsDesc'),
+    },
+    {
+      icono: Shield,
+      titulo: t('multiRoleSecure'),
+      descripcion: t('multiRoleSecureDesc'),
+    },
+  ];
+
+  const garantias = [t('noLockIn'), t('support247'), t('gdprCompliant')];
+
   return (
     <div className="hidden lg:flex lg:w-[52%] xl:w-[55%] relative overflow-hidden flex-col">
 
@@ -116,7 +119,7 @@ export default function AuthBrandingPanel({ modo }: AuthBrandingPanelProps) {
               }}
             >
               <Star className="w-3 h-3 flex-shrink-0" style={{ fill: '#f59e0b', color: '#f59e0b' }} />
-              {modo === 'registro' ? '14 días de prueba gratuita' : 'Gestión inteligente para tu club'}
+              {modo === 'registro' ? t('trialBadge') : t('smartManagement')}
             </span>
           </div>
 
@@ -127,7 +130,7 @@ export default function AuthBrandingPanel({ modo }: AuthBrandingPanelProps) {
           >
             {modo === 'registro' ? (
               <>
-                La plataforma que{' '}
+                {t('platformTitle')}{' '}
                 <span
                   style={{
                     background: 'linear-gradient(92deg, hsl(217,91%,50%) 0%, hsl(197,85%,48%) 55%, hsl(180,75%,45%) 100%)',
@@ -137,12 +140,12 @@ export default function AuthBrandingPanel({ modo }: AuthBrandingPanelProps) {
                     display: 'block',
                   }}
                 >
-                  tu club necesita
+                  {t('platformHighlight')}
                 </span>
               </>
             ) : (
               <>
-                Tu club, siempre{' '}
+                {t('clubControl').split(' ').slice(0, -2).join(' ')}{' '}
                 <span
                   style={{
                     background: 'linear-gradient(92deg, hsl(217,91%,50%) 0%, hsl(197,85%,48%) 55%, hsl(180,75%,45%) 100%)',
@@ -152,7 +155,7 @@ export default function AuthBrandingPanel({ modo }: AuthBrandingPanelProps) {
                     display: 'block',
                   }}
                 >
-                  bajo control
+                  {t('clubControl').split(' ').slice(-2).join(' ')}
                 </span>
               </>
             )}
@@ -160,8 +163,8 @@ export default function AuthBrandingPanel({ modo }: AuthBrandingPanelProps) {
 
           <p className="auth-fade-up-3 mt-4 text-base text-slate-500 dark:text-slate-400 leading-relaxed max-w-xs">
             {modo === 'registro'
-              ? 'Digitaliza tu club en minutos. Reservas, socios, torneos y analiticas en un solo lugar.'
-              : 'Accede a tu panel de gestion y mantente al dia con todo lo que ocurre en tu club.'}
+              ? t('registerSubtitle')
+              : t('loginSubtitle')}
           </p>
 
           {/* Lista de beneficios */}
@@ -223,12 +226,11 @@ export default function AuthBrandingPanel({ modo }: AuthBrandingPanelProps) {
                   <Star className="w-4 h-4 text-white" />
                 </div>
                 <p className="text-sm font-semibold text-slate-800 dark:text-slate-100">
-                  Acceso anticipado
+                  {t('earlyAccess')}
                 </p>
               </div>
               <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed">
-                Únete a los primeros clubes que están digitalizando su gestión.
-                Ayúdanos a construir la herramienta que el pádel necesita.
+                {t('earlyAccessDesc')}
               </p>
             </div>
           </div>

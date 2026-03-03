@@ -2,7 +2,9 @@
 
 import { useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
-import { Trophy, Flame, TrendingUp, Target, Swords, Award, HelpCircle, ArrowUp, ArrowDown, Minus } from 'lucide-react';
+import { useTranslations } from 'next-intl';
+import { Trophy, Flame, TrendingUp, Target, Swords, Award, HelpCircle, ArrowUp, ArrowDown } from 'lucide-react';
+import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -49,6 +51,7 @@ interface PlayerStatsResponse {
 
 interface LeaderboardProps {
   rankings: RankingEntry[];
+  slug: string;
 }
 
 const MEDAL_COLORS = [
@@ -90,8 +93,9 @@ function StatCard({ titulo, valor, subtitulo, icono: Icono }: {
   );
 }
 
-export default function Leaderboard({ rankings }: LeaderboardProps) {
+export default function Leaderboard({ rankings, slug }: LeaderboardProps) {
   const { data: session } = useSession();
+  const t = useTranslations('leaderboard');
   const currentUserId = session?.user?.id;
   const [myStats, setMyStats] = useState<PlayerStatsResponse | null>(null);
   const [loadingStats, setLoadingStats] = useState(false);
@@ -113,9 +117,9 @@ export default function Leaderboard({ rankings }: LeaderboardProps) {
       <Card>
         <CardContent className="flex flex-col items-center justify-center py-12 text-center">
           <Trophy className="h-12 w-12 text-muted-foreground mb-4" />
-          <p className="font-medium text-foreground">No hay rankings aún</p>
+          <p className="font-medium text-foreground">{t('noRankings')}</p>
           <p className="text-sm text-muted-foreground mt-1">
-            Se generan automáticamente al registrar resultados de competiciones.
+            {t('noRankingsDesc')}
           </p>
         </CardContent>
       </Card>
@@ -128,11 +132,11 @@ export default function Leaderboard({ rankings }: LeaderboardProps) {
   return (
     <Tabs value={activeTab} onValueChange={setActiveTab}>
       <TabsList>
-        <TabsTrigger value="ranking">Ranking</TabsTrigger>
-        {currentUserId && <TabsTrigger value="estadisticas">Mis estadísticas</TabsTrigger>}
+        <TabsTrigger value="ranking">{t('rankingTab')}</TabsTrigger>
+        {currentUserId && <TabsTrigger value="estadisticas">{t('statsTab')}</TabsTrigger>}
         <TabsTrigger value="info" className="gap-1">
           <HelpCircle className="h-3.5 w-3.5" />
-          <span className="hidden sm:inline">Cómo funciona</span>
+          <span className="hidden sm:inline">{t('howItWorksTab')}</span>
         </TabsTrigger>
       </TabsList>
 
@@ -140,10 +144,10 @@ export default function Leaderboard({ rankings }: LeaderboardProps) {
         {/* Podio top 3 */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           {top3.map((jugador, i) => (
+            <Link key={jugador.userId} href={`/club/${slug}/jugadores/${jugador.userId}`}>
             <Card
-              key={jugador.userId}
               className={cn(
-                'border-2',
+                'border-2 transition-colors hover:border-primary/30',
                 MEDAL_COLORS[i].border,
                 currentUserId === jugador.userId && 'ring-2 ring-primary'
               )}
@@ -163,6 +167,7 @@ export default function Leaderboard({ rankings }: LeaderboardProps) {
                 </p>
               </CardContent>
             </Card>
+            </Link>
           ))}
         </div>
 
@@ -171,12 +176,12 @@ export default function Leaderboard({ rankings }: LeaderboardProps) {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="w-12">#</TableHead>
-                <TableHead>Jugador</TableHead>
-                <TableHead className="text-right">Nivel</TableHead>
-                <TableHead className="text-right hidden sm:table-cell">PJ</TableHead>
-                <TableHead className="text-right hidden sm:table-cell">%V</TableHead>
-                <TableHead className="text-right">Racha</TableHead>
+                <TableHead className="w-12">{t('rank')}</TableHead>
+                <TableHead>{t('player')}</TableHead>
+                <TableHead className="text-right">{t('level')}</TableHead>
+                <TableHead className="text-right hidden sm:table-cell">{t('matches')}</TableHead>
+                <TableHead className="text-right hidden sm:table-cell">{t('winRate')}</TableHead>
+                <TableHead className="text-right">{t('streak')}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -195,7 +200,7 @@ export default function Leaderboard({ rankings }: LeaderboardProps) {
                       )}
                     </TableCell>
                     <TableCell>
-                      <div className="flex items-center gap-2">
+                      <Link href={`/club/${slug}/jugadores/${jugador.userId}`} className="flex items-center gap-2 hover:underline">
                         <AvatarInicial nombre={jugador.nombre} imagen={jugador.imagen} />
                         <div className="min-w-0">
                           <p className="truncate">{jugador.nombre}</p>
@@ -203,7 +208,7 @@ export default function Leaderboard({ rankings }: LeaderboardProps) {
                             <p className="text-xs text-muted-foreground">{jugador.nivel}</p>
                           )}
                         </div>
-                      </div>
+                      </Link>
                     </TableCell>
                     <TableCell className="text-right font-bold">{(jugador.nivelPadel ?? 4.0).toFixed(1)}</TableCell>
                     <TableCell className="text-right hidden sm:table-cell">{jugador.partidosJugados}</TableCell>
@@ -242,50 +247,50 @@ export default function Leaderboard({ rankings }: LeaderboardProps) {
           ) : myStats ? (
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
               <StatCard
-                titulo="Nivel"
+                titulo={t('level')}
                 valor={(myStats.stats.nivelPadel ?? 4.0).toFixed(1)}
-                subtitulo="escala 1.0 - 7.0"
+                subtitulo={t('scale')}
                 icono={TrendingUp}
               />
               <StatCard
-                titulo="Posición"
+                titulo={t('position')}
                 valor={myStats.posicion ? `#${myStats.posicion}` : '-'}
-                subtitulo={myStats.totalJugadores > 0 ? `de ${myStats.totalJugadores} jugadores` : undefined}
+                subtitulo={myStats.totalJugadores > 0 ? t('ofPlayers', { count: myStats.totalJugadores }) : undefined}
                 icono={Award}
               />
               <StatCard
-                titulo="Partidos"
+                titulo={t('matchesLabel')}
                 valor={`${myStats.stats.matchesWon} / ${myStats.stats.matchesPlayed}`}
-                subtitulo="ganados / jugados"
+                subtitulo={t('wonPlayed')}
                 icono={Target}
               />
               <StatCard
-                titulo="% Victorias"
+                titulo={t('winRateLabel')}
                 valor={myStats.stats.matchesPlayed > 0 ? `${Math.round((myStats.stats.matchesWon / myStats.stats.matchesPlayed) * 100)}%` : '-'}
                 icono={Trophy}
               />
               <StatCard
-                titulo="Sets"
+                titulo={t('sets')}
                 valor={`${myStats.stats.setsWon} / ${myStats.stats.setsLost}`}
-                subtitulo="ganados / perdidos"
+                subtitulo={t('wonLost')}
                 icono={Swords}
               />
               <StatCard
-                titulo="Juegos"
+                titulo={t('games')}
                 valor={`${myStats.stats.gamesWon} / ${myStats.stats.gamesLost}`}
-                subtitulo="ganados / perdidos"
+                subtitulo={t('wonLost')}
                 icono={Swords}
               />
               <StatCard
-                titulo="Racha actual"
+                titulo={t('currentStreak')}
                 valor={myStats.stats.winStreak}
-                subtitulo="victorias seguidas"
+                subtitulo={t('consecutiveWins')}
                 icono={Flame}
               />
               <StatCard
-                titulo="Mejor racha"
+                titulo={t('bestStreak')}
                 valor={myStats.stats.bestWinStreak}
-                subtitulo="victorias seguidas"
+                subtitulo={t('consecutiveWins')}
                 icono={Award}
               />
             </div>
@@ -293,9 +298,9 @@ export default function Leaderboard({ rankings }: LeaderboardProps) {
             <Card>
               <CardContent className="flex flex-col items-center justify-center py-12 text-center">
                 <Target className="h-12 w-12 text-muted-foreground mb-4" />
-                <p className="font-medium text-foreground">Sin clasificar</p>
+                <p className="font-medium text-foreground">{t('unranked')}</p>
                 <p className="text-sm text-muted-foreground mt-1">
-                  Participa en competiciones para aparecer en el ranking.
+                  {t('unrankedDesc')}
                 </p>
               </CardContent>
             </Card>
@@ -307,86 +312,77 @@ export default function Leaderboard({ rankings }: LeaderboardProps) {
           <Card>
             <CardContent className="p-5 space-y-4">
               <div>
-                <h3 className="font-semibold text-lg">¿Qué es el nivel de pádel?</h3>
+                <h3 className="font-semibold text-lg">{t('eloTitle')}</h3>
                 <p className="text-sm text-muted-foreground mt-1">
-                  Cada jugador tiene un nivel del <strong>1.0</strong> (principiante) al <strong>7.0</strong> (profesional),
-                  similar a la escala de Playtomic. Se calcula automáticamente con un sistema matemático (ELO)
-                  basado en tus resultados de competiciones.
+                  {t('eloDescription')}
                 </p>
               </div>
 
               <div className="rounded-lg border p-4 space-y-3">
-                <h4 className="font-medium">Escala de niveles</h4>
+                <h4 className="font-medium">{t('levelScale')}</h4>
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-sm">
                   <div className="rounded-md bg-muted/50 p-2 text-center">
                     <p className="font-bold">1.0 - 2.0</p>
-                    <p className="text-xs text-muted-foreground">Principiante</p>
+                    <p className="text-xs text-muted-foreground">{t('beginner')}</p>
                   </div>
                   <div className="rounded-md bg-muted/50 p-2 text-center">
                     <p className="font-bold">2.5 - 3.5</p>
-                    <p className="text-xs text-muted-foreground">Intermedio</p>
+                    <p className="text-xs text-muted-foreground">{t('intermediate')}</p>
                   </div>
                   <div className="rounded-md bg-muted/50 p-2 text-center">
                     <p className="font-bold">4.0 - 5.0</p>
-                    <p className="text-xs text-muted-foreground">Avanzado</p>
+                    <p className="text-xs text-muted-foreground">{t('advanced')}</p>
                   </div>
                   <div className="rounded-md bg-muted/50 p-2 text-center">
                     <p className="font-bold">5.5 - 7.0</p>
-                    <p className="text-xs text-muted-foreground">Experto / Pro</p>
+                    <p className="text-xs text-muted-foreground">{t('expert')}</p>
                   </div>
                 </div>
-                <p className="text-xs text-muted-foreground">Todos los jugadores empiezan en <strong>4.0</strong> (nivel inicial). Tu nivel se ajusta según tus resultados.</p>
+                <p className="text-xs text-muted-foreground">{t('defaultStart')}</p>
               </div>
 
               <div className="rounded-lg border p-4 space-y-3">
-                <h4 className="font-medium">¿Cómo sube o baja mi nivel?</h4>
+                <h4 className="font-medium">{t('howLevelChanges')}</h4>
                 <div className="space-y-2 text-sm">
                   <div className="flex items-start gap-2">
                     <ArrowUp className="h-4 w-4 mt-0.5 text-green-600 shrink-0" />
-                    <span>Al <strong>ganar</strong> un partido de competición, tu nivel sube</span>
+                    <span>{t('goUpLot')}</span>
                   </div>
                   <div className="flex items-start gap-2">
                     <ArrowDown className="h-4 w-4 mt-0.5 text-red-500 shrink-0" />
-                    <span>Al <strong>perder</strong>, tu nivel baja</span>
+                    <span>{t('goDownLot')}</span>
                   </div>
                 </div>
               </div>
 
               <div className="rounded-lg border p-4 space-y-3">
-                <h4 className="font-medium">La clave: importa contra quién ganas o pierdes</h4>
+                <h4 className="font-medium">{t('keyFactor')}</h4>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
                   <div className="rounded-md bg-green-50 dark:bg-green-950/30 p-3">
-                    <p className="font-medium text-green-700 dark:text-green-400">Subes mucho si...</p>
-                    <p className="text-muted-foreground mt-1">Vences a una pareja con nivel <strong>mayor</strong> que el tuyo</p>
+                    <p className="font-medium text-green-700 dark:text-green-400">{t('goUpLot')}</p>
                   </div>
                   <div className="rounded-md bg-orange-50 dark:bg-orange-950/30 p-3">
-                    <p className="font-medium text-orange-700 dark:text-orange-400">Subes poco si...</p>
-                    <p className="text-muted-foreground mt-1">Vences a una pareja con nivel <strong>menor</strong> que el tuyo</p>
+                    <p className="font-medium text-orange-700 dark:text-orange-400">{t('goUpLittle')}</p>
                   </div>
                   <div className="rounded-md bg-red-50 dark:bg-red-950/30 p-3">
-                    <p className="font-medium text-red-700 dark:text-red-400">Bajas mucho si...</p>
-                    <p className="text-muted-foreground mt-1">Pierdes contra una pareja con nivel <strong>menor</strong> que el tuyo</p>
+                    <p className="font-medium text-red-700 dark:text-red-400">{t('goDownLot')}</p>
                   </div>
                   <div className="rounded-md bg-blue-50 dark:bg-blue-950/30 p-3">
-                    <p className="font-medium text-blue-700 dark:text-blue-400">Bajas poco si...</p>
-                    <p className="text-muted-foreground mt-1">Pierdes contra una pareja con nivel <strong>mayor</strong> que el tuyo</p>
+                    <p className="font-medium text-blue-700 dark:text-blue-400">{t('goDownLittle')}</p>
                   </div>
                 </div>
               </div>
 
               <div className="rounded-lg border p-4 space-y-3">
-                <h4 className="font-medium">En pádel (dobles)</h4>
                 <p className="text-sm text-muted-foreground">
-                  En cada partido se compara tu nivel individual contra el <strong>promedio del equipo rival</strong>.
-                  Así, aunque juegues con diferentes compañeros, tu nivel refleja tu habilidad real.
+                  {t('doubles')}
                 </p>
               </div>
 
               <div className="rounded-lg border p-4 space-y-3">
-                <h4 className="font-medium">Estabilidad del nivel</h4>
+                <h4 className="font-medium">{t('stability')}</h4>
                 <p className="text-sm text-muted-foreground">
-                  Los primeros 30 partidos tu nivel cambia más rápidamente (el sistema te está &quot;ubicando&quot;).
-                  Después de 100+ partidos, los cambios son más pequeños y tu nivel es más estable y fiable.
+                  {t('stabilityDesc')}
                 </p>
               </div>
             </CardContent>

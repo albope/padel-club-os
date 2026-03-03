@@ -2,7 +2,7 @@ import { db } from "@/lib/db"
 import { requireAuth, isAuthError } from "@/lib/api-auth"
 import { NextResponse } from "next/server"
 
-// PATCH: Marcar pago de reserva como cobrado
+// PATCH: Marcar pago de reserva como cobrado (todos los jugadores a la vez)
 export async function PATCH(
   req: Request,
   { params }: { params: { bookingId: string } }
@@ -27,13 +27,30 @@ export async function PATCH(
       return new NextResponse("Esta reserva ya esta marcada como pagada", { status: 400 })
     }
 
-    const updatedBooking = await db.booking.update({
-      where: { id: params.bookingId },
-      data: { paymentStatus: "paid" },
-      include: {
-        user: { select: { name: true } },
-        court: { select: { name: true } },
-      },
+    const now = new Date()
+
+    const updatedBooking = await db.$transaction(async (tx) => {
+      // Marcar la reserva como pagada
+      const updated = await tx.booking.update({
+        where: { id: params.bookingId },
+        data: { paymentStatus: "paid" },
+        include: {
+          user: { select: { name: true } },
+          court: { select: { name: true } },
+        },
+      })
+
+      // Sincronizar BookingPayments: marcar todos como pagados
+      await tx.bookingPayment.updateMany({
+        where: { bookingId: params.bookingId, status: "pending" },
+        data: {
+          status: "paid",
+          paidAt: now,
+          collectedById: auth.session.user.id,
+        },
+      })
+
+      return updated
     })
 
     return NextResponse.json(updatedBooking)

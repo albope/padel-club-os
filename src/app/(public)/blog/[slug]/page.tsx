@@ -5,6 +5,7 @@ import { notFound } from "next/navigation"
 import { ArrowLeft } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { db } from "@/lib/db"
+import { getLocale } from "next-intl/server"
 
 export const revalidate = 86400 // 24h
 
@@ -43,6 +44,9 @@ export async function generateMetadata({
 }
 
 export default async function BlogPostPage({ params }: BlogPostPageProps) {
+  const locale = await getLocale()
+  const localeCode = locale === 'es' ? 'es-ES' : 'en-GB'
+
   const post = await db.blogPost.findFirst({
     where: { slug: params.slug, published: true },
   })
@@ -88,7 +92,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
             <span className="font-medium">{post.authorName}</span>
             <div className="flex items-center gap-2 text-xs text-muted-foreground">
               <span>
-                {new Date(post.createdAt).toLocaleDateString("es-ES", {
+                {new Date(post.createdAt).toLocaleDateString(localeCode, {
                   day: "numeric",
                   month: "long",
                   year: "numeric",

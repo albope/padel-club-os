@@ -12,76 +12,60 @@ import {
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import ContactForm from "@/components/marketing/ContactForm"
+import { getTranslations } from "next-intl/server"
 
-export const metadata: Metadata = {
-  title: "Contacto",
-  description:
-    "Contacta con el equipo de Padel Club OS. Estamos aqui para ayudarte a digitalizar tu club de padel.",
-  openGraph: {
-    title: "Contacto - Padel Club OS",
-    description:
-      "Contacta con el equipo de Padel Club OS. Estamos aqui para ayudarte a digitalizar tu club de padel.",
-    url: "/contacto",
-  },
-  alternates: {
-    canonical: "/contacto",
-  },
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations('pages.contact')
+  return {
+    title: t('metaTitle'),
+    description: t('metaDescription'),
+    openGraph: {
+      title: `${t('metaTitle')} - Padel Club OS`,
+      description: t('metaDescription'),
+      url: "/contacto",
+    },
+    alternates: {
+      canonical: "/contacto",
+    },
+  }
 }
 
-const infoContacto = [
-  {
-    icono: Mail,
-    titulo: "Email",
-    detalle: "contacto@padelclubos.com",
-    href: "mailto:contacto@padelclubos.com",
-  },
-  {
-    icono: Phone,
-    titulo: "Telefono",
-    detalle: "+34 912 345 678",
-    href: "tel:+34912345678",
-  },
-  {
-    icono: Clock,
-    titulo: "Tiempo de respuesta",
-    detalle: "Respondemos en menos de 24 horas",
-  },
-  {
-    icono: MessageCircle,
-    titulo: "Redes sociales",
-    detalle: "@padelclubos en todas las plataformas",
-  },
-]
+export default async function ContactoPage() {
+  const t = await getTranslations('pages.contact')
 
-const preguntasFrecuentes = [
-  {
-    pregunta: "¿Cuanto tiempo tarda configurar mi club?",
-    respuesta:
-      "Menos de 5 minutos. Creas tu cuenta, anades tus pistas y ya puedes empezar a gestionar reservas. Si necesitas ayuda, nuestro equipo te acompana en el proceso.",
-  },
-  {
-    pregunta: "¿Puedo migrar datos de mi sistema actual?",
-    respuesta:
-      "Si. Ofrecemos importacion masiva de socios y podemos ayudarte a migrar tu informacion existente sin coste adicional en los planes Pro y Enterprise.",
-  },
-  {
-    pregunta: "¿Hay permanencia o compromiso minimo?",
-    respuesta:
-      "No. Todos nuestros planes son mensuales y puedes cancelar en cualquier momento. Sin letra pequena, sin penalizaciones.",
-  },
-  {
-    pregunta: "¿Mis jugadores necesitan descargar una app?",
-    respuesta:
-      "No. El portal de jugadores funciona directamente desde el navegador del movil. Sin descargas, sin actualizaciones. Funciona como una app pero sin las complicaciones.",
-  },
-  {
-    pregunta: "¿Ofreceis soporte en espanol?",
-    respuesta:
-      "Por supuesto. Somos un equipo espanol y todo nuestro soporte es en espanol. Nada de chatbots en ingles ni traducciones automaticas.",
-  },
-]
+  const infoContacto = [
+    {
+      icono: Mail,
+      titulo: t('emailLabel'),
+      detalle: t('emailValue'),
+      href: `mailto:${t('emailValue')}`,
+    },
+    {
+      icono: Phone,
+      titulo: t('phoneLabel'),
+      detalle: t('phoneValue'),
+      href: `tel:+34912345678`,
+    },
+    {
+      icono: Clock,
+      titulo: t('responseLabel'),
+      detalle: t('responseValue'),
+    },
+    {
+      icono: MessageCircle,
+      titulo: t('socialLabel'),
+      detalle: t('socialValue'),
+    },
+  ]
 
-export default function ContactoPage() {
+  const preguntasFrecuentes = [
+    { pregunta: t('faq1Q'), respuesta: t('faq1A') },
+    { pregunta: t('faq2Q'), respuesta: t('faq2A') },
+    { pregunta: t('faq3Q'), respuesta: t('faq3A') },
+    { pregunta: t('faq4Q'), respuesta: t('faq4A') },
+    { pregunta: t('faq5Q'), respuesta: t('faq5A') },
+  ]
+
   return (
     <>
       {/* Hero */}
@@ -93,13 +77,12 @@ export default function ContactoPage() {
             className="inline-flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
           >
             <ArrowLeft className="h-4 w-4" />
-            Volver al inicio
+            {t('backHome')}
           </Link>
 
-          <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">Hablemos</h1>
+          <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">{t('title')}</h1>
           <p className="max-w-2xl text-lg text-muted-foreground">
-            Tienes una pregunta, una idea o simplemente quieres saber mas?
-            Estamos aqui para ayudarte.
+            {t('subtitle')}
           </p>
         </div>
       </section>
@@ -152,10 +135,10 @@ export default function ContactoPage() {
         <div className="container mx-auto max-w-3xl">
           <div className="text-center">
             <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
-              Preguntas frecuentes
+              {t('faqTitle')}
             </h2>
             <p className="mt-4 text-lg text-muted-foreground">
-              Resolvemos las dudas mas comunes sobre Padel Club OS.
+              {t('faqSubtitle')}
             </p>
           </div>
 
@@ -179,10 +162,9 @@ export default function ContactoPage() {
       <section className="py-24">
         <div className="container mx-auto max-w-3xl text-center">
           <MapPin className="mx-auto h-10 w-10 text-primary/60" />
-          <h3 className="mt-4 text-xl font-semibold">Con sede en Espana</h3>
+          <h3 className="mt-4 text-xl font-semibold">{t('basedIn')}</h3>
           <p className="mt-2 text-muted-foreground">
-            Trabajamos en remoto desde diferentes ciudades espanolas. Nuestro corazon
-            esta en las pistas de padel de todo el pais.
+            {t('basedInDesc')}
           </p>
         </div>
       </section>
@@ -198,11 +180,10 @@ export default function ContactoPage() {
 
             <div className="relative z-10">
               <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
-                Prefieres verlo en accion?
+                {t('seeInAction')}
               </h2>
               <p className="mx-auto mt-4 max-w-xl text-lg text-primary-foreground/80">
-                Crea tu cuenta y configura tu club en menos de 5 minutos. Sin compromiso,
-                sin tarjeta de credito.
+                {t('seeInActionDesc')}
               </p>
               <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
                 <Button
@@ -212,7 +193,7 @@ export default function ContactoPage() {
                   asChild
                 >
                   <Link href="/register">
-                    Empezar ahora
+                    {t('startNow')}
                     <ArrowRight className="h-4 w-4" />
                   </Link>
                 </Button>
@@ -222,7 +203,7 @@ export default function ContactoPage() {
                   className="text-base text-primary-foreground hover:bg-primary-foreground/10 hover:text-primary-foreground"
                   asChild
                 >
-                  <Link href="/#precios">Ver precios</Link>
+                  <Link href="/#precios">{t('seePricing')}</Link>
                 </Button>
               </div>
             </div>

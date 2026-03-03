@@ -2,6 +2,7 @@
 
 import React, { useState, useMemo } from 'react';
 import { User } from '@prisma/client';
+import { useTranslations } from 'next-intl';
 import { Pencil, ShieldCheck, Search, ChevronLeft, ChevronRight, Users } from 'lucide-react';
 import Link from 'next/link';
 import SocioDetailModal from './SocioDetailModal';
@@ -27,6 +28,8 @@ interface SociosClientProps {
 }
 
 const SociosClient: React.FC<SociosClientProps> = ({ initialSocios }) => {
+  const t = useTranslations('socios');
+  const tc = useTranslations('common');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedSocio, setSelectedSocio] = useState<SocioWithStats | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
@@ -71,9 +74,9 @@ const SociosClient: React.FC<SociosClientProps> = ({ initialSocios }) => {
         <CardContent className="p-6">
           <EmptyState
             icon={Users}
-            title="Sin socios registrados"
-            description="Comparte el enlace del portal con tus jugadores para que se registren, o añade socios manualmente."
-            actionLabel="Añadir socio"
+            title={t('empty')}
+            description={t('emptyDesc')}
+            actionLabel={t('new')}
             actionHref="/dashboard/socios/nuevo"
           />
         </CardContent>
@@ -86,10 +89,10 @@ const SociosClient: React.FC<SociosClientProps> = ({ initialSocios }) => {
       <div className="mb-4">
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <label htmlFor="buscar-socio" className="sr-only">Buscar socio por nombre</label>
+          <label htmlFor="buscar-socio" className="sr-only">{t('searchLabel')}</label>
           <Input
             id="buscar-socio"
-            placeholder="Buscar socio por nombre..."
+            placeholder={t('searchPlaceholder')}
             value={searchTerm}
             onChange={(e) => {
               setSearchTerm(e.target.value);
@@ -102,9 +105,9 @@ const SociosClient: React.FC<SociosClientProps> = ({ initialSocios }) => {
 
       <div className="flex gap-2 mb-4">
         {([
-          { key: 'all', label: 'Todos' },
-          { key: 'active', label: 'Activos' },
-          { key: 'inactive', label: 'Inactivos' },
+          { key: 'all', label: t('all') },
+          { key: 'active', label: t('active') },
+          { key: 'inactive', label: t('inactive') },
         ] as const).map(({ key, label }) => (
           <Button
             key={key}
@@ -134,11 +137,11 @@ const SociosClient: React.FC<SociosClientProps> = ({ initialSocios }) => {
                       type="button"
                       onClick={() => handleOpenModal(socio)}
                       className="flex items-center gap-4 flex-1 text-left cursor-pointer"
-                      aria-label={`Ver detalles de ${socio.name}`}
+                      aria-label={t('viewDetails', { name: socio.name || '' })}
                     >
                       <Image
                         src={socio.image || `https://ui-avatars.com/api/?name=${encodeURIComponent(socio.name || 'S')}&background=random&color=fff`}
-                        alt={socio.name || 'Foto de socio'}
+                        alt={socio.name || t('memberPhoto')}
                         width={40}
                         height={40}
                         className="h-10 w-10 rounded-full"
@@ -153,7 +156,7 @@ const SociosClient: React.FC<SociosClientProps> = ({ initialSocios }) => {
                         )}
                         {!socio.isActive && (
                           <Badge variant="secondary" className="bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400">
-                            Inactivo
+                            {t('inactiveBadge')}
                           </Badge>
                         )}
                       </div>
@@ -172,7 +175,7 @@ const SociosClient: React.FC<SociosClientProps> = ({ initialSocios }) => {
             </ul>
           ) : (
             <div className="text-center py-12">
-              <p className="text-muted-foreground">No se encontraron socios con ese nombre.</p>
+              <p className="text-muted-foreground">{t('noResults')}</p>
             </div>
           )}
         </CardContent>
@@ -186,10 +189,10 @@ const SociosClient: React.FC<SociosClientProps> = ({ initialSocios }) => {
               disabled={currentPage === 1}
             >
               <ChevronLeft className="mr-1 h-4 w-4" />
-              Anterior
+              {tc('previous')}
             </Button>
             <span className="text-sm text-muted-foreground">
-              Página {currentPage} de {totalPages}
+              {t('page', { current: currentPage, total: totalPages })}
             </span>
             <Button
               variant="ghost"
@@ -197,7 +200,7 @@ const SociosClient: React.FC<SociosClientProps> = ({ initialSocios }) => {
               onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
               disabled={currentPage === totalPages}
             >
-              Siguiente
+              {tc('next')}
               <ChevronRight className="ml-1 h-4 w-4" />
             </Button>
           </CardFooter>

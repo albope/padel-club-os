@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { Menu } from 'lucide-react';
 import { navItems } from '@/lib/nav-items';
 import { cn } from '@/lib/utils';
@@ -18,6 +19,7 @@ import { useState } from 'react';
 
 export function MobileSidebar() {
   const pathname = usePathname();
+  const t = useTranslations();
   const [open, setOpen] = useState(false);
 
   const isActive = (href: string) => {
@@ -43,7 +45,7 @@ export function MobileSidebar() {
         <nav className="p-4">
           <ul className="space-y-1">
             {navItems.map((item) => (
-              <li key={item.name}>
+              <li key={item.nameKey}>
                 <Link
                   href={item.href}
                   onClick={() => setOpen(false)}
@@ -55,7 +57,7 @@ export function MobileSidebar() {
                   )}
                 >
                   <item.icon className="mr-3 h-5 w-5" />
-                  {item.name}
+                  {t(item.nameKey)}
                 </Link>
               </li>
             ))}

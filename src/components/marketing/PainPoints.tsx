@@ -1,49 +1,36 @@
 import Link from "next/link"
 import { ArrowRight, MessageCircle, Table, Puzzle, X, Check } from "lucide-react"
+import { getTranslations } from "next-intl/server"
 import { Button } from "@/components/ui/button"
 import AnimateOnScroll from "@/components/marketing/AnimateOnScroll"
 
-const problemas = [
-  {
-    icono: MessageCircle,
-    titulo: "Reservas por WhatsApp",
-    antes: "Mensajes a todas horas, reservas duplicadas y socios que se olvidan de cancelar.",
-    despues: "Tus socios reservan solos desde el móvil, 24/7, con confirmación automática.",
-  },
-  {
-    icono: Table,
-    titulo: "Competiciones en Excel",
-    antes: "Cuadros manuales, resultados que no cuadran y horas perdidas cada semana.",
-    despues: "Ligas y torneos automáticos: genera cuadros, registra resultados y publica clasificaciones.",
-  },
-  {
-    icono: Puzzle,
-    titulo: "Gestión fragmentada",
-    antes: "Una app para pagos, otra para socios, un cuaderno para pistas. Todo desconectado.",
-    despues: "Reservas, socios, pagos, competiciones y noticias en un solo lugar.",
-  },
-]
+const problemaKeys = [
+  { icono: MessageCircle, titleKey: "item1Title", beforeKey: "item1Before", afterKey: "item1After" },
+  { icono: Table, titleKey: "item2Title", beforeKey: "item2Before", afterKey: "item2After" },
+  { icono: Puzzle, titleKey: "item3Title", beforeKey: "item3Before", afterKey: "item3After" },
+] as const
 
-export default function PainPoints() {
+export default async function PainPoints() {
+  const t = await getTranslations('marketing.painPoints')
+
   return (
     <section className="bg-muted/30 border-t py-20 md:py-28">
       <div className="container">
         {/* Header */}
         <AnimateOnScroll animation="fade-up" className="mx-auto max-w-2xl text-center">
           <h2 className="font-display text-3xl font-bold tracking-tight md:text-4xl lg:text-5xl">
-            ¿Suena familiar?
+            {t('title')}
           </h2>
           <p className="mt-4 text-lg text-muted-foreground">
-            Si gestionas tu club con WhatsApp, Excel o papel, sabemos exactamente
-            por lo que estás pasando.
+            {t('subtitle')}
           </p>
         </AnimateOnScroll>
 
         {/* Cards */}
         <div className="mt-12 grid gap-6 md:mt-16 md:grid-cols-3 md:gap-8">
-          {problemas.map((problema, i) => (
+          {problemaKeys.map((problema, i) => (
             <AnimateOnScroll
-              key={problema.titulo}
+              key={problema.titleKey}
               animation="fade-up"
               delay={i * 100}
             >
@@ -55,7 +42,7 @@ export default function PainPoints() {
                       <problema.icono className="h-5 w-5 text-primary" />
                     </div>
                     <h3 className="font-display text-lg font-semibold">
-                      {problema.titulo}
+                      {t(problema.titleKey)}
                     </h3>
                   </div>
                 </div>
@@ -68,10 +55,10 @@ export default function PainPoints() {
                     </div>
                     <div>
                       <span className="text-xs font-semibold uppercase tracking-wider text-red-600 dark:text-red-400">
-                        Ahora
+                        {t('now')}
                       </span>
                       <p className="mt-1 text-sm text-muted-foreground">
-                        {problema.antes}
+                        {t(problema.beforeKey)}
                       </p>
                     </div>
                   </div>
@@ -86,10 +73,10 @@ export default function PainPoints() {
                     </div>
                     <div>
                       <span className="text-xs font-semibold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">
-                        Con Padel Club OS
+                        {t('withUs')}
                       </span>
                       <p className="mt-1 text-sm text-muted-foreground">
-                        {problema.despues}
+                        {t(problema.afterKey)}
                       </p>
                     </div>
                   </div>
@@ -103,7 +90,7 @@ export default function PainPoints() {
         <AnimateOnScroll animation="fade-up" className="mt-12 text-center">
           <Button size="lg" className="gap-2" asChild>
             <Link href="/register">
-              Resuelve estos problemas hoy
+              {t('cta')}
               <ArrowRight className="h-4 w-4" />
             </Link>
           </Button>

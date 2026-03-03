@@ -4,6 +4,7 @@ import Image from "next/image"
 import { ArrowLeft, FileText } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { db } from "@/lib/db"
+import { getLocale } from "next-intl/server"
 
 export const revalidate = 86400 // 24h
 
@@ -31,8 +32,8 @@ function obtenerIniciales(nombre: string) {
     .slice(0, 2)
 }
 
-function formatearFecha(fecha: Date) {
-  return new Date(fecha).toLocaleDateString("es-ES", {
+function formatearFecha(fecha: Date, localeCode: string) {
+  return new Date(fecha).toLocaleDateString(localeCode, {
     day: "numeric",
     month: "long",
     year: "numeric",
@@ -40,6 +41,8 @@ function formatearFecha(fecha: Date) {
 }
 
 export default async function BlogPage() {
+  const locale = await getLocale()
+  const localeCode = locale === 'es' ? 'es-ES' : 'en-GB'
   const posts = await db.blogPost.findMany({
     where: { published: true },
     orderBy: { createdAt: "desc" },
@@ -127,7 +130,7 @@ export default async function BlogPage() {
                         <div className="text-sm">
                           <span className="font-medium">{postDestacado.authorName}</span>
                           <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                            <span>{formatearFecha(postDestacado.createdAt)}</span>
+                            <span>{formatearFecha(postDestacado.createdAt, localeCode)}</span>
                             {postDestacado.readTime && (
                               <>
                                 <span>&middot;</span>
@@ -185,7 +188,7 @@ export default async function BlogPage() {
                               {articulo.authorName}
                             </span>
                             <span>&middot;</span>
-                            <span>{formatearFecha(articulo.createdAt)}</span>
+                            <span>{formatearFecha(articulo.createdAt, localeCode)}</span>
                             {articulo.readTime && (
                               <>
                                 <span>&middot;</span>

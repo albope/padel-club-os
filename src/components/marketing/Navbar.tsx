@@ -4,23 +4,26 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { useState, useEffect } from "react"
 import { Menu, X } from "lucide-react"
+import { useTranslations } from "next-intl"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import { LogoIcon } from "@/components/ui/logo-icon"
+import { LanguageSelector } from "@/components/layout/LanguageSelector"
 
-const navLinks = [
-  { href: "#funcionalidades", label: "Funcionalidades" },
-  { href: "#como-funciona", label: "Cómo funciona" },
-  { href: "#precios", label: "Precios" },
-  { href: "/blog", label: "Blog" },
-  { href: "/contacto", label: "Contacto" },
-]
+const navLinkKeys = [
+  { href: "#funcionalidades", key: "features" },
+  { href: "#como-funciona", key: "howItWorks" },
+  { href: "#precios", key: "pricing" },
+  { href: "/blog", key: "blog" },
+  { href: "/contacto", key: "contact" },
+] as const
 
 export default function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
   const pathname = usePathname()
   const isLanding = pathname === "/"
+  const t = useTranslations('marketing.navbar')
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 80)
@@ -55,7 +58,7 @@ export default function Navbar() {
 
         {/* Desktop */}
         <div className="hidden items-center gap-8 md:flex">
-          {navLinks.map((link) =>
+          {navLinkKeys.map((link) =>
             link.href.startsWith("/") ? (
               <Link
                 key={link.href}
@@ -67,7 +70,7 @@ export default function Navbar() {
                     : "text-muted-foreground hover:text-foreground"
                 )}
               >
-                {link.label}
+                {t(link.key)}
               </Link>
             ) : (
               <a
@@ -80,13 +83,14 @@ export default function Navbar() {
                     : "text-muted-foreground hover:text-foreground"
                 )}
               >
-                {link.label}
+                {t(link.key)}
               </a>
             )
           )}
         </div>
 
         <div className="hidden items-center gap-3 md:flex">
+          <LanguageSelector className={cn(isTransparent && "text-white/80 hover:bg-white/10 hover:text-white")} />
           <Button
             variant="ghost"
             className={cn(
@@ -94,7 +98,7 @@ export default function Navbar() {
             )}
             asChild
           >
-            <Link href="/login">Iniciar sesión</Link>
+            <Link href="/login">{t('login')}</Link>
           </Button>
           <Button
             className={cn(
@@ -103,7 +107,7 @@ export default function Navbar() {
             )}
             asChild
           >
-            <Link href="/register">Prueba gratis 14 días</Link>
+            <Link href="/register">{t('tryFree')}</Link>
           </Button>
         </div>
 
@@ -111,7 +115,7 @@ export default function Navbar() {
         <button
           className="md:hidden p-2"
           onClick={() => setMobileOpen(!mobileOpen)}
-          aria-label={mobileOpen ? "Cerrar menú" : "Abrir menú"}
+          aria-label={mobileOpen ? t('closeMenu') : t('openMenu')}
           aria-expanded={mobileOpen}
           aria-controls="mobile-menu"
         >
@@ -139,7 +143,7 @@ export default function Navbar() {
           "container flex flex-col gap-4 py-4",
           isTransparent ? "bg-slate-900/95 backdrop-blur-xl" : "bg-background"
         )}>
-          {navLinks.map((link) =>
+          {navLinkKeys.map((link) =>
             link.href.startsWith("/") ? (
               <Link
                 key={link.href}
@@ -152,7 +156,7 @@ export default function Navbar() {
                 )}
                 onClick={() => setMobileOpen(false)}
               >
-                {link.label}
+                {t(link.key)}
               </Link>
             ) : (
               <a
@@ -166,16 +170,16 @@ export default function Navbar() {
                 )}
                 onClick={() => setMobileOpen(false)}
               >
-                {link.label}
+                {t(link.key)}
               </a>
             )
           )}
           <div className="flex flex-col gap-2 pt-2">
             <Button variant="outline" asChild>
-              <Link href="/login">Iniciar sesión</Link>
+              <Link href="/login">{t('login')}</Link>
             </Button>
             <Button asChild>
-              <Link href="/register">Prueba gratis 14 días</Link>
+              <Link href="/register">{t('tryFree')}</Link>
             </Button>
           </div>
         </div>

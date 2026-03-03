@@ -61,6 +61,10 @@ model Club {
   playerStats   PlayerStats[]
   notifications Notification[]
   broadcasts    Broadcast[]
+  recurringBookings RecurringBooking[]
+  bookingPayments   BookingPayment[]
+  chatMessages      ChatMessage[]
+  playerRatings     PlayerRating[]
 }
 
 // --- USER ROLES ---
@@ -103,6 +107,12 @@ model User {
   pushSubscriptions PushSubscription[]
   cookieConsents    CookieConsent[]
   broadcastsSent    Broadcast[]     @relation("BroadcastsSent")
+  recurringBookingsAssigned RecurringBooking[] @relation("RecurringBookingsAssigned")
+  bookingPaymentsAsPlayer   BookingPayment[] @relation("BookingPaymentsAsPlayer")
+  bookingPaymentsCollected  BookingPayment[] @relation("BookingPaymentsCollected")
+  ratingsGiven     PlayerRating[] @relation("RatingsGiven")
+  ratingsReceived  PlayerRating[] @relation("RatingsReceived")
+  chatMessages     ChatMessage[]
 
   @@index([clubId])
   @@index([clubId, role])
@@ -161,6 +171,7 @@ model Court {
   bookings Booking[]
   openMatches OpenMatch[]
   pricings CourtPricing[]
+  recurringBookings RecurringBooking[]
 
   @@index([clubId])
 }
@@ -183,8 +194,13 @@ model Booking {
   cancelledAt     DateTime?
   cancelReason    String?
   reminderSentAt  DateTime?
+  numPlayers      Int?       @default(4) // 2, 3 o 4 jugadores
   openMatch       OpenMatch?
   payment         Payment?
+  bookingPayments BookingPayment[]
+
+  recurringBookingId String?
+  recurringBooking   RecurringBooking? @relation(fields: [recurringBookingId], references: [id], onDelete: SetNull)
 
   @@unique([courtId, startTime])
   @@index([clubId])
@@ -284,7 +300,9 @@ model OpenMatch {
   court     Court    @relation(fields: [courtId], references: [id])
   
   players   OpenMatchPlayer[]
-  
+  chatMessages ChatMessage[]
+  ratings      PlayerRating[]
+
   booking   Booking? @relation(fields: [bookingId], references: [id])
   bookingId String?  @unique
 
@@ -360,6 +378,8 @@ model PlayerStats {
   gamesLost     Int      @default(0)
   winStreak     Int      @default(0)
   bestWinStreak Int      @default(0)
+  averageRating Float?   // promedio estrellas recibidas (null = sin valoraciones)
+  totalRatings  Int      @default(0)
   updatedAt     DateTime @updatedAt
 
   @@unique([userId, clubId])
@@ -455,6 +475,35 @@ model CookieConsent {
   @@index([userId])
 }
 
+// --- RESERVAS RECURRENTES (CLASES FIJAS) ---
+model RecurringBooking {
+  id          String    @id @default(cuid())
+  description String?   // "Clase Juan y Maria - Lunes 10:00"
+  dayOfWeek   Int       // 0=Domingo ... 6=Sabado (mismo formato que CourtPricing)
+  startHour   Int       // 0-23
+  startMinute Int       @default(0) // 0 o 30
+  endHour     Int       // 0-23
+  endMinute   Int       @default(0)
+  isActive    Boolean   @default(true)
+  startsAt    DateTime  // Desde cuando genera reservas
+  endsAt      DateTime  // Hasta cuando genera reservas
+
+  courtId     String
+  court       Court     @relation(fields: [courtId], references: [id], onDelete: Cascade)
+  userId      String?
+  user        User?     @relation("RecurringBookingsAssigned", fields: [userId], references: [id])
+  guestName   String?
+  clubId      String
+  club        Club      @relation(fields: [clubId], references: [id], onDelete: Cascade)
+
+  bookings    Booking[] // Reservas generadas por esta recurrencia
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([clubId])
+  @@index([clubId, isActive])
+}
+
 // --- COMUNICACIONES MASIVAS ---
 model Broadcast {
   id             String   @id @default(cuid())
@@ -471,5 +520,63 @@ model Broadcast {
   club           Club     @relation(fields: [clubId], references: [id], onDelete: Cascade)
   createdAt      DateTime @default(now())
 
+  @@index([clubId])
+}
+
+// --- PAGOS POR JUGADOR (tracking recepcion) ---
+model BookingPayment {
+  id            String    @id @default(cuid())
+  bookingId     String
+  booking       Booking   @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  userId        String?
+  user          User?     @relation("BookingPaymentsAsPlayer", fields: [userId], references: [id], onDelete: SetNull)
+  guestName     String?   // Para jugadores no registrados
+  amount        Float     // totalPrice / numPlayers
+  status        String    @default("pending") // "pending" | "paid"
+  paidAt        DateTime?
+  collectedById String?
+  collectedBy   User?     @relation("BookingPaymentsCollected", fields: [collectedById], references: [id], onDelete: SetNull)
+  clubId        String
+  club          Club      @relation(fields: [clubId], references: [id], onDelete: Cascade)
+  createdAt     DateTime  @default(now())
+
+  @@index([bookingId])
+  @@index([clubId, status])
+}
+
+// --- VALORACIONES POST-PARTIDO ---
+model PlayerRating {
+  id          String    @id @default(cuid())
+  raterId     String
+  rater       User      @relation("RatingsGiven", fields: [raterId], references: [id], onDelete: Cascade)
+  ratedId     String
+  rated       User      @relation("RatingsReceived", fields: [ratedId], references: [id], onDelete: Cascade)
+  openMatchId String
+  openMatch   OpenMatch @relation(fields: [openMatchId], references: [id], onDelete: Cascade)
+  stars       Int       // 1-5
+  comment     String?   @db.VarChar(280)
+  clubId      String
+  club        Club      @relation(fields: [clubId], references: [id], onDelete: Cascade)
+  createdAt   DateTime  @default(now())
+
+  @@unique([raterId, ratedId, openMatchId])
+  @@index([ratedId, clubId])
+  @@index([openMatchId])
+  @@index([clubId])
+}
+
+// --- CHAT DE PARTIDA ABIERTA ---
+model ChatMessage {
+  id          String    @id @default(cuid())
+  content     String    @db.VarChar(500)
+  openMatchId String
+  openMatch   OpenMatch @relation(fields: [openMatchId], references: [id], onDelete: Cascade)
+  authorId    String
+  author      User      @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  clubId      String
+  club        Club      @relation(fields: [clubId], references: [id], onDelete: Cascade)
+  createdAt   DateTime  @default(now())
+
+  @@index([openMatchId, createdAt])
   @@index([clubId])
 }

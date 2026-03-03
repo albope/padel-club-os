@@ -3,6 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
+import { useTranslations, useLocale } from 'next-intl';
 import {
   CalendarDays, Users, Trophy, Clock, MapPin, Phone, Mail,
   Newspaper, ChevronRight, Instagram, Facebook,
@@ -34,6 +35,10 @@ interface ClubHomeProps {
 
 export default function ClubHome({ club, openMatches, competitions, news }: ClubHomeProps) {
   const params = useParams();
+  const t = useTranslations('club');
+  const tComp = useTranslations('competitions');
+  const locale = useLocale();
+  const localeCode = locale === 'en' ? 'en-GB' : 'es-ES';
   const basePath = `/club/${params.slug}`;
   const color = club.primaryColor || '#4f46e5';
 
@@ -56,7 +61,7 @@ export default function ClubHome({ club, openMatches, competitions, news }: Club
           />
           <div className="relative z-10 p-6 sm:p-8 w-full">
             <p className="text-xs font-semibold uppercase tracking-widest text-white/60 mb-2">
-              Bienvenido a
+              {t('welcomeTo')}
             </p>
             <h1 className="font-display text-3xl sm:text-4xl lg:text-5xl font-extrabold text-white tracking-tight">
               {club.name}
@@ -76,7 +81,7 @@ export default function ClubHome({ club, openMatches, competitions, news }: Club
           }}
         >
           <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-2">
-            Bienvenido a
+            {t('welcomeTo')}
           </p>
           <h1 className="font-display text-3xl sm:text-4xl font-extrabold tracking-tight text-foreground">
             {club.name}
@@ -101,10 +106,10 @@ export default function ClubHome({ club, openMatches, competitions, news }: Club
               </div>
               <div className="flex-1 min-w-0">
                 <p className="font-display font-bold text-foreground text-base">
-                  Reservar pista
+                  {t('bookCourtAction')}
                 </p>
                 <p className="text-sm text-muted-foreground">
-                  Encuentra tu horario ideal
+                  {t('findYourTime')}
                 </p>
               </div>
               <ChevronRight className="h-5 w-5 text-muted-foreground club-arrow-hover shrink-0" />
@@ -123,10 +128,10 @@ export default function ClubHome({ club, openMatches, competitions, news }: Club
               </div>
               <div className="flex-1 min-w-0">
                 <p className="font-display font-bold text-foreground text-base">
-                  Partidas abiertas
+                  {t('openMatchesAction')}
                 </p>
                 <p className="text-sm text-muted-foreground">
-                  Únete a una partida
+                  {t('joinMatch')}
                 </p>
               </div>
               <ChevronRight className="h-5 w-5 text-muted-foreground club-arrow-hover shrink-0" />
@@ -144,10 +149,10 @@ export default function ClubHome({ club, openMatches, competitions, news }: Club
             </div>
             <div className="flex-1 min-w-0">
               <p className="font-display font-bold text-foreground text-base">
-                Competiciones
+                {t('competitionsAction')}
               </p>
               <p className="text-sm text-muted-foreground">
-                Ligas y torneos activos
+                {t('leaguesAndTournaments')}
               </p>
             </div>
             <ChevronRight className="h-5 w-5 text-muted-foreground club-arrow-hover shrink-0" />
@@ -164,18 +169,18 @@ export default function ClubHome({ club, openMatches, competitions, news }: Club
               <div className="flex items-center gap-2">
                 <Users className="h-4 w-4" style={{ color }} />
                 <h2 className="font-display font-bold text-base uppercase tracking-wide">
-                  Próximas partidas
+                  {t('upcomingMatches')}
                 </h2>
               </div>
               <Link href={`${basePath}/partidas`}>
                 <Button variant="ghost" size="sm" className="text-xs gap-1">
-                  Ver todas <ChevronRight className="h-3 w-3" />
+                  {t('viewAll')} <ChevronRight className="h-3 w-3" />
                 </Button>
               </Link>
             </div>
             <div className="p-5">
               {openMatches.length === 0 ? (
-                <p className="text-sm text-muted-foreground py-4 text-center">No hay partidas abiertas próximas.</p>
+                <p className="text-sm text-muted-foreground py-4 text-center">{t('noUpcomingMatches')}</p>
               ) : (
                 <div className="space-y-3">
                   {openMatches.map((match) => (
@@ -188,23 +193,23 @@ export default function ClubHome({ club, openMatches, competitions, news }: Club
                         <div className="flex items-center gap-2">
                           <Badge variant="secondary" className="text-xs font-medium">{match.court.name}</Badge>
                           <span className="text-sm font-medium">
-                            {new Date(match.matchTime).toLocaleDateString('es-ES', {
+                            {new Date(match.matchTime).toLocaleDateString(localeCode, {
                               weekday: 'short', day: 'numeric', month: 'short',
                             })}
                           </span>
                         </div>
                         <p className="text-xs text-muted-foreground flex items-center gap-1">
                           <Clock className="h-3 w-3" />
-                          {new Date(match.matchTime).toLocaleTimeString('es-ES', {
+                          {new Date(match.matchTime).toLocaleTimeString(localeCode, {
                             hour: '2-digit', minute: '2-digit',
-                          })} · {match.players.length}/4 jugadores
+                          })} · {match.players.length}/4
                         </p>
                       </div>
                       <Badge
                         variant={match.players.length < 4 ? 'default' : 'secondary'}
                         className={match.players.length < 4 ? 'bg-emerald-600 hover:bg-emerald-700 text-white' : ''}
                       >
-                        {match.players.length < 4 ? 'Abierta' : 'Completa'}
+                        {match.players.length < 4 ? t('openBadge') : t('fullBadge')}
                       </Badge>
                     </div>
                   ))}
@@ -220,18 +225,18 @@ export default function ClubHome({ club, openMatches, competitions, news }: Club
             <div className="flex items-center gap-2">
               <Trophy className="h-4 w-4" style={{ color }} />
               <h2 className="font-display font-bold text-base uppercase tracking-wide">
-                Competiciones
+                {t('competitionsAction')}
               </h2>
             </div>
             <Link href={`${basePath}/competiciones`}>
               <Button variant="ghost" size="sm" className="text-xs gap-1">
-                Ver todas <ChevronRight className="h-3 w-3" />
+                {t('viewAll')} <ChevronRight className="h-3 w-3" />
               </Button>
             </Link>
           </div>
           <div className="p-5">
             {competitions.length === 0 ? (
-              <p className="text-sm text-muted-foreground py-4 text-center">No hay competiciones activas.</p>
+              <p className="text-sm text-muted-foreground py-4 text-center">{t('noActiveCompetitions')}</p>
             ) : (
               <div className="space-y-2">
                 {competitions.map((comp) => (
@@ -243,7 +248,7 @@ export default function ClubHome({ club, openMatches, competitions, news }: Club
                   >
                     <span className="font-medium text-sm">{comp.name}</span>
                     <Badge variant="outline" className="text-xs">
-                      {comp.format === 'LEAGUE' ? 'Liga' : comp.format === 'KNOCKOUT' ? 'Torneo' : 'Grupos'}
+                      {comp.format === 'LEAGUE' ? tComp('league') : comp.format === 'KNOCKOUT' ? tComp('knockout') : tComp('groupAndKnockout')}
                     </Badge>
                   </Link>
                 ))}
@@ -260,12 +265,12 @@ export default function ClubHome({ club, openMatches, competitions, news }: Club
             <div className="flex items-center gap-2">
               <Newspaper className="h-4 w-4" style={{ color }} />
               <h2 className="font-display font-bold text-base uppercase tracking-wide">
-                Noticias del club
+                {t('clubNews')}
               </h2>
             </div>
             <Link href={`${basePath}/noticias`}>
               <Button variant="ghost" size="sm" className="text-xs gap-1">
-                Ver todas <ChevronRight className="h-3 w-3" />
+                {t('viewAll')} <ChevronRight className="h-3 w-3" />
               </Button>
             </Link>
           </div>
@@ -281,7 +286,7 @@ export default function ClubHome({ club, openMatches, competitions, news }: Club
                   <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{item.content}</p>
                   <p className="text-xs text-muted-foreground mt-2 flex items-center gap-1">
                     <Clock className="h-3 w-3" />
-                    {new Date(item.createdAt).toLocaleDateString('es-ES', {
+                    {new Date(item.createdAt).toLocaleDateString(localeCode, {
                       day: 'numeric', month: 'long', year: 'numeric',
                     })}
                   </p>
@@ -295,7 +300,7 @@ export default function ClubHome({ club, openMatches, competitions, news }: Club
       {/* Info del club — Seccion oscura premium */}
       <div className="club-section-dark rounded-2xl p-6 sm:p-8">
         <h2 className="font-display font-bold text-lg uppercase tracking-wide mb-6">
-          Información del club
+          {t('clubInfo')}
         </h2>
         <div className="grid gap-4 sm:grid-cols-2">
           {club.openingTime && club.closingTime && (
@@ -304,7 +309,7 @@ export default function ClubHome({ club, openMatches, competitions, news }: Club
                 <Clock className="h-4 w-4" />
               </div>
               <div>
-                <p className="text-white/50 text-xs uppercase tracking-wide">Horario</p>
+                <p className="text-white/50 text-xs uppercase tracking-wide">{t('schedule')}</p>
                 <p className="font-medium">{club.openingTime} - {club.closingTime}</p>
               </div>
             </div>
@@ -315,7 +320,7 @@ export default function ClubHome({ club, openMatches, competitions, news }: Club
                 <MapPin className="h-4 w-4" />
               </div>
               <div>
-                <p className="text-white/50 text-xs uppercase tracking-wide">Dirección</p>
+                <p className="text-white/50 text-xs uppercase tracking-wide">{t('address')}</p>
                 <p className="font-medium">{club.address}</p>
               </div>
             </div>
@@ -326,7 +331,7 @@ export default function ClubHome({ club, openMatches, competitions, news }: Club
                 <Phone className="h-4 w-4" />
               </div>
               <div>
-                <p className="text-white/50 text-xs uppercase tracking-wide">Teléfono</p>
+                <p className="text-white/50 text-xs uppercase tracking-wide">{t('phone')}</p>
                 <p className="font-medium">{club.phone}</p>
               </div>
             </div>
@@ -337,7 +342,7 @@ export default function ClubHome({ club, openMatches, competitions, news }: Club
                 <Mail className="h-4 w-4" />
               </div>
               <div>
-                <p className="text-white/50 text-xs uppercase tracking-wide">Email</p>
+                <p className="text-white/50 text-xs uppercase tracking-wide">{t('email')}</p>
                 <p className="font-medium">{club.email}</p>
               </div>
             </div>
@@ -347,7 +352,7 @@ export default function ClubHome({ club, openMatches, competitions, news }: Club
         {/* Redes sociales */}
         {(club.instagramUrl || club.facebookUrl) && (
           <div className="flex items-center gap-3 mt-6 pt-6 border-t border-white/10">
-            <span className="text-xs text-white/60 uppercase tracking-wide">Síguenos</span>
+            <span className="text-xs text-white/60 uppercase tracking-wide">{t('followUs')}</span>
             {club.instagramUrl && (
               <a
                 href={club.instagramUrl}

@@ -6,8 +6,9 @@ import { usePathname } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import {
   CalendarDays, Users, Trophy, User, Home, LogIn, Newspaper,
-  DollarSign, Medal, MoreHorizontal, ChevronRight,
+  DollarSign, Medal, MoreHorizontal, ChevronRight, Users2,
 } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 import { cn } from '@/lib/utils';
 import { NotificationBell } from '@/components/layout/NotificationBell';
 import {
@@ -25,6 +26,7 @@ import {
 } from '@/components/ui/sheet';
 import { useScrollDirection } from '@/hooks/use-scroll-direction';
 import { SkipToContent } from '@/components/layout/SkipToContent';
+import { LanguageSelector } from '@/components/layout/LanguageSelector';
 import Image from 'next/image';
 
 interface ClubInfo {
@@ -52,21 +54,23 @@ export default function ClubLayout({ club, children }: ClubLayoutProps) {
   const { data: session } = useSession();
   const scrollDir = useScrollDirection();
   const [sheetOpen, setSheetOpen] = useState(false);
+  const t = useTranslations('club');
   const basePath = `/club/${club.slug}`;
   const color = club.primaryColor || '#4f46e5';
 
   const navItems = [
-    { label: 'Inicio', href: basePath, icon: Home },
+    { label: t('home'), href: basePath, icon: Home },
     ...(club.enablePlayerBooking
-      ? [{ label: 'Reservar', href: `${basePath}/reservar`, icon: CalendarDays }]
+      ? [{ label: t('bookCourt'), href: `${basePath}/reservar`, icon: CalendarDays }]
       : []),
     ...(club.enableOpenMatches
-      ? [{ label: 'Partidas', href: `${basePath}/partidas`, icon: Users }]
+      ? [{ label: t('openMatches'), href: `${basePath}/partidas`, icon: Users }]
       : []),
-    { label: 'Competiciones', href: `${basePath}/competiciones`, icon: Trophy },
-    { label: 'Rankings', href: `${basePath}/rankings`, icon: Medal },
-    { label: 'Noticias', href: `${basePath}/noticias`, icon: Newspaper },
-    { label: 'Tarifas', href: `${basePath}/tarifas`, icon: DollarSign },
+    { label: t('competitions'), href: `${basePath}/competiciones`, icon: Trophy },
+    { label: t('rankings'), href: `${basePath}/rankings`, icon: Medal },
+    { label: t('players'), href: `${basePath}/jugadores`, icon: Users2 },
+    { label: t('news'), href: `${basePath}/noticias`, icon: Newspaper },
+    { label: t('rates'), href: `${basePath}/tarifas`, icon: DollarSign },
   ];
 
   const mainMobileItems = navItems.slice(0, MAX_MOBILE_ITEMS);
@@ -134,7 +138,7 @@ export default function ClubLayout({ club, children }: ClubLayoutProps) {
           </Link>
 
           {/* Desktop nav — solo texto, sin iconos (excepto Home) */}
-          <nav aria-label="Navegacion del club" className="hidden md:flex items-center">
+          <nav aria-label={t('clubNav')} className="hidden md:flex items-center">
             <TooltipProvider delayDuration={200}>
               {navItems.map((item) => {
                 const active = isActive(item.href);
@@ -157,7 +161,7 @@ export default function ClubLayout({ club, children }: ClubLayoutProps) {
                           <item.icon className={cn('h-4 w-4 transition-transform duration-200', active && 'scale-110')} />
                         </Link>
                       </TooltipTrigger>
-                      <TooltipContent side="bottom">Inicio</TooltipContent>
+                      <TooltipContent side="bottom">{t('home')}</TooltipContent>
                     </Tooltip>
                   );
                 }
@@ -184,6 +188,7 @@ export default function ClubLayout({ club, children }: ClubLayoutProps) {
 
           {/* Auth area */}
           <div className="flex items-center gap-2 shrink-0">
+            <LanguageSelector />
             {isPlayerOfClub && <NotificationBell urlBase={basePath} />}
             {isPlayerOfClub ? (
               <Link
@@ -202,7 +207,7 @@ export default function ClubLayout({ club, children }: ClubLayoutProps) {
                 >
                   {session?.user?.name?.charAt(0).toUpperCase() ?? 'U'}
                 </div>
-                <span className="hidden sm:inline whitespace-nowrap">Mi perfil</span>
+                <span className="hidden sm:inline whitespace-nowrap">{t('profile')}</span>
               </Link>
             ) : (
               <Link
@@ -211,7 +216,7 @@ export default function ClubLayout({ club, children }: ClubLayoutProps) {
                 style={{ backgroundColor: color }}
               >
                 <LogIn className="h-3.5 w-3.5" />
-                <span>Acceder</span>
+                <span>{t('access')}</span>
               </Link>
             )}
           </div>
@@ -224,7 +229,7 @@ export default function ClubLayout({ club, children }: ClubLayoutProps) {
       </main>
 
       {/* Mobile bottom nav */}
-      <nav aria-label="Navegacion movil del club" className="md:hidden fixed bottom-0 inset-x-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-t border-border/60">
+      <nav aria-label={t('clubMobileNav')} className="md:hidden fixed bottom-0 inset-x-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-t border-border/60">
         <div className="flex items-stretch h-16">
           {/* Items principales */}
           {mainMobileItems.map((item) => {
@@ -270,7 +275,7 @@ export default function ClubLayout({ club, children }: ClubLayoutProps) {
               >
                 {session?.user?.name?.charAt(0).toUpperCase() ?? 'U'}
               </div>
-              <span>Perfil</span>
+              <span>{t('profileShort')}</span>
             </Link>
           ) : (
             <Link
@@ -278,7 +283,7 @@ export default function ClubLayout({ club, children }: ClubLayoutProps) {
               className="relative flex flex-col items-center justify-center gap-0.5 flex-1 py-2 text-[10px] font-medium text-muted-foreground transition-colors duration-200"
             >
               <LogIn className="h-5 w-5" />
-              <span>Acceder</span>
+              <span>{t('access')}</span>
             </Link>
           )}
 
@@ -294,12 +299,12 @@ export default function ClubLayout({ club, children }: ClubLayoutProps) {
                   )}
                 >
                   <MoreHorizontal className="h-5 w-5" />
-                  <span>Mas</span>
+                  <span>{t('more')}</span>
                 </button>
               </SheetTrigger>
               <SheetContent side="bottom" className="rounded-t-2xl">
                 <SheetHeader className="pb-4">
-                  <SheetTitle className="text-sm font-semibold text-left">Mas opciones</SheetTitle>
+                  <SheetTitle className="text-sm font-semibold text-left">{t('moreOptions')}</SheetTitle>
                 </SheetHeader>
                 <div className="grid grid-cols-2 gap-2 pb-6">
                   {overflowItems.map((item) => {

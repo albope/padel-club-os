@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useSession } from 'next-auth/react';
+import { useTranslations, useLocale } from 'next-intl';
 import { CalendarDays, Clock, MapPin, Loader2, CheckCircle2, CreditCard } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -45,6 +46,10 @@ export default function ConfirmacionReserva({
   const router = useRouter();
   const searchParams = useSearchParams();
   const { data: session } = useSession();
+  const t = useTranslations('booking');
+  const tStripe = useTranslations('stripeConnect');
+  const locale = useLocale();
+  const localeCode = locale === 'en' ? 'en-GB' : 'es-ES';
   const [isBooking, setIsBooking] = useState(false);
 
   // Mostrar toast segun resultado del pago (query params de retorno de Stripe)
@@ -52,8 +57,8 @@ export default function ConfirmacionReserva({
     const pago = searchParams.get('pago');
     if (pago === 'exito') {
       toast({
-        title: "Pago confirmado",
-        description: "Tu reserva ha sido pagada correctamente.",
+        title: tStripe('paymentConfirmed'),
+        description: tStripe('paymentConfirmedDesc'),
         variant: "success",
       });
       onReservaConfirmada();
@@ -61,8 +66,8 @@ export default function ConfirmacionReserva({
       router.replace(`/club/${slug}/reservar`, { scroll: false });
     } else if (pago === 'cancelado') {
       toast({
-        title: "Pago cancelado",
-        description: "El pago no se ha completado. Si no pagas en 15 minutos, la reserva se cancelara automaticamente.",
+        title: tStripe('paymentCancelled'),
+        description: tStripe('paymentCancelledDesc'),
       });
       router.replace(`/club/${slug}/reservar`, { scroll: false });
     }
@@ -75,7 +80,7 @@ export default function ConfirmacionReserva({
 
   const horaFin = `${String(endTime.getHours()).padStart(2, '0')}:${String(endTime.getMinutes()).padStart(2, '0')}`;
 
-  const fechaFormateada = startTime.toLocaleDateString('es-ES', {
+  const fechaFormateada = startTime.toLocaleDateString(localeCode, {
     weekday: 'long',
     day: 'numeric',
     month: 'long',
@@ -123,8 +128,8 @@ export default function ConfirmacionReserva({
             return; // No cerrar el sheet, se redirige
           } else {
             toast({
-              title: "Error en el pago",
-              description: "No se pudo iniciar el pago online. La reserva se cancelara automaticamente si no se paga en 15 minutos.",
+              title: tStripe('paymentError'),
+              description: tStripe('paymentErrorDesc'),
               variant: "destructive",
             });
             onOpenChange(false);
@@ -135,7 +140,7 @@ export default function ConfirmacionReserva({
 
         // Flujo presencial o pago en club
         toast({
-          title: "Reserva confirmada",
+          title: t('confirmed'),
           description: `${pista.name} · ${horaInicio} - ${horaFin}`,
           variant: "default",
         });
@@ -164,9 +169,9 @@ export default function ConfirmacionReserva({
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent side="bottom" className="rounded-t-xl max-h-[80vh]">
         <SheetHeader>
-          <SheetTitle>Confirmar reserva</SheetTitle>
+          <SheetTitle>{t('confirmBooking')}</SheetTitle>
           <SheetDescription>
-            Revisa los detalles antes de confirmar
+            {t('reviewDetails')}
           </SheetDescription>
         </SheetHeader>
 
@@ -197,9 +202,12 @@ export default function ConfirmacionReserva({
             <>
               <Separator />
               <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">Precio</span>
+                <span className="text-sm text-muted-foreground">{t('price')}</span>
                 <span className="text-lg font-bold">{precio.toFixed(2)}€</span>
               </div>
+              <p className="text-xs text-muted-foreground text-right">
+                {t('perPlayer')}: {(precio / 4).toFixed(2)}€ (4 jug.) · {(precio / 2).toFixed(2)}€ (2 jug.)
+              </p>
             </>
           )}
 
@@ -210,7 +218,7 @@ export default function ConfirmacionReserva({
               className="w-full"
               onClick={() => router.push(`/club/${slug}/login`)}
             >
-              Iniciar sesión para reservar
+              {t('loginToBook')}
             </Button>
           ) : modoSoloOnline ? (
             <Button
@@ -221,12 +229,12 @@ export default function ConfirmacionReserva({
               {isBooking ? (
                 <>
                   <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                  Procesando...
+                  {t('processing')}
                 </>
               ) : (
                 <>
                   <CreditCard className="h-4 w-4 mr-2" />
-                  Pagar y reservar{precio !== null && precio > 0 ? ` (${precio.toFixed(2)}€)` : ''}
+                  {tStripe('payAndBook')}{precio !== null && precio > 0 ? ` (${precio.toFixed(2)}€)` : ''}
                 </>
               )}
             </Button>
@@ -240,12 +248,12 @@ export default function ConfirmacionReserva({
                 {isBooking ? (
                   <>
                     <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                    Procesando...
+                    {t('processing')}
                   </>
                 ) : (
                   <>
                     <CreditCard className="h-4 w-4 mr-2" />
-                    Pagar ahora{precio !== null && precio > 0 ? ` (${precio.toFixed(2)}€)` : ''}
+                    {tStripe('payNow')}{precio !== null && precio > 0 ? ` (${precio.toFixed(2)}€)` : ''}
                   </>
                 )}
               </Button>
@@ -256,7 +264,7 @@ export default function ConfirmacionReserva({
                 disabled={isBooking}
               >
                 <CheckCircle2 className="h-4 w-4 mr-2" />
-                Pagar en el club
+                {tStripe('payAtClub')}
               </Button>
             </div>
           ) : (
@@ -268,12 +276,12 @@ export default function ConfirmacionReserva({
               {isBooking ? (
                 <>
                   <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                  Reservando...
+                  {t('booking')}
                 </>
               ) : (
                 <>
                   <CheckCircle2 className="h-4 w-4 mr-2" />
-                  Confirmar reserva
+                  {t('confirmBooking')}
                 </>
               )}
             </Button>

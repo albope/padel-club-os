@@ -1,6 +1,7 @@
 "use client"
 
 import React from "react"
+import { useLocale } from 'next-intl'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -46,6 +47,8 @@ export default function BillingOverview({
   hasStripeCustomer,
   payments,
 }: BillingOverviewProps) {
+  const locale = useLocale()
+  const localeCode = locale === 'es' ? 'es-ES' : 'en-GB'
   const [loading, setLoading] = React.useState(false)
 
   const status = subscriptionStatus ?? "trialing"
@@ -154,7 +157,7 @@ export default function BillingOverview({
                 {payments.map((payment) => (
                   <TableRow key={payment.id}>
                     <TableCell>
-                      {new Date(payment.createdAt).toLocaleDateString("es-ES", {
+                      {new Date(payment.createdAt).toLocaleDateString(localeCode, {
                         day: "2-digit",
                         month: "short",
                         year: "numeric",

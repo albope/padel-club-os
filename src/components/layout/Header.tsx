@@ -1,6 +1,7 @@
 'use client';
 
 import { useSession, signOut } from 'next-auth/react';
+import { useTranslations } from 'next-intl';
 import React from 'react';
 import { LogOut, User } from 'lucide-react';
 import Link from 'next/link';
@@ -15,6 +16,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ThemeToggle } from '@/components/layout/ThemeToggle';
+import { LanguageSelector } from '@/components/layout/LanguageSelector';
 import { MobileSidebar } from '@/components/layout/MobileSidebar';
 import { Breadcrumbs } from '@/components/layout/Breadcrumbs';
 import { NotificationBell } from '@/components/layout/NotificationBell';
@@ -23,6 +25,7 @@ import Image from 'next/image';
 
 const Header = () => {
   const { data: session, status } = useSession();
+  const t = useTranslations('nav');
   const user = session?.user;
 
   return (
@@ -35,6 +38,7 @@ const Header = () => {
 
         <div className="flex items-center gap-2">
           {status === 'authenticated' && <GlobalSearch />}
+          <LanguageSelector />
           <ThemeToggle />
 
           {status === 'authenticated' && <NotificationBell />}
@@ -71,7 +75,7 @@ const Header = () => {
                 <DropdownMenuItem asChild>
                   <Link href="/dashboard/ajustes" className="cursor-pointer">
                     <User className="mr-2 h-4 w-4" />
-                    Ajustes
+                    {t('ajustes')}
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
@@ -80,7 +84,7 @@ const Header = () => {
                   onClick={() => signOut({ callbackUrl: '/login' })}
                 >
                   <LogOut className="mr-2 h-4 w-4" />
-                  Cerrar Sesion
+                  {t('signOut')}
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -88,7 +92,7 @@ const Header = () => {
 
           {status === 'unauthenticated' && (
             <Button asChild size="sm">
-              <Link href="/login">Iniciar Sesion</Link>
+              <Link href="/login">{t('signIn')}</Link>
             </Button>
           )}
         </div>

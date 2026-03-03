@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react'
 import { Search, Users, Calendar, LayoutGrid, Loader2 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
+import { useTranslations } from 'next-intl'
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
@@ -22,14 +23,9 @@ const iconoPorTipo = {
   reserva: Calendar,
 }
 
-const etiquetaPorTipo = {
-  socio: 'Socios',
-  pista: 'Pistas',
-  reserva: 'Reservas',
-}
-
 export function GlobalSearch() {
   const router = useRouter()
+  const t = useTranslations('search')
   const [open, setOpen] = useState(false)
   const [query, setQuery] = useState('')
   const [results, setResults] = useState<SearchResult[]>([])
@@ -117,23 +113,23 @@ export function GlobalSearch() {
         onClick={() => setOpen(true)}
       >
         <Search className="h-5 w-5" />
-        <span className="sr-only">Buscar</span>
+        <span className="sr-only">{t('label')}</span>
       </Button>
 
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="sm:max-w-lg p-0 gap-0 [&>button]:hidden">
-          <DialogTitle className="sr-only">Busqueda global</DialogTitle>
-          <DialogDescription className="sr-only">Busca socios, pistas y reservas</DialogDescription>
+          <DialogTitle className="sr-only">{t('title')}</DialogTitle>
+          <DialogDescription className="sr-only">{t('description')}</DialogDescription>
           <div className="flex items-center gap-2 border-b px-4 py-3">
             <Search className="h-4 w-4 text-muted-foreground shrink-0" />
-            <label htmlFor="global-search" className="sr-only">Buscar</label>
+            <label htmlFor="global-search" className="sr-only">{t('label')}</label>
             <Input
               id="global-search"
               ref={inputRef}
               value={query}
               onChange={(e) => handleQueryChange(e.target.value)}
               onKeyDown={handleKeyDown}
-              placeholder="Buscar socios, pistas, reservas..."
+              placeholder={t('placeholder')}
               className="border-0 p-0 focus-visible:ring-0 focus-visible:ring-offset-0"
             />
             {loading && <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />}
@@ -145,7 +141,7 @@ export function GlobalSearch() {
           <div className="max-h-[300px] overflow-y-auto py-2" aria-live="polite">
             {query.length >= 2 && results.length === 0 && !loading && (
               <p className="text-center py-8 text-sm text-muted-foreground">
-                Sin resultados para &quot;{query}&quot;
+                {t('noResults', { query })}
               </p>
             )}
 
@@ -154,7 +150,7 @@ export function GlobalSearch() {
               return (
                 <div key={tipo}>
                   <p className="px-4 py-1.5 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                    {etiquetaPorTipo[tipo as keyof typeof etiquetaPorTipo]}
+                    {t(`types.${tipo}`)}
                   </p>
                   {items.map(item => {
                     const idx = globalIndex++
@@ -184,12 +180,12 @@ export function GlobalSearch() {
 
           {query.length < 2 && results.length === 0 && (
             <div className="px-4 py-6 text-center text-sm text-muted-foreground">
-              <p>Escribe al menos 2 caracteres para buscar.</p>
+              <p>{t('minChars')}</p>
               <p className="mt-1 text-xs">
                 <kbd className="rounded border bg-muted px-1.5 py-0.5 text-[10px]">Ctrl</kbd>
                 {' + '}
                 <kbd className="rounded border bg-muted px-1.5 py-0.5 text-[10px]">K</kbd>
-                {' para abrir la busqueda'}
+                {' '}{t('shortcut')}
               </p>
             </div>
           )}

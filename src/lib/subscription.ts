@@ -130,6 +130,44 @@ export function canUseOnlinePayments(tier: PlanKey): boolean {
 }
 
 /**
+ * Verifica si un club puede crear mas reservas recurrentes segun su plan.
+ * Starter: 0 (no disponible), Pro: 10 activas, Enterprise: ilimitadas.
+ */
+export async function canCreateRecurringBooking(clubId: string): Promise<{ allowed: boolean; reason?: string }> {
+  const info = await getSubscriptionInfo(clubId)
+
+  const limites: Record<string, number> = {
+    starter: 0,
+    pro: 10,
+    enterprise: -1,
+  }
+
+  const limite = limites[info.tier] ?? 0
+
+  if (limite === 0) {
+    return {
+      allowed: false,
+      reason: `Las reservas recurrentes no estan disponibles en el plan ${PLAN_PRICES[info.tier].name}. Actualiza a Pro o Enterprise.`,
+    }
+  }
+
+  if (limite === -1) return { allowed: true }
+
+  const count = await db.recurringBooking.count({
+    where: { clubId, isActive: true },
+  })
+
+  if (count >= limite) {
+    return {
+      allowed: false,
+      reason: `Tu plan ${PLAN_PRICES[info.tier].name} permite hasta ${limite} reservas recurrentes activas. Desactiva alguna o actualiza tu plan.`,
+    }
+  }
+
+  return { allowed: true }
+}
+
+/**
  * Verifica si un club puede tener mas admins/staff segun su plan.
  */
 export async function canCreateAdmin(clubId: string): Promise<{ allowed: boolean; reason?: string }> {

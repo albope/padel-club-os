@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { navItems } from '@/lib/nav-items';
 import { cn } from '@/lib/utils';
 import { LogoIcon } from '@/components/ui/logo-icon';
@@ -9,6 +10,7 @@ import React from 'react';
 
 const Sidebar = () => {
   const pathname = usePathname();
+  const t = useTranslations();
 
   const isActive = (href: string) => {
     if (href === '/dashboard') return pathname === '/dashboard';
@@ -27,7 +29,7 @@ const Sidebar = () => {
       <nav aria-label="Navegacion principal" className="flex-grow p-4">
         <ul className="space-y-1">
           {navItems.map((item) => (
-            <li key={item.name}>
+            <li key={item.nameKey}>
               <Link
                 href={item.href}
                 aria-current={isActive(item.href) ? 'page' : undefined}
@@ -39,7 +41,7 @@ const Sidebar = () => {
                 )}
               >
                 <item.icon className="mr-3 h-5 w-5" />
-                {item.name}
+                {t(item.nameKey)}
               </Link>
             </li>
           ))}

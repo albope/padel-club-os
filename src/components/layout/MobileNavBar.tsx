@@ -2,11 +2,13 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { mobileQuickNavItems } from '@/lib/nav-items';
 import { cn } from '@/lib/utils';
 
 export function MobileNavBar() {
   const pathname = usePathname();
+  const t = useTranslations();
 
   const isActive = (href: string) => {
     if (href === '/dashboard') return pathname === '/dashboard';
@@ -18,7 +20,7 @@ export function MobileNavBar() {
       <div className="flex items-center justify-around h-16">
         {mobileQuickNavItems.map((item) => (
           <Link
-            key={item.name}
+            key={item.nameKey}
             href={item.href}
             aria-current={isActive(item.href) ? 'page' : undefined}
             className={cn(
@@ -29,7 +31,7 @@ export function MobileNavBar() {
             )}
           >
             <item.icon className="h-5 w-5" />
-            <span>{item.name}</span>
+            <span>{t(item.nameKey)}</span>
           </Link>
         ))}
       </div>

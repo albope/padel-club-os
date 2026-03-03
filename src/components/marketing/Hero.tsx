@@ -1,8 +1,11 @@
 import Link from "next/link"
 import { ArrowRight, Sparkles } from "lucide-react"
+import { getTranslations } from "next-intl/server"
 import { Button } from "@/components/ui/button"
 
-export default function Hero() {
+export default async function Hero() {
+  const t = await getTranslations('marketing.hero')
+
   return (
     <section className="relative min-h-screen overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-blue-950">
       {/* Resplandor radial superior */}
@@ -30,22 +33,20 @@ export default function Hero() {
         {/* Badge */}
         <div className="hero-badge-enter inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-1.5 text-sm text-white/80 backdrop-blur-sm">
           <Sparkles className="h-3.5 w-3.5 text-blue-400" />
-          Prueba gratuita 14 días — sin tarjeta
+          {t('badge')}
         </div>
 
         {/* Headline */}
         <h1 className="hero-text-1 max-w-4xl font-display text-4xl font-extrabold tracking-tight text-white sm:text-5xl md:text-6xl lg:text-7xl">
-          Tu club de pádel merece{' '}
+          {t('headlinePart1')}{' '}
           <span className="hero-text-2 landing-gradient-text">
-            algo mejor
+            {t('headlinePart2')}
           </span>
         </h1>
 
         {/* Subtitulo */}
         <p className="hero-text-3 max-w-2xl text-base text-slate-300 md:text-lg lg:text-xl">
-          Reservas, socios, competiciones y pagos en una sola plataforma.
-          Diseñada para clubes que quieren dejar atrás el WhatsApp, el Excel y
-          el papel.
+          {t('subtitle')}
         </p>
 
         {/* CTAs */}
@@ -56,7 +57,7 @@ export default function Hero() {
             asChild
           >
             <Link href="/register">
-              Empieza gratis 14 días
+              {t('ctaPrimary')}
               <ArrowRight className="h-4 w-4" />
             </Link>
           </Button>
@@ -66,13 +67,13 @@ export default function Hero() {
             className="border border-white/20 text-base text-white hover:bg-white/10 hover:text-white"
             asChild
           >
-            <a href="#como-funciona">Ver cómo funciona</a>
+            <a href="#como-funciona">{t('ctaSecondary')}</a>
           </Button>
         </div>
 
         {/* Trust line */}
         <p className="hero-text-3 text-sm text-slate-400">
-          Sin tarjeta de crédito · Sin permanencia · Configura en 5 minutos
+          {t('trustLine')}
         </p>
 
         {/* Dashboard mockup */}
@@ -86,27 +87,27 @@ export default function Hero() {
               {/* Stats cards */}
               <div className="grid grid-cols-3 gap-3 md:gap-4">
                 <div className="rounded-lg border border-white/5 bg-slate-800/60 p-3 md:p-4">
-                  <div className="text-xs text-slate-400 md:text-sm">Reservas hoy</div>
+                  <div className="text-xs text-slate-400 md:text-sm">{t('bookingsToday')}</div>
                   <div className="mt-1 text-xl font-bold text-white md:text-2xl">24</div>
-                  <div className="mt-1 text-xs text-emerald-400">+12% vs ayer</div>
+                  <div className="mt-1 text-xs text-emerald-400">{t('vsYesterday')}</div>
                 </div>
                 <div className="rounded-lg border border-white/5 bg-slate-800/60 p-3 md:p-4">
-                  <div className="text-xs text-slate-400 md:text-sm">Socios activos</div>
+                  <div className="text-xs text-slate-400 md:text-sm">{t('activeMembers')}</div>
                   <div className="mt-1 text-xl font-bold text-white md:text-2xl">342</div>
-                  <div className="mt-1 text-xs text-emerald-400">+8 esta semana</div>
+                  <div className="mt-1 text-xs text-emerald-400">{t('thisWeek')}</div>
                 </div>
                 <div className="rounded-lg border border-white/5 bg-slate-800/60 p-3 md:p-4">
-                  <div className="text-xs text-slate-400 md:text-sm">Ocupación</div>
+                  <div className="text-xs text-slate-400 md:text-sm">{t('occupancy')}</div>
                   <div className="mt-1 text-xl font-bold text-white md:text-2xl">87%</div>
-                  <div className="mt-1 text-xs text-emerald-400">Máximo histórico</div>
+                  <div className="mt-1 text-xs text-emerald-400">{t('historicMax')}</div>
                 </div>
               </div>
 
               {/* Barras de pistas */}
               <div className="mt-3 grid grid-cols-2 gap-3 md:mt-4 md:grid-cols-4">
-                {["Pista 1", "Pista 2", "Pista 3", "Pista 4"].map((pista) => (
-                  <div key={pista} className="rounded-lg border border-white/5 bg-slate-800/40 p-3">
-                    <div className="text-xs font-medium text-slate-300">{pista}</div>
+                {[1, 2, 3, 4].map((number) => (
+                  <div key={number} className="rounded-lg border border-white/5 bg-slate-800/40 p-3">
+                    <div className="text-xs font-medium text-slate-300">{t('court', { number })}</div>
                     <div className="mt-2 space-y-1.5">
                       <div className="h-2 rounded-full bg-blue-500/30" />
                       <div className="h-2 w-3/4 rounded-full bg-gradient-to-r from-blue-500 to-teal-400" />

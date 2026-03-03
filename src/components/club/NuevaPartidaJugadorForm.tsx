@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { useTranslations } from 'next-intl';
 import { Loader2 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -19,6 +20,7 @@ interface NuevaPartidaJugadorFormProps {
 }
 
 export default function NuevaPartidaJugadorForm({ slug, onExito }: NuevaPartidaJugadorFormProps) {
+  const t = useTranslations('openMatches');
   const [pistas, setPistas] = useState<Pista[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -67,8 +69,8 @@ export default function NuevaPartidaJugadorForm({ slug, onExito }: NuevaPartidaJ
 
       if (res.ok) {
         toast({
-          title: "Partida creada",
-          description: "Tu partida abierta ha sido creada. Ya estás inscrito.",
+          title: t('matchCreated'),
+          description: t('matchCreatedDesc'),
         });
         onExito();
       } else {
@@ -101,7 +103,7 @@ export default function NuevaPartidaJugadorForm({ slug, onExito }: NuevaPartidaJ
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div className="space-y-2">
-        <Label htmlFor="courtId">Pista</Label>
+        <Label htmlFor="courtId">{t('courtLabel')}</Label>
         <select
           id="courtId"
           value={courtId}
@@ -119,7 +121,7 @@ export default function NuevaPartidaJugadorForm({ slug, onExito }: NuevaPartidaJ
 
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
-          <Label htmlFor="matchDate">Fecha</Label>
+          <Label htmlFor="matchDate">{t('dateLabel')}</Label>
           <Input
             id="matchDate"
             type="date"
@@ -130,7 +132,7 @@ export default function NuevaPartidaJugadorForm({ slug, onExito }: NuevaPartidaJ
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="matchTime">Hora</Label>
+          <Label htmlFor="matchTime">{t('timeLabel')}</Label>
           <Input
             id="matchTime"
             type="time"
@@ -143,7 +145,7 @@ export default function NuevaPartidaJugadorForm({ slug, onExito }: NuevaPartidaJ
 
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
-          <Label htmlFor="levelMin">Nivel mínimo (opcional)</Label>
+          <Label htmlFor="levelMin">{t('minLevel')}</Label>
           <Input
             id="levelMin"
             type="number"
@@ -152,11 +154,11 @@ export default function NuevaPartidaJugadorForm({ slug, onExito }: NuevaPartidaJ
             max="7"
             value={levelMin}
             onChange={(e) => setLevelMin(e.target.value)}
-            placeholder="Ej: 3.0"
+            placeholder={t('minLevelPlaceholder')}
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="levelMax">Nivel máximo (opcional)</Label>
+          <Label htmlFor="levelMax">{t('maxLevel')}</Label>
           <Input
             id="levelMax"
             type="number"
@@ -165,20 +167,20 @@ export default function NuevaPartidaJugadorForm({ slug, onExito }: NuevaPartidaJ
             max="7"
             value={levelMax}
             onChange={(e) => setLevelMax(e.target.value)}
-            placeholder="Ej: 4.5"
+            placeholder={t('maxLevelPlaceholder')}
           />
         </div>
       </div>
 
       <p className="text-xs text-muted-foreground">
-        Al crear la partida, quedas inscrito automáticamente como primer jugador.
+        {t('autoJoinNote')}
       </p>
 
       <Button type="submit" className="w-full" disabled={isSubmitting}>
         {isSubmitting ? (
-          <><Loader2 className="h-4 w-4 animate-spin mr-2" /> Creando...</>
+          <><Loader2 className="h-4 w-4 animate-spin mr-2" /> {t('creating')}</>
         ) : (
-          'Crear partida'
+          t('createMatch')
         )}
       </Button>
     </form>

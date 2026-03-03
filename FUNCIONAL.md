@@ -56,14 +56,17 @@ Sirve como hoja de ruta para saber que hay, que falta y que se puede mejorar.
 ## 2. PANEL DE ADMINISTRACION (`/dashboard`)
 
 ### Navegacion (sidebar)
-11 secciones en desktop, 4 accesos rapidos en movil (Inicio, Reservas, Socios, Pistas).
+14 secciones en desktop, 4 accesos rapidos en movil (Inicio, Reservas, Socios, Pistas).
 
 ### Secciones y funcionalidades
 
 #### 2.1 Dashboard Home (`/dashboard`)
-- 4 tarjetas KPI: Reservas hoy, Socios activos, Ocupacion %, Competiciones activas
+- 4 tarjetas KPI: Reservas hoy, Socios activos, Ocupacion %, Ingresos hoy (EUR)
+- Grafico de ingresos ultimos 7 dias (BarChart apilado: cobrado verde + pendiente ambar)
+- Agenda del dia: timeline hora por hora con reservas agrupadas (partidas abiertas en verde)
+- Card resumen financiero: ingresos del mes + pagos pendientes (count)
 - Lista paginada de proximas reservas (5/pagina)
-- Boton "Nueva Reserva" rapido
+- Boton "Nueva Reserva" rapido + boton "Comunicacion" para broadcast
 
 #### 2.2 Reservas (`/dashboard/reservas`)
 - **Vista Calendario** (mensual) y **Vista Parrilla** (dia x pista)
@@ -132,6 +135,26 @@ Sirve como hoja de ruta para saber que hay, que falta y que se puede mejorar.
 - Sistema ELO para padel dobles (K-factor dinamico, rating base 1500)
 - Conversion ELO a nivel padel (1.0 - 7.0)
 
+#### 2.13 Comunicacion Masiva (`/dashboard/comunicacion`)
+- Historial de envios (titulo, segmento, canales, destinatarios, estado)
+- Nuevo envio: titulo, mensaje, canales (push/email/ambos), segmento (todos/activos/inactivos/nivel)
+- Preview de destinatarios antes de enviar
+- Rate limiting: 5 broadcasts/hora
+- Permisos: solo SUPER_ADMIN y CLUB_ADMIN
+
+#### 2.14 Clases Fijas (`/dashboard/reservas-recurrentes`)
+- CRUD de reservas recurrentes (dia semana, hora, pista, socio/invitado, rango fechas)
+- Tabs: Todas / Activas / Inactivas
+- Toggle activar/desactivar con un clic
+- Cron job diario genera reservas automaticamente (lookahead 7 dias)
+- Deteccion de conflictos: salta slots ya ocupados
+- Gating por plan: Starter no puede, Pro hasta 10, Enterprise ilimitadas
+
+#### 2.15 Configuracion Inicial (`/dashboard/configuracion-inicial`)
+- Wizard 4 pasos post-registro: info club, crear pistas, configurar precios, resumen
+- OnboardingChecklist en dashboard home (5 pasos, barra progreso)
+- Empty states mejorados en 6 paginas
+
 ### Componentes transversales del dashboard
 - Sidebar + Header con breadcrumbs + toggle tema + dropdown usuario
 - NotificationBell (campana con badge de no leidas, popover con lista)
@@ -141,15 +164,15 @@ Sirve como hoja de ruta para saber que hay, que falta y que se puede mejorar.
 - MobileNavBar + MobileSidebar
 
 ### Posibles mejoras admin
-- [ ] **Dashboard mejorado**: graficos inline en home, revenue chart, reservas del dia por hora
+- [x] **Dashboard mejorado**: grafico ingresos 7 dias, stat card revenue, resumen financiero, agenda del dia i18n
 - [x] **Busqueda global**: GlobalSearch.tsx (Ctrl+K, busca socios/pistas/reservas, debounce 300ms)
 - [x] **Exportar datos**: CSV para reservas (/api/bookings/export), socios (/api/users/export), pagos (/api/payments/export)
 - [ ] **Historial de actividad / audit log**: quien hizo que y cuando
 - [ ] **Multi-admin**: invitar mas administradores al club
-- [ ] **Gestion de pagos de pistas**: ver cobros pendientes, marcar como pagado
-- [ ] **Comunicacion masiva**: enviar email/push a todos los socios
-- [ ] **Reservas recurrentes**: clase fija semanal que se auto-genera
-- [ ] **Agenda del dia**: vista tipo timeline del dia actual
+- [x] **Gestion de pagos de pistas**: pago por jugador, cobro individual, PendingPayments refactorizado (C6)
+- [x] **Comunicacion masiva**: /dashboard/comunicacion (email/push a socios, segmentacion por nivel/actividad)
+- [x] **Reservas recurrentes**: /dashboard/reservas-recurrentes (clases fijas, cron semanal, gating por plan)
+- [x] **Agenda del dia**: timeline hora por hora en dashboard home (i18n ES/EN)
 - [ ] **Socios**: añadir foto de perfil, notas internas, estado activo/inactivo
 - [x] **Rankings ELO**: /dashboard/rankings con tabla completa de stats
 - [ ] **Analiticas**: revenue chart, comparativa periodos, exportar PDF
@@ -228,7 +251,7 @@ Items condicionales segun config del club (enablePlayerBooking, enableOpenMatche
 - Recuperar contraseña: /club/[slug]/forgot-password (email con token de reset, 1h expiracion)
 
 ### Posibles mejoras portal jugador
-- [ ] **Pago online de reservas**: integrar Stripe Connect para que jugadores paguen al reservar
+- [x] **Pago online de reservas**: Stripe Connect con 5% comision, checkout, refunds (C2)
 - [ ] **Perfil con foto**: subir avatar
 - [ ] **Historial de partidas**: ver partidas abiertas en las que participo
 - [ ] **Chat entre jugadores**: mensajeria dentro de una partida
@@ -364,9 +387,16 @@ Items condicionales segun config del club (enablePlayerBooking, enableOpenMatche
 | 3.2 | Noticias + Analiticas + Marketing + Blog | COMPLETADA |
 | 3.3 | Notificaciones push + PWA | COMPLETADA |
 | 4 | Rankings ELO, seguridad, mejoras admin | COMPLETADA |
-| Roadmap A | Critico para lanzamiento (Stripe enforcement, seguridad, SEO, RGPD, error boundaries) | COMPLETADA |
-| Roadmap B1 | Emails transaccionales con identidad visual | COMPLETADA |
-| Roadmap B4 | Monitoring + logging | COMPLETADA |
+| Roadmap A | Critico (Stripe enforcement, seguridad, SEO, RGPD, error boundaries) | COMPLETADA |
+| Roadmap B | Importante (emails, validacion APIs, onboarding, monitoring, performance) | COMPLETADA |
+| Roadmap C1 | Tests criticos (155 tests, 11 archivos) | COMPLETADA |
+| Roadmap C2 | Stripe Connect (pagos reservas online, 5% comision) | COMPLETADA |
+| Roadmap C3 | Comunicacion masiva (email/push, segmentacion) | COMPLETADA |
+| Roadmap C4 | Reservas recurrentes (clases fijas semanales, cron) | COMPLETADA |
+| Roadmap D1 | Accesibilidad WCAG 2.1 AA | COMPLETADA |
+| Roadmap C5 | i18n completo (cookie locale, LanguageSelector, ~950 keys) | COMPLETADA |
+| Roadmap C6 | Pago por jugador en reservas y partidas abiertas | COMPLETADA |
+| Roadmap D3 | Dashboard mejorado (revenue chart, agenda del dia) | COMPLETADA |
 | 5 | Crecimiento (multi-deporte, API, white-label) | NO INICIADA |
 
 ---
@@ -382,20 +412,25 @@ Items condicionales segun config del club (enablePlayerBooking, enableOpenMatche
 - [x] **Emails transaccionales** - 7 emails branded: bienvenida, reservas, reset, contacto (B1)
 - [x] **Logger estructurado** - JSON prod, legible dev, integrado en APIs criticas (B4 parcial)
 
-### Corto plazo (siguiente - rumbo a beta)
-1. **Onboarding admin** (B3) - Wizard post-registro, checklist, estados vacios
-2. **Validacion completa APIs** (B2) - Zod schemas en todas las rutas, middleware validateBody
-3. **Performance basica** (B5) - next/image, @@index Prisma, cache datos publicos
-4. **Tests criticos** (C1) - Unit tests para auth, pricing, tokens, CSV, notifications
+### Completado (rumbo a beta)
+1. [x] **Onboarding admin** (B3) - Wizard post-registro, checklist, estados vacios
+2. [x] **Validacion completa APIs** (B2) - Zod schemas en todas las rutas
+3. [x] **Performance basica** (B5) - next/image, @@index Prisma, cache datos publicos
+4. [x] **Tests criticos** (C1) - 155 unit tests (auth, pricing, tokens, CSV, etc.)
+5. [x] **Stripe Connect** (C2) - Pagos de reservas online, 5% comision plataforma
+6. [x] **Comunicacion masiva** (C3) - Email/push a socios, segmentacion por nivel/actividad
+7. [x] **Reservas recurrentes** (C4) - Clases fijas semanales, cron job
+8. [x] **i18n completo** (C5) - Cookie locale, LanguageSelector, ~950 keys ES/EN
+9. [x] **Pago por jugador** (C6) - BookingPayment, cobro individual, sync paymentStatus
+10. [x] **Dashboard mejorado** (D3) - Revenue chart 7 dias, resumen financiero, agenda i18n
 
-### Medio plazo (valor añadido)
-5. **Stripe Connect** (C2) - Pagos de reservas online, split payment
-6. **Comunicacion masiva** (C3) - Email/push a todos los socios, segmentacion
-7. **Reservas recurrentes** (C4) - Clases fijas semanales
-8. **i18n completo** (C5) - Migrar strings hardcoded, selector idioma
+### Pendiente (pulido post-lanzamiento)
+11. [ ] **E2E tests** (D2) - Playwright, flujos criticos
+12. [ ] **Social** (D4) - Chat jugadores, valoraciones, buscar jugadores
+13. [ ] **CI/CD** (D5) - GitHub Actions: lint + test + build en PR
 
 ### Largo plazo (crecimiento)
-9. **Multi-deporte** - Extender a tenis, futbol sala, etc.
-10. **API publica** - Para integraciones terceros
-11. **White-label** - Dominio personalizado por club
-12. **Real-time** - Websockets para actualizaciones en vivo
+14. **Multi-deporte** - Extender a tenis, futbol sala, etc.
+15. **API publica** - Para integraciones terceros
+16. **White-label** - Dominio personalizado por club
+17. **Real-time** - Websockets para actualizaciones en vivo

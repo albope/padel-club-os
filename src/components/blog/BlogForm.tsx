@@ -1,36 +1,17 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useMemo } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
 import { useRouter } from 'next/navigation'
+import { useTranslations } from 'next-intl'
 import { Loader2 } from 'lucide-react'
 import { toast } from '@/hooks/use-toast'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
-
-const BlogSchema = z.object({
-  title: z.string().min(3, "El titulo debe tener al menos 3 caracteres."),
-  slug: z
-    .string()
-    .min(3, "El slug debe tener al menos 3 caracteres.")
-    .regex(
-      /^[a-z0-9]+(?:-[a-z0-9]+)*$/,
-      "Solo letras minusculas, numeros y guiones."
-    ),
-  content: z.string().min(1, "El contenido es requerido."),
-  excerpt: z.string().min(10, "El extracto debe tener al menos 10 caracteres."),
-  category: z.string().min(1, "La categoria es requerida."),
-  published: z.boolean(),
-  imageUrl: z.string().optional(),
-  authorName: z.string().min(2, "El nombre del autor es requerido."),
-  readTime: z.string().optional(),
-})
-
-type BlogFormValues = z.infer<typeof BlogSchema>
 
 interface BlogFormProps {
   post?: {
@@ -49,8 +30,30 @@ interface BlogFormProps {
 
 const BlogForm: React.FC<BlogFormProps> = ({ post }) => {
   const router = useRouter()
+  const t = useTranslations('blogAdmin.form')
+  const tc = useTranslations('common')
   const [isLoading, setIsLoading] = useState(false)
   const isEditing = !!post
+
+  const BlogSchema = useMemo(() => z.object({
+    title: z.string().min(3, t('titleMin')),
+    slug: z
+      .string()
+      .min(3, t('slugMin'))
+      .regex(
+        /^[a-z0-9]+(?:-[a-z0-9]+)*$/,
+        t('slugFormat')
+      ),
+    content: z.string().min(1, t('contentRequired')),
+    excerpt: z.string().min(10, t('excerptMin')),
+    category: z.string().min(1, t('categoryRequired')),
+    published: z.boolean(),
+    imageUrl: z.string().optional(),
+    authorName: z.string().min(2, t('authorRequired')),
+    readTime: z.string().optional(),
+  }), [t])
+
+  type BlogFormValues = z.infer<typeof BlogSchema>
 
   const form = useForm<BlogFormValues>({
     resolver: zodResolver(BlogSchema),
@@ -101,14 +104,14 @@ const BlogForm: React.FC<BlogFormProps> = ({ post }) => {
 
       if (!response.ok) {
         const data = await response.json().catch(() => ({}))
-        throw new Error(data.error || 'Error al guardar el articulo.')
+        throw new Error(data.error || t('saveError'))
       }
 
       toast({
-        title: isEditing ? "Articulo actualizado" : "Articulo creado",
+        title: isEditing ? t('updated') : t('created'),
         description: isEditing
-          ? "El articulo se ha actualizado correctamente."
-          : "El articulo se ha creado correctamente.",
+          ? t('updatedDesc')
+          : t('createdDesc'),
         variant: "success",
       })
 
@@ -116,9 +119,9 @@ const BlogForm: React.FC<BlogFormProps> = ({ post }) => {
       router.refresh()
     } catch (err: unknown) {
       const message =
-        err instanceof Error ? err.message : 'Error al guardar el articulo.'
+        err instanceof Error ? err.message : t('saveError')
       toast({
-        title: "Error",
+        title: tc('error'),
         description: message,
         variant: "destructive",
       })
@@ -131,11 +134,11 @@ const BlogForm: React.FC<BlogFormProps> = ({ post }) => {
     <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 max-w-2xl">
       <div className="grid gap-6 sm:grid-cols-2">
         <div className="space-y-2">
-          <Label htmlFor="title">Titulo</Label>
+          <Label htmlFor="title">{t('titleLabel')}</Label>
           <Input
             id="title"
             {...form.register('title')}
-            placeholder="Titulo del articulo"
+            placeholder={t('titlePlaceholder')}
           />
           {form.formState.errors.title && (
             <p className="text-sm text-destructive">{form.formState.errors.title.message}</p>
@@ -143,11 +146,11 @@ const BlogForm: React.FC<BlogFormProps> = ({ post }) => {
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="slug">Slug (URL)</Label>
+          <Label htmlFor="slug">{t('slugLabel')}</Label>
           <Input
             id="slug"
             {...form.register('slug')}
-            placeholder="titulo-del-articulo"
+            placeholder={t('slugPlaceholder')}
           />
           {form.formState.errors.slug && (
             <p className="text-sm text-destructive">{form.formState.errors.slug.message}</p>
@@ -156,11 +159,11 @@ const BlogForm: React.FC<BlogFormProps> = ({ post }) => {
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="excerpt">Extracto</Label>
+        <Label htmlFor="excerpt">{t('excerptLabel')}</Label>
         <Textarea
           id="excerpt"
           {...form.register('excerpt')}
-          placeholder="Breve descripcion del articulo para la vista previa..."
+          placeholder={t('excerptPlaceholder')}
           rows={3}
           className="resize-y"
         />
@@ -171,11 +174,11 @@ const BlogForm: React.FC<BlogFormProps> = ({ post }) => {
 
       <div className="grid gap-6 sm:grid-cols-3">
         <div className="space-y-2">
-          <Label htmlFor="category">Categoria</Label>
+          <Label htmlFor="category">{t('categoryLabel')}</Label>
           <Input
             id="category"
             {...form.register('category')}
-            placeholder="Producto, Gestion, Consejos..."
+            placeholder={t('categoryPlaceholder')}
           />
           {form.formState.errors.category && (
             <p className="text-sm text-destructive">{form.formState.errors.category.message}</p>
@@ -183,11 +186,11 @@ const BlogForm: React.FC<BlogFormProps> = ({ post }) => {
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="authorName">Autor</Label>
+          <Label htmlFor="authorName">{t('authorLabel')}</Label>
           <Input
             id="authorName"
             {...form.register('authorName')}
-            placeholder="Nombre del autor"
+            placeholder={t('authorPlaceholder')}
           />
           {form.formState.errors.authorName && (
             <p className="text-sm text-destructive">{form.formState.errors.authorName.message}</p>
@@ -195,21 +198,21 @@ const BlogForm: React.FC<BlogFormProps> = ({ post }) => {
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="readTime">Tiempo de lectura</Label>
+          <Label htmlFor="readTime">{t('readTimeLabel')}</Label>
           <Input
             id="readTime"
             {...form.register('readTime')}
-            placeholder="5 min"
+            placeholder={t('readTimePlaceholder')}
           />
         </div>
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="content">Contenido</Label>
+        <Label htmlFor="content">{t('contentLabel')}</Label>
         <Textarea
           id="content"
           {...form.register('content')}
-          placeholder="Escribe el contenido del articulo..."
+          placeholder={t('contentPlaceholder')}
           rows={15}
           className="resize-y min-h-[300px]"
         />
@@ -219,11 +222,11 @@ const BlogForm: React.FC<BlogFormProps> = ({ post }) => {
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="imageUrl">URL de Imagen (opcional)</Label>
+        <Label htmlFor="imageUrl">{t('imageUrl')}</Label>
         <Input
           id="imageUrl"
           {...form.register('imageUrl')}
-          placeholder="https://ejemplo.com/imagen.jpg"
+          placeholder={t('imagePlaceholder')}
         />
       </div>
 
@@ -235,7 +238,7 @@ const BlogForm: React.FC<BlogFormProps> = ({ post }) => {
           className="h-4 w-4 rounded border-input bg-background"
         />
         <Label htmlFor="published" className="cursor-pointer">
-          Publicar inmediatamente
+          {t('publishNow')}
         </Label>
       </div>
 
@@ -245,11 +248,11 @@ const BlogForm: React.FC<BlogFormProps> = ({ post }) => {
           variant="outline"
           onClick={() => router.push('/dashboard/blog')}
         >
-          Cancelar
+          {tc('cancel')}
         </Button>
         <Button type="submit" disabled={isLoading}>
           {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-          {isEditing ? 'Guardar Cambios' : 'Crear Articulo'}
+          {isEditing ? t('save') : t('create')}
         </Button>
       </div>
     </form>

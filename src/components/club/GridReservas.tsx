@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
+import { useTranslations, useLocale } from 'next-intl';
 import { ChevronLeft, ChevronRight, Loader2, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -71,6 +72,9 @@ function indiceFila(hora: string, aperturaMinutos: number): number {
 
 export default function GridReservas({ club, pistas, sesionUserId, slug }: GridReservasProps) {
   const router = useRouter();
+  const t = useTranslations('booking');
+  const locale = useLocale();
+  const localeCode = locale === 'en' ? 'en-GB' : 'es-ES';
   const openingTime = club.openingTime || '09:00';
   const closingTime = club.closingTime || '23:00';
   const duracion = club.bookingDuration || 90;
@@ -217,7 +221,7 @@ export default function GridReservas({ club, pistas, sesionUserId, slug }: GridR
     router.push(`/club/${slug}/partidas`);
   };
 
-  const fechaFormateada = new Date(`${fecha}T12:00:00`).toLocaleDateString('es-ES', {
+  const fechaFormateada = new Date(`${fecha}T12:00:00`).toLocaleDateString(localeCode, {
     weekday: 'long',
     day: 'numeric',
     month: 'long',
@@ -228,7 +232,7 @@ export default function GridReservas({ club, pistas, sesionUserId, slug }: GridR
     <div className="space-y-4">
       {/* Navegacion de fecha */}
       <div className="flex items-center justify-between rounded-lg border bg-card p-3">
-        <Button variant="ghost" size="icon" onClick={() => moverFecha(-1)} aria-label="Dia anterior">
+        <Button variant="ghost" size="icon" onClick={() => moverFecha(-1)} aria-label={t('previousDay')}>
           <ChevronLeft className="h-5 w-5" />
         </Button>
         <div className="flex items-center gap-2 text-center">
@@ -242,11 +246,11 @@ export default function GridReservas({ club, pistas, sesionUserId, slug }: GridR
               className="text-xs h-7"
               onClick={() => setFecha(hoy)}
             >
-              Hoy
+              {t('today')}
             </Button>
           )}
         </div>
-        <Button variant="ghost" size="icon" onClick={() => moverFecha(1)} aria-label="Dia siguiente">
+        <Button variant="ghost" size="icon" onClick={() => moverFecha(1)} aria-label={t('nextDay')}>
           <ChevronRight className="h-5 w-5" />
         </Button>
       </div>
@@ -255,19 +259,19 @@ export default function GridReservas({ club, pistas, sesionUserId, slug }: GridR
       <div className="flex gap-3 sm:gap-4 text-xs flex-wrap">
         <div className="flex items-center gap-1.5">
           <div className="w-3 h-3 rounded-sm bg-background border border-border" />
-          <span className="text-muted-foreground">Disponible</span>
+          <span className="text-muted-foreground">{t('available')}</span>
         </div>
         <div className="flex items-center gap-1.5">
           <div className="w-3 h-3 rounded-sm bg-red-100 border border-red-200" />
-          <span className="text-muted-foreground">Ocupado</span>
+          <span className="text-muted-foreground">{t('occupied')}</span>
         </div>
         <div className="flex items-center gap-1.5">
           <div className="w-3 h-3 rounded-sm bg-blue-100 border border-blue-200" />
-          <span className="text-muted-foreground">Tu reserva</span>
+          <span className="text-muted-foreground">{t('yourBooking')}</span>
         </div>
         <div className="flex items-center gap-1.5">
           <div className="w-3 h-3 rounded-sm bg-green-100 border border-green-200" />
-          <span className="text-muted-foreground">Partida abierta</span>
+          <span className="text-muted-foreground">{t('openMatch')}</span>
         </div>
       </div>
 
@@ -281,7 +285,7 @@ export default function GridReservas({ club, pistas, sesionUserId, slug }: GridR
         </div>
       ) : pistas.length === 0 ? (
         <div className="text-center py-12 text-muted-foreground">
-          No hay pistas configuradas en este club.
+          {t('noCourts')}
         </div>
       ) : (
         <div className="overflow-x-auto rounded-lg border bg-card">
@@ -295,7 +299,7 @@ export default function GridReservas({ club, pistas, sesionUserId, slug }: GridR
           >
             {/* Header: celda vacia + nombres de pistas */}
             <div className="sticky left-0 z-20 bg-muted border-b border-r p-2 text-xs font-medium text-muted-foreground flex items-center justify-center">
-              Hora
+              {t('hour')}
             </div>
             {pistas.map((pista, colIdx) => (
               <div
@@ -362,11 +366,11 @@ export default function GridReservas({ club, pistas, sesionUserId, slug }: GridR
                             </span>
                             <span className="flex items-center gap-0.5 leading-tight">
                               <Users className="h-2.5 w-2.5" />
-                              {bloque.plazasLibres} libres
+                              {bloque.plazasLibres} {t('free')}
                             </span>
                             {bloque.nivelMin != null && (
                               <span className="opacity-75 leading-tight">
-                                Nivel {bloque.nivelMin}-{bloque.nivelMax}
+                                {t('level')} {bloque.nivelMin}-{bloque.nivelMax}
                               </span>
                             )}
                           </button>
@@ -387,7 +391,7 @@ export default function GridReservas({ club, pistas, sesionUserId, slug }: GridR
                             {horaInicioStr}-{horaFinStr}
                           </span>
                           {propia && (
-                            <span className="leading-tight">Tu reserva</span>
+                            <span className="leading-tight">{t('yourBooking')}</span>
                           )}
                         </div>
                       );

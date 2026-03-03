@@ -3,7 +3,9 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
-import { Users, Clock, Loader2, UserPlus, UserMinus, Plus, Filter, ChevronLeft, ChevronRight, X, CalendarDays } from 'lucide-react';
+import { Users, Clock, Loader2, UserPlus, UserMinus, Plus, Filter, ChevronLeft, ChevronRight, X, CalendarDays, MessageCircle } from 'lucide-react';
+import Link from 'next/link';
+import { PartidaChat } from '@/components/social/PartidaChat';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -22,6 +24,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { toast } from '@/hooks/use-toast';
+import { useLocale } from 'next-intl';
 import NuevaPartidaJugadorForm from '@/components/club/NuevaPartidaJugadorForm';
 
 interface OpenMatch {
@@ -49,6 +52,8 @@ export default function ClubOpenMatchesPage() {
   const router = useRouter();
   const { data: session } = useSession();
   const slug = params.slug as string;
+  const locale = useLocale();
+  const localeCode = locale === 'es' ? 'es-ES' : 'en-GB';
 
   const [matches, setMatches] = useState<OpenMatch[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -65,6 +70,10 @@ export default function ClubOpenMatchesPage() {
 
   // Paginacion
   const [paginaActual, setPaginaActual] = useState(1);
+
+  // Chat
+  const [chatOpenMatchId, setChatOpenMatchId] = useState<string | null>(null);
+  const chatMatch = matches.find(m => m.id === chatOpenMatchId);
 
   // Limites de fecha basados en maxAdvanceBooking
   const hoyStr = useMemo(() => formatDateInput(new Date()), []);
@@ -459,13 +468,13 @@ export default function ClubOpenMatchesPage() {
                         <div className="flex items-center gap-2 flex-wrap">
                           <Badge variant="secondary">{match.court.name}</Badge>
                           <span className="text-sm font-medium">
-                            {new Date(match.matchTime).toLocaleDateString('es-ES', {
+                            {new Date(match.matchTime).toLocaleDateString(localeCode, {
                               weekday: 'short', day: 'numeric', month: 'short',
                             })}
                           </span>
                           <span className="text-sm text-muted-foreground flex items-center gap-1">
                             <Clock className="h-3.5 w-3.5" />
-                            {new Date(match.matchTime).toLocaleTimeString('es-ES', {
+                            {new Date(match.matchTime).toLocaleTimeString(localeCode, {
                               hour: '2-digit', minute: '2-digit',
                             })}
                           </span>
@@ -484,10 +493,12 @@ export default function ClubOpenMatchesPage() {
                         {/* Jugadores */}
                         <div className="flex items-center gap-2 flex-wrap">
                           {match.players.map((p, i) => (
-                            <Badge key={i} variant="outline" className="text-xs">
-                              {p.user.name || 'Jugador'}
-                              {p.user.level && ` (${p.user.level})`}
-                            </Badge>
+                            <Link key={i} href={`/club/${slug}/jugadores/${p.user.id}`}>
+                              <Badge variant="outline" className="text-xs hover:bg-muted cursor-pointer">
+                                {p.user.name || 'Jugador'}
+                                {p.user.level && ` (${p.user.level})`}
+                              </Badge>
+                            </Link>
                           ))}
                           {Array.from({ length: 4 - match.players.length }).map((_, i) => (
                             <Badge key={`empty-${i}`} variant="outline" className="text-xs text-muted-foreground border-dashed">
@@ -498,7 +509,18 @@ export default function ClubOpenMatchesPage() {
                       </div>
 
                       {/* Accion */}
-                      <div className="shrink-0">
+                      <div className="shrink-0 flex items-center gap-1.5">
+                        {isInMatch && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => setChatOpenMatchId(match.id)}
+                            aria-label="Chat"
+                            className="h-8 w-8 p-0"
+                          >
+                            <MessageCircle className="h-4 w-4" />
+                          </Button>
+                        )}
                         {isInMatch ? (
                           <Button
                             variant="outline"
@@ -572,6 +594,17 @@ export default function ClubOpenMatchesPage() {
           )}
         </>
       )}
+
+      {/* Chat Sheet */}
+      <PartidaChat
+        openMatchId={chatOpenMatchId || ''}
+        isOpen={!!chatOpenMatchId}
+        onClose={() => setChatOpenMatchId(null)}
+        matchInfo={{
+          courtName: chatMatch?.court.name || '',
+          matchTime: chatMatch?.matchTime || new Date().toISOString(),
+        }}
+      />
     </div>
   );
 }

@@ -1,6 +1,7 @@
 "use client"
 
 import { useRef, useEffect, useState } from "react"
+import { useLocale } from 'next-intl'
 
 interface CounterNumberProps {
   target: number
@@ -15,6 +16,8 @@ export default function CounterNumber({
   duration = 2000,
   className,
 }: CounterNumberProps) {
+  const locale = useLocale()
+  const localeCode = locale === 'es' ? 'es-ES' : 'en-GB'
   const ref = useRef<HTMLSpanElement>(null)
   const [count, setCount] = useState(0)
   const [started, setStarted] = useState(false)
@@ -59,7 +62,7 @@ export default function CounterNumber({
 
   return (
     <span ref={ref} className={className}>
-      {count.toLocaleString("es-ES")}
+      {count.toLocaleString(localeCode)}
       {suffix}
     </span>
   )

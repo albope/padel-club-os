@@ -13,63 +13,51 @@ import {
 } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { getTranslations } from "next-intl/server"
 
-export const metadata: Metadata = {
-  title: "Sobre mi",
-  description:
-    "Conoce a Alberto Bort, el desarrollador detras de Padel Club OS. Mi mision es que cada club de padel en Espana tenga el software que merece.",
-  openGraph: {
-    title: "Sobre mi - Padel Club OS",
-    description:
-      "Conoce a Alberto Bort, el desarrollador detras de Padel Club OS. Mi mision es que cada club de padel en Espana tenga el software que merece.",
-    url: "/sobre-nosotros",
-  },
-  alternates: {
-    canonical: "/sobre-nosotros",
-  },
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations('pages.about')
+  return {
+    title: t('metaTitle'),
+    description: t('metaDescription'),
+    openGraph: {
+      title: `${t('metaTitle')} - Padel Club OS`,
+      description: t('metaDescription'),
+      url: "/sobre-nosotros",
+    },
+    alternates: {
+      canonical: "/sobre-nosotros",
+    },
+  }
 }
 
-const principios = [
-  {
-    icono: Sparkles,
-    titulo: "Simplicidad radical",
-    descripcion:
-      "Si una función necesita un manual, está mal diseñada. Cada pantalla de Padel Club OS busca ser obvia.",
-  },
-  {
-    icono: Eye,
-    titulo: "Transparencia total",
-    descripcion:
-      "Precios públicos, sin letra pequeña, sin llamadas de ventas. Sabes lo que pagas y lo que recibes.",
-  },
-  {
-    icono: MapPin,
-    titulo: "Pensado para España",
-    descripcion:
-      "No es un software americano traducido. Entiendo los horarios, la cultura y las necesidades de los clubes españoles.",
-  },
-  {
-    icono: Heart,
-    titulo: "Obsesionado con el club",
-    descripcion:
-      "No construyo funcionalidades porque suenan bien. Las construyo porque un club real me dijo que las necesitaba.",
-  },
-]
+const principioIconos = [Sparkles, Eye, MapPin, Heart]
 
-const estadisticas = [
-  { valor: "5 min", etiqueta: "Para configurar tu club" },
-  { valor: "0 €", etiqueta: "Para empezar (14 días gratis)" },
-  { valor: "24/7", etiqueta: "Reservas sin intervención" },
-  { valor: "100%", etiqueta: "Pensado para pádel" },
-]
+const tecnologiaIconos = [Code, Smartphone, Zap]
 
-const tecnologias = [
-  { icono: Code, nombre: "Next.js & React", descripcion: "Aplicaciones web rápidas y modernas" },
-  { icono: Smartphone, nombre: "PWA", descripcion: "Funciona offline, se instala como app nativa" },
-  { icono: Zap, nombre: "TypeScript", descripcion: "Código robusto y mantenible" },
-]
+export default async function SobreNosotrosPage() {
+  const t = await getTranslations('pages.about')
 
-export default function SobreNosotrosPage() {
+  const principios = [
+    { icono: principioIconos[0], titulo: t('principle1Title'), descripcion: t('principle1Desc') },
+    { icono: principioIconos[1], titulo: t('principle2Title'), descripcion: t('principle2Desc') },
+    { icono: principioIconos[2], titulo: t('principle3Title'), descripcion: t('principle3Desc') },
+    { icono: principioIconos[3], titulo: t('principle4Title'), descripcion: t('principle4Desc') },
+  ]
+
+  const estadisticas = [
+    { valor: t('stat1Value'), etiqueta: t('stat1Label') },
+    { valor: t('stat2Value'), etiqueta: t('stat2Label') },
+    { valor: t('stat3Value'), etiqueta: t('stat3Label') },
+    { valor: t('stat4Value'), etiqueta: t('stat4Label') },
+  ]
+
+  const tecnologias = [
+    { icono: tecnologiaIconos[0], nombre: t('tech1Name'), descripcion: t('tech1Desc') },
+    { icono: tecnologiaIconos[1], nombre: t('tech2Name'), descripcion: t('tech2Desc') },
+    { icono: tecnologiaIconos[2], nombre: t('tech3Name'), descripcion: t('tech3Desc') },
+  ]
+
   return (
     <>
       {/* Hero */}
@@ -81,21 +69,20 @@ export default function SobreNosotrosPage() {
             className="inline-flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
           >
             <ArrowLeft className="h-4 w-4" />
-            Volver al inicio
+            {t('backHome')}
           </Link>
 
           <Badge variant="secondary" className="gap-1.5 px-3 py-1 text-sm font-medium">
-            Mi historia
+            {t('badge')}
           </Badge>
 
           <h1 className="max-w-4xl text-4xl font-bold tracking-tight sm:text-5xl md:text-6xl">
-            Los clubes de pádel merecen un software{" "}
-            <span className="text-primary">a la altura</span>
+            {t('title').replace(t('titleHighlight'), '')}{" "}
+            <span className="text-primary">{t('titleHighlight')}</span>
           </h1>
 
           <p className="max-w-2xl text-lg text-muted-foreground md:text-xl">
-            Soy desarrollador web y jugador de pádel. Vi un problema: la gestión de clubes
-            seguía anclada en hojas de cálculo, WhatsApp y software de los 2000. Decidí cambiarlo.
+            {t('subtitle')}
           </p>
         </div>
       </section>
@@ -104,30 +91,19 @@ export default function SobreNosotrosPage() {
       <section className="border-t bg-muted/30 py-24">
         <div className="container mx-auto max-w-3xl">
           <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
-            Cómo empezó todo
+            {t('howItStarted')}
           </h2>
 
           <div className="mt-8 space-y-6 text-lg leading-relaxed text-muted-foreground">
-            <p>
-              Todo empezó reservando pista por WhatsApp. Veía a los encargados del club
-              apuntando reservas en libretas, gestionando ligas en Excel y contestando
-              mensajes a las 11 de la noche. Sabía que tenía que haber una forma mejor.
-            </p>
+            <p>{t('storyP1')}</p>
 
             <div className="border-l-4 border-primary pl-6">
               <p className="font-medium text-foreground">
-                &ldquo;Quería construir la herramienta que me hubiera gustado encontrar
-                como jugador y que cualquier club pudiera usar desde el primer día.&rdquo;
+                &ldquo;{t('storyQuote')}&rdquo;
               </p>
             </div>
 
-            <p>
-              Como desarrollador especializado en aplicaciones web modernas y PWAs,
-              tenía las herramientas para hacerlo. Así nació Padel Club OS: una plataforma
-              pensada desde cero para clubes de pádel en España. Sin traducciones forzadas
-              de software americano, sin funcionalidades de golf o tenis que nadie necesita.
-              Sólo lo esencial, bien hecho.
-            </p>
+            <p>{t('storyP2')}</p>
           </div>
         </div>
       </section>
@@ -150,12 +126,10 @@ export default function SobreNosotrosPage() {
                   Alberto Bort
                 </h2>
                 <p className="mt-1 text-lg font-medium text-primary">
-                  Desarrollador Web & Arquitecto PWA
+                  {t('role')}
                 </p>
                 <p className="mt-4 text-lg leading-relaxed text-muted-foreground">
-                  Desarrollo aplicaciones web modernas y Progressive Web Apps que cargan rápido,
-                  funcionan offline y convierten visitantes en clientes. Padel Club OS es el
-                  resultado de combinar mi experiencia técnica con mi pasión por el pádel.
+                  {t('bioDesc')}
                 </p>
                 <div className="mt-6 flex flex-wrap gap-3">
                   {tecnologias.map((tech) => (
@@ -179,10 +153,10 @@ export default function SobreNosotrosPage() {
         <div className="container">
           <div className="mx-auto max-w-2xl text-center">
             <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
-              Mis principios
+              {t('principles')}
             </h2>
             <p className="mt-4 text-lg text-muted-foreground">
-              Las ideas que guían cada decisión que tomo.
+              {t('principlesSubtitle')}
             </p>
           </div>
 
@@ -210,10 +184,10 @@ export default function SobreNosotrosPage() {
         <div className="container">
           <div className="mx-auto max-w-2xl text-center">
             <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
-              Diseñado para simplificar
+              {t('designedToSimplify')}
             </h2>
             <p className="mt-4 text-lg text-muted-foreground">
-              Todo lo que necesitas para gestionar tu club, desde el primer día.
+              {t('designedToSimplifyDesc')}
             </p>
           </div>
 
@@ -239,11 +213,10 @@ export default function SobreNosotrosPage() {
 
             <div className="relative z-10">
               <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
-                Forma parte del cambio
+                {t('joinChange')}
               </h2>
               <p className="mx-auto mt-4 max-w-xl text-lg text-primary-foreground/80">
-                Prueba Padel Club OS gratis durante 14 días y descubre lo fácil
-                que es gestionar tu club.
+                {t('joinChangeDesc')}
               </p>
               <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
                 <Button
@@ -253,7 +226,7 @@ export default function SobreNosotrosPage() {
                   asChild
                 >
                   <Link href="/register">
-                    Empezar ahora
+                    {t('startNow')}
                     <ArrowRight className="h-4 w-4" />
                   </Link>
                 </Button>
@@ -263,7 +236,7 @@ export default function SobreNosotrosPage() {
                   className="text-base text-primary-foreground hover:bg-primary-foreground/10 hover:text-primary-foreground"
                   asChild
                 >
-                  <Link href="/#precios">Ver precios</Link>
+                  <Link href="/#precios">{t('seePricing')}</Link>
                 </Button>
               </div>
             </div>

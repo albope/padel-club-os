@@ -76,6 +76,7 @@ export default withAuth(
           pathname.startsWith("/api/health") ||
           pathname.startsWith("/api/blog/public") ||
           pathname.startsWith("/api/club/") ||
+          pathname.startsWith("/api/locale") ||
           pathname.startsWith("/club")
         ) {
           return true

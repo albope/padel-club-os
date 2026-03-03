@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useLocale } from 'next-intl';
 import { OpenMatch, Court } from '@prisma/client';
 import { Calendar, Clock, MapPin, Users, ShieldCheck, Hourglass, XCircle, Pencil, BarChart3 } from 'lucide-react';
 import EmptyState from '@/components/onboarding/EmptyState';
@@ -46,6 +47,8 @@ const getStatusBadge = (status: MatchWithDetails['status']) => {
 };
 
 const PartidaCard: React.FC<{ match: MatchWithDetails; onDelete: (matchId: string) => void; isLoading: boolean; clubName: string; }> = ({ match, onDelete, isLoading, clubName }) => {
+  const locale = useLocale();
+  const localeCode = locale === 'es' ? 'es-ES' : 'en-GB';
   const statusInfo = getStatusBadge(match.status);
   const StatusIcon = statusInfo.icon;
 
@@ -59,8 +62,8 @@ const PartidaCard: React.FC<{ match: MatchWithDetails; onDelete: (matchId: strin
   }
 
   const handleShare = () => {
-    const date = new Date(match.matchTime).toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' });
-    const time = new Date(match.matchTime).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+    const date = new Date(match.matchTime).toLocaleDateString(localeCode, { weekday: 'long', day: 'numeric', month: 'long' });
+    const time = new Date(match.matchTime).toLocaleTimeString(localeCode, { hour: '2-digit', minute: '2-digit' });
     const openSlots = 4 - match.players.length;
 
     let message = `*¡Partida de pádel abierta en ${clubName}!*\n\n`;
@@ -92,8 +95,8 @@ const PartidaCard: React.FC<{ match: MatchWithDetails; onDelete: (matchId: strin
         <div className="flex justify-between items-start mb-4">
           <div>
             <p className="flex items-center gap-2 font-semibold text-foreground"><MapPin className="h-4 w-4 text-muted-foreground" /> {match.court.name}</p>
-            <p className="flex items-center gap-2 text-sm text-muted-foreground mt-1"><Calendar className="h-4 w-4" /> {new Date(match.matchTime).toLocaleDateString('es-ES')}</p>
-            <p className="flex items-center gap-2 text-sm text-muted-foreground"><Clock className="h-4 w-4" /> {new Date(match.matchTime).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}</p>
+            <p className="flex items-center gap-2 text-sm text-muted-foreground mt-1"><Calendar className="h-4 w-4" /> {new Date(match.matchTime).toLocaleDateString(localeCode)}</p>
+            <p className="flex items-center gap-2 text-sm text-muted-foreground"><Clock className="h-4 w-4" /> {new Date(match.matchTime).toLocaleTimeString(localeCode, { hour: '2-digit', minute: '2-digit' })}</p>
             {levelText && (
               <p className="flex items-center gap-2 text-sm text-muted-foreground"><BarChart3 className="h-4 w-4" /> Nivel: {levelText}</p>
             )}

@@ -12,34 +12,36 @@ import {
   FileText,
   Medal,
   Megaphone,
+  Repeat,
   type LucideIcon,
 } from 'lucide-react';
 
 export interface NavItem {
-  name: string;
+  nameKey: string;
   href: string;
   icon: LucideIcon;
 }
 
 export const navItems: NavItem[] = [
-  { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
-  { name: 'Reservas', href: '/dashboard/reservas', icon: Calendar },
-  { name: 'Pistas', href: '/dashboard/pistas', icon: LayoutGrid },
-  { name: 'Competiciones', href: '/dashboard/competitions', icon: Trophy },
-  { name: 'Rankings', href: '/dashboard/rankings', icon: Medal },
-  { name: 'Socios', href: '/dashboard/socios', icon: Users },
-  { name: 'Partidas Abiertas', href: '/dashboard/partidas-abiertas', icon: CalendarPlus },
-  { name: 'Noticias', href: '/dashboard/noticias', icon: Newspaper },
-  { name: 'Comunicacion', href: '/dashboard/comunicacion', icon: Megaphone },
-  { name: 'Blog', href: '/dashboard/blog', icon: FileText },
-  { name: 'Analiticas', href: '/dashboard/analiticas', icon: BarChart3 },
-  { name: 'Facturacion', href: '/dashboard/facturacion', icon: CreditCard },
-  { name: 'Ajustes', href: '/dashboard/ajustes', icon: Settings },
+  { nameKey: 'nav.dashboard', href: '/dashboard', icon: LayoutDashboard },
+  { nameKey: 'nav.reservas', href: '/dashboard/reservas', icon: Calendar },
+  { nameKey: 'nav.clasesFijas', href: '/dashboard/reservas-recurrentes', icon: Repeat },
+  { nameKey: 'nav.pistas', href: '/dashboard/pistas', icon: LayoutGrid },
+  { nameKey: 'nav.competiciones', href: '/dashboard/competitions', icon: Trophy },
+  { nameKey: 'nav.rankings', href: '/dashboard/rankings', icon: Medal },
+  { nameKey: 'nav.socios', href: '/dashboard/socios', icon: Users },
+  { nameKey: 'nav.partidasAbiertas', href: '/dashboard/partidas-abiertas', icon: CalendarPlus },
+  { nameKey: 'nav.noticias', href: '/dashboard/noticias', icon: Newspaper },
+  { nameKey: 'nav.comunicacion', href: '/dashboard/comunicacion', icon: Megaphone },
+  { nameKey: 'nav.blog', href: '/dashboard/blog', icon: FileText },
+  { nameKey: 'nav.analiticas', href: '/dashboard/analiticas', icon: BarChart3 },
+  { nameKey: 'nav.facturacion', href: '/dashboard/facturacion', icon: CreditCard },
+  { nameKey: 'nav.ajustes', href: '/dashboard/ajustes', icon: Settings },
 ];
 
 export const mobileQuickNavItems: NavItem[] = [
-  { name: 'Inicio', href: '/dashboard', icon: LayoutDashboard },
-  { name: 'Reservas', href: '/dashboard/reservas', icon: Calendar },
-  { name: 'Socios', href: '/dashboard/socios', icon: Users },
-  { name: 'Pistas', href: '/dashboard/pistas', icon: LayoutGrid },
+  { nameKey: 'nav.inicio', href: '/dashboard', icon: LayoutDashboard },
+  { nameKey: 'nav.reservas', href: '/dashboard/reservas', icon: Calendar },
+  { nameKey: 'nav.socios', href: '/dashboard/socios', icon: Users },
+  { nameKey: 'nav.pistas', href: '/dashboard/pistas', icon: LayoutGrid },
 ];

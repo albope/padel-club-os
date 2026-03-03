@@ -62,6 +62,20 @@ export type Permission =
   // Comunicacion masiva
   | "broadcast:create"
   | "broadcast:read"
+  // Reservas recurrentes
+  | "recurring-bookings:read"
+  | "recurring-bookings:create"
+  | "recurring-bookings:update"
+  | "recurring-bookings:delete"
+  // Pagos por jugador
+  | "booking-payments:read"
+  | "booking-payments:update"
+  // Social - Perfiles, chat, valoraciones
+  | "players:read"
+  | "chat:read"
+  | "chat:write"
+  | "ratings:read"
+  | "ratings:write"
 
 // Permisos por rol
 const rolePermissions: Record<UserRole, Permission[]> = {
@@ -80,6 +94,9 @@ const rolePermissions: Record<UserRole, Permission[]> = {
     "profile:read", "profile:update", "profile:export", "profile:delete",
     "notifications:read", "notifications:update",
     "broadcast:create", "broadcast:read",
+    "recurring-bookings:read", "recurring-bookings:create", "recurring-bookings:update", "recurring-bookings:delete",
+    "booking-payments:read", "booking-payments:update",
+    "players:read", "chat:read", "chat:write", "ratings:read", "ratings:write",
   ],
   CLUB_ADMIN: [
     "bookings:read", "bookings:create", "bookings:create-any", "bookings:update", "bookings:delete",
@@ -96,6 +113,9 @@ const rolePermissions: Record<UserRole, Permission[]> = {
     "profile:read", "profile:update", "profile:export", "profile:delete",
     "notifications:read", "notifications:update",
     "broadcast:create", "broadcast:read",
+    "recurring-bookings:read", "recurring-bookings:create", "recurring-bookings:update", "recurring-bookings:delete",
+    "booking-payments:read", "booking-payments:update",
+    "players:read", "chat:read", "chat:write", "ratings:read", "ratings:write",
   ],
   STAFF: [
     "bookings:read", "bookings:create", "bookings:create-any", "bookings:update", "bookings:delete",
@@ -107,6 +127,9 @@ const rolePermissions: Record<UserRole, Permission[]> = {
     "court-pricing:read",
     "profile:read", "profile:update", "profile:export", "profile:delete",
     "notifications:read", "notifications:update",
+    "recurring-bookings:read",
+    "booking-payments:read", "booking-payments:update",
+    "players:read", "chat:read", "ratings:read",
   ],
   PLAYER: [
     "bookings:read", "bookings:create",
@@ -115,6 +138,8 @@ const rolePermissions: Record<UserRole, Permission[]> = {
     "open-matches:read", "open-matches:create", "open-matches:join",
     "profile:read", "profile:update", "profile:export", "profile:delete",
     "notifications:read", "notifications:update",
+    "booking-payments:read",
+    "players:read", "chat:read", "chat:write", "ratings:read", "ratings:write",
   ],
 }
 

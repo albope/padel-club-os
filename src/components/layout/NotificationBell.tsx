@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Bell, Check, CalendarDays, Users, Newspaper, Trophy, Megaphone } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { useTranslations, useLocale } from 'next-intl';
 import { Button } from '@/components/ui/button';
 import {
   Popover,
@@ -47,19 +48,20 @@ function iconoPorTipo(tipo: string) {
 }
 
 // Formato relativo de tiempo
-function tiempoRelativo(fecha: string): string {
+function tiempoRelativo(fecha: string, locale: string): string {
   const ahora = new Date();
   const notif = new Date(fecha);
   const diffMs = ahora.getTime() - notif.getTime();
   const diffMin = Math.floor(diffMs / 60000);
   const diffHoras = Math.floor(diffMin / 60);
   const diffDias = Math.floor(diffHoras / 24);
+  const localeCode = locale === 'en' ? 'en-GB' : 'es-ES';
 
-  if (diffMin < 1) return 'Ahora';
-  if (diffMin < 60) return `Hace ${diffMin}min`;
-  if (diffHoras < 24) return `Hace ${diffHoras}h`;
-  if (diffDias < 7) return `Hace ${diffDias}d`;
-  return notif.toLocaleDateString('es-ES', { day: 'numeric', month: 'short' });
+  if (diffMin < 1) return locale === 'en' ? 'Now' : 'Ahora';
+  if (diffMin < 60) return locale === 'en' ? `${diffMin}min ago` : `Hace ${diffMin}min`;
+  if (diffHoras < 24) return locale === 'en' ? `${diffHoras}h ago` : `Hace ${diffHoras}h`;
+  if (diffDias < 7) return locale === 'en' ? `${diffDias}d ago` : `Hace ${diffDias}d`;
+  return notif.toLocaleDateString(localeCode, { day: 'numeric', month: 'short' });
 }
 
 interface NotificationBellProps {
@@ -68,6 +70,8 @@ interface NotificationBellProps {
 
 export function NotificationBell({ urlBase = '' }: NotificationBellProps) {
   const router = useRouter();
+  const t = useTranslations('notifications');
+  const locale = useLocale();
   const [abierto, setAbierto] = useState(false);
   const [notificaciones, setNotificaciones] = useState<Notificacion[]>([]);
   const [sinLeer, setSinLeer] = useState(0);
@@ -102,7 +106,7 @@ export function NotificationBell({ urlBase = '' }: NotificationBellProps) {
       setNotificaciones((prev) => prev.map((n) => ({ ...n, read: true })));
       setSinLeer(0);
     } catch {
-      toast({ title: 'Error', description: 'No se pudieron marcar como leidas.', variant: 'destructive' });
+      toast({ title: t('markAllError') || 'Error', description: t('markAllErrorDesc') || '', variant: 'destructive' });
     }
   };
 
@@ -134,15 +138,15 @@ export function NotificationBell({ urlBase = '' }: NotificationBellProps) {
               {sinLeer > 9 ? '9+' : sinLeer}
             </span>
           )}
-          <span className="sr-only">Notificaciones</span>
+          <span className="sr-only">{t('title')}</span>
           <span aria-live="polite" aria-atomic="true" className="sr-only">
-            {sinLeer > 0 ? `${sinLeer} notificaciones sin leer` : 'Sin notificaciones nuevas'}
+            {sinLeer > 0 ? t('unreadCount', { count: sinLeer }) : t('noNew')}
           </span>
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-80 p-0" align="end">
         <div className="flex items-center justify-between px-4 py-3">
-          <h4 className="text-sm font-semibold">Notificaciones</h4>
+          <h4 className="text-sm font-semibold">{t('title')}</h4>
           {sinLeer > 0 && (
             <Button
               variant="ghost"
@@ -151,7 +155,7 @@ export function NotificationBell({ urlBase = '' }: NotificationBellProps) {
               onClick={marcarTodasLeidas}
             >
               <Check className="mr-1 h-3 w-3" />
-              Marcar todas
+              {t('markAllRead')}
             </Button>
           )}
         </div>
@@ -160,7 +164,7 @@ export function NotificationBell({ urlBase = '' }: NotificationBellProps) {
           {notificaciones.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-8 text-muted-foreground">
               <Bell className="mb-2 h-8 w-8 opacity-50" />
-              <p className="text-sm">Sin notificaciones</p>
+              <p className="text-sm">{t('empty')}</p>
             </div>
           ) : (
             notificaciones.map((notif) => {
@@ -188,7 +192,7 @@ export function NotificationBell({ urlBase = '' }: NotificationBellProps) {
                       {notif.message}
                     </p>
                     <p className="text-[11px] text-muted-foreground/70">
-                      {tiempoRelativo(notif.createdAt)}
+                      {tiempoRelativo(notif.createdAt, locale)}
                     </p>
                   </div>
                   {!notif.read && (

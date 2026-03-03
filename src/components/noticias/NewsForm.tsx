@@ -1,25 +1,17 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useMemo } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
 import { useRouter } from 'next/navigation'
+import { useTranslations } from 'next-intl'
 import { Loader2 } from 'lucide-react'
 import { toast } from '@/hooks/use-toast'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
-
-const NewsSchema = z.object({
-  title: z.string().min(3, "El titulo debe tener al menos 3 caracteres."),
-  content: z.string().min(1, "El contenido es requerido."),
-  published: z.boolean(),
-  imageUrl: z.string().optional(),
-})
-
-type NewsFormValues = z.infer<typeof NewsSchema>
 
 interface NewsFormProps {
   noticia?: {
@@ -33,8 +25,19 @@ interface NewsFormProps {
 
 const NewsForm: React.FC<NewsFormProps> = ({ noticia }) => {
   const router = useRouter()
+  const t = useTranslations('noticias.form')
+  const tc = useTranslations('common')
   const [isLoading, setIsLoading] = useState(false)
   const isEditing = !!noticia
+
+  const NewsSchema = useMemo(() => z.object({
+    title: z.string().min(3, t('titleMin')),
+    content: z.string().min(1, t('contentRequired')),
+    published: z.boolean(),
+    imageUrl: z.string().optional(),
+  }), [t])
+
+  type NewsFormValues = z.infer<typeof NewsSchema>
 
   const form = useForm<NewsFormValues>({
     resolver: zodResolver(NewsSchema),
@@ -63,14 +66,14 @@ const NewsForm: React.FC<NewsFormProps> = ({ noticia }) => {
 
       if (!response.ok) {
         const data = await response.json().catch(() => ({}))
-        throw new Error(data.error || 'Error al guardar la noticia.')
+        throw new Error(data.error || t('saveError'))
       }
 
       toast({
-        title: isEditing ? "Noticia actualizada" : "Noticia creada",
+        title: isEditing ? t('updated') : t('created'),
         description: isEditing
-          ? "La noticia se ha actualizado correctamente."
-          : "La noticia se ha creado correctamente.",
+          ? t('updatedDesc')
+          : t('createdDesc'),
         variant: "success",
       })
 
@@ -78,7 +81,7 @@ const NewsForm: React.FC<NewsFormProps> = ({ noticia }) => {
       router.refresh()
     } catch (err: any) {
       toast({
-        title: "Error",
+        title: tc('error'),
         description: err.message,
         variant: "destructive",
       })
@@ -90,11 +93,11 @@ const NewsForm: React.FC<NewsFormProps> = ({ noticia }) => {
   return (
     <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 max-w-2xl">
       <div className="space-y-2">
-        <Label htmlFor="title">Titulo</Label>
+        <Label htmlFor="title">{t('titleLabel')}</Label>
         <Input
           id="title"
           {...form.register('title')}
-          placeholder="Titulo de la noticia"
+          placeholder={t('titlePlaceholder')}
         />
         {form.formState.errors.title && (
           <p className="text-sm text-destructive">{form.formState.errors.title.message}</p>
@@ -102,11 +105,11 @@ const NewsForm: React.FC<NewsFormProps> = ({ noticia }) => {
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="content">Contenido</Label>
+        <Label htmlFor="content">{t('contentLabel')}</Label>
         <Textarea
           id="content"
           {...form.register('content')}
-          placeholder="Escribe el contenido de la noticia..."
+          placeholder={t('contentPlaceholder')}
           rows={10}
           className="resize-y min-h-[200px]"
         />
@@ -116,11 +119,11 @@ const NewsForm: React.FC<NewsFormProps> = ({ noticia }) => {
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="imageUrl">URL de Imagen (opcional)</Label>
+        <Label htmlFor="imageUrl">{t('imageUrl')}</Label>
         <Input
           id="imageUrl"
           {...form.register('imageUrl')}
-          placeholder="https://ejemplo.com/imagen.jpg"
+          placeholder={t('imagePlaceholder')}
         />
       </div>
 
@@ -132,7 +135,7 @@ const NewsForm: React.FC<NewsFormProps> = ({ noticia }) => {
           className="h-4 w-4 rounded border-input bg-background"
         />
         <Label htmlFor="published" className="cursor-pointer">
-          Publicar inmediatamente
+          {t('publishNow')}
         </Label>
       </div>
 
@@ -142,11 +145,11 @@ const NewsForm: React.FC<NewsFormProps> = ({ noticia }) => {
           variant="outline"
           onClick={() => router.push('/dashboard/noticias')}
         >
-          Cancelar
+          {tc('cancel')}
         </Button>
         <Button type="submit" disabled={isLoading}>
           {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-          {isEditing ? 'Guardar Cambios' : 'Crear Noticia'}
+          {isEditing ? t('save') : t('create')}
         </Button>
       </div>
     </form>

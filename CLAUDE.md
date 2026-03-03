@@ -41,13 +41,14 @@ src/
       competitions/ # CRUD competiciones, equipos, partidos
       contact/      # Formulario contacto (publico, guarda en DB + email)
       courts/       # CRUD pistas + pricing
-      cron/         # Tareas programadas (booking-reminders)
+      cron/         # Tareas programadas (booking-reminders, generate-recurring-bookings)
+      recurring-bookings/ # CRUD reservas recurrentes (GET, POST, PATCH, DELETE)
       news/         # CRUD noticias (news:read/create/update/delete)
       broadcasts/   # Comunicacion masiva (GET historial, POST enviar, preview)
       notifications/ # CRUD notificaciones + subscribe + vapid-key
       open-matches/ # CRUD partidas abiertas (admin)
       payments/     # Export pagos CSV
-      player/       # APIs de jugador (bookings, open-matches, profile, stats)
+      player/       # APIs de jugador (bookings, open-matches, profile, stats, ratings, chat)
       register/     # Registro admin + /register/player
       search/       # Busqueda global (socios, pistas, reservas)
       stripe/       # Checkout, portal, webhook
@@ -61,11 +62,13 @@ src/
       competiciones/ # Ver competiciones (solo lectura)
       noticias/     # Ver noticias del club (listado + detalle)
       rankings/     # Rankings ELO del club
+      jugadores/    # Directorio de jugadores + perfil publico [userId]
       perfil/       # Perfil del jugador
       tarifas/      # Tarifas publicas del club
     dashboard/      # Panel admin (layout con sidebar)
       noticias/     # CRUD noticias (nueva, editar, listar)
       comunicacion/ # Comunicacion masiva (historial + nuevo envio)
+      reservas-recurrentes/ # Clases fijas (lista, crear, editar)
       blog/         # CRUD blog plataforma (nuevo, editar, listar)
       analiticas/   # Dashboard de analiticas con graficos
       facturacion/  # Facturacion Stripe
@@ -85,6 +88,7 @@ src/
     marketing/      # Hero, Features, Pricing, Testimonials, CTA, Navbar, Footer, ContactForm
     noticias/       # NoticiasClient, NewsForm (admin CRUD noticias)
     comunicacion/   # ComunicacionClient (historial), BroadcastForm (formulario envio)
+    reservas-recurrentes/ # ReservasRecurrentesClient (lista), RecurringBookingForm (crear/editar)
     blog/           # BlogListClient, BlogForm (admin CRUD blog plataforma)
     analiticas/     # AnaliticasClient, StatsCards, BookingTrends, MemberGrowth, CourtUtilization, PeakHours
     competitions/   # Ligas y torneos
@@ -92,6 +96,7 @@ src/
     pistas/         # Gestion de pistas
     socios/         # Gestion de socios
     partidas-abiertas/ # Buscar partidas (admin)
+    social/         # JugadoresClient, PlayerCard, EstrellasDisplay/Input, ValoracionesWidget, PartidaChat
     ajustes/        # Configuracion del club
     auth/           # AuthForm, AuthBrandingPanel
     not-found/      # BotonVolver (pagina 404)
@@ -125,7 +130,7 @@ messages/
   es.json           # Traducciones espanol
   en.json           # Traducciones ingles
 prisma/
-  schema.prisma     # 19 modelos (ver seccion Modelos)
+  schema.prisma     # 20 modelos (ver seccion Modelos)
 scripts/
   generate-icons.js # Generador de iconos PWA
 public/
@@ -159,7 +164,7 @@ npx prisma db push # Sincronizar schema con DB
 - **Club**: Centro multi-tenant. Config: description, phone, email, primaryColor, maxAdvanceBooking, cancellationHours, enableOpenMatches, enablePlayerBooking, bookingPaymentMode, bannerUrl, instagramUrl, facebookUrl, bookingDuration. Stripe: stripeSubscriptionId, subscriptionStatus, trialEndsAt, stripeConnectAccountId, stripeConnectOnboarded
 - **User**: Pertenece a un Club, role (SUPER_ADMIN, CLUB_ADMIN, STAFF, PLAYER). Campos: adminNotes, isActive, birthDate
 - **Court**: Pistas del club (name, type). Relacion: pricings (CourtPricing[])
-- **Booking**: Reservas con solapamiento. Campos: cancelledAt, cancelReason, totalPrice, paymentStatus (pending|paid|exempt), reminderSentAt
+- **Booking**: Reservas con solapamiento. Campos: cancelledAt, cancelReason, totalPrice, numPlayers (default 4), paymentStatus (pending|paid|exempt), reminderSentAt, recurringBookingId?. Relacion: bookingPayments[]
 - **Payment**: Pagos (amount, currency, status, type booking|subscription, stripePaymentId unique, bookingId, userId, clubId)
 - **CourtPricing**: Precios por pista/dia/hora (courtId, dayOfWeek 0-6, startHour, endHour, price, @@unique[courtId, dayOfWeek, startHour])
 - **Competition**: Ligas/torneos (LEAGUE, KNOCKOUT, GROUP_AND_KNOCKOUT), status (ACTIVE, FINISHED)
@@ -175,6 +180,10 @@ npx prisma db push # Sincronizar schema con DB
 - **BlogPost**: Articulos del blog (title, slug unique, content, excerpt, category, imageUrl, published, authorName, readTime). Sin clubId (plataforma)
 - **PasswordResetToken**: Tokens de recuperacion de contraseña (email, token SHA-256, expires, @@index[email])
 - **Broadcast**: Comunicaciones masivas (title, message, channels push/email/push+email, segment all/active/inactive/level:X, recipientCount, status sending/sent/failed, sentById, clubId). @@index[clubId]
+- **RecurringBooking**: Clases fijas/reservas recurrentes (description, dayOfWeek 0-6, startHour/Minute, endHour/Minute, isActive, startsAt, endsAt, courtId, userId, guestName, clubId). Relacion: bookings[]. @@index[clubId], @@index[clubId, isActive]
+- **BookingPayment**: Pagos por jugador - tracking recepcion (bookingId, userId?, guestName?, amount, status pending/paid, paidAt, collectedById?, clubId). @@index[bookingId], @@index[clubId, status]
+- **PlayerRating**: Valoraciones post-partido (raterId, ratedId, openMatchId, stars 1-5, comment?, clubId). @@unique[raterId, ratedId, openMatchId], @@index[ratedId, clubId], @@index[openMatchId]
+- **ChatMessage**: Chat de partida abierta (content VarChar(500), openMatchId, authorId, clubId). @@index[openMatchId, createdAt], @@index[clubId]
 
 ## Auth y RBAC
 
@@ -182,7 +191,7 @@ npx prisma db push # Sincronizar schema con DB
 - **requireAuth(permission)**: valida sesion + clubId + permiso en una llamada
 - **isAuthError(result)**: type guard para verificar si es NextResponse de error
 - **Middleware**: protege /dashboard (solo ADMIN_ROLES), permite /club/* publicamente, excluye /api/stripe/webhook, /api/contact, /api/blog/public, /api/auth/forgot-password, /api/auth/reset-password
-- **Permisos**: definidos en `src/lib/permissions.ts`, ~43 permisos por 4 roles
+- **Permisos**: definidos en `src/lib/permissions.ts`, ~49 permisos por 4 roles
 
 ### Patron de uso en API routes:
 ```typescript
@@ -196,7 +205,7 @@ export async function GET() {
 ```
 
 ### Roles y permisos:
-- **SUPER_ADMIN / CLUB_ADMIN**: acceso total (incluye news:*, blog:*, analytics:read, billing:*, notifications:*, broadcast:*)
+- **SUPER_ADMIN / CLUB_ADMIN**: acceso total (incluye news:*, blog:*, analytics:read, billing:*, notifications:*, broadcast:*, recurring-bookings:*)
 - **STAFF**: gestionar reservas, pistas, competiciones; ver socios, noticias, analiticas y notificaciones
 - **PLAYER**: crear reserva propia, unirse a partidas, ver competiciones, gestionar perfil, ver notificaciones
 
@@ -323,7 +332,7 @@ El plan completo de 5 fases esta en: `C:\Users\alber\.claude\plans\jaunty-tumbli
 - [x] Pagina 404 personalizada: not-found.tsx (SVG padel, orbes animados, gradiente azul/cyan)
 - [x] i18n: secciones cookies, auth en es.json y en.json
 
-**Siguiente: Reservas recurrentes (C4)**
+**Siguiente: D2, D4, D5 (Bloque D - Pulido post-lanzamiento)**
 
 ## Notas
 
@@ -481,24 +490,51 @@ Revisa las secciones de estado en CLAUDE.md y el roadmap para ver que esta COMPL
 - [x] Eliminado /api/notifications/broadcast (superseded)
 - [x] Build exitoso
 
-**Sesion C4 - Reservas recurrentes** `[ ]`
-- Modelo `RecurringBooking` (dia semana, hora, pista, usuario, fecha fin)
-- Cron job que genera reservas automaticas semanalmente
-- UI admin para crear/editar/cancelar clases fijas
+**Sesion C4 - Reservas recurrentes** `[x]`
+- [x] Modelo RecurringBooking (dayOfWeek, startHour/Minute, endHour/Minute, isActive, startsAt, endsAt, courtId, userId, guestName, clubId)
+- [x] Campo recurringBookingId en Booking (onDelete: SetNull)
+- [x] 4 permisos RBAC: recurring-bookings:read/create/update/delete (admin + staff)
+- [x] canCreateRecurringBooking(): Starter 0, Pro 10, Enterprise ilimitadas
+- [x] API CRUD: /api/recurring-bookings (GET, POST), /api/recurring-bookings/[id] (GET, PATCH, DELETE)
+- [x] Cron job: /api/cron/generate-recurring-bookings (lookahead 7 dias, idempotente, overlap detection, precio dinamico)
+- [x] UI admin: /dashboard/reservas-recurrentes (lista con tabs, crear, editar, toggle activa/inactiva, eliminar)
+- [x] Componentes: RecurringBookingForm (react-hook-form + zod), ReservasRecurrentesClient (patron NoticiasClient)
+- [x] Navegacion: item "Clases Fijas" en sidebar con icono Repeat
+- [x] i18n: seccion recurringBookings en es.json y en.json
+- [x] Build exitoso
 
-**Sesion C5 - i18n completo** `[ ]`
-- Migrar strings hardcoded de marketing y dashboard a `messages/`
-- Selector de idioma en navbar + portal club
+**Sesion C5 - i18n completo** `[x]`
+- [x] Cookie-based locale switching (NEXT_LOCALE cookie, API /api/locale, middleware)
+- [x] LanguageSelector.tsx: dropdown ES/EN en Navbar marketing, Header admin y ClubLayout
+- [x] nav-items.ts refactorizado: name → nameKey, resuelto con t() en Sidebar/MobileNavBar/MobileSidebar
+- [x] ~550 keys nuevas en messages/es.json y messages/en.json (~950 keys totales)
+- [x] Marketing: 12 componentes migrados (Hero, Features, Pricing, Footer, Navbar, CTA, ContactForm, FAQ, HowItWorks, PainPoints, SocialProofBar, Testimonials)
+- [x] Auth: AuthForm.tsx, AuthBrandingPanel.tsx (Zod schemas con useMemo + t())
+- [x] Dashboard: DashboardClient, NoticiasClient, NewsForm, BlogListClient, BlogForm, SociosClient, BookingModal, AgendaDelDia
+- [x] Club Portal: ClubHome, ClubLayout, ConfirmacionReserva, GridReservas, NuevaPartidaJugadorForm, Leaderboard
+- [x] Layout: Header, GlobalSearch, NotificationBell migrados
+- [x] Paginas publicas: sobre-nosotros, contacto migrados con getTranslations()
+- [x] Locale-aware date/time: ~25 componentes actualizados (useLocale/getLocale → localeCode es-ES/en-GB)
+- [x] Build exitoso, 155 tests pasando
 
-**Sesion C6 - Pago por jugador en reservas y partidas abiertas** `[ ]`
-- Modelo `BookingPayment` (bookingId, userId, amount, status pending/paid, paidAt, collectedBy)
-- Dividir totalPrice entre jugadores de la reserva (2 o 4 jugadores)
-- Aplica a reservas normales (Booking) y partidas abiertas (OpenMatch con su Booking asociado)
-- En partidas abiertas: division automatica al confirmar partida (4 jugadores de OpenMatchPlayer)
-- API admin: marcar pago individual por jugador (PATCH /api/bookings/[id]/player-payment)
-- UI admin: en PendingPayments mostrar desglose por jugador con boton "Cobrar" individual
-- Booking.paymentStatus se marca "paid" automaticamente cuando todos los jugadores han pagado
-- Vista recepcion: ver quien ha pagado y quien falta
+**Sesion C6 - Pago por jugador en reservas y partidas abiertas** `[x]`
+- [x] Modelo BookingPayment (bookingId, userId, guestName, amount, status, paidAt, collectedById, clubId)
+- [x] Campo numPlayers en Booking (Int, default 4 - padel estandar 2v2)
+- [x] Permisos RBAC: booking-payments:read (todos), booking-payments:update (admin + staff)
+- [x] API GET /api/bookings/[bookingId]/player-payments (auto-genera si no existen)
+- [x] API POST /api/bookings/[bookingId]/player-payments (regenerar con nuevo numPlayers)
+- [x] API PATCH /api/bookings/[bookingId]/player-payments/[paymentId] (cobrar/deshacer individual)
+- [x] Auto-sync: Booking.paymentStatus = "paid" cuando todos los BookingPayments estan "paid"
+- [x] Integracion: BookingPayments creados al crear reserva jugador (fire-and-forget)
+- [x] Integracion: BookingPayments creados al completar partida abierta (4 jugadores FULL)
+- [x] Integracion: BookingPayments borrados al salir de partida abierta FULL
+- [x] Integracion: BookingPayments marcados como paid al cobrar reserva completa
+- [x] UI PendingPayments refactorizado: filas expandibles, desglose por jugador, cobro individual
+- [x] UI PendingPayments: selector numPlayers (2/3/4), edicion nombres invitados, "Cobrar todo"
+- [x] UI BookingModal: campo numPlayers en formulario de creacion admin
+- [x] UI ConfirmacionReserva: precio por jugador informativo (4 jug. / 2 jug.)
+- [x] i18n: seccion playerPayments en es.json y en.json
+- [x] Build exitoso, 155 tests pasando
 
 ### BLOQUE D: PULIDO (post-lanzamiento)
 
@@ -522,9 +558,77 @@ Revisa las secciones de estado en CLAUDE.md y el roadmap para ver que esta COMPL
 - [x] Alt text: avatares usan nombre del usuario en lugar de "Avatar" generico
 - [x] Build exitoso
 **Sesion D2** - E2E tests con Playwright `[ ]`
-**Sesion D3** - Dashboard mejorado (revenue chart, agenda del dia) `[ ]`
-**Sesion D4** - Social (chat jugadores, valoraciones, buscar jugadores) `[ ]`
+
+**Sesion D3 - Dashboard mejorado (revenue chart, agenda del dia)** `[x]`
+- [x] IngresosSemana.tsx: BarChart apilado (recharts) ultimos 7 dias, barras cobrado (verde) + pendiente (ambar)
+- [x] Stat card "Ingresos Hoy" reemplaza "Competiciones Activas" (icono Euro, formato moneda EUR)
+- [x] Card "Resumen Financiero": ingresos del mes + pagos pendientes (count reservas)
+- [x] Queries de ingresos en page.tsx: reservas 7d, aggregate mensual, count pendientes (Promise.all)
+- [x] Layout dashboard 3 filas: stat cards | agenda + grafico ingresos | proximas reservas + resumen financiero
+- [x] AgendaDelDia.tsx: i18n de 4 strings hardcodeados (titulo, invitado, partida abierta, sin reservas)
+- [x] i18n: 12 keys nuevas en es.json y en.json (seccion dashboard)
+- [x] Build exitoso, 155 tests pasando
+
+**Sesion D4 - Social (chat, valoraciones, buscar jugadores)** `[x]`
+- [x] Schema Prisma: PlayerRating (raterId, ratedId, openMatchId, stars 1-5, comment, clubId, @@unique), ChatMessage (content, openMatchId, authorId, clubId, @@index[openMatchId, createdAt])
+- [x] PlayerStats: +averageRating Float?, +totalRatings Int (denormalizados para perfiles rapidos)
+- [x] Relaciones: User.ratingsGiven/ratingsReceived/chatMessages, OpenMatch.chatMessages/ratings, Club.chatMessages/playerRatings
+- [x] 5 permisos RBAC: players:read, chat:read/write, ratings:read/write (PLAYER + admin/staff)
+- [x] TipoNotificacion: +player_rated (push si >= 4 estrellas)
+- [x] API directorio: GET /api/club/[slug]/players (auth, filtros q/nivel/posicion, paginacion 12/pagina)
+- [x] API perfil: GET /api/club/[slug]/players/[userId] (stats + valoraciones recientes + partidas recientes)
+- [x] API ratings: GET /api/player/ratings/pending (partidas ultimos 7 dias sin valorar), POST /api/player/ratings (Zod, transaccion, recalcula promedio)
+- [x] API chat: GET/POST /api/player/chat/[openMatchId] (polling incremental con ?since=, rate limit 10/min, solo participantes escriben)
+- [x] Directorio jugadores: /club/[slug]/jugadores (JugadoresClient con busqueda debounce + filtros nivel/posicion + grid PlayerCards)
+- [x] Perfil publico: /club/[slug]/jugadores/[userId] (avatar, stats grid, partidas recientes, valoraciones recientes)
+- [x] Chat partidas: PartidaChat.tsx (Sheet slide-over, polling 10s, burbujas WhatsApp-style, auto-scroll)
+- [x] Valoraciones: ValoracionesWidget.tsx en perfil (partidas pendientes, Dialog con EstrellasInput 1-5 + comentario)
+- [x] EstrellasDisplay.tsx (readonly) + EstrellasInput.tsx (clickable con hover, aria-role radiogroup)
+- [x] Leaderboard.tsx: nombres linkados a perfiles, nueva prop slug, podio cards clickables
+- [x] Partidas page: nombres de jugadores como Links, boton Chat (MessageCircle) en partidas propias
+- [x] ClubLayout.tsx: nav item "Jugadores" (Users2 icon) entre Rankings y Noticias
+- [x] Solo miembros logueados del mismo club pueden ver perfiles (privacidad, no publico como rankings)
+- [x] i18n: namespace social (~50 keys) en es.json y en.json + key players en namespace club
+- [x] Build exitoso
+
 **Sesion D5** - CI/CD (GitHub Actions: lint + test + build en PR) `[ ]`
 
 ### Orden recomendado
-Sprint 1: A1, A2 [DONE] → Sprint 2: A3, A5 [DONE] → Sprint 3: A4, B1 [DONE] → Sprint 4: B4, B3 [DONE] → Sprint 5: B2 [DONE], B5 [DONE] → Sprint 6: C1, C3 [DONE] → Sprint 7: D1 [DONE] → Sprint 8: C2 [DONE] → Beta launch → Sprint 9+: C4-C6, D2-D5
+Sprint 1: A1, A2 [DONE] → Sprint 2: A3, A5 [DONE] → Sprint 3: A4, B1 [DONE] → Sprint 4: B4, B3 [DONE] → Sprint 5: B2 [DONE], B5 [DONE] → Sprint 6: C1, C3 [DONE] → Sprint 7: D1 [DONE] → Sprint 8: C2 [DONE] → Sprint 9: C4 [DONE] → Sprint 10: C5, C6 [DONE] → Sprint 11: D3 [DONE] → Sprint 12: D4 [DONE] → Beta launch → Sprint 13+: D2, D5, E1-E4
+
+### BLOQUE E: COMPETITIVO (cerrar gaps vs Playtomic, TPC Matchpoint, Doinsport)
+
+Analisis competitivo realizado contra: Playtomic (87% clubs Espana, B2B2C), TPC Matchpoint (1450 clubs, apps nativas), Doinsport (1000+ clubs Francia, POS completo).
+
+**Sesion E1 - WhatsApp sharing** `[ ]` (Esfuerzo: S)
+- Boton "Compartir" en reservas confirmadas y partidas abiertas
+- Web Share API (`navigator.share()`) con fallback a clipboard
+- Datos: nombre pista, fecha, hora, enlace al portal del club
+- Sin cambios de backend — solo UI en ConfirmacionReserva, perfil/historial, tarjeta partida abierta
+- Competidores con esto: TPC Matchpoint, Playtomic
+
+**Sesion E2 - Lista de espera en reservas** `[ ]` (Esfuerzo: S)
+- Modelo `BookingWaitlist` (userId, courtId, date, startTime, endTime, clubId, notifiedAt?)
+- Cuando un slot esta ocupado en GridReservas, mostrar boton "Avisarme si se libera"
+- Al cancelar una reserva, notificar al primer usuario en la lista de espera (push + email)
+- API: POST /api/player/bookings/waitlist, DELETE /api/player/bookings/waitlist/[id]
+- Integracion en flujo de cancelacion existente (player/bookings DELETE)
+- Competidores con esto: Playtomic, TPC Matchpoint
+
+**Sesion E3 - Modificacion/reagendado de reserva** `[ ]` (Esfuerzo: S)
+- Actualmente solo se puede cancelar. Agregar flujo de reagendado (cancel + rebook atomico)
+- API: PATCH /api/player/bookings/[id]/reschedule { newCourtId?, newStartTime, newEndTime }
+- Validaciones: slot destino disponible, dentro de politica de cancelacion, mismo club
+- UI: boton "Cambiar horario" en historial de reservas del jugador
+- Email de confirmacion de cambio (reusar plantilla de confirmacion con nota "Reserva modificada")
+- Competidores con esto: Todos (Playtomic, TPC, Doinsport)
+
+**Sesion E4 - Sistema de membresias** `[ ]` (Esfuerzo: M)
+- Modelo `MembershipPlan` (name, price, duration mensual/trimestral/anual, benefits JSON, courtDiscount%, isActive, clubId)
+- Modelo `Membership` (userId, planId, clubId, startsAt, endsAt, status active/expired/cancelled, stripeSubscriptionId?)
+- Admin: CRUD planes de membresia en /dashboard/membresias
+- Jugador: ver planes disponibles en /club/[slug]/membresias, suscribirse (Stripe recurring)
+- Descuento automatico en reservas: si jugador tiene membresia activa, aplicar courtDiscount% al calcularPrecioReserva()
+- Auto-renovacion via Stripe Subscriptions (independiente de la suscripcion SaaS del club)
+- Gating por plan SaaS: Pro/Enterprise
+- Competidores con esto: Todos (Playtomic, TPC, Doinsport)

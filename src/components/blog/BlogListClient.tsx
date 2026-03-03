@@ -2,6 +2,7 @@
 
 import React, { useState, useMemo } from 'react'
 import Link from 'next/link'
+import { useTranslations, useLocale } from 'next-intl'
 import { FileText, Pencil, Trash2, Loader2 } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
@@ -39,6 +40,10 @@ interface BlogListClientProps {
 type FilterType = 'all' | 'published' | 'draft'
 
 const BlogListClient: React.FC<BlogListClientProps> = ({ initialPosts }) => {
+  const t = useTranslations('blogAdmin')
+  const tc = useTranslations('common')
+  const locale = useLocale()
+  const localeCode = locale === 'es' ? 'es-ES' : 'en-GB'
   const [posts, setPosts] = useState(initialPosts)
   const [filter, setFilter] = useState<FilterType>('all')
   const [isLoading, setIsLoading] = useState<string | null>(null)
@@ -67,8 +72,8 @@ const BlogListClient: React.FC<BlogListClientProps> = ({ initialPosts }) => {
   const handleDelete = (postId: string, title: string) => {
     setConfirmDialog({
       open: true,
-      title: 'Eliminar articulo',
-      description: `¿Seguro que quieres eliminar "${title}"? Esta accion no se puede deshacer.`,
+      title: t('deleteTitle'),
+      description: `¿${title}? ${t('deleteConfirm')}`,
       action: async () => {
         setIsLoading(postId)
         try {
@@ -76,13 +81,13 @@ const BlogListClient: React.FC<BlogListClientProps> = ({ initialPosts }) => {
           if (!response.ok) throw new Error('Error al eliminar')
           setPosts(prev => prev.filter(p => p.id !== postId))
           toast({
-            title: "Articulo eliminado",
-            description: "El articulo ha sido eliminado correctamente.",
+            title: t('deleted'),
+            description: t('deletedDesc'),
           })
         } catch {
           toast({
-            title: "Error",
-            description: "No se pudo eliminar el articulo.",
+            title: tc('error'),
+            description: t('deleteError'),
             variant: "destructive",
           })
         } finally {
@@ -107,27 +112,19 @@ const BlogListClient: React.FC<BlogListClientProps> = ({ initialPosts }) => {
         )
       )
       toast({
-        title: post.published ? "Articulo despublicado" : "Articulo publicado",
+        title: post.published ? t('unpublished') : t('published'),
         description: post.published
-          ? "El articulo ya no es visible en el blog."
-          : "El articulo ahora es visible en el blog.",
+          ? t('unpublishedDesc')
+          : t('publishedDesc'),
       })
     } catch {
       toast({
-        title: "Error",
-        description: "No se pudo actualizar el articulo.",
+        title: tc('error'),
+        description: t('toggleError'),
         variant: "destructive",
       })
     } finally {
       setIsLoading(null)
-    }
-  }
-
-  const filterLabel = (f: FilterType) => {
-    switch (f) {
-      case 'all': return 'Todos'
-      case 'published': return 'Publicados'
-      case 'draft': return 'Borradores'
     }
   }
 
@@ -137,9 +134,9 @@ const BlogListClient: React.FC<BlogListClientProps> = ({ initialPosts }) => {
         <div className="p-4 border-b">
           <Tabs value={filter} onValueChange={(value) => setFilter(value as FilterType)}>
             <TabsList>
-              <TabsTrigger value="all">Todos ({posts.length})</TabsTrigger>
-              <TabsTrigger value="published">Publicados ({posts.filter(p => p.published).length})</TabsTrigger>
-              <TabsTrigger value="draft">Borradores ({posts.filter(p => !p.published).length})</TabsTrigger>
+              <TabsTrigger value="all">{t('all')} ({posts.length})</TabsTrigger>
+              <TabsTrigger value="published">{t('publishedFilter')} ({posts.filter(p => p.published).length})</TabsTrigger>
+              <TabsTrigger value="draft">{t('drafts')} ({posts.filter(p => !p.published).length})</TabsTrigger>
             </TabsList>
           </Tabs>
         </div>
@@ -173,14 +170,14 @@ const BlogListClient: React.FC<BlogListClientProps> = ({ initialPosts }) => {
                               {item.authorName}
                             </span>
                             <span className="text-xs text-muted-foreground">
-                              {new Date(item.createdAt).toLocaleDateString('es-ES', {
+                              {new Date(item.createdAt).toLocaleDateString(localeCode, {
                                 day: 'numeric',
                                 month: 'short',
                                 year: 'numeric',
                               })}
                             </span>
                             <Badge variant={item.published ? 'default' : 'secondary'}>
-                              {item.published ? 'Publicado' : 'Borrador'}
+                              {item.published ? t('publishedBadge') : t('draftBadge')}
                             </Badge>
                           </div>
                         </div>
@@ -196,10 +193,10 @@ const BlogListClient: React.FC<BlogListClientProps> = ({ initialPosts }) => {
                             size="sm"
                             onClick={() => handleTogglePublish(item)}
                           >
-                            {item.published ? 'Despublicar' : 'Publicar'}
+                            {item.published ? t('unpublishAction') : t('publishAction')}
                           </Button>
                           <Link href={`/dashboard/blog/${item.id}`}>
-                            <Button variant="outline" size="sm" aria-label="Editar">
+                            <Button variant="outline" size="sm" aria-label={tc('edit')}>
                               <Pencil className="h-4 w-4" />
                             </Button>
                           </Link>
@@ -222,7 +219,7 @@ const BlogListClient: React.FC<BlogListClientProps> = ({ initialPosts }) => {
             <div className="text-center py-12">
               <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
               <p className="text-muted-foreground">
-                No hay articulos en &quot;{filterLabel(filter)}&quot;.
+                {t('noArticlesIn')}
               </p>
             </div>
           )}
@@ -239,7 +236,7 @@ const BlogListClient: React.FC<BlogListClientProps> = ({ initialPosts }) => {
             <AlertDialogDescription>{confirmDialog.description}</AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogCancel>{tc('cancel')}</AlertDialogCancel>
             <AlertDialogAction
               onClick={async () => {
                 await confirmDialog.action()
@@ -247,7 +244,7 @@ const BlogListClient: React.FC<BlogListClientProps> = ({ initialPosts }) => {
               }}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              Eliminar
+              {tc('delete')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

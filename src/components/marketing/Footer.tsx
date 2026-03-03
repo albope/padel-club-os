@@ -1,35 +1,38 @@
 import Link from "next/link"
+import { getTranslations } from "next-intl/server"
 import { Separator } from "@/components/ui/separator"
 import { LogoIcon } from "@/components/ui/logo-icon"
 
-const columnas = [
-  {
-    titulo: "Producto",
-    links: [
-      { label: "Funcionalidades", href: "/#funcionalidades" },
-      { label: "Precios", href: "/#precios" },
-      { label: "Cómo funciona", href: "/#como-funciona" },
-    ],
-  },
-  {
-    titulo: "Empresa",
-    links: [
-      { label: "Sobre nosotros", href: "/sobre-nosotros" },
-      { label: "Blog", href: "/blog" },
-      { label: "Contacto", href: "/contacto" },
-    ],
-  },
-  {
-    titulo: "Legal",
-    links: [
-      { label: "Privacidad", href: "/privacidad" },
-      { label: "Términos de uso", href: "/terminos" },
-      { label: "Cookies", href: "/cookies" },
-    ],
-  },
-]
+export default async function Footer() {
+  const t = await getTranslations('marketing.footer')
 
-export default function Footer() {
+  const columnas = [
+    {
+      titulo: t('product'),
+      links: [
+        { label: t('features'), href: "/#funcionalidades" },
+        { label: t('pricing'), href: "/#precios" },
+        { label: t('howItWorks'), href: "/#como-funciona" },
+      ],
+    },
+    {
+      titulo: t('company'),
+      links: [
+        { label: t('about'), href: "/sobre-nosotros" },
+        { label: t('blog'), href: "/blog" },
+        { label: t('contact'), href: "/contacto" },
+      ],
+    },
+    {
+      titulo: t('legal'),
+      links: [
+        { label: t('privacy'), href: "/privacidad" },
+        { label: t('terms'), href: "/terminos" },
+        { label: t('cookies'), href: "/cookies" },
+      ],
+    },
+  ]
+
   return (
     <footer className="border-t bg-card">
       <div className="container py-12 md:py-16">
@@ -41,8 +44,7 @@ export default function Footer() {
               <span className="text-lg font-bold">Padel Club OS</span>
             </Link>
             <p className="mt-4 text-sm leading-relaxed text-muted-foreground">
-              La plataforma de gestión para clubes de pádel en España.
-              Moderna, accesible y sin complicaciones.
+              {t('tagline')}
             </p>
             {/* Redes sociales */}
             <div className="mt-4 flex gap-3">
@@ -106,10 +108,10 @@ export default function Footer() {
 
         <div className="flex flex-col items-center justify-between gap-4 sm:flex-row">
           <p className="text-sm text-muted-foreground">
-            &copy; {new Date().getFullYear()} Padel Club OS. Todos los derechos reservados.
+            &copy; {new Date().getFullYear()} {t('copyright')}
           </p>
           <p className="text-sm text-muted-foreground">
-            Hecho en España
+            {t('madeIn')}
           </p>
         </div>
       </div>

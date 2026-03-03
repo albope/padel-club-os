@@ -11,6 +11,7 @@ const BookingCreateSchema = z.object({
   endTime: z.string().min(1, "La hora de fin es requerida."),
   userId: z.string().optional(),
   guestName: z.string().max(100, "El nombre del invitado no puede superar 100 caracteres.").optional(),
+  numPlayers: z.number().int().min(2).max(4).optional(),
 }).refine(
   (data) => data.userId || data.guestName,
   { message: "Se requiere un socio o nombre de invitado.", path: ["userId"] }
@@ -46,7 +47,7 @@ export async function POST(req: Request) {
     const body = await req.json();
     const result = validarBody(BookingCreateSchema, body);
     if (!result.success) return result.response;
-    const { courtId, userId, guestName, startTime, endTime } = result.data;
+    const { courtId, userId, guestName, startTime, endTime, numPlayers } = result.data;
 
     const newStartTime = new Date(startTime);
     const newEndTime = new Date(endTime);
@@ -67,6 +68,8 @@ export async function POST(req: Request) {
 
     const totalPrice = await calcularPrecioReserva(courtId, auth.session.user.clubId, newStartTime, newEndTime);
 
+    const efectivoNumPlayers = numPlayers || 4
+
     const newBooking = await db.booking.create({
       data: {
         courtId,
@@ -75,6 +78,7 @@ export async function POST(req: Request) {
         startTime: newStartTime,
         endTime: newEndTime,
         totalPrice,
+        numPlayers: efectivoNumPlayers,
         paymentStatus: "exempt", // Reservas admin no requieren pago online
         status: "confirmed",
         clubId: auth.session.user.clubId,

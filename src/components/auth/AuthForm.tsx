@@ -7,32 +7,22 @@ import * as z from 'zod';
 import { signIn } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 import { Eye, EyeOff, Loader2, AlertCircle, ArrowRight, CheckCircle2 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';
 
-/* ─── Validacion ─────────────────────────────────────────────────────────── */
-
-const FormSchema = z.object({
-  email: z.string().min(1, 'El email es requerido.').email('Email invalido.'),
-  password: z
-    .string()
-    .min(1, 'La contrasena es requerida.')
-    .min(8, 'La contrasena debe tener al menos 8 caracteres.'),
-  name: z.string().optional(),
-});
-
 /* ─── Password strength ──────────────────────────────────────────────────── */
 
 interface PasswordStrength {
   score: number;    // 0–4
-  label: string;
+  labelKey: string;
   segmentColor: string;
 }
 
 function evaluarPassword(password: string): PasswordStrength {
-  if (!password) return { score: 0, label: '', segmentColor: '' };
+  if (!password) return { score: 0, labelKey: '', segmentColor: '' };
 
   let score = 0;
   if (password.length >= 8)  score++;
@@ -44,10 +34,10 @@ function evaluarPassword(password: string): PasswordStrength {
   const nivel = Math.min(4, Math.max(1, score));
 
   const mapa: Record<number, Omit<PasswordStrength, 'score'>> = {
-    1: { label: 'Muy debil',  segmentColor: 'bg-red-500' },
-    2: { label: 'Debil',      segmentColor: 'bg-orange-400' },
-    3: { label: 'Buena',      segmentColor: 'bg-amber-400' },
-    4: { label: 'Fuerte',     segmentColor: 'bg-emerald-500' },
+    1: { labelKey: 'veryWeak',  segmentColor: 'bg-red-500' },
+    2: { labelKey: 'weak',      segmentColor: 'bg-orange-400' },
+    3: { labelKey: 'good',      segmentColor: 'bg-amber-400' },
+    4: { labelKey: 'strong',    segmentColor: 'bg-emerald-500' },
   };
 
   return { score: nivel, ...mapa[nivel] };
@@ -63,10 +53,22 @@ interface AuthFormProps {
 
 const AuthForm: React.FC<AuthFormProps> = ({ isRegister = false }) => {
   const router = useRouter();
+  const t = useTranslations('auth');
   const [error, setError]                 = useState<string | null>(null);
   const [isLoading, setIsLoading]         = useState(false);
   const [showPassword, setShowPassword]   = useState(false);
   const [passwordValue, setPasswordValue] = useState('');
+
+  /* ─── Validacion ─────────────────────────────────────────────────────────── */
+
+  const FormSchema = useMemo(() => z.object({
+    email: z.string().min(1, t('emailRequired')).email(t('emailInvalid')),
+    password: z
+      .string()
+      .min(1, t('passwordRequired'))
+      .min(8, t('passwordMinLength')),
+    name: z.string().optional(),
+  }), [t]);
 
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
@@ -92,10 +94,10 @@ const AuthForm: React.FC<AuthFormProps> = ({ isRegister = false }) => {
           router.push('/login');
         } else {
           const data = await response.json();
-          setError(data.message || 'Error en el registro.');
+          setError(data.message || t('serverError'));
         }
       } catch {
-        setError('No se pudo conectar con el servidor.');
+        setError(t('serverError'));
       } finally {
         setIsLoading(false);
       }
@@ -107,7 +109,7 @@ const AuthForm: React.FC<AuthFormProps> = ({ isRegister = false }) => {
       });
       setIsLoading(false);
       if (result?.error) {
-        setError('Email o contrasena incorrectos.');
+        setError(t('invalidCredentials'));
       } else {
         router.push('/dashboard');
         router.refresh();
@@ -123,12 +125,12 @@ const AuthForm: React.FC<AuthFormProps> = ({ isRegister = false }) => {
       {/* Cabecera del formulario */}
       <div className="mb-7">
         <h2 className="text-[22px] font-bold tracking-tight text-foreground">
-          {isRegister ? 'Crea tu cuenta' : 'Bienvenido de nuevo'}
+          {isRegister ? t('createAccount') : t('welcomeBack')}
         </h2>
         <p className="mt-1.5 text-sm text-muted-foreground">
           {isRegister
-            ? 'Empieza gratis. Sin tarjeta de credito.'
-            : 'Introduce tus credenciales para acceder.'}
+            ? t('startFree')
+            : t('enterCredentials')}
         </p>
       </div>
 
@@ -138,7 +140,7 @@ const AuthForm: React.FC<AuthFormProps> = ({ isRegister = false }) => {
         {isRegister && (
           <div className="space-y-1.5 auth-fade-up-4">
             <Label htmlFor="name" className="text-[13px] font-medium text-foreground/80">
-              Nombre completo
+              {t('name')}
             </Label>
             <div className="auth-input-glow rounded-lg">
               <Input
@@ -146,7 +148,7 @@ const AuthForm: React.FC<AuthFormProps> = ({ isRegister = false }) => {
                 type="text"
                 {...form.register('name')}
                 aria-required="true"
-                placeholder="Tu nombre"
+                placeholder={t('yourName')}
                 className={cn(
                   'h-10 text-sm',
                   'bg-muted/40 border-border/70',
@@ -161,7 +163,7 @@ const AuthForm: React.FC<AuthFormProps> = ({ isRegister = false }) => {
         {/* Campo email */}
         <div className={cn('space-y-1.5', isRegister ? 'auth-fade-up-4' : 'auth-fade-up-3')}>
           <Label htmlFor="email" className="text-[13px] font-medium text-foreground/80">
-            Correo electronico
+            {t('email')}
           </Label>
           <div className="auth-input-glow rounded-lg">
             <Input
@@ -171,7 +173,7 @@ const AuthForm: React.FC<AuthFormProps> = ({ isRegister = false }) => {
               aria-required="true"
               aria-invalid={!!form.formState.errors.email}
               aria-describedby={form.formState.errors.email ? "email-error" : undefined}
-              placeholder="tu@club.com"
+              placeholder={t('emailPlaceholder')}
               autoComplete="email"
               className={cn(
                 'h-10 text-sm',
@@ -195,14 +197,14 @@ const AuthForm: React.FC<AuthFormProps> = ({ isRegister = false }) => {
         <div className={cn('space-y-1.5', isRegister ? 'auth-fade-up-5' : 'auth-fade-up-4')}>
           <div className="flex items-center justify-between">
             <Label htmlFor="password" className="text-[13px] font-medium text-foreground/80">
-              Contrasena
+              {t('password')}
             </Label>
             {!isRegister && (
               <Link
                 href="/forgot-password"
                 className="text-xs text-primary/70 hover:text-primary transition-colors duration-150"
               >
-                Olvidaste tu contrasena?
+                {t('forgotPassword')}
               </Link>
             )}
           </div>
@@ -218,7 +220,7 @@ const AuthForm: React.FC<AuthFormProps> = ({ isRegister = false }) => {
                 aria-required="true"
                 aria-invalid={!!form.formState.errors.password}
                 aria-describedby={form.formState.errors.password ? "password-error" : undefined}
-                placeholder={isRegister ? 'Min. 8 caracteres' : '••••••••'}
+                placeholder={isRegister ? t('passwordMinLength') : '••••••••'}
                 autoComplete={isRegister ? 'new-password' : 'current-password'}
                 className={cn(
                   'h-10 pr-10 text-sm',
@@ -237,7 +239,7 @@ const AuthForm: React.FC<AuthFormProps> = ({ isRegister = false }) => {
                   'text-muted-foreground/50 hover:text-foreground',
                   'transition-colors duration-150 focus-visible:outline-none'
                 )}
-                aria-label={showPassword ? 'Ocultar contrasena' : 'Mostrar contrasena'}
+                aria-label={showPassword ? t('hidePassword') : t('showPassword')}
               >
                 {showPassword
                   ? <EyeOff className="h-4 w-4" />
@@ -271,7 +273,7 @@ const AuthForm: React.FC<AuthFormProps> = ({ isRegister = false }) => {
                 ))}
               </div>
               <div className="flex items-center justify-between" aria-live="polite">
-                <p className="text-[11px] text-muted-foreground">Seguridad de la contrasena</p>
+                <p className="text-[11px] text-muted-foreground">{t('passwordSecurity')}</p>
                 <p className={cn(
                   'text-[11px] font-semibold',
                   fortaleza.score === 1 && 'text-red-500',
@@ -279,7 +281,7 @@ const AuthForm: React.FC<AuthFormProps> = ({ isRegister = false }) => {
                   fortaleza.score === 3 && 'text-amber-500',
                   fortaleza.score === 4 && 'text-emerald-500',
                 )}>
-                  {fortaleza.label}
+                  {fortaleza.labelKey ? t(fortaleza.labelKey as 'veryWeak' | 'weak' | 'good' | 'strong') : ''}
                 </p>
               </div>
             </div>
@@ -297,19 +299,19 @@ const AuthForm: React.FC<AuthFormProps> = ({ isRegister = false }) => {
         {/* Terminos (solo registro) */}
         {isRegister && (
           <p className="auth-fade-up-5 text-[11px] text-muted-foreground leading-relaxed pt-0.5">
-            Al registrarte aceptas nuestros{' '}
+            {t('termsPrefix')}{' '}
             <Link
               href="/terminos"
               className="text-foreground/60 hover:text-foreground underline-offset-2 hover:underline transition-colors"
             >
-              Terminos de servicio
+              {t('termsOfService')}
             </Link>{' '}
-            y{' '}
+            {t('and')}{' '}
             <Link
               href="/privacidad"
               className="text-foreground/60 hover:text-foreground underline-offset-2 hover:underline transition-colors"
             >
-              Politica de privacidad
+              {t('privacyPolicy')}
             </Link>.
           </p>
         )}
@@ -331,13 +333,13 @@ const AuthForm: React.FC<AuthFormProps> = ({ isRegister = false }) => {
               {isLoading ? (
                 <>
                   <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                  <span>{isRegister ? 'Creando cuenta...' : 'Entrando...'}</span>
+                  <span>{isRegister ? t('creatingAccount') : t('loggingIn')}</span>
                 </>
               ) : (
                 <>
                   {isRegister
-                    ? <><CheckCircle2 className="h-4 w-4" /><span>Crear cuenta gratis</span></>
-                    : <><span>Iniciar sesion</span><ArrowRight className="h-3.5 w-3.5" /></>
+                    ? <><CheckCircle2 className="h-4 w-4" /><span>{t('createFreeAccount')}</span></>
+                    : <><span>{t('login')}</span><ArrowRight className="h-3.5 w-3.5" /></>
                   }
                 </>
               )}
@@ -349,12 +351,12 @@ const AuthForm: React.FC<AuthFormProps> = ({ isRegister = false }) => {
       {/* Footer */}
       <div className="mt-6 pt-5 border-t border-border/60 text-center auth-fade-up-6">
         <p className="text-sm text-muted-foreground">
-          {isRegister ? 'Ya tienes una cuenta?' : 'No tienes una cuenta?'}{' '}
+          {isRegister ? t('hasAccount') : t('noAccount')}{' '}
           <Link
             href={isRegister ? '/login' : '/register'}
             className="font-semibold text-primary hover:text-primary/80 transition-colors duration-150 underline-offset-2 hover:underline"
           >
-            {isRegister ? 'Inicia sesion' : 'Registrate gratis'}
+            {isRegister ? t('login') : t('signUpFree')}
           </Link>
         </p>
       </div>

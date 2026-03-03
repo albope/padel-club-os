@@ -15,6 +15,7 @@ export type TipoNotificacion =
   | "club_announcement"
   | "subscription_trial_ending"
   | "subscription_expired"
+  | "player_rated"
 
 interface CrearNotificacionParams {
   tipo: TipoNotificacion

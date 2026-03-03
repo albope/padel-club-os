@@ -4,6 +4,7 @@ import Link from "next/link"
 import Image from "next/image"
 import { ArrowLeft } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { getLocale } from "next-intl/server"
 
 export const revalidate = 1800 // 30min
 
@@ -12,6 +13,8 @@ export default async function ClubNewsDetailPage({
 }: {
   params: { slug: string; id: string }
 }) {
+  const locale = await getLocale()
+  const localeCode = locale === 'es' ? 'es-ES' : 'en-GB'
   const club = await db.club.findUnique({
     where: { slug: params.slug },
     select: { id: true },
@@ -52,7 +55,7 @@ export default async function ClubNewsDetailPage({
         </h1>
 
         <p className="text-sm text-muted-foreground mt-2">
-          {new Date(noticia.createdAt).toLocaleDateString("es-ES", {
+          {new Date(noticia.createdAt).toLocaleDateString(localeCode, {
             weekday: "long",
             day: "numeric",
             month: "long",

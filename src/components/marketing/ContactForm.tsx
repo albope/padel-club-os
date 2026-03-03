@@ -1,10 +1,11 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useMemo } from "react"
 import { useForm, Controller } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
 import { Send, Loader2 } from "lucide-react"
+import { useTranslations } from "next-intl"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -18,27 +19,32 @@ import {
 } from "@/components/ui/select"
 import { toast } from "@/hooks/use-toast"
 
-const asuntos = [
-  "Informacion general",
-  "Quiero una demo",
-  "Soporte tecnico",
-  "Colaboracion / Partnership",
-  "Otro",
-] as const
-
-const ContactoSchema = z.object({
-  nombre: z.string().min(2, "El nombre debe tener al menos 2 caracteres."),
-  email: z.string().email("Email no valido."),
-  asunto: z.enum(asuntos, {
-    errorMap: () => ({ message: "Selecciona un asunto." }),
-  }),
-  mensaje: z.string().min(10, "El mensaje debe tener al menos 10 caracteres."),
-})
-
-type ContactoFormValues = z.infer<typeof ContactoSchema>
+const subjectKeys = ["general", "demo", "support", "partnership", "other"] as const
 
 export default function ContactForm() {
   const [isLoading, setIsLoading] = useState(false)
+  const t = useTranslations('pages.contact.form')
+
+  const asuntos = useMemo(() =>
+    subjectKeys.map((key) => ({
+      key,
+      label: t(`subjects.${key}`),
+    })),
+    [t]
+  )
+
+  const asuntoValues = useMemo(() => asuntos.map((a) => a.label), [asuntos])
+
+  const ContactoSchema = useMemo(() => z.object({
+    nombre: z.string().min(2, t('nameMin')),
+    email: z.string().email(t('emailInvalid')),
+    asunto: z.string().refine((val) => asuntoValues.includes(val), {
+      message: t('subjectRequired'),
+    }),
+    mensaje: z.string().min(10, t('messageMin')),
+  }), [t, asuntoValues])
+
+  type ContactoFormValues = z.infer<typeof ContactoSchema>
 
   const {
     register,
@@ -67,20 +73,19 @@ export default function ContactForm() {
 
       if (!response.ok) {
         const data = await response.json().catch(() => ({}))
-        throw new Error(data.error || "Error al enviar el mensaje.")
+        throw new Error(data.error || t('errorDesc'))
       }
 
       toast({
-        title: "Mensaje enviado",
-        description:
-          "Hemos recibido tu mensaje. Te responderemos lo antes posible.",
+        title: t('successTitle'),
+        description: t('successDesc'),
         variant: "success",
       })
 
       reset()
     } catch (err: unknown) {
       const message =
-        err instanceof Error ? err.message : "Error al enviar el mensaje."
+        err instanceof Error ? err.message : t('errorDesc')
       toast({
         title: "Error",
         description: message,
@@ -97,10 +102,10 @@ export default function ContactForm() {
       className="space-y-5 rounded-xl border bg-card p-6 md:p-8"
     >
       <div className="space-y-2">
-        <Label htmlFor="nombre">Nombre</Label>
+        <Label htmlFor="nombre">{t('nameLabel')}</Label>
         <Input
           id="nombre"
-          placeholder="Tu nombre completo"
+          placeholder={t('namePlaceholder')}
           {...register("nombre")}
         />
         {errors.nombre && (
@@ -109,11 +114,11 @@ export default function ContactForm() {
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="email">Email</Label>
+        <Label htmlFor="email">{t('emailLabel')}</Label>
         <Input
           id="email"
           type="email"
-          placeholder="tu@email.com"
+          placeholder={t('emailPlaceholder')}
           {...register("email")}
         />
         {errors.email && (
@@ -122,19 +127,19 @@ export default function ContactForm() {
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="asunto">Asunto</Label>
+        <Label htmlFor="asunto">{t('subjectLabel')}</Label>
         <Controller
           control={control}
           name="asunto"
           render={({ field }) => (
             <Select onValueChange={field.onChange} value={field.value || ""}>
               <SelectTrigger id="asunto">
-                <SelectValue placeholder="Selecciona un asunto" />
+                <SelectValue placeholder={t('subjectPlaceholder')} />
               </SelectTrigger>
               <SelectContent>
                 {asuntos.map((asunto) => (
-                  <SelectItem key={asunto} value={asunto}>
-                    {asunto}
+                  <SelectItem key={asunto.key} value={asunto.label}>
+                    {asunto.label}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -147,10 +152,10 @@ export default function ContactForm() {
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="mensaje">Mensaje</Label>
+        <Label htmlFor="mensaje">{t('messageLabel')}</Label>
         <Textarea
           id="mensaje"
-          placeholder="Cuentanos como podemos ayudarte..."
+          placeholder={t('messagePlaceholder')}
           className="min-h-[120px]"
           {...register("mensaje")}
         />
@@ -170,7 +175,7 @@ export default function ContactForm() {
         ) : (
           <Send className="h-4 w-4" />
         )}
-        {isLoading ? "Enviando..." : "Enviar mensaje"}
+        {isLoading ? t('submitting') : t('submit')}
       </Button>
     </form>
   )

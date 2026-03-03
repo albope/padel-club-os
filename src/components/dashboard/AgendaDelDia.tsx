@@ -1,6 +1,7 @@
 'use client'
 
 import React from 'react'
+import { useTranslations, useLocale } from 'next-intl'
 import { Clock } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 
@@ -21,6 +22,9 @@ interface AgendaDelDiaProps {
 }
 
 const AgendaDelDia: React.FC<AgendaDelDiaProps> = ({ bookings, openingTime, closingTime }) => {
+  const t = useTranslations('dashboard')
+  const locale = useLocale()
+  const localeCode = locale === 'es' ? 'es-ES' : 'en-GB'
   const openHour = parseInt(openingTime.split(':')[0])
   const closeHour = parseInt(closingTime.split(':')[0])
   const hours = Array.from({ length: closeHour - openHour }, (_, i) => openHour + i)
@@ -36,7 +40,7 @@ const AgendaDelDia: React.FC<AgendaDelDiaProps> = ({ bookings, openingTime, clos
   const currentHour = new Date().getHours()
 
   const today = new Date()
-  const fechaFormateada = today.toLocaleDateString('es-ES', {
+  const fechaFormateada = today.toLocaleDateString(localeCode, {
     weekday: 'long',
     day: 'numeric',
     month: 'long',
@@ -47,7 +51,7 @@ const AgendaDelDia: React.FC<AgendaDelDiaProps> = ({ bookings, openingTime, clos
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Clock className="h-5 w-5" />
-          Agenda del Dia
+          {t('agendaTitle')}
         </CardTitle>
         <p className="text-sm text-muted-foreground capitalize">{fechaFormateada}</p>
       </CardHeader>
@@ -81,9 +85,9 @@ const AgendaDelDia: React.FC<AgendaDelDiaProps> = ({ bookings, openingTime, clos
                   {hourBookings.length > 0 ? (
                     <div className="flex flex-wrap gap-2 pt-0.5">
                       {hourBookings.map(booking => {
-                        const startTime = new Date(booking.startTime).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })
-                        const endTime = new Date(booking.endTime).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })
-                        const displayName = booking.user?.name || booking.guestName || 'Invitado'
+                        const startTime = new Date(booking.startTime).toLocaleTimeString(localeCode, { hour: '2-digit', minute: '2-digit' })
+                        const endTime = new Date(booking.endTime).toLocaleTimeString(localeCode, { hour: '2-digit', minute: '2-digit' })
+                        const displayName = booking.user?.name || booking.guestName || t('guest')
                         const isOpenMatch = booking.status === 'provisional'
 
                         return (
@@ -96,14 +100,14 @@ const AgendaDelDia: React.FC<AgendaDelDiaProps> = ({ bookings, openingTime, clos
                             }`}
                           >
                             <div className="font-semibold">{booking.court.name}</div>
-                            <div>{isOpenMatch ? 'Partida Abierta' : displayName}</div>
+                            <div>{isOpenMatch ? t('openMatch') : displayName}</div>
                             <div className="opacity-70">{startTime} - {endTime}</div>
                           </div>
                         )
                       })}
                     </div>
                   ) : (
-                    <p className="text-xs text-muted-foreground/40 pt-1">Sin reservas</p>
+                    <p className="text-xs text-muted-foreground/40 pt-1">{t('noBookingsSlot')}</p>
                   )}
                 </div>
               </div>

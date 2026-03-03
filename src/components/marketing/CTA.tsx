@@ -1,9 +1,12 @@
 import Link from "next/link"
 import { ArrowRight } from "lucide-react"
+import { getTranslations } from "next-intl/server"
 import { Button } from "@/components/ui/button"
 import AnimateOnScroll from "@/components/marketing/AnimateOnScroll"
 
-export default function CTA() {
+export default async function CTA() {
+  const t = await getTranslations('marketing.cta')
+
   return (
     <section className="relative overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-blue-950 py-24 md:py-32">
       {/* Resplandor radial */}
@@ -19,12 +22,10 @@ export default function CTA() {
       <div className="container relative">
         <AnimateOnScroll animation="fade-up" className="mx-auto max-w-3xl text-center">
           <h2 className="font-display text-3xl font-bold tracking-tight text-white md:text-4xl lg:text-5xl">
-            Tu club no puede esperar más
+            {t('title')}
           </h2>
           <p className="mx-auto mt-6 max-w-xl text-lg text-slate-300">
-            Cada día sin digitalizar es un día de reservas perdidas,
-            socios frustrados y horas malgastadas.
-            Empieza hoy. Es gratis durante 14 días.
+            {t('subtitle')}
           </p>
 
           <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
@@ -34,7 +35,7 @@ export default function CTA() {
               asChild
             >
               <Link href="/register">
-                Crear mi club ahora
+                {t('primary')}
                 <ArrowRight className="h-4 w-4" />
               </Link>
             </Button>
@@ -44,12 +45,12 @@ export default function CTA() {
               className="border border-white/20 text-base text-white hover:bg-white/10 hover:text-white"
               asChild
             >
-              <Link href="/contacto">Hablar con el equipo</Link>
+              <Link href="/contacto">{t('secondary')}</Link>
             </Button>
           </div>
 
           <p className="mt-6 text-sm text-slate-400">
-            Sin tarjeta de crédito · Configura en 5 minutos · Cancela cuando quieras
+            {t('trustLine')}
           </p>
         </AnimateOnScroll>
       </div>

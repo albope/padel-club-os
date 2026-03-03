@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { useLocale } from 'next-intl';
 import { Court } from '@prisma/client';
 import { PlusCircle, Clock, ChevronDown, Users, BarChart3, Maximize, Minimize } from 'lucide-react';
 import { BookingWithDetails } from './CalendarView';
@@ -26,6 +27,8 @@ const generateTimeSlots = (startHour: number, endHour: number, interval: number)
 };
 
 const CourtGridView: React.FC<CourtGridViewProps> = ({ courts, bookings, selectedDate, onSlotClick, onBookingClick }) => {
+  const locale = useLocale();
+  const localeCode = locale === 'es' ? 'es-ES' : 'en-GB';
   const timeSlots = generateTimeSlots(9, 23, 90);
   const [expandedCourts, setExpandedCourts] = useState<Record<string, boolean>>({});
 
@@ -105,7 +108,7 @@ const CourtGridView: React.FC<CourtGridViewProps> = ({ courts, bookings, selecte
                     if (booking) {
                         const startTime = new Date(booking.startTime);
                         const endTime = new Date(booking.endTime);
-                        const timeRange = `${startTime.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })} - ${endTime.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}`;
+                        const timeRange = `${startTime.toLocaleTimeString(localeCode, { hour: '2-digit', minute: '2-digit' })} - ${endTime.toLocaleTimeString(localeCode, { hour: '2-digit', minute: '2-digit' })}`;
 
                         if (booking.status === 'provisional') {
                             let levelText = null;

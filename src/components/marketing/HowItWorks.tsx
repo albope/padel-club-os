@@ -1,42 +1,26 @@
 import { UserPlus, Settings, Rocket } from "lucide-react"
+import { getTranslations } from "next-intl/server"
 import AnimateOnScroll from "@/components/marketing/AnimateOnScroll"
 
-const pasos = [
-  {
-    numero: 1,
-    icono: UserPlus,
-    titulo: "Crea tu cuenta",
-    descripcion:
-      "Regístrate en 30 segundos con tu email. Tu club se crea automáticamente con todo listo para empezar.",
-  },
-  {
-    numero: 2,
-    icono: Settings,
-    titulo: "Configura tus pistas",
-    descripcion:
-      "Añade tus pistas, define horarios y precios. Importa tus socios desde Excel si ya los tienes.",
-  },
-  {
-    numero: 3,
-    icono: Rocket,
-    titulo: "Empieza a gestionar",
-    descripcion:
-      "Comparte el link con tus socios. Ellos reservan desde el móvil; tú descansas.",
-  },
-]
+const pasoKeys = [
+  { numero: 1, icono: UserPlus, titleKey: "step1Title", descKey: "step1Desc" },
+  { numero: 2, icono: Settings, titleKey: "step2Title", descKey: "step2Desc" },
+  { numero: 3, icono: Rocket, titleKey: "step3Title", descKey: "step3Desc" },
+] as const
 
-export default function HowItWorks() {
+export default async function HowItWorks() {
+  const t = await getTranslations('marketing.howItWorks')
+
   return (
     <section id="como-funciona" className="border-t py-20 md:py-28">
       <div className="container">
         {/* Header */}
         <AnimateOnScroll animation="fade-up" className="mx-auto max-w-2xl text-center">
           <h2 className="font-display text-3xl font-bold tracking-tight md:text-4xl lg:text-5xl">
-            Configura tu club en 5 minutos
+            {t('title')}
           </h2>
           <p className="mt-4 text-lg text-muted-foreground">
-            Sin instalaciones complicadas. Sin formación necesaria.
-            Si sabes usar WhatsApp, sabes usar Padel Club OS.
+            {t('subtitle')}
           </p>
         </AnimateOnScroll>
 
@@ -46,7 +30,7 @@ export default function HowItWorks() {
           <div className="absolute left-0 right-0 top-16 hidden h-px border-t-2 border-dashed border-primary/20 md:block" style={{ left: "16.67%", right: "16.67%" }} />
 
           <div className="grid gap-8 md:grid-cols-3 md:gap-12">
-            {pasos.map((paso, i) => (
+            {pasoKeys.map((paso, i) => (
               <AnimateOnScroll
                 key={paso.numero}
                 animation="fade-up"
@@ -65,10 +49,10 @@ export default function HowItWorks() {
 
                   {/* Texto */}
                   <h3 className="mt-4 font-display text-lg font-semibold">
-                    {paso.titulo}
+                    {t(paso.titleKey)}
                   </h3>
                   <p className="mt-2 text-sm text-muted-foreground">
-                    {paso.descripcion}
+                    {t(paso.descKey)}
                   </p>
                 </div>
               </AnimateOnScroll>

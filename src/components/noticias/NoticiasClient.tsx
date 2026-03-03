@@ -3,6 +3,7 @@
 import React, { useState, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import { useTranslations, useLocale } from 'next-intl'
 import { Newspaper, Pencil, Trash2, Loader2 } from 'lucide-react'
 import EmptyState from '@/components/onboarding/EmptyState'
 import { Card, CardContent } from '@/components/ui/card'
@@ -40,6 +41,10 @@ type FilterType = 'all' | 'published' | 'draft'
 
 const NoticiasClient: React.FC<NoticiasClientProps> = ({ initialNews }) => {
   const router = useRouter()
+  const t = useTranslations('noticias')
+  const tc = useTranslations('common')
+  const locale = useLocale()
+  const localeCode = locale === 'es' ? 'es-ES' : 'en-GB'
   const [news, setNews] = useState(initialNews)
   const [filter, setFilter] = useState<FilterType>('all')
   const [isLoading, setIsLoading] = useState<string | null>(null)
@@ -68,8 +73,8 @@ const NoticiasClient: React.FC<NoticiasClientProps> = ({ initialNews }) => {
   const handleDelete = (newsId: string, title: string) => {
     setConfirmDialog({
       open: true,
-      title: 'Eliminar noticia',
-      description: `¿Seguro que quieres eliminar "${title}"? Esta accion no se puede deshacer.`,
+      title: t('deleteTitle'),
+      description: `¿${title}? ${t('deleteConfirm')}`,
       action: async () => {
         setIsLoading(newsId)
         try {
@@ -77,13 +82,13 @@ const NoticiasClient: React.FC<NoticiasClientProps> = ({ initialNews }) => {
           if (!response.ok) throw new Error('Error al eliminar')
           setNews(prev => prev.filter(n => n.id !== newsId))
           toast({
-            title: "Noticia eliminada",
-            description: "La noticia ha sido eliminada correctamente.",
+            title: t('deleted'),
+            description: t('deletedDesc'),
           })
         } catch (error) {
           toast({
-            title: "Error",
-            description: "No se pudo eliminar la noticia.",
+            title: tc('error'),
+            description: t('deleteError'),
             variant: "destructive",
           })
         } finally {
@@ -108,15 +113,15 @@ const NoticiasClient: React.FC<NoticiasClientProps> = ({ initialNews }) => {
         )
       )
       toast({
-        title: newsItem.published ? "Noticia despublicada" : "Noticia publicada",
+        title: newsItem.published ? t('unpublished') : t('published'),
         description: newsItem.published
-          ? "La noticia ya no es visible para los jugadores."
-          : "La noticia ahora es visible para los jugadores.",
+          ? t('unpublishedDesc')
+          : t('publishedDesc'),
       })
     } catch (error) {
       toast({
-        title: "Error",
-        description: "No se pudo actualizar la noticia.",
+        title: tc('error'),
+        description: t('toggleError'),
         variant: "destructive",
       })
     } finally {
@@ -126,9 +131,9 @@ const NoticiasClient: React.FC<NoticiasClientProps> = ({ initialNews }) => {
 
   const filterLabel = (f: FilterType) => {
     switch (f) {
-      case 'all': return 'Todas'
-      case 'published': return 'Publicadas'
-      case 'draft': return 'Borradores'
+      case 'all': return t('all')
+      case 'published': return t('publishedFilter')
+      case 'draft': return t('drafts')
     }
   }
 
@@ -138,9 +143,9 @@ const NoticiasClient: React.FC<NoticiasClientProps> = ({ initialNews }) => {
         <CardContent className="p-6">
           <EmptyState
             icon={Newspaper}
-            title="Sin noticias publicadas"
-            description="Publica noticias para mantener informados a tus socios."
-            actionLabel="Crear primera noticia"
+            title={t('emptyPublished')}
+            description={t('emptyPublishedDesc')}
+            actionLabel={t('createFirst')}
             actionHref="/dashboard/noticias/nueva"
           />
         </CardContent>
@@ -154,9 +159,9 @@ const NoticiasClient: React.FC<NoticiasClientProps> = ({ initialNews }) => {
         <div className="p-4 border-b">
           <Tabs value={filter} onValueChange={(value) => setFilter(value as FilterType)}>
             <TabsList>
-              <TabsTrigger value="all">Todas ({news.length})</TabsTrigger>
-              <TabsTrigger value="published">Publicadas ({news.filter(n => n.published).length})</TabsTrigger>
-              <TabsTrigger value="draft">Borradores ({news.filter(n => !n.published).length})</TabsTrigger>
+              <TabsTrigger value="all">{t('all')} ({news.length})</TabsTrigger>
+              <TabsTrigger value="published">{t('publishedFilter')} ({news.filter(n => n.published).length})</TabsTrigger>
+              <TabsTrigger value="draft">{t('drafts')} ({news.filter(n => !n.published).length})</TabsTrigger>
             </TabsList>
           </Tabs>
         </div>
@@ -181,14 +186,14 @@ const NoticiasClient: React.FC<NoticiasClientProps> = ({ initialNews }) => {
                           </p>
                           <div className="flex items-center gap-3 mt-1">
                             <span className="text-xs text-muted-foreground">
-                              {new Date(item.createdAt).toLocaleDateString('es-ES', {
+                              {new Date(item.createdAt).toLocaleDateString(localeCode, {
                                 day: 'numeric',
                                 month: 'short',
                                 year: 'numeric',
                               })}
                             </span>
                             <Badge variant={item.published ? 'default' : 'secondary'}>
-                              {item.published ? 'Publicada' : 'Borrador'}
+                              {item.published ? t('publishedBadge') : t('draftBadge')}
                             </Badge>
                           </div>
                         </div>
@@ -204,10 +209,10 @@ const NoticiasClient: React.FC<NoticiasClientProps> = ({ initialNews }) => {
                             size="sm"
                             onClick={() => handleTogglePublish(item)}
                           >
-                            {item.published ? 'Despublicar' : 'Publicar'}
+                            {item.published ? t('unpublishAction') : t('publishAction')}
                           </Button>
                           <Link href={`/dashboard/noticias/${item.id}`}>
-                            <Button variant="outline" size="sm" aria-label="Editar">
+                            <Button variant="outline" size="sm" aria-label={tc('edit')}>
                               <Pencil className="h-4 w-4" />
                             </Button>
                           </Link>
@@ -230,7 +235,7 @@ const NoticiasClient: React.FC<NoticiasClientProps> = ({ initialNews }) => {
             <div className="text-center py-12">
               <Newspaper className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
               <p className="text-muted-foreground">
-                No hay noticias en &quot;{filterLabel(filter)}&quot;.
+                {t('noNewsIn')}
               </p>
             </div>
           )}
@@ -247,7 +252,7 @@ const NoticiasClient: React.FC<NoticiasClientProps> = ({ initialNews }) => {
             <AlertDialogDescription>{confirmDialog.description}</AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogCancel>{tc('cancel')}</AlertDialogCancel>
             <AlertDialogAction
               onClick={async () => {
                 await confirmDialog.action()
@@ -255,7 +260,7 @@ const NoticiasClient: React.FC<NoticiasClientProps> = ({ initialNews }) => {
               }}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              Eliminar
+              {tc('delete')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

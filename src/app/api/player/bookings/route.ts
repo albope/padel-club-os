@@ -141,6 +141,8 @@ export async function POST(req: Request) {
 
     const requiresPayment = modoOnline && !payAtClub && paymentStatus === "pending"
 
+    const numPlayers = 4 // padel estandar: 2 vs 2
+
     const booking = await db.booking.create({
       data: {
         courtId,
@@ -148,11 +150,24 @@ export async function POST(req: Request) {
         startTime: newStartTime,
         endTime: newEndTime,
         totalPrice,
+        numPlayers,
         paymentStatus,
         status: "confirmed",
         clubId: auth.session.user.clubId,
       },
     });
+
+    // Crear BookingPayments para tracking de pagos por jugador
+    if (paymentStatus !== "exempt" && totalPrice > 0) {
+      const amountPerPlayer = Math.round((totalPrice / numPlayers) * 100) / 100
+      const pagosData = [
+        { bookingId: booking.id, userId: auth.session.user.id, guestName: null, amount: amountPerPlayer, clubId: auth.session.user.clubId },
+        ...Array.from({ length: numPlayers - 1 }, (_, i) => ({
+          bookingId: booking.id, userId: null, guestName: `Jugador ${i + 2}`, amount: amountPerPlayer, clubId: auth.session.user.clubId,
+        })),
+      ]
+      db.bookingPayment.createMany({ data: pagosData }).catch(() => {})
+    }
 
     // Notificar al jugador de la confirmacion
     crearNotificacion({

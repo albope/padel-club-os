@@ -1,5 +1,6 @@
 "use client"
 
+import { useLocale } from 'next-intl'
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
 import EmptyState from "@/components/onboarding/EmptyState"
@@ -77,6 +78,9 @@ function BadgeEstado({ status }: { status: string }) {
 }
 
 export default function ComunicacionClient({ initialBroadcasts }: ComunicacionClientProps) {
+  const locale = useLocale()
+  const localeCode = locale === 'es' ? 'es-ES' : 'en-GB'
+
   if (initialBroadcasts.length === 0) {
     return (
       <EmptyState
@@ -110,7 +114,7 @@ export default function ComunicacionClient({ initialBroadcasts }: ComunicacionCl
                 </Badge>
                 <BadgeCanal channels={broadcast.channels} />
                 <span>
-                  {new Date(broadcast.createdAt).toLocaleDateString("es-ES", {
+                  {new Date(broadcast.createdAt).toLocaleDateString(localeCode, {
                     day: "numeric",
                     month: "short",
                     year: "numeric",

@@ -5,9 +5,10 @@ import { getServerSession } from 'next-auth'
 import { redirect } from 'next/navigation'
 import { Calendar, Users, Fence, TrendingUp } from 'lucide-react'
 import AnaliticasClient from '@/components/analiticas/AnaliticasClient'
+import { getLocale } from 'next-intl/server'
 
 // Calcular datos de tendencia de reservas (ultimos 30 dias)
-async function getBookingTrends(clubId: string) {
+async function getBookingTrends(clubId: string, localeCode: string) {
   const treintaDias = new Date()
   treintaDias.setDate(treintaDias.getDate() - 30)
 
@@ -24,7 +25,7 @@ async function getBookingTrends(clubId: string) {
   // Agrupar por dia
   const porDia = new Map<string, number>()
   for (const b of bookings) {
-    const fecha = b.startTime.toLocaleDateString('es-ES', { day: '2-digit', month: 'short' })
+    const fecha = b.startTime.toLocaleDateString(localeCode, { day: '2-digit', month: 'short' })
     porDia.set(fecha, (porDia.get(fecha) || 0) + 1)
   }
 
@@ -32,7 +33,7 @@ async function getBookingTrends(clubId: string) {
 }
 
 // Calcular crecimiento de socios (ultimos 12 meses)
-async function getMemberGrowth(clubId: string) {
+async function getMemberGrowth(clubId: string, localeCode: string) {
   const usuarios = await db.user.findMany({
     where: { clubId, role: 'PLAYER' },
     select: { id: true },
@@ -46,7 +47,7 @@ async function getMemberGrowth(clubId: string) {
 
   for (let i = 11; i >= 0; i--) {
     const fecha = new Date(ahora.getFullYear(), ahora.getMonth() - i, 1)
-    const mes = fecha.toLocaleDateString('es-ES', { month: 'short', year: '2-digit' })
+    const mes = fecha.toLocaleDateString(localeCode, { month: 'short', year: '2-digit' })
     // Estimacion progresiva hacia el total actual
     const factor = (12 - i) / 12
     meses.push({ mes, socios: Math.round(totalSocios * factor) || 0 })
@@ -121,6 +122,8 @@ export default async function AnaliticasPage() {
   if (!session?.user?.clubId) redirect('/dashboard')
 
   const clubId = session.user.clubId
+  const locale = await getLocale()
+  const localeCode = locale === 'es' ? 'es-ES' : 'en-GB'
 
   // Obtener estadisticas en paralelo
   const [
@@ -133,8 +136,8 @@ export default async function AnaliticasPage() {
     totalPistas,
     reservasEsteMes,
   ] = await Promise.all([
-    getBookingTrends(clubId),
-    getMemberGrowth(clubId),
+    getBookingTrends(clubId, localeCode),
+    getMemberGrowth(clubId, localeCode),
     getCourtUtilization(clubId),
     getPeakHours(clubId),
     db.booking.count({ where: { clubId, cancelledAt: null } }),

@@ -1,12 +1,13 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { Loader2, Trash2 } from 'lucide-react';
 import { Court, User } from '@prisma/client';
 import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { BookingWithDetails } from './CalendarView';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
@@ -15,31 +16,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Button } from '@/components/ui/button';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { toast } from '@/hooks/use-toast';
-
-const BookingSchema = z.object({
-  courtId: z.string().min(1, "Debes seleccionar una pista."),
-  startDate: z.string(),
-  startTime: z.string(),
-  endTime: z.string(),
-  userId: z.string().optional(),
-  guestName: z.string().optional(),
-}).refine(data => data.startTime < data.endTime, {
-  message: "La hora de fin debe ser posterior a la de inicio.",
-  path: ["endTime"],
-}).refine(data => !!data.userId || (!!data.guestName && data.guestName.length > 0), {
-  message: "Debes seleccionar un socio o introducir el nombre de un invitado.",
-  path: ["guestName"],
-});
-
-type BookingFormValues = z.infer<typeof BookingSchema>;
-
-interface BookingModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  selectedInfo: Date | BookingWithDetails | null;
-  courts: Court[];
-  users: User[];
-}
 
 // Generar opciones de hora cada 30 minutos (07:00 - 23:30)
 const HORAS_DISPONIBLES = Array.from({ length: 34 }, (_, i) => {
@@ -67,8 +43,18 @@ function calcularHoraFin(startTime: string): string {
   return `${hh}:${mm}`;
 }
 
+interface BookingModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  selectedInfo: Date | BookingWithDetails | null;
+  courts: Court[];
+  users: User[];
+}
+
 const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, selectedInfo, courts, users }) => {
   const router = useRouter();
+  const t = useTranslations('booking');
+  const tc = useTranslations('common');
   const [isLoading, setIsLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [showUserList, setShowUserList] = useState(false);
@@ -76,6 +62,24 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, selectedIn
 
   const isEditMode = selectedInfo !== null && !(selectedInfo instanceof Date);
   const bookingData = isEditMode ? selectedInfo as BookingWithDetails : null;
+
+  const BookingSchema = useMemo(() => z.object({
+    courtId: z.string().min(1, t('courtRequired')),
+    startDate: z.string(),
+    startTime: z.string(),
+    endTime: z.string(),
+    userId: z.string().optional(),
+    guestName: z.string().optional(),
+    numPlayers: z.number().int().min(2).max(4).optional(),
+  }).refine(data => data.startTime < data.endTime, {
+    message: t('endAfterStart'),
+    path: ["endTime"],
+  }).refine(data => !!data.userId || (!!data.guestName && data.guestName.length > 0), {
+    message: t('memberRequired'),
+    path: ["guestName"],
+  }), [t]);
+
+  type BookingFormValues = z.infer<typeof BookingSchema>;
 
   const form = useForm<BookingFormValues>({
     resolver: zodResolver(BookingSchema),
@@ -97,6 +101,7 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, selectedIn
         startDate: initialDate.toISOString().split('T')[0],
         startTime,
         endTime,
+        numPlayers: (isEditMode && bookingData!.numPlayers) ? bookingData!.numPlayers : 4,
       });
       setSearchTerm(isEditMode ? bookingData!.user?.name || bookingData!.guestName || '' : '');
     }
@@ -111,6 +116,8 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, selectedIn
     const url = isEditMode ? `/api/bookings/${bookingData!.id}` : '/api/bookings';
     const method = isEditMode ? 'PATCH' : 'POST';
 
+    const actionKey = isEditMode ? 'bookingUpdated' : 'bookingCreated';
+
     try {
       const response = await fetch(url, {
         method,
@@ -121,6 +128,7 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, selectedIn
           guestName: data.guestName,
           startTime: newStartTime.toISOString(),
           endTime: newEndTime.toISOString(),
+          numPlayers: data.numPlayers || 4,
         }),
       });
       if (!response.ok) {
@@ -128,13 +136,13 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, selectedIn
           const errorMessage = await response.text();
           throw new Error(errorMessage);
         }
-        throw new Error(`No se pudo ${isEditMode ? 'actualizar' : 'crear'} la reserva.`);
+        throw new Error(t('bookingError', { action: t(actionKey) }));
       }
-      toast({ title: isEditMode ? "Reserva actualizada" : "Reserva creada", description: `La reserva se ha ${isEditMode ? 'actualizado' : 'creado'} correctamente.` });
+      toast({ title: isEditMode ? t('editBooking') : t('newBooking'), description: t('bookingSuccess', { action: t(actionKey) }) });
       onClose();
       router.refresh();
     } catch (err: any) {
-      toast({ title: "Error", description: err.message, variant: "destructive" });
+      toast({ title: tc('error'), description: err.message, variant: "destructive" });
     } finally {
       setIsLoading(false);
     }
@@ -146,11 +154,11 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, selectedIn
     setIsLoading(true);
     try {
       await fetch(`/api/bookings/${bookingData!.id}`, { method: 'DELETE' });
-      toast({ title: "Reserva eliminada", description: "La reserva ha sido eliminada." });
+      toast({ title: t('deleteBooking'), description: t('bookingSuccess', { action: t('bookingDeleted') }) });
       onClose();
       router.refresh();
     } catch (err: any) {
-      toast({ title: "Error", description: err.message, variant: "destructive" });
+      toast({ title: tc('error'), description: err.message, variant: "destructive" });
     } finally {
       setIsLoading(false);
     }
@@ -172,18 +180,18 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, selectedIn
       <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
         <DialogContent className="sm:max-w-lg">
           <DialogHeader>
-            <DialogTitle>{isEditMode ? 'Editar Reserva' : 'Nueva Reserva'}</DialogTitle>
-            <DialogDescription>Rellena los datos para crear una nueva reserva.</DialogDescription>
+            <DialogTitle>{isEditMode ? t('editBooking') : t('newBooking')}</DialogTitle>
+            <DialogDescription>{t('newBookingDesc')}</DialogDescription>
           </DialogHeader>
 
           <form onSubmit={form.handleSubmit(handleFormSubmit)} className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="md:col-span-1 space-y-2">
-                <Label htmlFor="startDate">Fecha</Label>
+                <Label htmlFor="startDate">{t('date')}</Label>
                 <Input type="date" id="startDate" {...form.register('startDate')} aria-required="true" />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="startTime">Hora Inicio</Label>
+                <Label htmlFor="startTime">{t('startTime')}</Label>
                 <Select
                   value={form.watch('startTime')}
                   onValueChange={(value) => {
@@ -192,7 +200,7 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, selectedIn
                   }}
                 >
                   <SelectTrigger id="startTime">
-                    <SelectValue placeholder="Hora inicio" />
+                    <SelectValue placeholder={t('startTimePlaceholder')} />
                   </SelectTrigger>
                   <SelectContent>
                     {HORAS_DISPONIBLES.map(hora => (
@@ -202,13 +210,13 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, selectedIn
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="endTime">Hora Fin</Label>
+                <Label htmlFor="endTime">{t('endTime')}</Label>
                 <Select
                   value={form.watch('endTime')}
                   onValueChange={(value) => form.setValue('endTime', value)}
                 >
                   <SelectTrigger id="endTime">
-                    <SelectValue placeholder="Hora fin" />
+                    <SelectValue placeholder={t('endTimePlaceholder')} />
                   </SelectTrigger>
                   <SelectContent>
                     {HORAS_DISPONIBLES.map(hora => (
@@ -223,13 +231,13 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, selectedIn
             )}
 
             <div className="space-y-2">
-              <Label htmlFor="courtId">Pista</Label>
+              <Label htmlFor="courtId">{t('court')}</Label>
               <Select
                 value={form.watch('courtId')}
                 onValueChange={(value) => form.setValue('courtId', value)}
               >
                 <SelectTrigger id="courtId">
-                  <SelectValue placeholder="Selecciona una pista" />
+                  <SelectValue placeholder={t('selectCourt')} />
                 </SelectTrigger>
                 <SelectContent>
                   {Array.isArray(courts) && courts.map(court => (
@@ -243,7 +251,7 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, selectedIn
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="user-search">Socio o Invitado</Label>
+              <Label htmlFor="user-search">{t('memberOrGuest')}</Label>
               <div className="relative">
                 <Input
                   id="user-search"
@@ -256,7 +264,7 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, selectedIn
                   }}
                   onFocus={() => setShowUserList(true)}
                   onBlur={() => setTimeout(() => setShowUserList(false), 200)}
-                  placeholder="Busca un socio o escribe un nombre..."
+                  placeholder={t('searchMember')}
                   autoComplete="off"
                   aria-required="true"
                   aria-invalid={!!form.formState.errors.guestName}
@@ -271,7 +279,7 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, selectedIn
                         </li>
                       ))
                     ) : (
-                      <li className="px-3 py-2 text-muted-foreground">No se encontraron socios. Pulsa Enter para añadir como invitado.</li>
+                      <li className="px-3 py-2 text-muted-foreground">{t('noMembersFound')}</li>
                     )}
                   </ul>
                 )}
@@ -281,17 +289,34 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, selectedIn
               )}
             </div>
 
+            <div className="space-y-2">
+              <Label htmlFor="numPlayers">{t('numPlayers')}</Label>
+              <Select
+                value={String(form.watch('numPlayers') || 4)}
+                onValueChange={(value) => form.setValue('numPlayers', Number(value))}
+              >
+                <SelectTrigger id="numPlayers">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="2">2 jugadores</SelectItem>
+                  <SelectItem value="3">3 jugadores</SelectItem>
+                  <SelectItem value="4">4 jugadores</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
             <div className="flex justify-between items-center pt-2">
               {isEditMode && (
                 <Button type="button" variant="ghost" className="text-destructive hover:text-destructive" onClick={() => setDeleteDialogOpen(true)} disabled={isLoading}>
-                  <Trash2 className="mr-2 h-4 w-4" /> Eliminar
+                  <Trash2 className="mr-2 h-4 w-4" /> {tc('delete')}
                 </Button>
               )}
               <div className="flex-grow flex justify-end gap-3">
-                <Button type="button" variant="outline" onClick={onClose}>Cancelar</Button>
+                <Button type="button" variant="outline" onClick={onClose}>{tc('cancel')}</Button>
                 <Button type="submit" disabled={isLoading}>
                   {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                  {isEditMode ? 'Guardar Cambios' : 'Confirmar Reserva'}
+                  {isEditMode ? t('saveChanges') : t('confirmBookingBtn')}
                 </Button>
               </div>
             </div>
@@ -302,15 +327,15 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, selectedIn
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Eliminar reserva</AlertDialogTitle>
+            <AlertDialogTitle>{t('deleteBooking')}</AlertDialogTitle>
             <AlertDialogDescription>
-              ¿Estás seguro de que quieres eliminar esta reserva? Esta acción no se puede deshacer.
+              {t('deleteBookingConfirm')}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogCancel>{tc('cancel')}</AlertDialogCancel>
             <AlertDialogAction onClick={onDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-              Eliminar
+              {tc('delete')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

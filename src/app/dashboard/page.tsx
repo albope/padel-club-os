@@ -4,6 +4,7 @@ import { redirect } from 'next/navigation';
 import DashboardClient from '@/components/dashboard/DashboardClient';
 import { User } from 'next-auth';
 import { db } from '@/lib/db';
+import { getLocale } from 'next-intl/server';
 
 const getDashboardData = async (clubId: string) => {
   try {
@@ -11,6 +12,14 @@ const getDashboardData = async (clubId: string) => {
     startOfDay.setHours(0, 0, 0, 0);
     const endOfDay = new Date();
     endOfDay.setHours(23, 59, 59, 999);
+
+    // Rango de 7 dias para grafico de ingresos
+    const sieteDiasAtras = new Date();
+    sieteDiasAtras.setHours(0, 0, 0, 0);
+    sieteDiasAtras.setDate(sieteDiasAtras.getDate() - 6);
+
+    // Inicio del mes para ingresos mensuales
+    const inicioMes = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
 
     const [
       upcomingBookings,
@@ -22,6 +31,9 @@ const getDashboardData = async (clubId: string) => {
       users,
       courtPricingsCount,
       playerCount,
+      reservasIngresos7d,
+      ingresosMesAgg,
+      pagosPendientesCount,
     ] = await Promise.all([
       // --- INICIO DE LA MODIFICACIÓN ---
       db.booking.findMany({
@@ -84,6 +96,18 @@ const getDashboardData = async (clubId: string) => {
       // Queries para onboarding
       db.courtPricing.count({ where: { clubId } }),
       db.user.count({ where: { clubId, role: "PLAYER" } }),
+      // Queries de ingresos
+      db.booking.findMany({
+        where: { clubId, startTime: { gte: sieteDiasAtras }, cancelledAt: null },
+        select: { startTime: true, totalPrice: true, paymentStatus: true },
+      }),
+      db.booking.aggregate({
+        where: { clubId, startTime: { gte: inicioMes }, cancelledAt: null, paymentStatus: 'paid' },
+        _sum: { totalPrice: true },
+      }),
+      db.booking.count({
+        where: { clubId, cancelledAt: null, paymentStatus: 'pending', startTime: { lte: new Date() } },
+      }),
     ]);
 
     let occupancyRate = 0;
@@ -155,6 +179,41 @@ const getDashboardData = async (clubId: string) => {
       },
     ];
 
+    // Procesar ingresos de 7 dias en buckets diarios
+    const locale = await getLocale();
+    const localeCode = locale === 'es' ? 'es-ES' : 'en-GB';
+
+    const ingresosSemana = [];
+    for (let i = 6; i >= 0; i--) {
+      const dia = new Date();
+      dia.setHours(0, 0, 0, 0);
+      dia.setDate(dia.getDate() - i);
+      const siguienteDia = new Date(dia);
+      siguienteDia.setDate(siguienteDia.getDate() + 1);
+
+      const reservasDelDia = reservasIngresos7d.filter(
+        r => r.startTime >= dia && r.startTime < siguienteDia
+      );
+
+      const cobrado = reservasDelDia
+        .filter(r => r.paymentStatus === 'paid')
+        .reduce((sum, r) => sum + (r.totalPrice || 0), 0);
+
+      const pendiente = reservasDelDia
+        .filter(r => r.paymentStatus !== 'paid')
+        .reduce((sum, r) => sum + (r.totalPrice || 0), 0);
+
+      const fecha = dia.toLocaleDateString(localeCode, { weekday: 'short', day: 'numeric' });
+      ingresosSemana.push({ fecha, cobrado, pendiente });
+    }
+
+    // Ingresos cobrados de hoy (subconjunto de los 7 dias)
+    const ingresoHoy = reservasIngresos7d
+      .filter(r => r.startTime >= startOfDay && r.startTime <= endOfDay && r.paymentStatus === 'paid')
+      .reduce((sum, r) => sum + (r.totalPrice || 0), 0);
+
+    const ingresosMes = ingresosMesAgg._sum.totalPrice || 0;
+
     return JSON.parse(JSON.stringify({
       upcomingBookings,
       stats,
@@ -165,6 +224,10 @@ const getDashboardData = async (clubId: string) => {
       closingTime: club?.closingTime || '23:00',
       onboardingPasos,
       clubSlug: club?.slug || '',
+      ingresosSemana,
+      ingresoHoy,
+      ingresosMes,
+      pagosPendientes: pagosPendientesCount,
     }));
   } catch (error) {
     console.error('Failed to fetch dashboard data:', error);
@@ -183,6 +246,10 @@ const getDashboardData = async (clubId: string) => {
       closingTime: '23:00',
       onboardingPasos: [],
       clubSlug: '',
+      ingresosSemana: [],
+      ingresoHoy: 0,
+      ingresosMes: 0,
+      pagosPendientes: 0,
     };
   }
 };
@@ -194,9 +261,11 @@ const DashboardPage = async () => {
     redirect('/login');
   }
 
-  const { upcomingBookings, stats, courts, users, todayBookings, openingTime, closingTime, onboardingPasos, clubSlug } = await getDashboardData(
-    session.user.clubId
-  );
+  const {
+    upcomingBookings, stats, courts, users, todayBookings,
+    openingTime, closingTime, onboardingPasos, clubSlug,
+    ingresosSemana, ingresoHoy, ingresosMes, pagosPendientes,
+  } = await getDashboardData(session.user.clubId);
 
   return (
     <DashboardClient
@@ -211,6 +280,10 @@ const DashboardPage = async () => {
       closingTime={closingTime}
       onboardingPasos={onboardingPasos}
       clubSlug={clubSlug}
+      ingresosSemana={ingresosSemana}
+      ingresoHoy={ingresoHoy}
+      ingresosMes={ingresosMes}
+      pagosPendientes={pagosPendientes}
     />
   );
 };

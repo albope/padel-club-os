@@ -24,6 +24,8 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { toast } from '@/hooks/use-toast';
+import { useLocale } from 'next-intl';
+import { ValoracionesWidget } from '@/components/social/ValoracionesWidget';
 
 interface UserProfile {
   id: string;
@@ -49,6 +51,8 @@ export default function PlayerProfilePage() {
   const router = useRouter();
   const { data: session, status } = useSession();
   const slug = params.slug as string;
+  const locale = useLocale();
+  const localeCode = locale === 'es' ? 'es-ES' : 'en-GB';
 
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [bookings, setBookings] = useState<Booking[]>([]);
@@ -279,6 +283,9 @@ export default function PlayerProfilePage() {
         </CardContent>
       </Card>
 
+      {/* Valoraciones pendientes */}
+      <ValoracionesWidget slug={slug} />
+
       {/* Historial de reservas */}
       <Card>
         <CardHeader>
@@ -306,14 +313,14 @@ export default function PlayerProfilePage() {
                       <div className="flex items-center gap-2">
                         <Badge variant="secondary">{booking.court.name}</Badge>
                         <span className="text-sm font-medium">
-                          {new Date(booking.startTime).toLocaleDateString('es-ES', {
+                          {new Date(booking.startTime).toLocaleDateString(localeCode, {
                             weekday: 'short', day: 'numeric', month: 'short',
                           })}
                         </span>
                       </div>
                       <p className="text-xs text-muted-foreground">
-                        {new Date(booking.startTime).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })} -{' '}
-                        {new Date(booking.endTime).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}
+                        {new Date(booking.startTime).toLocaleTimeString(localeCode, { hour: '2-digit', minute: '2-digit' })} -{' '}
+                        {new Date(booking.endTime).toLocaleTimeString(localeCode, { hour: '2-digit', minute: '2-digit' })}
                       </p>
                     </div>
                     <div className="flex items-center gap-2">
@@ -323,10 +330,10 @@ export default function PlayerProfilePage() {
                           size="sm"
                           className="text-destructive hover:text-destructive hover:bg-destructive/10 h-8 px-2"
                           onClick={() => {
-                            const fecha = new Date(booking.startTime).toLocaleDateString('es-ES', {
+                            const fecha = new Date(booking.startTime).toLocaleDateString(localeCode, {
                               weekday: 'long', day: 'numeric', month: 'long',
                             });
-                            const hora = new Date(booking.startTime).toLocaleTimeString('es-ES', {
+                            const hora = new Date(booking.startTime).toLocaleTimeString(localeCode, {
                               hour: '2-digit', minute: '2-digit',
                             });
                             setCancelDialog({

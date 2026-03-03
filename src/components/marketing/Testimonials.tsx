@@ -1,44 +1,32 @@
 import { MessageCircleX, FileSpreadsheet, Layers } from "lucide-react"
+import { getTranslations } from "next-intl/server"
 import { cn } from "@/lib/utils"
 
-const puntosDolor = [
-  {
-    icono: MessageCircleX,
-    titulo: "Reservas por WhatsApp",
-    antes: "Grupos de WhatsApp, llamadas y libretas de papel. Dobles reservas, malentendidos y horas perdidas gestionando el caos.",
-    despues: "Reservas online 24/7 con detección automática de solapamientos. Tus socios reservan solos; tú no tocas el móvil.",
-  },
-  {
-    icono: FileSpreadsheet,
-    titulo: "Competiciones en Excel",
-    antes: "Ligas en hojas de cálculo actualizadas a mano. Errores, cálculos incorrectos y clasificaciones que nadie sabe dónde encontrar.",
-    despues: "Genera ligas y torneos en segundos. Cuadros automáticos, resultados en tiempo real y clasificaciones visibles para todos.",
-  },
-  {
-    icono: Layers,
-    titulo: "Gestión fragmentada",
-    antes: "WhatsApp para reservas, Excel para competiciones, papel para socios y otra app para pagos. Nada conectado, todo duplicado.",
-    despues: "Una sola plataforma para reservas, socios, competiciones y analíticas. Todo conectado, todo en orden.",
-  },
-]
+const puntoDolorKeys = [
+  { icono: MessageCircleX, titleKey: "item1Title", beforeKey: "item1Before", afterKey: "item1After" },
+  { icono: FileSpreadsheet, titleKey: "item2Title", beforeKey: "item2Before", afterKey: "item2After" },
+  { icono: Layers, titleKey: "item3Title", beforeKey: "item3Before", afterKey: "item3After" },
+] as const
 
-export default function Testimonials() {
+export default async function Testimonials() {
+  const t = await getTranslations('marketing.testimonials')
+
   return (
     <section id="testimonios" className="border-t bg-muted/30 py-24">
       <div className="container">
         <div className="mx-auto max-w-2xl text-center">
           <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
-            Tu club merece algo mejor
+            {t('title')}
           </h2>
           <p className="mt-4 text-lg text-muted-foreground">
-            Conocemos el día a día de un club de pádel. Hemos diseñado la solución para cada uno de estos problemas.
+            {t('subtitle')}
           </p>
         </div>
 
         <div className="mx-auto mt-16 grid max-w-5xl gap-6 md:grid-cols-3">
-          {puntosDolor.map((punto) => (
+          {puntoDolorKeys.map((punto) => (
             <div
-              key={punto.titulo}
+              key={punto.titleKey}
               className="flex flex-col rounded-xl border bg-card shadow-sm"
             >
               {/* Header de la card */}
@@ -46,7 +34,7 @@ export default function Testimonials() {
                 <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10">
                   <punto.icono className="h-5 w-5 text-primary" />
                 </div>
-                <h3 className="font-semibold">{punto.titulo}</h3>
+                <h3 className="font-semibold">{t(punto.titleKey)}</h3>
               </div>
 
               {/* Bloque "antes" */}
@@ -59,11 +47,11 @@ export default function Testimonials() {
                       "dark:bg-red-950/60 dark:text-red-400"
                     )}
                   >
-                    Ahora
+                    {t('now')}
                   </span>
                 </div>
                 <p className="text-sm leading-relaxed text-muted-foreground">
-                  {punto.antes}
+                  {t(punto.beforeKey)}
                 </p>
               </div>
 
@@ -86,11 +74,11 @@ export default function Testimonials() {
                       "dark:bg-emerald-950/60 dark:text-emerald-400"
                     )}
                   >
-                    Con nosotros
+                    {t('withUs')}
                   </span>
                 </div>
                 <p className="text-sm leading-relaxed text-muted-foreground">
-                  {punto.despues}
+                  {t(punto.afterKey)}
                 </p>
               </div>
             </div>

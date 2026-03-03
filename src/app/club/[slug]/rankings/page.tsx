@@ -49,7 +49,7 @@ export default async function ClubRankingsPage({ params }: { params: { slug: str
         <p className="text-muted-foreground mt-1">Clasificación del club</p>
         <div className="club-accent-line mt-3" />
       </div>
-      <Leaderboard rankings={JSON.parse(JSON.stringify(data))} />
+      <Leaderboard rankings={JSON.parse(JSON.stringify(data))} slug={params.slug} />
     </div>
   );
 }

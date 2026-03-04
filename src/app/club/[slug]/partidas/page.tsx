@@ -24,7 +24,8 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { toast } from '@/hooks/use-toast';
-import { useLocale } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
+import BotonCompartir from '@/components/club/BotonCompartir';
 import NuevaPartidaJugadorForm from '@/components/club/NuevaPartidaJugadorForm';
 
 interface OpenMatch {
@@ -54,6 +55,7 @@ export default function ClubOpenMatchesPage() {
   const slug = params.slug as string;
   const locale = useLocale();
   const localeCode = locale === 'es' ? 'es-ES' : 'en-GB';
+  const tShare = useTranslations('share');
 
   const [matches, setMatches] = useState<OpenMatch[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -510,6 +512,22 @@ export default function ClubOpenMatchesPage() {
 
                       {/* Accion */}
                       <div className="shrink-0 flex items-center gap-1.5">
+                        <BotonCompartir
+                          datos={{
+                            titulo: tShare('openMatchTitle'),
+                            texto: tShare('openMatchText', {
+                              court: match.court.name,
+                              date: new Date(match.matchTime).toLocaleDateString(localeCode, { weekday: 'long', day: 'numeric', month: 'long' }),
+                              time: new Date(match.matchTime).toLocaleTimeString(localeCode, { hour: '2-digit', minute: '2-digit' }),
+                              slots: 4 - match.players.length,
+                            }),
+                            url: typeof window !== 'undefined' ? `${window.location.origin}/club/${slug}/partidas` : '',
+                          }}
+                          variant="ghost"
+                          size="sm"
+                          className="h-8 w-8 p-0"
+                          mostrarTexto={false}
+                        />
                         {isInMatch && (
                           <Button
                             variant="ghost"

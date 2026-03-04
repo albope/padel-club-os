@@ -65,6 +65,7 @@ model Club {
   bookingPayments   BookingPayment[]
   chatMessages      ChatMessage[]
   playerRatings     PlayerRating[]
+  bookingWaitlists  BookingWaitlist[]
 }
 
 // --- USER ROLES ---
@@ -113,6 +114,7 @@ model User {
   ratingsGiven     PlayerRating[] @relation("RatingsGiven")
   ratingsReceived  PlayerRating[] @relation("RatingsReceived")
   chatMessages     ChatMessage[]
+  bookingWaitlists BookingWaitlist[]
 
   @@index([clubId])
   @@index([clubId, role])
@@ -172,6 +174,7 @@ model Court {
   openMatches OpenMatch[]
   pricings CourtPricing[]
   recurringBookings RecurringBooking[]
+  bookingWaitlists  BookingWaitlist[]
 
   @@index([clubId])
 }
@@ -579,4 +582,24 @@ model ChatMessage {
 
   @@index([openMatchId, createdAt])
   @@index([clubId])
+}
+
+// --- LISTA DE ESPERA DE RESERVAS ---
+model BookingWaitlist {
+  id        String    @id @default(cuid())
+  courtId   String
+  court     Court     @relation(fields: [courtId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  clubId    String
+  club      Club      @relation(fields: [clubId], references: [id], onDelete: Cascade)
+  startTime DateTime  // Inicio exacto del slot (misma timezone que Booking.startTime)
+  endTime   DateTime  // Fin exacto del slot
+  status    String    @default("active") // active | notified | fulfilled | expired
+  notifiedAt DateTime?
+  createdAt DateTime  @default(now())
+
+  @@unique([courtId, startTime, userId])
+  @@index([courtId, startTime, status])
+  @@index([clubId, userId])
 }

@@ -3,6 +3,7 @@ import { requireAuth, isAuthError } from "@/lib/api-auth";
 import { NextResponse } from "next/server";
 import { calcularPrecioReserva } from "@/lib/pricing";
 import { validarBody } from "@/lib/validation";
+import { limpiarWaitlistAlReservar } from "@/lib/waitlist";
 import * as z from "zod";
 
 const BookingCreateSchema = z.object({
@@ -52,9 +53,19 @@ export async function POST(req: Request) {
     const newStartTime = new Date(startTime);
     const newEndTime = new Date(endTime);
 
+    // Validar que la pista pertenece al club del admin
+    const court = await db.court.findFirst({
+      where: { id: courtId, clubId: auth.session.user.clubId },
+    });
+    if (!court) {
+      return new NextResponse("Pista no encontrada en este club.", { status: 404 });
+    }
+
     const overlappingBooking = await db.booking.findFirst({
       where: {
         courtId,
+        clubId: auth.session.user.clubId,
+        status: { not: "cancelled" },
         AND: [
           { startTime: { lt: newEndTime } },
           { endTime: { gt: newStartTime } },
@@ -84,6 +95,9 @@ export async function POST(req: Request) {
         clubId: auth.session.user.clubId,
       },
     });
+
+    // Limpiar lista de espera del slot
+    limpiarWaitlistAlReservar({ courtId, startTime: newStartTime, userId: userId || undefined }).catch(() => {})
 
     return NextResponse.json(newBooking, { status: 201 });
   } catch (error) {

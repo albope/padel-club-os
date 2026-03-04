@@ -16,6 +16,8 @@ export type TipoNotificacion =
   | "subscription_trial_ending"
   | "subscription_expired"
   | "player_rated"
+  | "waitlist_slot_available"
+  | "booking_rescheduled"
 
 interface CrearNotificacionParams {
   tipo: TipoNotificacion

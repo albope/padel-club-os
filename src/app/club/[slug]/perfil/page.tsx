@@ -5,7 +5,8 @@ import { useParams, useRouter } from 'next/navigation';
 import { useSession, signOut } from 'next-auth/react';
 import {
   User, Mail, Phone, Calendar, MapPin, Loader2,
-  LogOut, Save, History, X, ShieldCheck, Download, Trash2,
+  LogOut, Save, History, X, ShieldCheck, Download, Trash2, Bell, BellOff,
+  CalendarClock,
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -23,8 +24,18 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { toast } from '@/hooks/use-toast';
-import { useLocale } from 'next-intl';
+import { cn } from '@/lib/utils';
+import { calcularPrecioTotal, type BandaPrecio } from '@/lib/pricing-client';
+import { useLocale, useTranslations } from 'next-intl';
+import BotonCompartir from '@/components/club/BotonCompartir';
 import { ValoracionesWidget } from '@/components/social/ValoracionesWidget';
 
 interface UserProfile {
@@ -46,6 +57,16 @@ interface Booking {
   court: { name: string; type: string };
 }
 
+interface WaitlistEntry {
+  id: string;
+  courtId: string;
+  courtName: string;
+  startTime: string;
+  endTime: string;
+  status: string;
+  createdAt: string;
+}
+
 export default function PlayerProfilePage() {
   const params = useParams();
   const router = useRouter();
@@ -53,6 +74,9 @@ export default function PlayerProfilePage() {
   const slug = params.slug as string;
   const locale = useLocale();
   const localeCode = locale === 'es' ? 'es-ES' : 'en-GB';
+  const tShare = useTranslations('share');
+  const tw = useTranslations('waitlist');
+  const tReschedule = useTranslations('reschedule');
 
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [bookings, setBookings] = useState<Booking[]>([]);
@@ -72,6 +96,27 @@ export default function PlayerProfilePage() {
   const [isDeleting, setIsDeleting] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
 
+  // Lista de espera
+  const [waitlistEntries, setWaitlistEntries] = useState<WaitlistEntry[]>([]);
+  const [removingWaitlist, setRemovingWaitlist] = useState<string | null>(null);
+
+  // Reagendamiento
+  const [rescheduleDialog, setRescheduleDialog] = useState<{
+    open: boolean;
+    booking: Booking | null;
+  }>({ open: false, booking: null });
+  const [rescheduleDate, setRescheduleDate] = useState('');
+  const [rescheduleSlots, setRescheduleSlots] = useState<{
+    courtId: string;
+    courtName: string;
+    startTime: string;
+    endTime: string;
+    precio: number;
+  }[]>([]);
+  const [rescheduleLoading, setRescheduleLoading] = useState(false);
+  const [isRescheduling, setIsRescheduling] = useState(false);
+  const [selectedSlot, setSelectedSlot] = useState<number | null>(null);
+
   // Form state
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
@@ -86,6 +131,7 @@ export default function PlayerProfilePage() {
     if (status === 'authenticated') {
       loadProfile();
       loadBookings();
+      loadWaitlist();
     }
   }, [status]);
 
@@ -109,6 +155,153 @@ export default function PlayerProfilePage() {
       const res = await fetch('/api/player/bookings');
       if (res.ok) setBookings(await res.json());
     } catch { /* silenciar */ }
+  };
+
+  const loadWaitlist = async () => {
+    try {
+      const res = await fetch('/api/player/bookings/waitlist');
+      if (res.ok) setWaitlistEntries(await res.json());
+    } catch { /* silenciar */ }
+  };
+
+  const handleRemoveWaitlist = async (id: string) => {
+    setRemovingWaitlist(id);
+    try {
+      const res = await fetch(`/api/player/bookings/waitlist/${id}`, { method: 'DELETE' });
+      if (res.ok) {
+        setWaitlistEntries((prev) => prev.filter((e) => e.id !== id));
+        toast({ title: tw('removed') });
+      }
+    } catch {
+      toast({ title: 'Error', description: tw('error'), variant: 'destructive' });
+    } finally {
+      setRemovingWaitlist(null);
+    }
+  };
+
+  const openRescheduleDialog = (booking: Booking) => {
+    setRescheduleDialog({ open: true, booking });
+    setRescheduleDate('');
+    setRescheduleSlots([]);
+    setSelectedSlot(null);
+  };
+
+  const loadAvailableSlots = async (fecha: string) => {
+    setRescheduleDate(fecha);
+    setRescheduleSlots([]);
+    setSelectedSlot(null);
+    if (!fecha) return;
+
+    setRescheduleLoading(true);
+    try {
+      // Obtener pistas y disponibilidad para esa fecha
+      const [pistasRes, dispRes] = await Promise.all([
+        fetch(`/api/club/${slug}/courts`),
+        fetch(`/api/club/${slug}/availability?date=${fecha}`),
+      ]);
+
+      if (!pistasRes.ok || !dispRes.ok) return;
+
+      const pistas: { id: string; name: string }[] = await pistasRes.json();
+      const dispData = await dispRes.json();
+      const bloques: { courtId: string; inicio: string; fin: string }[] = dispData.bloques || [];
+
+      // Fetch bandas de precio por pista en paralelo
+      const bandasPorPista: Record<string, BandaPrecio[]> = {};
+      await Promise.all(
+        pistas.map(async (pista) => {
+          const res = await fetch(`/api/club/${slug}/pricing?courtId=${pista.id}&date=${fecha}`);
+          if (res.ok) {
+            bandasPorPista[pista.id] = await res.json();
+          }
+        })
+      );
+
+      // Obtener duracion de la reserva original
+      const booking = rescheduleDialog.booking;
+      if (!booking) return;
+      const duracionMs = new Date(booking.endTime).getTime() - new Date(booking.startTime).getTime();
+      const duracionMin = duracionMs / 60000;
+
+      // Generar slots disponibles (cada 30 min, de 8:00 a 22:00)
+      const slotsDisponibles: typeof rescheduleSlots = [];
+      const fechaDate = new Date(fecha + 'T00:00:00');
+      const ahora = new Date();
+
+      for (const pista of pistas) {
+        for (let hora = 8; hora < 22; hora++) {
+          for (const minuto of [0, 30]) {
+            const startDate = new Date(fechaDate);
+            startDate.setHours(hora, minuto, 0, 0);
+            const endDate = new Date(startDate.getTime() + duracionMs);
+
+            // No mostrar horarios pasados
+            if (startDate <= ahora) continue;
+            // No mostrar si pasa de las 23:00
+            if (endDate.getHours() >= 23 && endDate.getMinutes() > 0) continue;
+
+            // Verificar solapamiento con bloques ocupados
+            const ocupado = bloques.some(
+              (b) =>
+                b.courtId === pista.id &&
+                new Date(b.inicio) < endDate &&
+                new Date(b.fin) > startDate
+            );
+
+            if (!ocupado) {
+              const horaStr = `${String(hora).padStart(2, '0')}:${String(minuto).padStart(2, '0')}`;
+              const precioTotal = calcularPrecioTotal(bandasPorPista[pista.id] ?? [], horaStr, duracionMin);
+
+              slotsDisponibles.push({
+                courtId: pista.id,
+                courtName: pista.name,
+                startTime: startDate.toISOString(),
+                endTime: endDate.toISOString(),
+                precio: precioTotal ?? 0,
+              });
+            }
+          }
+        }
+      }
+
+      setRescheduleSlots(slotsDisponibles);
+    } catch {
+      toast({ title: 'Error', description: tReschedule('errorLoading'), variant: 'destructive' });
+    } finally {
+      setRescheduleLoading(false);
+    }
+  };
+
+  const handleReschedule = async () => {
+    if (selectedSlot === null || !rescheduleDialog.booking) return;
+    const slot = rescheduleSlots[selectedSlot];
+    if (!slot) return;
+
+    setIsRescheduling(true);
+    try {
+      const res = await fetch(`/api/player/bookings/${rescheduleDialog.booking.id}/reschedule`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          newCourtId: slot.courtId,
+          newStartTime: slot.startTime,
+          newEndTime: slot.endTime,
+        }),
+      });
+
+      if (res.ok) {
+        toast({ title: tReschedule('success'), description: tReschedule('successDescription'), variant: 'success' });
+        setRescheduleDialog({ open: false, booking: null });
+        loadBookings();
+      } else {
+        const data = await res.json();
+        toast({ title: 'Error', description: data.error || tReschedule('errorGeneric'), variant: 'destructive' });
+      }
+    } catch {
+      toast({ title: 'Error', description: tReschedule('errorConnection'), variant: 'destructive' });
+    } finally {
+      setIsRescheduling(false);
+    }
   };
 
   const handleSave = async () => {
@@ -325,6 +518,35 @@ export default function PlayerProfilePage() {
                     </div>
                     <div className="flex items-center gap-2">
                       {canCancel && (
+                        <BotonCompartir
+                          datos={{
+                            titulo: tShare('bookingTitle'),
+                            texto: tShare('bookingText', {
+                              court: booking.court.name,
+                              date: new Date(booking.startTime).toLocaleDateString(localeCode, { weekday: 'long', day: 'numeric', month: 'long' }),
+                              startTime: new Date(booking.startTime).toLocaleTimeString(localeCode, { hour: '2-digit', minute: '2-digit' }),
+                              endTime: new Date(booking.endTime).toLocaleTimeString(localeCode, { hour: '2-digit', minute: '2-digit' }),
+                            }),
+                            url: typeof window !== 'undefined' ? `${window.location.origin}/club/${slug}/reservar` : '',
+                          }}
+                          variant="ghost"
+                          size="sm"
+                          className="h-8 w-8 p-0"
+                          mostrarTexto={false}
+                        />
+                      )}
+                      {canCancel && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-8 px-2 text-muted-foreground hover:text-primary"
+                          onClick={() => openRescheduleDialog(booking)}
+                          aria-label={tReschedule('button')}
+                        >
+                          <CalendarClock className="h-4 w-4" />
+                        </Button>
+                      )}
+                      {canCancel && (
                         <Button
                           variant="ghost"
                           size="sm"
@@ -361,6 +583,62 @@ export default function PlayerProfilePage() {
           )}
         </CardContent>
       </Card>
+
+      {/* Lista de espera */}
+      {waitlistEntries.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg flex items-center gap-2">
+              <Bell className="h-5 w-5" />
+              {tw('myWaitlist')}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2">
+              {waitlistEntries.map((entry) => (
+                <div
+                  key={entry.id}
+                  className="flex items-center justify-between p-3 rounded-lg border"
+                >
+                  <div className="space-y-0.5">
+                    <div className="flex items-center gap-2">
+                      <Badge variant="secondary">{entry.courtName}</Badge>
+                      <span className="text-sm font-medium">
+                        {new Date(entry.startTime).toLocaleDateString(localeCode, {
+                          weekday: 'short', day: 'numeric', month: 'short',
+                        })}
+                      </span>
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      {new Date(entry.startTime).toLocaleTimeString(localeCode, { hour: '2-digit', minute: '2-digit' })} -{' '}
+                      {new Date(entry.endTime).toLocaleTimeString(localeCode, { hour: '2-digit', minute: '2-digit' })}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Badge variant={entry.status === 'notified' ? 'default' : 'outline'}>
+                      {entry.status === 'notified' ? tw('statusNotified') : tw('statusActive')}
+                    </Badge>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-8 px-2 text-muted-foreground hover:text-destructive"
+                      onClick={() => handleRemoveWaitlist(entry.id)}
+                      disabled={removingWaitlist === entry.id}
+                      aria-label={tw('cancel')}
+                    >
+                      {removingWaitlist === entry.id ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <X className="h-4 w-4" />
+                      )}
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Seccion RGPD - Datos y privacidad */}
       <Card>
@@ -425,6 +703,117 @@ export default function PlayerProfilePage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Dialog de reagendamiento */}
+      <Dialog
+        open={rescheduleDialog.open}
+        onOpenChange={(open) => {
+          setRescheduleDialog((prev) => ({ ...prev, open }));
+          if (!open) {
+            setRescheduleDate('');
+            setRescheduleSlots([]);
+            setSelectedSlot(null);
+          }
+        }}
+      >
+        <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>{tReschedule('title')}</DialogTitle>
+            <DialogDescription>
+              {rescheduleDialog.booking && (
+                <span className="font-medium text-foreground">
+                  {rescheduleDialog.booking.court.name} &middot;{' '}
+                  {new Date(rescheduleDialog.booking.startTime).toLocaleDateString(localeCode, {
+                    weekday: 'long', day: 'numeric', month: 'long',
+                  })}{' '}
+                  {new Date(rescheduleDialog.booking.startTime).toLocaleTimeString(localeCode, { hour: '2-digit', minute: '2-digit' })} -{' '}
+                  {new Date(rescheduleDialog.booking.endTime).toLocaleTimeString(localeCode, { hour: '2-digit', minute: '2-digit' })}
+                </span>
+              )}
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 mt-2">
+            <div className="space-y-1.5">
+              <Label htmlFor="reschedule-date">{tReschedule('newDate')}</Label>
+              <Input
+                id="reschedule-date"
+                type="date"
+                value={rescheduleDate}
+                onChange={(e) => loadAvailableSlots(e.target.value)}
+                min={new Date().toISOString().slice(0, 10)}
+              />
+            </div>
+
+            {rescheduleLoading && (
+              <div className="flex items-center justify-center py-8">
+                <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+              </div>
+            )}
+
+            {rescheduleDate && !rescheduleLoading && rescheduleSlots.length === 0 && (
+              <p className="text-sm text-muted-foreground text-center py-4">
+                {tReschedule('noSlots')}
+              </p>
+            )}
+
+            {rescheduleSlots.length > 0 && (
+              <div className="space-y-1.5">
+                <Label>{tReschedule('selectSlot')}</Label>
+                <div className="grid gap-2 max-h-60 overflow-y-auto">
+                  {rescheduleSlots.map((slot, idx) => (
+                    <button
+                      key={`${slot.courtId}-${slot.startTime}`}
+                      type="button"
+                      onClick={() => setSelectedSlot(idx)}
+                      className={cn(
+                        'flex items-center justify-between p-3 rounded-lg border text-left transition-colors',
+                        selectedSlot === idx
+                          ? 'border-primary bg-primary/5 ring-1 ring-primary'
+                          : 'hover:bg-muted/50'
+                      )}
+                    >
+                      <div className="space-y-0.5">
+                        <div className="flex items-center gap-2">
+                          <Badge variant="secondary">{slot.courtName}</Badge>
+                        </div>
+                        <p className="text-sm">
+                          {new Date(slot.startTime).toLocaleTimeString(localeCode, { hour: '2-digit', minute: '2-digit' })} -{' '}
+                          {new Date(slot.endTime).toLocaleTimeString(localeCode, { hour: '2-digit', minute: '2-digit' })}
+                        </p>
+                      </div>
+                      {slot.precio > 0 && (
+                        <span className="text-sm font-medium text-muted-foreground">
+                          {slot.precio.toFixed(2)} &euro;
+                        </span>
+                      )}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {selectedSlot !== null && (
+              <div className="flex justify-end gap-2 pt-2">
+                <Button
+                  variant="outline"
+                  onClick={() => setRescheduleDialog({ open: false, booking: null })}
+                  disabled={isRescheduling}
+                >
+                  {tReschedule('cancel')}
+                </Button>
+                <Button onClick={handleReschedule} disabled={isRescheduling}>
+                  {isRescheduling ? (
+                    <><Loader2 className="h-4 w-4 animate-spin mr-2" /> {tReschedule('rescheduling')}</>
+                  ) : (
+                    tReschedule('confirm')
+                  )}
+                </Button>
+              </div>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Dialog de confirmacion de eliminacion de cuenta */}
       <AlertDialog open={deleteDialogOpen} onOpenChange={(open) => {

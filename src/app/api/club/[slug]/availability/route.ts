@@ -1,5 +1,7 @@
 import { db } from "@/lib/db";
 import { NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
 
 // GET: Obtener disponibilidad de todas las pistas de un club para una fecha
 // Publica (sin auth) - devuelve bloques ocupados anonimizados
@@ -17,6 +19,10 @@ export async function GET(
         { status: 400 }
       );
     }
+
+    // Sesion opcional: si hay usuario logueado, calcular esPropia
+    const session = await getServerSession(authOptions);
+    const sessionUserId = session?.user?.id ?? null;
 
     const club = await db.club.findUnique({
       where: { slug: params.slug },
@@ -78,18 +84,14 @@ export async function GET(
     ]);
 
     // Transformar reservas en bloques (excluir las que son de partidas abiertas, ya se manejan aparte)
-    const reservaIds = new Set(
-      partidasAbiertas.map((p) => p.id)
-    );
-
-    const bloques = reservas
+    const bloques: Record<string, unknown>[] = reservas
       .filter((r) => !r.openMatch)
       .map((r) => ({
         courtId: r.courtId,
         tipo: "reserva" as const,
         inicio: r.startTime.toISOString(),
         fin: r.endTime.toISOString(),
-        userId: r.userId,
+        esPropia: sessionUserId ? r.userId === sessionUserId : false,
       }));
 
     // Agregar partidas abiertas como bloques
@@ -100,17 +102,23 @@ export async function GET(
       );
       bloques.push({
         courtId: partida.courtId,
-        tipo: "partida-abierta" as any,
+        tipo: "partida-abierta",
         inicio: partida.matchTime.toISOString(),
         fin: fin.toISOString(),
-        userId: null as any,
+        esPropia: sessionUserId
+          ? partida.players.some((p) => p.userId === sessionUserId)
+          : false,
         plazasLibres: 4 - partida.players.length,
         nivelMin: partida.levelMin,
         nivelMax: partida.levelMax,
         openMatchId: partida.id,
-        jugadores: partida.players.map((p) => p.userId),
-      } as any);
+      });
     }
+
+    // Cache publica solo para peticiones anonimas; privada si hay sesion
+    const cacheControl = sessionUserId
+      ? 'private, no-store'
+      : 'public, s-maxage=15, stale-while-revalidate=10';
 
     return NextResponse.json({
       date,
@@ -119,7 +127,7 @@ export async function GET(
       closingTime: club.closingTime || "23:00",
       bloques,
     }, {
-      headers: { 'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=30' },
+      headers: { 'Cache-Control': cacheControl },
     });
   } catch (error) {
     console.error("[GET_CLUB_AVAILABILITY_ERROR]", error);

@@ -48,7 +48,7 @@ src/
       notifications/ # CRUD notificaciones + subscribe + vapid-key
       open-matches/ # CRUD partidas abiertas (admin)
       payments/     # Export pagos CSV
-      player/       # APIs de jugador (bookings, open-matches, profile, stats, ratings, chat)
+      player/       # APIs de jugador (bookings, open-matches, profile, stats, ratings, chat, waitlist)
       register/     # Registro admin + /register/player
       search/       # Busqueda global (socios, pistas, reservas)
       stripe/       # Checkout, portal, webhook
@@ -111,6 +111,7 @@ src/
     notifications.ts # Crear notificaciones + enviar push
     web-push.ts     # Cliente web-push lazy (Proxy pattern)
     elo.ts          # Sistema ELO para padel dobles (calculateMatchRatings, eloANivel)
+    waitlist.ts     # Lista de espera: liberarSlotYNotificar(), limpiarWaitlistAlReservar()
     csv.ts          # Utilidades CSV (escaparCSV, generarCSV, formatearFechaCSV)
     rate-limit.ts   # Rate limiting en memoria (crearRateLimiter, obtenerIP)
     logger.ts       # Logger estructurado (JSON en prod, legible en dev)
@@ -184,6 +185,7 @@ npx prisma db push # Sincronizar schema con DB
 - **BookingPayment**: Pagos por jugador - tracking recepcion (bookingId, userId?, guestName?, amount, status pending/paid, paidAt, collectedById?, clubId). @@index[bookingId], @@index[clubId, status]
 - **PlayerRating**: Valoraciones post-partido (raterId, ratedId, openMatchId, stars 1-5, comment?, clubId). @@unique[raterId, ratedId, openMatchId], @@index[ratedId, clubId], @@index[openMatchId]
 - **ChatMessage**: Chat de partida abierta (content VarChar(500), openMatchId, authorId, clubId). @@index[openMatchId, createdAt], @@index[clubId]
+- **BookingWaitlist**: Lista de espera de reservas (courtId, userId, clubId, startTime, endTime, status active|notified|fulfilled|expired, notifiedAt?). @@unique[courtId, startTime, userId], @@index[courtId, startTime, status], @@index[clubId, userId]
 
 ## Auth y RBAC
 
@@ -332,7 +334,7 @@ El plan completo de 5 fases esta en: `C:\Users\alber\.claude\plans\jaunty-tumbli
 - [x] Pagina 404 personalizada: not-found.tsx (SVG padel, orbes animados, gradiente azul/cyan)
 - [x] i18n: secciones cookies, auth en es.json y en.json
 
-**Siguiente: D2, D4, D5 (Bloque D - Pulido post-lanzamiento)**
+**Siguiente: D2, D5, E1**
 
 ## Notas
 
@@ -594,7 +596,7 @@ Revisa las secciones de estado en CLAUDE.md y el roadmap para ver que esta COMPL
 **Sesion D5** - CI/CD (GitHub Actions: lint + test + build en PR) `[ ]`
 
 ### Orden recomendado
-Sprint 1: A1, A2 [DONE] → Sprint 2: A3, A5 [DONE] → Sprint 3: A4, B1 [DONE] → Sprint 4: B4, B3 [DONE] → Sprint 5: B2 [DONE], B5 [DONE] → Sprint 6: C1, C3 [DONE] → Sprint 7: D1 [DONE] → Sprint 8: C2 [DONE] → Sprint 9: C4 [DONE] → Sprint 10: C5, C6 [DONE] → Sprint 11: D3 [DONE] → Sprint 12: D4 [DONE] → Beta launch → Sprint 13+: D2, D5, E1-E4
+Sprint 1: A1, A2 [DONE] → Sprint 2: A3, A5 [DONE] → Sprint 3: A4, B1 [DONE] → Sprint 4: B4, B3 [DONE] → Sprint 5: B2 [DONE], B5 [DONE] → Sprint 6: C1, C3 [DONE] → Sprint 7: D1 [DONE] → Sprint 8: C2 [DONE] → Sprint 9: C4 [DONE] → Sprint 10: C5, C6 [DONE] → Sprint 11: D3 [DONE] → Sprint 12: D4 [DONE] → Sprint 13: E2 [DONE] → Beta launch → Sprint 14+: D2, D5, E1, E3
 
 ### BLOQUE E: COMPETITIVO (cerrar gaps vs Playtomic, TPC Matchpoint, Doinsport)
 
@@ -607,28 +609,28 @@ Analisis competitivo realizado contra: Playtomic (87% clubs Espana, B2B2C), TPC 
 - Sin cambios de backend — solo UI en ConfirmacionReserva, perfil/historial, tarjeta partida abierta
 - Competidores con esto: TPC Matchpoint, Playtomic
 
-**Sesion E2 - Lista de espera en reservas** `[ ]` (Esfuerzo: S)
-- Modelo `BookingWaitlist` (userId, courtId, date, startTime, endTime, clubId, notifiedAt?)
-- Cuando un slot esta ocupado en GridReservas, mostrar boton "Avisarme si se libera"
-- Al cancelar una reserva, notificar al primer usuario en la lista de espera (push + email)
-- API: POST /api/player/bookings/waitlist, DELETE /api/player/bookings/waitlist/[id]
-- Integracion en flujo de cancelacion existente (player/bookings DELETE)
-- Competidores con esto: Playtomic, TPC Matchpoint
+**Sesion E2 - Lista de espera en reservas** `[x]` (Esfuerzo: S)
+- [x] Modelo BookingWaitlist (courtId, userId, clubId, startTime, endTime, status active|notified|fulfilled|expired, notifiedAt)
+- [x] Bug fix: overlap checks filtran reservas canceladas en 4 endpoints (player/bookings, bookings, bookings/[id], open-matches)
+- [x] Permisos RBAC: booking-waitlist:create/delete (todos los roles)
+- [x] src/lib/waitlist.ts: liberarSlotYNotificar() + limpiarWaitlistAlReservar() (funciones de dominio centralizadas)
+- [x] Tipo notificacion waitlist_slot_available + email enviarEmailSlotLiberado (plantilla branded)
+- [x] API: GET/POST /api/player/bookings/waitlist, DELETE /api/player/bookings/waitlist/[id]
+- [x] Integracion: cancelacion jugador, eliminacion admin, auto-cancel cron → liberarSlotYNotificar
+- [x] Integracion: reserva jugador, reserva admin, partida abierta → limpiarWaitlistAlReservar
+- [x] Cache availability reducido de 60s a 15s
+- [x] UI GridReservas: boton Bell/BellOff en slots ocupados (con estado loading, toggle)
+- [x] UI Perfil: seccion "Mi lista de espera" con entradas activas/notificadas y boton cancelar
+- [x] i18n: namespace waitlist en es.json y en.json
+- [x] Build exitoso, 155 tests pasando
 
-**Sesion E3 - Modificacion/reagendado de reserva** `[ ]` (Esfuerzo: S)
-- Actualmente solo se puede cancelar. Agregar flujo de reagendado (cancel + rebook atomico)
-- API: PATCH /api/player/bookings/[id]/reschedule { newCourtId?, newStartTime, newEndTime }
-- Validaciones: slot destino disponible, dentro de politica de cancelacion, mismo club
-- UI: boton "Cambiar horario" en historial de reservas del jugador
-- Email de confirmacion de cambio (reusar plantilla de confirmacion con nota "Reserva modificada")
-- Competidores con esto: Todos (Playtomic, TPC, Doinsport)
+**Sesion E3 - Modificacion/reagendado de reserva** `[x]` (Esfuerzo: S)
+- [x] API: PATCH /api/player/bookings/[bookingId]/reschedule (Zod, cancel+rebook atomico en $transaction)
+- [x] Validaciones: slot disponible (excluyendo reserva actual), politica cancelacion, maxAdvanceBooking, pista valida
+- [x] Integracion waitlist: liberarSlotYNotificar en slot original + limpiarWaitlistAlReservar en nuevo slot
+- [x] BookingPayments regenerados para la nueva reserva
+- [x] Tipo notificacion: booking_rescheduled + email enviarEmailReagendamientoReserva (horario anterior tachado)
+- [x] UI: boton CalendarClock en perfil + Dialog con selector fecha, slots disponibles, seleccion visual
+- [x] i18n: namespace reschedule en es.json y en.json
+- [x] Build exitoso
 
-**Sesion E4 - Sistema de membresias** `[ ]` (Esfuerzo: M)
-- Modelo `MembershipPlan` (name, price, duration mensual/trimestral/anual, benefits JSON, courtDiscount%, isActive, clubId)
-- Modelo `Membership` (userId, planId, clubId, startsAt, endsAt, status active/expired/cancelled, stripeSubscriptionId?)
-- Admin: CRUD planes de membresia en /dashboard/membresias
-- Jugador: ver planes disponibles en /club/[slug]/membresias, suscribirse (Stripe recurring)
-- Descuento automatico en reservas: si jugador tiene membresia activa, aplicar courtDiscount% al calcularPrecioReserva()
-- Auto-renovacion via Stripe Subscriptions (independiente de la suscripcion SaaS del club)
-- Gating por plan SaaS: Pro/Enterprise
-- Competidores con esto: Todos (Playtomic, TPC, Doinsport)

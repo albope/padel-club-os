@@ -10,27 +10,21 @@ describe("calcularPrecioReserva", () => {
     vi.clearAllMocks()
   })
 
-  it("retorna el precio si hay regla configurada", async () => {
-    mockDb.courtPricing.findFirst.mockResolvedValue({
-      id: "1",
-      courtId: "court-1",
-      clubId: "club-1",
-      dayOfWeek: 1, // Lunes
-      startHour: 10,
-      endHour: 12,
-      price: 25.0,
-    })
+  it("retorna el precio proporcional si hay regla configurada", async () => {
+    mockDb.courtPricing.findMany.mockResolvedValue([
+      { startHour: 10, endHour: 12, price: 25.0 },
+    ])
 
-    // Lunes 15 enero 2024, 10:00 local
-    const startTime = new Date(2024, 0, 15, 10, 0) // Lunes
+    // Lunes 15 enero 2024, 10:00-11:30 (1.5h × 25 = 37.50)
+    const startTime = new Date(2024, 0, 15, 10, 0)
     const endTime = new Date(2024, 0, 15, 11, 30)
 
     const precio = await calcularPrecioReserva("court-1", "club-1", startTime, endTime)
-    expect(precio).toBe(25.0)
+    expect(precio).toBe(37.5)
   })
 
   it("retorna 0 si no hay regla de precio configurada", async () => {
-    mockDb.courtPricing.findFirst.mockResolvedValue(null)
+    mockDb.courtPricing.findMany.mockResolvedValue([])
 
     const startTime = new Date(2024, 0, 15, 10, 0)
     const endTime = new Date(2024, 0, 15, 11, 30)
@@ -39,43 +33,142 @@ describe("calcularPrecioReserva", () => {
     expect(precio).toBe(0)
   })
 
-  it("pasa dayOfWeek y startHour correctos a la query", async () => {
-    mockDb.courtPricing.findFirst.mockResolvedValue(null)
+  it("pasa dayOfWeek correcto a la query", async () => {
+    mockDb.courtPricing.findMany.mockResolvedValue([])
 
-    // Miercoles = getDay() 3, hora 14
-    const startTime = new Date(2024, 0, 17, 14, 0) // Miercoles
+    // Miercoles = getDay() 3
+    const startTime = new Date(2024, 0, 17, 14, 0)
     const endTime = new Date(2024, 0, 17, 15, 30)
 
     await calcularPrecioReserva("court-1", "club-1", startTime, endTime)
 
-    expect(mockDb.courtPricing.findFirst).toHaveBeenCalledWith({
+    expect(mockDb.courtPricing.findMany).toHaveBeenCalledWith({
       where: {
         courtId: "court-1",
         clubId: "club-1",
         dayOfWeek: 3,
-        startHour: { lte: 14 },
-        endHour: { gt: 14 },
+      },
+      select: {
+        startHour: true,
+        endHour: true,
+        price: true,
       },
     })
   })
 
   it("maneja domingo (dayOfWeek 0)", async () => {
-    mockDb.courtPricing.findFirst.mockResolvedValue({
-      price: 30.0,
-    })
+    mockDb.courtPricing.findMany.mockResolvedValue([
+      { startHour: 9, endHour: 14, price: 30.0 },
+    ])
 
-    // Domingo 14 enero 2024
+    // Domingo 14 enero 2024, 9:00-10:30 (1.5h × 30 = 45)
     const startTime = new Date(2024, 0, 14, 9, 0)
     const endTime = new Date(2024, 0, 14, 10, 30)
 
     const precio = await calcularPrecioReserva("court-1", "club-1", startTime, endTime)
-    expect(precio).toBe(30.0)
+    expect(precio).toBe(45.0)
 
-    expect(mockDb.courtPricing.findFirst).toHaveBeenCalledWith(
+    expect(mockDb.courtPricing.findMany).toHaveBeenCalledWith(
       expect.objectContaining({
         where: expect.objectContaining({ dayOfWeek: 0 }),
       })
     )
+  })
+
+  // --- Nuevos tests: duracion y cruce de franjas ---
+
+  it("reserva 90 min dentro de una sola banda", async () => {
+    mockDb.courtPricing.findMany.mockResolvedValue([
+      { startHour: 10, endHour: 14, price: 20 },
+    ])
+
+    const startTime = new Date(2024, 0, 15, 10, 0)
+    const endTime = new Date(2024, 0, 15, 11, 30) // 1.5h × 20 = 30
+
+    expect(await calcularPrecioReserva("c", "cl", startTime, endTime)).toBe(30.0)
+  })
+
+  it("reserva 60 min dentro de una sola banda", async () => {
+    mockDb.courtPricing.findMany.mockResolvedValue([
+      { startHour: 10, endHour: 14, price: 20 },
+    ])
+
+    const startTime = new Date(2024, 0, 15, 10, 0)
+    const endTime = new Date(2024, 0, 15, 11, 0) // 1h × 20 = 20
+
+    expect(await calcularPrecioReserva("c", "cl", startTime, endTime)).toBe(20.0)
+  })
+
+  it("reserva 120 min dentro de una sola banda", async () => {
+    mockDb.courtPricing.findMany.mockResolvedValue([
+      { startHour: 10, endHour: 14, price: 20 },
+    ])
+
+    const startTime = new Date(2024, 0, 15, 10, 0)
+    const endTime = new Date(2024, 0, 15, 12, 0) // 2h × 20 = 40
+
+    expect(await calcularPrecioReserva("c", "cl", startTime, endTime)).toBe(40.0)
+  })
+
+  it("reserva 90 min cruzando frontera de banda", async () => {
+    mockDb.courtPricing.findMany.mockResolvedValue([
+      { startHour: 19, endHour: 20, price: 10 },
+      { startHour: 20, endHour: 23, price: 15 },
+    ])
+
+    // 19:00-20:30: 1h×10 + 0.5h×15 = 17.50
+    const startTime = new Date(2024, 0, 15, 19, 0)
+    const endTime = new Date(2024, 0, 15, 20, 30)
+
+    expect(await calcularPrecioReserva("c", "cl", startTime, endTime)).toBe(17.5)
+  })
+
+  it("inicio a :30 cruzando frontera de banda", async () => {
+    mockDb.courtPricing.findMany.mockResolvedValue([
+      { startHour: 10, endHour: 11, price: 20 },
+      { startHour: 11, endHour: 14, price: 30 },
+    ])
+
+    // 10:30-12:00: 0.5h×20 + 1h×30 = 40
+    const startTime = new Date(2024, 0, 15, 10, 30)
+    const endTime = new Date(2024, 0, 15, 12, 0)
+
+    expect(await calcularPrecioReserva("c", "cl", startTime, endTime)).toBe(40.0)
+  })
+
+  it("reserva 120 min cruzando dos fronteras de banda", async () => {
+    mockDb.courtPricing.findMany.mockResolvedValue([
+      { startHour: 18, endHour: 19, price: 8 },
+      { startHour: 19, endHour: 21, price: 12 },
+      { startHour: 21, endHour: 23, price: 10 },
+    ])
+
+    // 18:30-20:30: 0.5h×8 + 1.5h×12 = 4+18 = 22
+    const startTime = new Date(2024, 0, 15, 18, 30)
+    const endTime = new Date(2024, 0, 15, 20, 30)
+
+    expect(await calcularPrecioReserva("c", "cl", startTime, endTime)).toBe(22.0)
+  })
+
+  it("retorna 0 si no hay bandas configuradas", async () => {
+    mockDb.courtPricing.findMany.mockResolvedValue([])
+
+    const startTime = new Date(2024, 0, 15, 10, 0)
+    const endTime = new Date(2024, 0, 15, 11, 30)
+
+    expect(await calcularPrecioReserva("c", "cl", startTime, endTime)).toBe(0)
+  })
+
+  it("cobertura parcial: solo cobra las horas cubiertas por bandas", async () => {
+    mockDb.courtPricing.findMany.mockResolvedValue([
+      { startHour: 10, endHour: 11, price: 20 },
+    ])
+
+    // 10:00-11:30: solo 1h cubierta × 20 = 20 (los 30 min sin banda = gratis)
+    const startTime = new Date(2024, 0, 15, 10, 0)
+    const endTime = new Date(2024, 0, 15, 11, 30)
+
+    expect(await calcularPrecioReserva("c", "cl", startTime, endTime)).toBe(20.0)
   })
 })
 

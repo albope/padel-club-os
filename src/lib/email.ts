@@ -702,5 +702,157 @@ export async function enviarEmailBroadcast({
   })
 }
 
+// --- Email de slot liberado (lista de espera) ---
+
+interface EnviarEmailSlotLiberadoParams {
+  email: string
+  nombre: string
+  pistaNombre: string
+  fechaHoraInicio: Date
+  clubNombre: string
+  clubSlug: string
+}
+
+export async function enviarEmailSlotLiberado({
+  email,
+  nombre,
+  pistaNombre,
+  fechaHoraInicio,
+  clubNombre,
+  clubSlug,
+}: EnviarEmailSlotLiberadoParams) {
+  const resend = getResend()
+  const nombreSeguro = escaparHtml(nombre)
+  const pistaSegura = escaparHtml(pistaNombre)
+  const clubSeguro = escaparHtml(clubNombre)
+  const fecha = formatearFecha(fechaHoraInicio)
+  const hora = formatearHora(fechaHoraInicio)
+  const reservasUrl = `${EMAIL_BRAND.siteUrl}/club/${escaparHtml(clubSlug)}/reservar`
+
+  const contenido = `
+    <p style="${estiloParrafo}">
+      Hola ${nombreSeguro},
+    </p>
+    <p style="${estiloParrafo}">
+      &iexcl;Buenas noticias! Se ha liberado un horario que esperabas en <strong>${clubSeguro}</strong>.
+    </p>
+    ${cajaDetalle([
+      { etiqueta: "Pista", valor: pistaSegura },
+      { etiqueta: "Fecha", valor: fecha },
+      { etiqueta: "Hora", valor: hora },
+    ])}
+    <p style="${estiloParrafo}">
+      &iexcl;Reserva r&aacute;pido antes de que otro jugador lo tome!
+    </p>
+  `
+
+  await resend.emails.send({
+    from: EMAIL_FROM,
+    to: email,
+    subject: `¡Se ha liberado tu horario en ${pistaNombre}!`,
+    html: plantillaEmail({
+      titulo: "Horario disponible",
+      preheader: `Se ha liberado ${pistaNombre} el ${fecha} a las ${hora}. ¡Reserva rápido!`,
+      contenido,
+      boton: { texto: "Reservar ahora", url: reservasUrl },
+    }),
+  })
+}
+
+// --- Email de reagendamiento de reserva ---
+
+interface EnviarEmailReagendamientoReservaParams {
+  email: string
+  nombre: string
+  pistaNombreAnterior: string
+  fechaHoraInicioAnterior: Date
+  fechaHoraFinAnterior: Date
+  pistaNombreNueva: string
+  fechaHoraInicioNueva: Date
+  fechaHoraFinNueva: Date
+  precioTotal: number
+  estadoPago: string
+  clubNombre: string
+  clubSlug: string
+}
+
+export async function enviarEmailReagendamientoReserva({
+  email,
+  nombre,
+  pistaNombreAnterior,
+  fechaHoraInicioAnterior,
+  fechaHoraFinAnterior,
+  pistaNombreNueva,
+  fechaHoraInicioNueva,
+  fechaHoraFinNueva,
+  precioTotal,
+  estadoPago,
+  clubNombre,
+  clubSlug,
+}: EnviarEmailReagendamientoReservaParams) {
+  const resend = getResend()
+  const nombreSeguro = escaparHtml(nombre)
+  const clubSeguro = escaparHtml(clubNombre)
+  const reservasUrl = `${EMAIL_BRAND.siteUrl}/club/${escaparHtml(clubSlug)}/reservar`
+
+  const fechaAnterior = formatearFecha(fechaHoraInicioAnterior)
+  const horaInicioAnterior = formatearHora(fechaHoraInicioAnterior)
+  const horaFinAnterior = formatearHora(fechaHoraFinAnterior)
+
+  const fechaNueva = formatearFecha(fechaHoraInicioNueva)
+  const horaInicioNueva = formatearHora(fechaHoraInicioNueva)
+  const horaFinNueva = formatearHora(fechaHoraFinNueva)
+  const duracion = calcularDuracionMin(fechaHoraInicioNueva, fechaHoraFinNueva)
+
+  const contenido = `
+    <p style="${estiloParrafo}">
+      Hola ${nombreSeguro},
+    </p>
+    <p style="${estiloParrafo}">
+      Tu reserva en <strong>${clubSeguro}</strong> ha sido modificada correctamente.
+    </p>
+    <div style="border-left:4px solid ${EMAIL_BRAND.colorBorde};background-color:${EMAIL_BRAND.colorFondo};border-radius:0 8px 8px 0;padding:16px 20px;margin:20px 0;opacity:0.75;">
+      <p style="font-size:12px;color:${EMAIL_BRAND.colorTextoTerciario};margin:0 0 8px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;">Horario anterior</p>
+      <table cellpadding="0" cellspacing="0" style="width:100%;">
+        <tr>
+          <td style="padding:4px 12px 4px 0;font-size:13px;color:${EMAIL_BRAND.colorTextoSecundario};">Pista</td>
+          <td style="padding:4px 0;font-size:14px;color:${EMAIL_BRAND.colorTextoSecundario};text-decoration:line-through;">${escaparHtml(pistaNombreAnterior)}</td>
+        </tr>
+        <tr>
+          <td style="padding:4px 12px 4px 0;font-size:13px;color:${EMAIL_BRAND.colorTextoSecundario};">Fecha</td>
+          <td style="padding:4px 0;font-size:14px;color:${EMAIL_BRAND.colorTextoSecundario};text-decoration:line-through;">${fechaAnterior.charAt(0).toUpperCase() + fechaAnterior.slice(1)}</td>
+        </tr>
+        <tr>
+          <td style="padding:4px 12px 4px 0;font-size:13px;color:${EMAIL_BRAND.colorTextoSecundario};">Hora</td>
+          <td style="padding:4px 0;font-size:14px;color:${EMAIL_BRAND.colorTextoSecundario};text-decoration:line-through;">${horaInicioAnterior} - ${horaFinAnterior}</td>
+        </tr>
+      </table>
+    </div>
+    ${cajaDetalle([
+      { etiqueta: "Pista", valor: escaparHtml(pistaNombreNueva) },
+      { etiqueta: "Fecha", valor: fechaNueva.charAt(0).toUpperCase() + fechaNueva.slice(1) },
+      { etiqueta: "Horario", valor: horaInicioNueva + " - " + horaFinNueva + " (" + duracion + " min)" },
+      { etiqueta: "Precio", valor: precioTotal.toFixed(2) + " &euro;" },
+      { etiqueta: "Pago", valor: traducirEstadoPago(estadoPago) },
+    ])}
+    <p style="${estiloParrafoSecundario}">
+      &iexcl;Nos vemos en la pista!
+    </p>
+  `
+
+  await resend.emails.send({
+    from: EMAIL_FROM,
+    to: email,
+    subject: `Reserva modificada - ${escaparHtml(pistaNombreNueva)}`,
+    html: plantillaEmail({
+      titulo: "Reserva modificada",
+      preheader: `Tu reserva ha sido cambiada a ${escaparHtml(pistaNombreNueva)} el ${fechaNueva} a las ${horaInicioNueva}.`,
+      contenido,
+      boton: { texto: "Ver mis reservas", url: reservasUrl },
+      pieDePagina: "Puedes cancelar tu reserva desde tu perfil respetando la pol&iacute;tica de cancelaci&oacute;n del club.",
+    }),
+  })
+}
+
 // Exportar helpers para testing
 export { escaparHtml, cajaDetalle, formatearFecha, formatearHora, calcularDuracionMin, traducirEstadoPago }

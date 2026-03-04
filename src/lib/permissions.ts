@@ -76,6 +76,9 @@ export type Permission =
   | "chat:write"
   | "ratings:read"
   | "ratings:write"
+  // Lista de espera de reservas
+  | "booking-waitlist:create"
+  | "booking-waitlist:delete"
 
 // Permisos por rol
 const rolePermissions: Record<UserRole, Permission[]> = {
@@ -97,6 +100,7 @@ const rolePermissions: Record<UserRole, Permission[]> = {
     "recurring-bookings:read", "recurring-bookings:create", "recurring-bookings:update", "recurring-bookings:delete",
     "booking-payments:read", "booking-payments:update",
     "players:read", "chat:read", "chat:write", "ratings:read", "ratings:write",
+    "booking-waitlist:create", "booking-waitlist:delete",
   ],
   CLUB_ADMIN: [
     "bookings:read", "bookings:create", "bookings:create-any", "bookings:update", "bookings:delete",
@@ -116,6 +120,7 @@ const rolePermissions: Record<UserRole, Permission[]> = {
     "recurring-bookings:read", "recurring-bookings:create", "recurring-bookings:update", "recurring-bookings:delete",
     "booking-payments:read", "booking-payments:update",
     "players:read", "chat:read", "chat:write", "ratings:read", "ratings:write",
+    "booking-waitlist:create", "booking-waitlist:delete",
   ],
   STAFF: [
     "bookings:read", "bookings:create", "bookings:create-any", "bookings:update", "bookings:delete",
@@ -130,6 +135,7 @@ const rolePermissions: Record<UserRole, Permission[]> = {
     "recurring-bookings:read",
     "booking-payments:read", "booking-payments:update",
     "players:read", "chat:read", "ratings:read",
+    "booking-waitlist:create", "booking-waitlist:delete",
   ],
   PLAYER: [
     "bookings:read", "bookings:create",
@@ -140,6 +146,7 @@ const rolePermissions: Record<UserRole, Permission[]> = {
     "notifications:read", "notifications:update",
     "booking-payments:read",
     "players:read", "chat:read", "chat:write", "ratings:read", "ratings:write",
+    "booking-waitlist:create", "booking-waitlist:delete",
   ],
 }
 

@@ -1,6 +1,7 @@
 import { db } from "@/lib/db"
 import { crearNotificacion } from "@/lib/notifications"
 import { enviarEmailRecordatorioReserva } from "@/lib/email"
+import { liberarSlotYNotificar } from "@/lib/waitlist"
 import { logger } from "@/lib/logger"
 import { NextResponse } from "next/server"
 
@@ -116,7 +117,15 @@ export async function POST(req: Request) {
           stripeConnectOnboarded: true,
         },
       },
-      select: { id: true },
+      select: {
+        id: true,
+        courtId: true,
+        startTime: true,
+        endTime: true,
+        clubId: true,
+        court: { select: { name: true } },
+        club: { select: { slug: true, name: true } },
+      },
     })
 
     let canceladas = 0
@@ -131,6 +140,17 @@ export async function POST(req: Request) {
           },
         })
         canceladas++
+
+        // Notificar lista de espera del slot liberado
+        liberarSlotYNotificar({
+          courtId: reserva.courtId,
+          startTime: reserva.startTime,
+          endTime: reserva.endTime,
+          clubId: reserva.clubId,
+          clubSlug: reserva.club?.slug || "",
+          clubNombre: reserva.club?.name || "",
+          pistaNombre: reserva.court?.name || "Pista",
+        }).catch(() => {})
       } catch (cancelError) {
         logger.error("BOOKING_AUTO_CANCEL", "Error cancelando reserva expirada", { reservaId: reserva.id }, cancelError)
       }

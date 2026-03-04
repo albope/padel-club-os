@@ -7,6 +7,7 @@ import { enviarEmailConfirmacionReserva, enviarEmailCancelacionReserva } from "@
 import { stripe } from "@/lib/stripe";
 import { logger } from "@/lib/logger";
 import { validarBody } from "@/lib/validation";
+import { liberarSlotYNotificar, limpiarWaitlistAlReservar } from "@/lib/waitlist";
 import * as z from "zod";
 
 const PlayerBookingCreateSchema = z.object({
@@ -101,6 +102,7 @@ export async function POST(req: Request) {
     const overlapping = await db.booking.findFirst({
       where: {
         courtId,
+        status: { not: "cancelled" },
         AND: [
           { startTime: { lt: newEndTime } },
           { endTime: { gt: newStartTime } },
@@ -157,13 +159,17 @@ export async function POST(req: Request) {
       },
     });
 
+    // Limpiar lista de espera del slot
+    limpiarWaitlistAlReservar({ courtId, startTime: newStartTime, userId: auth.session.user.id }).catch(() => {})
+
     // Crear BookingPayments para tracking de pagos por jugador
     if (paymentStatus !== "exempt" && totalPrice > 0) {
-      const amountPerPlayer = Math.round((totalPrice / numPlayers) * 100) / 100
+      const amountBase = Math.floor((totalPrice / numPlayers) * 100) / 100
+      const remainder = Math.round((totalPrice - amountBase * numPlayers) * 100) / 100
       const pagosData = [
-        { bookingId: booking.id, userId: auth.session.user.id, guestName: null, amount: amountPerPlayer, clubId: auth.session.user.clubId },
+        { bookingId: booking.id, userId: auth.session.user.id, guestName: null, amount: amountBase + remainder, clubId: auth.session.user.clubId },
         ...Array.from({ length: numPlayers - 1 }, (_, i) => ({
-          bookingId: booking.id, userId: null, guestName: `Jugador ${i + 2}`, amount: amountPerPlayer, clubId: auth.session.user.clubId,
+          bookingId: booking.id, userId: null, guestName: `Jugador ${i + 2}`, amount: amountBase, clubId: auth.session.user.clubId,
         })),
       ]
       db.bookingPayment.createMany({ data: pagosData }).catch(() => {})
@@ -251,7 +257,7 @@ export async function DELETE(req: Request) {
 
     const club = await db.club.findUnique({
       where: { id: auth.session.user.clubId },
-      select: { cancellationHours: true },
+      select: { cancellationHours: true, slug: true, name: true },
     });
 
     if (club?.cancellationHours) {
@@ -331,6 +337,17 @@ export async function DELETE(req: Request) {
         clubSlug: datosEmailCancelacion.club?.slug || "",
       }).catch(() => {})
     }
+
+    // Notificar lista de espera del slot liberado
+    liberarSlotYNotificar({
+      courtId: reserva.courtId,
+      startTime: reserva.startTime,
+      endTime: reserva.endTime,
+      clubId: auth.session.user.clubId,
+      clubSlug: club?.slug || "",
+      clubNombre: club?.name || "",
+      pistaNombre: reserva.court?.name || "Pista",
+    }).catch(() => {})
 
     return NextResponse.json({ message: "Reserva cancelada correctamente." });
   } catch (error) {

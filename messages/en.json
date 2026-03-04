@@ -1115,5 +1115,52 @@
     "chatEmpty": "No messages yet. Be the first to write!",
     "sendMessage": "Send",
     "chatRateLimit": "Too many messages. Wait a moment."
+  },
+  "share": {
+    "share": "Share",
+    "copiedTitle": "Link copied",
+    "copiedDescription": "Copied to clipboard. Paste it on WhatsApp or another app.",
+    "errorTitle": "Could not copy",
+    "errorDescription": "Copy this link manually: {url}",
+    "bookingTitle": "Padel court booking",
+    "bookingText": "{court} - {date}, {startTime} - {endTime}",
+    "openMatchTitle": "Open padel match",
+    "openMatchText": "{court} - {date} at {time}. {slots, plural, one {1 player needed} other {# players needed}}!",
+    "bookingConfirmed": "Booking confirmed!",
+    "bookingConfirmedDesc": "Your court is booked. Share with your teammates!",
+    "close": "Close"
+  },
+  "waitlist": {
+    "join": "Notify me when available",
+    "leave": "Stop waiting",
+    "added": "We'll notify you when this slot becomes available",
+    "removed": "You've been removed from the waitlist",
+    "slotAvailable": "Slot available!",
+    "slotAvailableDesc": "{court} on {date} at {time} is now available. Book quickly!",
+    "alreadyFree": "The slot is available, you can book it directly",
+    "myWaitlist": "My waitlist",
+    "noEntries": "You have no slots on the waitlist",
+    "cancel": "Cancel wait",
+    "statusActive": "Waiting",
+    "statusNotified": "Available",
+    "court": "Court",
+    "date": "Date",
+    "time": "Time",
+    "error": "Error processing request"
+  },
+  "reschedule": {
+    "title": "Reschedule booking",
+    "button": "Reschedule",
+    "newDate": "New date",
+    "selectSlot": "Select an available time slot",
+    "noSlots": "No available slots for this date.",
+    "confirm": "Confirm change",
+    "cancel": "Cancel",
+    "rescheduling": "Rescheduling...",
+    "success": "Booking rescheduled",
+    "successDescription": "Your booking has been rescheduled successfully.",
+    "errorLoading": "Error loading available slots.",
+    "errorGeneric": "Could not reschedule the booking.",
+    "errorConnection": "Connection error."
   }
 }

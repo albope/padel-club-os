@@ -2,8 +2,10 @@ import { db } from "@/lib/db"
 
 /**
  * Calcula el precio de una reserva basado en CourtPricing.
- * Busca la regla de precio para la pista, dia de la semana y hora de inicio.
- * Si no hay regla configurada, devuelve 0 (gratis / sin precio definido).
+ * Obtiene todas las bandas horarias del dia y calcula el precio proporcional
+ * por horas, soportando reservas que cruzan multiples franjas.
+ * CourtPricing.price se interpreta como precio por hora.
+ * Si no hay reglas configuradas, devuelve 0 (gratis / sin precio definido).
  */
 export async function calcularPrecioReserva(
   courtId: string,
@@ -12,24 +14,29 @@ export async function calcularPrecioReserva(
   endTime: Date
 ): Promise<number> {
   const dayOfWeek = startTime.getDay() // 0=Domingo, 6=Sabado
-  const startHour = startTime.getHours()
+  const startDecimal = startTime.getHours() + startTime.getMinutes() / 60
+  const endDecimal = endTime.getHours() + endTime.getMinutes() / 60
 
-  // Buscar precio configurado para esta pista, dia y hora
-  const pricing = await db.courtPricing.findFirst({
-    where: {
-      courtId,
-      clubId,
-      dayOfWeek,
-      startHour: { lte: startHour },
-      endHour: { gt: startHour },
-    },
+  // Obtener todas las bandas de precio del dia para esta pista
+  const bandas = await db.courtPricing.findMany({
+    where: { courtId, clubId, dayOfWeek },
+    select: { startHour: true, endHour: true, price: true },
   })
 
-  if (!pricing) {
-    return 0
+  if (bandas.length === 0) return 0
+
+  // Calcular precio proporcional por horas en cada banda que solapa
+  let total = 0
+  for (const banda of bandas) {
+    const inicioSolape = Math.max(banda.startHour, startDecimal)
+    const finSolape = Math.min(banda.endHour, endDecimal)
+    const horas = finSolape - inicioSolape
+    if (horas > 0) {
+      total += horas * banda.price
+    }
   }
 
-  return pricing.price
+  return Math.round(total * 100) / 100
 }
 
 /**

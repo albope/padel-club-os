@@ -127,7 +127,7 @@ export default async function TarifasPage({ params }: { params: { slug: string }
       <div>
         <h1 className="font-display text-2xl font-bold uppercase tracking-wide">Tarifas</h1>
         <p className="text-muted-foreground mt-1">
-          Precios por reserva de {duracion} minutos
+          Tarifas por hora de pista
         </p>
         <div className="club-accent-line mt-3" />
       </div>
@@ -181,7 +181,7 @@ export default async function TarifasPage({ params }: { params: { slug: string }
                               </span>
                               <span className="text-lg text-muted-foreground">€</span>
                               <span className="text-sm text-muted-foreground ml-1">
-                                / pista
+                                / hora
                               </span>
                             </div>
                         </div>
@@ -218,7 +218,7 @@ export default async function TarifasPage({ params }: { params: { slug: string }
                               </span>
                               <span className="text-lg text-muted-foreground">€</span>
                               <span className="text-sm text-muted-foreground ml-1">
-                                / pista
+                                / hora
                               </span>
                             </div>
                         </div>
@@ -239,7 +239,7 @@ export default async function TarifasPage({ params }: { params: { slug: string }
       )}
 
       <p className="text-xs text-muted-foreground text-center">
-        Reserva de {duracion} minutos. Precios sujetos a cambios.
+        Duración estándar: {duracion} minutos. Precios por hora, sujetos a cambios.
       </p>
     </div>
   );

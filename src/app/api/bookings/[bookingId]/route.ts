@@ -2,6 +2,7 @@ import { db } from "@/lib/db";
 import { requireAuth, isAuthError } from "@/lib/api-auth";
 import { NextResponse } from "next/server";
 import { validarBody } from "@/lib/validation";
+import { liberarSlotYNotificar } from "@/lib/waitlist";
 import * as z from "zod";
 
 const BookingUpdateSchema = z.object({
@@ -32,10 +33,20 @@ export async function PATCH(
     const newStartTime = new Date(startTime);
     const newEndTime = new Date(endTime);
 
+    // Validar que la pista pertenece al club del admin
+    const court = await db.court.findFirst({
+      where: { id: courtId, clubId: auth.session.user.clubId },
+    });
+    if (!court) {
+      return new NextResponse("Pista no encontrada en este club.", { status: 404 });
+    }
+
     const overlappingBooking = await db.booking.findFirst({
       where: {
         courtId,
+        clubId: auth.session.user.clubId,
         id: { not: params.bookingId },
+        status: { not: "cancelled" },
         AND: [
           { startTime: { lt: newEndTime } },
           { endTime: { gt: newStartTime } },
@@ -72,9 +83,34 @@ export async function DELETE(
       return new NextResponse("ID de reserva requerido", { status: 400 });
     }
 
+    // Leer datos antes de eliminar para notificar waitlist
+    const reserva = await db.booking.findUnique({
+      where: { id: params.bookingId, clubId: auth.session.user.clubId },
+      select: {
+        courtId: true,
+        startTime: true,
+        endTime: true,
+        court: { select: { name: true } },
+        club: { select: { slug: true, name: true } },
+      },
+    })
+
     await db.booking.delete({
       where: { id: params.bookingId, clubId: auth.session.user.clubId },
     });
+
+    // Notificar lista de espera si la reserva era futura
+    if (reserva && new Date(reserva.startTime) > new Date()) {
+      liberarSlotYNotificar({
+        courtId: reserva.courtId,
+        startTime: reserva.startTime,
+        endTime: reserva.endTime,
+        clubId: auth.session.user.clubId,
+        clubSlug: reserva.club?.slug || "",
+        clubNombre: reserva.club?.name || "",
+        pistaNombre: reserva.court?.name || "Pista",
+      }).catch(() => {})
+    }
 
     return new NextResponse(null, { status: 204 });
   } catch (error) {

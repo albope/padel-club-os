@@ -1115,5 +1115,52 @@
     "chatEmpty": "Todavia no hay mensajes. ¡Se el primero en escribir!",
     "sendMessage": "Enviar",
     "chatRateLimit": "Demasiados mensajes. Espera un momento."
+  },
+  "share": {
+    "share": "Compartir",
+    "copiedTitle": "Enlace copiado",
+    "copiedDescription": "Copiado al portapapeles. Pegalo en WhatsApp u otra app.",
+    "errorTitle": "No se pudo copiar",
+    "errorDescription": "Copia este enlace manualmente: {url}",
+    "bookingTitle": "Reserva de padel",
+    "bookingText": "{court} - {date}, {startTime} - {endTime}",
+    "openMatchTitle": "Partida abierta de padel",
+    "openMatchText": "{court} - {date} a las {time}. {slots, plural, one {Falta 1 jugador} other {Faltan # jugadores}}!",
+    "bookingConfirmed": "Reserva confirmada!",
+    "bookingConfirmedDesc": "Tu pista esta reservada. Comparte con tus companeros!",
+    "close": "Cerrar"
+  },
+  "waitlist": {
+    "join": "Avisarme si se libera",
+    "leave": "Dejar de esperar",
+    "added": "Te avisaremos cuando se libere este horario",
+    "removed": "Has salido de la lista de espera",
+    "slotAvailable": "¡Horario liberado!",
+    "slotAvailableDesc": "Se ha liberado {court} el {date} a las {time}. ¡Reserva rápido!",
+    "alreadyFree": "El slot está disponible, puedes reservarlo directamente",
+    "myWaitlist": "Mi lista de espera",
+    "noEntries": "No tienes horarios en lista de espera",
+    "cancel": "Cancelar espera",
+    "statusActive": "Esperando",
+    "statusNotified": "Disponible",
+    "court": "Pista",
+    "date": "Fecha",
+    "time": "Hora",
+    "error": "Error al procesar la solicitud"
+  },
+  "reschedule": {
+    "title": "Cambiar horario",
+    "button": "Cambiar horario",
+    "newDate": "Nueva fecha",
+    "selectSlot": "Selecciona un horario disponible",
+    "noSlots": "No hay horarios disponibles para esta fecha.",
+    "confirm": "Confirmar cambio",
+    "cancel": "Cancelar",
+    "rescheduling": "Cambiando...",
+    "success": "Reserva modificada",
+    "successDescription": "Tu reserva ha sido reagendada correctamente.",
+    "errorLoading": "Error al cargar horarios disponibles.",
+    "errorGeneric": "No se pudo modificar la reserva.",
+    "errorConnection": "Error de conexión."
   }
 }

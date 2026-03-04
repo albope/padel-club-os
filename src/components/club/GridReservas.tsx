@@ -3,10 +3,12 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTranslations, useLocale } from 'next-intl';
-import { ChevronLeft, ChevronRight, Loader2, Users } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Loader2, Users, Bell, BellOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
+import { toast } from '@/hooks/use-toast';
+import { calcularPrecioTotal, type BandaPrecio } from '@/lib/pricing-client';
 import ConfirmacionReserva from './ConfirmacionReserva';
 
 interface Pista {
@@ -20,12 +22,11 @@ interface Bloque {
   tipo: 'reserva' | 'partida-abierta';
   inicio: string;
   fin: string;
-  userId?: string | null;
+  esPropia: boolean;
   plazasLibres?: number;
   nivelMin?: number | null;
   nivelMax?: number | null;
   openMatchId?: string;
-  jugadores?: string[];
 }
 
 interface GridReservasProps {
@@ -73,6 +74,7 @@ function indiceFila(hora: string, aperturaMinutos: number): number {
 export default function GridReservas({ club, pistas, sesionUserId, slug }: GridReservasProps) {
   const router = useRouter();
   const t = useTranslations('booking');
+  const tw = useTranslations('waitlist');
   const locale = useLocale();
   const localeCode = locale === 'en' ? 'en-GB' : 'es-ES';
   const openingTime = club.openingTime || '09:00';
@@ -85,7 +87,7 @@ export default function GridReservas({ club, pistas, sesionUserId, slug }: GridR
     return hoy.toISOString().split('T')[0];
   });
   const [bloques, setBloques] = useState<Bloque[]>([]);
-  const [precios, setPrecios] = useState<Record<string, Record<number, number>>>({});
+  const [bandasPrecio, setBandasPrecio] = useState<Record<string, BandaPrecio[]>>({});
   const [isLoading, setIsLoading] = useState(true);
   const [sheetOpen, setSheetOpen] = useState(false);
   const [slotSeleccionado, setSlotSeleccionado] = useState<{
@@ -93,6 +95,10 @@ export default function GridReservas({ club, pistas, sesionUserId, slug }: GridR
     horaInicio: string;
     precio: number | null;
   } | null>(null);
+
+  // Lista de espera: Set de claves "courtId-startTimeISO" → waitlistId
+  const [waitlistMap, setWaitlistMap] = useState<Map<string, string>>(new Map());
+  const [waitlistLoading, setWaitlistLoading] = useState<Set<string>>(new Set());
 
   const hoy = useMemo(() => new Date().toISOString().split('T')[0], []);
   const franjas = useMemo(() => generarFranjas(openingTime, closingTime), [openingTime, closingTime]);
@@ -111,23 +117,17 @@ export default function GridReservas({ club, pistas, sesionUserId, slug }: GridR
         setBloques([]);
       }
 
-      // Fetch precios de todas las pistas en paralelo
-      const preciosPorPista: Record<string, Record<number, number>> = {};
+      // Fetch bandas de precio de todas las pistas en paralelo
+      const bandasPorPista: Record<string, BandaPrecio[]> = {};
       const precioPromises = pistas.map(async (pista) => {
         const res = await fetch(`/api/club/${slug}/pricing?courtId=${pista.id}&date=${fecha}`);
         if (res.ok) {
-          const data = await res.json();
-          const priceMap: Record<number, number> = {};
-          for (const p of data) {
-            for (let h = p.startHour; h < p.endHour; h++) {
-              priceMap[h] = p.price;
-            }
-          }
-          preciosPorPista[pista.id] = priceMap;
+          const data: BandaPrecio[] = await res.json();
+          bandasPorPista[pista.id] = data;
         }
       });
       await Promise.all(precioPromises);
-      setPrecios(preciosPorPista);
+      setBandasPrecio(bandasPorPista);
     } catch {
       setBloques([]);
     } finally {
@@ -135,11 +135,30 @@ export default function GridReservas({ club, pistas, sesionUserId, slug }: GridR
     }
   }, [fecha, slug, pistas]);
 
+  // Cargar entradas de lista de espera del usuario
+  const cargarWaitlist = useCallback(async () => {
+    if (!sesionUserId) return;
+    try {
+      const res = await fetch('/api/player/bookings/waitlist');
+      if (res.ok) {
+        const data = await res.json();
+        const mapa = new Map<string, string>();
+        for (const entrada of data) {
+          mapa.set(`${entrada.courtId}-${entrada.startTime}`, entrada.id);
+        }
+        setWaitlistMap(mapa);
+      }
+    } catch {
+      // silencioso
+    }
+  }, [sesionUserId]);
+
   useEffect(() => {
     if (pistas.length > 0) {
       cargarDatos();
+      cargarWaitlist();
     }
-  }, [cargarDatos, pistas.length]);
+  }, [cargarDatos, cargarWaitlist, pistas.length]);
 
   // Mapa de celdas ocupadas: `courtId-filaIdx` -> bloque
   const celdasOcupadas = useMemo(() => {
@@ -184,14 +203,7 @@ export default function GridReservas({ club, pistas, sesionUserId, slug }: GridR
     setFecha(d.toISOString().split('T')[0]);
   };
 
-  const esPropia = (bloque: Bloque): boolean => {
-    if (!sesionUserId) return false;
-    if (bloque.tipo === 'reserva') return bloque.userId === sesionUserId;
-    if (bloque.tipo === 'partida-abierta') {
-      return bloque.jugadores?.includes(sesionUserId) || false;
-    }
-    return false;
-  };
+  const esPropia = (bloque: Bloque): boolean => bloque.esPropia;
 
   // Verificar que un slot esta libre para la duracion completa
   const slotLibre = (pistaId: string, filaIdx: number): boolean => {
@@ -206,19 +218,71 @@ export default function GridReservas({ club, pistas, sesionUserId, slug }: GridR
   const handleClickSlot = (pista: Pista, franja: string, filaIdx: number) => {
     if (!slotLibre(pista.id, filaIdx)) return;
 
-    const hora = parseInt(franja.split(':')[0]);
-    const precioPista = precios[pista.id]?.[hora] ?? null;
+    const bandas = bandasPrecio[pista.id] ?? [];
+    const precioTotal = calcularPrecioTotal(bandas, franja, duracion);
 
     setSlotSeleccionado({
       pista,
       horaInicio: franja,
-      precio: precioPista,
+      precio: precioTotal,
     });
     setSheetOpen(true);
   };
 
   const handlePartidaAbierta = (openMatchId: string) => {
     router.push(`/club/${slug}/partidas`);
+  };
+
+  const handleToggleWaitlist = async (courtId: string, bloque: Bloque) => {
+    const clave = `${courtId}-${bloque.inicio}`;
+    const existeId = waitlistMap.get(clave);
+
+    setWaitlistLoading((prev) => new Set(prev).add(clave));
+    try {
+      if (existeId) {
+        // Salir de la lista de espera
+        const res = await fetch(`/api/player/bookings/waitlist/${existeId}`, { method: 'DELETE' });
+        if (res.ok) {
+          setWaitlistMap((prev) => {
+            const next = new Map(prev);
+            next.delete(clave);
+            return next;
+          });
+          toast({ title: tw('removed') });
+        }
+      } else {
+        // Apuntarse a la lista de espera
+        const res = await fetch('/api/player/bookings/waitlist', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            courtId,
+            startTime: bloque.inicio,
+            endTime: bloque.fin,
+          }),
+        });
+        if (res.ok) {
+          const data = await res.json();
+          setWaitlistMap((prev) => new Map(prev).set(clave, data.id));
+          toast({ title: tw('added'), variant: 'success' });
+        } else {
+          const data = await res.json().catch(() => null);
+          toast({
+            title: 'Error',
+            description: data?.error || tw('error'),
+            variant: 'destructive',
+          });
+        }
+      }
+    } catch {
+      toast({ title: 'Error', description: tw('error'), variant: 'destructive' });
+    } finally {
+      setWaitlistLoading((prev) => {
+        const next = new Set(prev);
+        next.delete(clave);
+        return next;
+      });
+    }
   };
 
   const fechaFormateada = new Date(`${fecha}T12:00:00`).toLocaleDateString(localeCode, {
@@ -377,12 +441,17 @@ export default function GridReservas({ club, pistas, sesionUserId, slug }: GridR
                         );
                       }
 
+                      const waitlistClave = `${bloque.courtId}-${bloque.inicio}`;
+                      const enWaitlist = waitlistMap.has(waitlistClave);
+                      const waitlistCargando = waitlistLoading.has(waitlistClave);
+                      const mostrarWaitlist = !propia && sesionUserId && bloque.tipo === 'reserva';
+
                       return (
                         <div
                           key={celdaKey}
                           style={gridStyle}
                           className={cn(
-                            'mx-0.5 my-px rounded-sm flex flex-col items-center justify-center text-[10px] font-medium overflow-hidden select-none',
+                            'mx-0.5 my-px rounded-sm flex flex-col items-center justify-center text-[10px] font-medium overflow-hidden select-none relative',
                             propia && 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800',
                             !propia && 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 border border-red-200 dark:border-red-800',
                           )}
@@ -393,6 +462,32 @@ export default function GridReservas({ club, pistas, sesionUserId, slug }: GridR
                           {propia && (
                             <span className="leading-tight">{t('yourBooking')}</span>
                           )}
+                          {mostrarWaitlist && (
+                            <button
+                              type="button"
+                              className={cn(
+                                'absolute bottom-0.5 right-0.5 p-0.5 rounded-sm transition-colors',
+                                enWaitlist
+                                  ? 'text-amber-600 dark:text-amber-400 hover:bg-amber-200/50 dark:hover:bg-amber-800/30'
+                                  : 'text-red-400 dark:text-red-500 hover:bg-red-200/50 dark:hover:bg-red-800/30',
+                              )}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleToggleWaitlist(bloque.courtId, bloque);
+                              }}
+                              disabled={waitlistCargando}
+                              aria-label={enWaitlist ? tw('leave') : tw('join')}
+                              title={enWaitlist ? tw('leave') : tw('join')}
+                            >
+                              {waitlistCargando ? (
+                                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                              ) : enWaitlist ? (
+                                <BellOff className="h-3.5 w-3.5" />
+                              ) : (
+                                <Bell className="h-3.5 w-3.5" />
+                              )}
+                            </button>
+                          )}
                         </div>
                       );
                     }
@@ -401,7 +496,6 @@ export default function GridReservas({ club, pistas, sesionUserId, slug }: GridR
                     if (estaOcupada) return null;
 
                     // Celda libre
-                    const precio = precios[pista.id]?.[parseInt(franja.split(':')[0])];
                     const puedeReservar = slotLibre(pista.id, filaIdx);
 
                     const gridStyle = {
@@ -409,9 +503,13 @@ export default function GridReservas({ club, pistas, sesionUserId, slug }: GridR
                       gridColumn: colIdx + 2,
                     };
 
-                    const contenidoPrecio = esHoraEnPunto && precio !== undefined && precio > 0 ? (
+                    // Mostrar precio total del booking en celdas de hora en punto reservables
+                    const precioTotal = esHoraEnPunto && puedeReservar
+                      ? calcularPrecioTotal(bandasPrecio[pista.id] ?? [], franja, duracion)
+                      : null;
+                    const contenidoPrecio = precioTotal !== null && precioTotal > 0 ? (
                       <span className="text-[9px] text-muted-foreground/60 pl-0.5">
-                        {precio}€
+                        {precioTotal % 1 === 0 ? precioTotal : precioTotal.toFixed(2)}€
                       </span>
                     ) : null;
 
@@ -426,7 +524,7 @@ export default function GridReservas({ club, pistas, sesionUserId, slug }: GridR
                             esHoraEnPunto && 'border-t border-t-border/40',
                           )}
                           onClick={() => handleClickSlot(pista, franja, filaIdx)}
-                          aria-label={`Reservar ${pista.name} a las ${franja}${precio ? `, ${precio}€` : ''}`}
+                          aria-label={`Reservar ${pista.name} a las ${franja}${precioTotal ? `, ${precioTotal}€` : ''}`}
                         >
                           {contenidoPrecio}
                         </button>

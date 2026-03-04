@@ -93,36 +93,13 @@ export async function POST(req: Request) {
         data: { openMatchId, userId: auth.session.user.id },
       });
 
-      // Si ahora hay 4 jugadores, marcar como FULL y crear BookingPayments
+      // Si ahora hay 4 jugadores, marcar como FULL
       const playerCount = openMatch.players.length + 1;
       if (playerCount >= 4) {
         await tx.openMatch.update({
           where: { id: openMatchId },
           data: { status: OpenMatchStatus.FULL },
         });
-
-        // Crear BookingPayments para los 4 jugadores
-        if (openMatch.bookingId) {
-          const booking = await tx.booking.findUnique({
-            where: { id: openMatch.bookingId },
-            select: { totalPrice: true, clubId: true },
-          })
-          if (booking && booking.totalPrice > 0) {
-            const amount = Math.round((booking.totalPrice / 4) * 100) / 100
-            const todosLosJugadores = [
-              ...openMatch.players.map(p => p.userId),
-              auth.session.user.id,
-            ]
-            await tx.bookingPayment.createMany({
-              data: todosLosJugadores.map(uid => ({
-                bookingId: openMatch.bookingId!,
-                userId: uid,
-                amount,
-                clubId: booking.clubId,
-              })),
-            })
-          }
-        }
       }
     });
 
@@ -199,19 +176,12 @@ export async function DELETE(req: Request) {
         where: { openMatchId_userId: { openMatchId, userId: auth.session.user.id } },
       });
 
-      // Si estaba FULL, volver a OPEN y limpiar BookingPayments
+      // Si estaba FULL, volver a OPEN
       if (openMatch.status === OpenMatchStatus.FULL) {
         await tx.openMatch.update({
           where: { id: openMatchId },
           data: { status: OpenMatchStatus.OPEN },
         });
-
-        // Borrar BookingPayments (los jugadores cambiaron)
-        if (openMatch.bookingId) {
-          await tx.bookingPayment.deleteMany({
-            where: { bookingId: openMatch.bookingId },
-          })
-        }
       }
     });
 

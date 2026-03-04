@@ -1,8 +1,9 @@
 import { NextResponse } from "next/server"
-import { constructWebhookEvent, getPlanKeyFromPriceId } from "@/lib/stripe"
+import { constructWebhookEvent, getPlanKeyFromPriceId, stripe } from "@/lib/stripe"
 import { db } from "@/lib/db"
 import { crearNotificacion } from "@/lib/notifications"
 import { enviarEmailConfirmacionReserva } from "@/lib/email"
+import { asegurarBookingPayments } from "@/lib/payment-sync"
 import { logger } from "@/lib/logger"
 import type Stripe from "stripe"
 
@@ -63,17 +64,32 @@ export async function POST(req: Request) {
           })
           if (existingPayment) break
 
-          // Actualizar reserva y crear registro de pago en transaccion
-          const [updatedBooking] = await db.$transaction([
-            db.booking.update({
+          // Transaccion atomica con guard de booking confirmada
+          const updatedBooking = await db.$transaction(async (tx) => {
+            // Guard atomico: solo marcar paid si booking sigue confirmada
+            const { count } = await tx.booking.updateMany({
+              where: { id: bookingId, status: "confirmed" },
+              data: {
+                paymentStatus: "paid",
+                checkoutSessionId: null,
+                checkoutSessionExpiresAt: null,
+                checkoutLockUntil: null,
+              },
+            })
+
+            if (count === 0) return null // Booking cancelada o no encontrada
+
+            // Leer booking actualizado para email/notificacion
+            const booking = await tx.booking.findUnique({
               where: { id: bookingId },
-              data: { paymentStatus: "paid" },
               include: {
                 court: { select: { name: true } },
                 user: { select: { email: true, name: true, club: { select: { name: true, slug: true } } } },
               },
-            }),
-            db.payment.create({
+            })
+
+            // Crear registro de pago
+            await tx.payment.create({
               data: {
                 amount: (session.amount_total ?? 0) / 100,
                 currency: session.currency?.toUpperCase() ?? "EUR",
@@ -84,8 +100,32 @@ export async function POST(req: Request) {
                 userId,
                 clubId: paymentClubId,
               },
-            }),
-          ])
+            })
+
+            // Asegurar que existan BookingPayments (pueden faltar por fire-and-forget)
+            await asegurarBookingPayments(tx, bookingId)
+
+            // Marcar todos los BookingPayments como pagados
+            await tx.bookingPayment.updateMany({
+              where: { bookingId, status: "pending" },
+              data: { status: "paid", paidAt: new Date() },
+            })
+
+            return booking
+          })
+
+          // Si booking estaba cancelada, emitir refund automatico
+          if (!updatedBooking) {
+            if (session.payment_intent) {
+              stripe.refunds.create({
+                payment_intent: session.payment_intent as string,
+              }).catch((err) => {
+                logger.error("STRIPE_WEBHOOK_REFUND", "Error emitiendo refund para booking cancelada", { bookingId }, err)
+              })
+            }
+            logger.warn("STRIPE_WEBHOOK", "Pago recibido para reserva cancelada, refund emitido", { bookingId })
+            break
+          }
 
           logger.info("STRIPE_BOOKING_PAYMENT", "Pago de reserva confirmado", { bookingId, amount: (session.amount_total ?? 0) / 100 })
 

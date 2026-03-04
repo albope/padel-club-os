@@ -90,7 +90,8 @@ export async function POST(req: Request) {
         endTime: newEndTime,
         totalPrice,
         numPlayers: efectivoNumPlayers,
-        paymentStatus: "exempt", // Reservas admin no requieren pago online
+        paymentStatus: "exempt",
+        paymentMethod: "exempt", // Reservas admin no requieren pago
         status: "confirmed",
         clubId: auth.session.user.clubId,
       },

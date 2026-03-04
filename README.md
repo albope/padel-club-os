@@ -1,173 +1,139 @@
 # Padel Club OS
 
-Plataforma SaaS de gestión integral para clubes de pádel en España. Reservas, socios, competiciones, pagos y portal para jugadores en una sola aplicación web moderna.
+Plataforma SaaS para clubes de padel con dashboard de operacion, portal de jugador y capa de pagos, comunicacion y competicion sobre un unico producto multi-tenant.
 
-## Stack tecnológico
+## Estado actual
 
-| Tecnología | Versión | Uso |
-|---|---|---|
-| Next.js | 14.2.5 | Framework (App Router) |
-| TypeScript | 5 | Lenguaje |
-| Prisma | 6.19 | ORM (PostgreSQL) |
-| NextAuth | 4 | Autenticación (JWT + Credentials) |
-| Tailwind CSS | 3.4 | Estilos |
-| shadcn/ui | - | Componentes UI (Radix UI) |
-| next-themes | - | Tema light/dark |
-| next-intl | - | Internacionalización (es/en) |
-| Vitest | 2 | Testing |
+Hoy el repo ya incluye:
+
+- dashboard para club con reservas, pistas, socios, noticias, blog, partidas abiertas, rankings y analiticas;
+- portal de jugador con reservas, tarifas, noticias, competiciones, rankings, perfil y recuperacion de password;
+- pagos SaaS con Stripe y pagos online de reservas;
+- pagos por jugador, reservas recurrentes, recordatorios y waitlist;
+- notificaciones push, email e in-app;
+- auth con roles, permisos, RGPD, PWA e i18n.
+
+Los huecos mas claros a dia de hoy siguen siendo:
+
+- `CI` y `typecheck` como checks formales;
+- importacion/migracion mas robusta para switching;
+- multi-admin con invitacion real de staff;
+- horarios especiales, cierres y audit log;
+- cierre fino del contrato de estados de pago.
+
+## Stack
+
+| Tecnologia | Uso |
+|---|---|
+| Next.js 14 | App Router, web publica, dashboard y APIs |
+| TypeScript 5 | Tipado |
+| Prisma 6 + PostgreSQL | Modelo de datos y acceso a BD |
+| NextAuth 4 | Auth con JWT + credentials |
+| Tailwind + Radix/shadcn | UI |
+| Stripe | Suscripciones SaaS y pagos online |
+| Resend + web-push | Emails y push |
+| next-intl | i18n ES/EN |
+| Vitest | Testing |
+| Sentry | Observabilidad basica |
 
 ## Arquitectura
 
+```text
+/                     landing publica
+/login /register      auth de admins
+/dashboard/*          panel del club
+/club/[slug]/*        portal publico del club y area de jugador
+/api/*                APIs REST del monolito
 ```
-Monolito Next.js con route groups:
 
-/                    → Landing page pública (marketing)
-/login, /register    → Autenticación de admins
-/dashboard/*         → Panel de administración del club
-/club/[slug]/*       → Portal público para jugadores
-```
+El sistema es multi-tenant por `clubId`. Los roles actuales son `SUPER_ADMIN`, `CLUB_ADMIN`, `STAFF` y `PLAYER`.
 
-**Multi-tenant:** Cada club tiene un `clubId` que filtra todos los datos. Los clubes se identifican por `slug` único.
+## Dominios principales
 
-**Roles (RBAC):**
-- `SUPER_ADMIN` - Acceso total a la plataforma
-- `CLUB_ADMIN` - Gestión completa de su club
-- `STAFF` - Gestión de reservas, pistas y competiciones
-- `PLAYER` - Reservar pistas, unirse a partidas, ver competiciones
+El schema actual ya cubre, entre otros:
 
-## Estructura del proyecto
+- `Club`, `User`, `Court`, `Booking`
+- `Competition`, `OpenMatch`, `PlayerStats`
+- `Payment`, `BookingPayment`
+- `Notification`, `Broadcast`
+- `RecurringBooking`, `BookingWaitlist`
+- `News`, `BlogPost`
 
-```
+La referencia real del modelo es [schema.prisma](c:/Users/abort/Desktop/Projects/padel-club-os/prisma/schema.prisma).
+
+## Estructura del repo
+
+```text
 src/
   app/
-    (public)/           # Landing page de marketing
-    api/                # API Routes REST
-    club/[slug]/        # Portal público del club (jugadores)
-    dashboard/          # Panel de administración
-    login/, register/   # Autenticación
-  components/
-    ui/                 # shadcn/ui (button, card, dialog, toast, etc.)
-    layout/             # Header, Sidebar, MobileNavBar, Breadcrumbs
-    marketing/          # Hero, Features, Pricing, Testimonials, Footer, Navbar
-    club/               # ClubLayout, ClubHome
-    competitions/       # Ligas y torneos
-    reservas/           # Reservas de pistas
-    pistas/             # Gestión de pistas
-    socios/             # Gestión de socios
-    partidas-abiertas/  # Partidas abiertas
-    ajustes/            # Configuración del club
-  lib/
-    auth.ts             # Configuración NextAuth
-    db.ts               # Prisma client singleton
-    utils.ts            # cn() helper
-    permissions.ts      # Permisos por rol
-    api-auth.ts         # Helper requireRole() para APIs
-    nav-items.ts        # Ítems de navegación
-  middleware.ts         # Protección de rutas por rol
-  hooks/                # Custom hooks (use-toast)
-  test/                 # Setup de testing
+    (public)/          marketing
+    api/               route handlers
+    club/[slug]/       portal jugador
+    dashboard/         panel admin
+  components/          UI y modulos de negocio
+  lib/                 auth, permisos, pricing, stripe, notifications, waitlist
 prisma/
-  schema.prisma         # 12 modelos
+  schema.prisma
+  migrations/
 ```
 
-## Modelos de datos
-
-`Club` > `User` (con roles) > `Court` > `Booking` > `Competition` > `Team` > `Match` > `OpenMatch` > `News`
-
-## Primeros pasos
+## Arranque local
 
 ### Requisitos
 
-- Node.js >= 20.16
+- Node.js 20+
 - PostgreSQL
 
-### Instalación
+### Instalacion
 
 ```bash
-# Clonar e instalar dependencias
-git clone https://github.com/albope/padel-club-os.git
-cd padel-club-os
 npm install
-
-# Configurar variables de entorno
 cp .env.example .env
-# Editar .env con tu DATABASE_URL y AUTH_SECRET
-
-# Sincronizar base de datos
 npx prisma db push
-
-# Iniciar en desarrollo
 npm run dev
 ```
 
-### Variables de entorno
+Si necesitas datos de demo:
 
-```env
-DATABASE_URL="postgresql://user:password@localhost:5432/padel_club_os"
-AUTH_SECRET="tu-secreto-aqui"
+```bash
+npx prisma db seed
 ```
 
-## Comandos
+## Variables de entorno
 
-| Comando | Descripción |
+La fuente buena es `.env.example`. Como minimo necesitaras:
+
+- `DATABASE_URL`
+- `AUTH_SECRET`
+
+Segun lo que quieras probar tambien entran:
+
+- Stripe
+- Resend
+- VAPID para push
+- Sentry
+- almacenamiento/subida de archivos
+
+## Scripts actuales
+
+| Comando | Descripcion |
 |---|---|
-| `npm run dev` | Servidor de desarrollo (puerto 3000) |
-| `npm run build` | Build de producción |
-| `npm run lint` | ESLint |
-| `npm test` | Ejecutar tests (Vitest) |
-| `npm run test:watch` | Tests en modo watch |
-| `npx prisma studio` | Explorar base de datos |
-| `npx prisma db push` | Sincronizar schema con BD |
+| `npm run dev` | desarrollo |
+| `npm run build` | build de produccion |
+| `npm run start` | arrancar build |
+| `npm run lint` | lint actual del proyecto |
+| `npm test` | tests con Vitest |
+| `npm run test:watch` | Vitest en watch |
 
-## Planes y precios
+Nota: el repo aun no tiene `typecheck` separado ni workflow de CI estable.
 
-| Plan | Precio | Pistas | Socios | Admins |
-|---|---|---|---|---|
-| **Starter** | 19 EUR/mes | Hasta 4 | Hasta 50 | 1 |
-| **Pro** | 49 EUR/mes | Ilimitadas | Hasta 500 | 3 |
-| **Enterprise** | 99 EUR/mes | Ilimitadas | Ilimitados | Ilimitados |
+## Documentacion del repo
 
-## Roadmap
-
-### Fase 1: Fundación - COMPLETADA
-- [x] Design system con shadcn/ui (15+ componentes)
-- [x] Tema light/dark con next-themes
-- [x] Navegación móvil (sidebar + bottom nav)
-- [x] Breadcrumbs automáticos
-- [x] Error boundaries y loading skeletons
-- [x] Migración completa al design system
-- [x] Toast y AlertDialog (reemplazan alert/confirm)
-- [x] Schema: roles de usuario (RBAC) + slug único por club
-- [x] Auth: role en JWT/session
-- [x] Testing con Vitest 2
-
-### Fase 2: Portal público + RBAC - EN CURSO
-- [x] RBAC (middleware, permisos por rol)
-- [x] Landing page de marketing (hero, features, pricing, testimonios)
-- [x] Portal del club: estructura base (`/club/[slug]`)
-- [x] APIs para jugadores (reservas, partidas, perfil)
-- [x] Autenticación de jugadores (login/registro por club)
-- [ ] i18n completo en páginas públicas
-- [ ] Pulir portal del club (UX de jugador)
-
-### Fase 3: Pagos, notificaciones, reservas avanzadas
-- [ ] Integración Stripe (suscripciones SaaS + pagos de pistas)
-- [ ] Notificaciones (email con Resend, push, in-app)
-- [ ] Reservas avanzadas (precios dinámicos, recurrentes, lista de espera)
-- [ ] PWA (Progressive Web App)
-
-### Fase 4: Rankings, social, analíticas
-- [ ] Sistema de rankings ELO
-- [ ] Dashboard de analíticas (recharts)
-- [ ] Noticias del club (editor rich text)
-- [ ] Perfiles públicos de jugadores
-
-### Fase 5: Crecimiento y diferenciación
-- [ ] Soporte multi-deporte (tenis, pickleball, squash)
-- [ ] API pública versionada con API keys
-- [ ] White-label (Enterprise)
-- [ ] Funcionalidades real-time
+- [FUNCIONAL.md](c:/Users/abort/Desktop/Projects/padel-club-os/FUNCIONAL.md): foto corta del producto.
+- [AUDITORIA-2-SEMANAS.md](c:/Users/abort/Desktop/Projects/padel-club-os/AUDITORIA-2-SEMANAS.md): deuda tecnica viva.
+- [ROADMAP-90-DIAS-SWITCH-MATCHPOINT.md](c:/Users/abort/Desktop/Projects/padel-club-os/ROADMAP-90-DIAS-SWITCH-MATCHPOINT.md): roadmap realista a 90 dias.
+- [MATERIAL-LANZAMIENTO.md](c:/Users/abort/Desktop/Projects/padel-club-os/MATERIAL-LANZAMIENTO.md): materiales pendientes para vender y operar mejor.
 
 ## Licencia
 
-Proyecto privado. Todos los derechos reservados.
+Proyecto privado.

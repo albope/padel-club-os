@@ -190,7 +190,7 @@ export async function DELETE(
       await prisma.openMatch.delete({ where: { id: params.matchId } });
 
       if (matchToDelete.bookingId) {
-        await prisma.booking.delete({ where: { id: matchToDelete.bookingId, status: 'provisional' } });
+        await prisma.booking.delete({ where: { id: matchToDelete.bookingId } });
       }
     });
 

@@ -194,10 +194,18 @@ model Booking {
   
   status        String     @default("confirmed")
   paymentStatus String?    @default("pending") // "pending" | "paid" | "exempt"
+  paymentMethod String?    // "online" | "presential" | "exempt"
   cancelledAt     DateTime?
   cancelReason    String?
   reminderSentAt  DateTime?
   numPlayers      Int?       @default(4) // 2, 3 o 4 jugadores
+  createdAt       DateTime   @default(now())
+
+  // Checkout Session tracking (idempotencia + expiracion)
+  checkoutSessionId        String?
+  checkoutSessionExpiresAt DateTime?
+  checkoutLockUntil        DateTime?
+
   openMatch       OpenMatch?
   payment         Payment?
   bookingPayments BookingPayment[]
@@ -210,6 +218,7 @@ model Booking {
   @@index([clubId, startTime])
   @@index([userId])
   @@index([status, startTime])
+  @@index([paymentMethod, paymentStatus, status])
 }
 
 // --- UNIFIED COMPETITION MODULE ---

@@ -2,6 +2,7 @@ import { db } from "@/lib/db"
 import { requireAuth, isAuthError } from "@/lib/api-auth"
 import { NextResponse } from "next/server"
 import { validarBody } from "@/lib/validation"
+import { sincronizarEstadoPago } from "@/lib/payment-sync"
 import { logger } from "@/lib/logger"
 import * as z from "zod"
 
@@ -178,6 +179,11 @@ export async function POST(
       return NextResponse.json({ error: "Reserva no encontrada." }, { status: 404 })
     }
 
+    // Guard: bloquear regeneracion en reservas exentas
+    if (booking.paymentStatus === "exempt" || booking.paymentMethod === "exempt") {
+      return NextResponse.json({ error: "No se pueden generar pagos para una reserva exenta." }, { status: 400 })
+    }
+
     const amount = Math.round((booking.totalPrice / numPlayers) * 100) / 100
 
     await db.$transaction(async (tx) => {
@@ -243,13 +249,8 @@ export async function POST(
 
       await tx.bookingPayment.createMany({ data: pagosData })
 
-      // Resetear paymentStatus a pending ya que se regeneraron los pagos
-      if (booking.paymentStatus === "paid") {
-        await tx.booking.update({
-          where: { id: bookingId },
-          data: { paymentStatus: "pending" },
-        })
-      }
+      // Recalcular paymentStatus (protege exempt, recalcula desde BookingPayments)
+      await sincronizarEstadoPago(tx, bookingId)
     })
 
     // Obtener los pagos generados

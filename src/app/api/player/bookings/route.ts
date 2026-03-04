@@ -4,6 +4,7 @@ import { NextResponse } from "next/server";
 import { calcularPrecioReserva } from "@/lib/pricing";
 import { crearNotificacion } from "@/lib/notifications";
 import { enviarEmailConfirmacionReserva, enviarEmailCancelacionReserva } from "@/lib/email";
+import { generarDatosPagoPorJugador } from "@/lib/payment-sync";
 import { stripe } from "@/lib/stripe";
 import { logger } from "@/lib/logger";
 import { validarBody } from "@/lib/validation";
@@ -130,50 +131,54 @@ export async function POST(req: Request) {
 
     const totalPrice = await calcularPrecioReserva(courtId, auth.session.user.clubId, newStartTime, newEndTime);
 
-    // Determinar estado de pago segun configuracion del club
-    const modoOnline = club.bookingPaymentMode !== "presential" && club.stripeConnectOnboarded
-    let paymentStatus: string
+    // Determinar metodo y estado de pago segun configuracion del club
+    let paymentMethod: string
     if (club.bookingPaymentMode === "presential" || !club.stripeConnectOnboarded) {
-      paymentStatus = "exempt"
+      paymentMethod = "presential"
     } else if (club.bookingPaymentMode === "both" && payAtClub) {
-      paymentStatus = "pending" // pagara en el club
+      paymentMethod = "presential"
     } else {
-      paymentStatus = "pending" // pagara online
+      paymentMethod = "online"
     }
-
-    const requiresPayment = modoOnline && !payAtClub && paymentStatus === "pending"
+    const paymentStatus = "pending"
+    const requiresPayment = paymentMethod === "online"
 
     const numPlayers = 4 // padel estandar: 2 vs 2
 
-    const booking = await db.booking.create({
-      data: {
-        courtId,
-        userId: auth.session.user.id,
-        startTime: newStartTime,
-        endTime: newEndTime,
-        totalPrice,
-        numPlayers,
-        paymentStatus,
-        status: "confirmed",
-        clubId: auth.session.user.clubId,
-      },
-    });
+    // Crear Booking + BookingPayments en una sola transaccion
+    const booking = await db.$transaction(async (tx) => {
+      const nuevaReserva = await tx.booking.create({
+        data: {
+          courtId,
+          userId: auth.session.user.id,
+          startTime: newStartTime,
+          endTime: newEndTime,
+          totalPrice,
+          numPlayers,
+          paymentStatus,
+          paymentMethod,
+          status: "confirmed",
+          clubId: auth.session.user.clubId,
+        },
+      })
+
+      // Crear BookingPayments dentro de la transaccion (no fire-and-forget)
+      if (totalPrice > 0) {
+        const pagosData = generarDatosPagoPorJugador({
+          bookingId: nuevaReserva.id,
+          clubId: auth.session.user.clubId,
+          totalPrice,
+          numPlayers,
+          titularUserId: auth.session.user.id,
+        })
+        await tx.bookingPayment.createMany({ data: pagosData })
+      }
+
+      return nuevaReserva
+    })
 
     // Limpiar lista de espera del slot
     limpiarWaitlistAlReservar({ courtId, startTime: newStartTime, userId: auth.session.user.id }).catch(() => {})
-
-    // Crear BookingPayments para tracking de pagos por jugador
-    if (paymentStatus !== "exempt" && totalPrice > 0) {
-      const amountBase = Math.floor((totalPrice / numPlayers) * 100) / 100
-      const remainder = Math.round((totalPrice - amountBase * numPlayers) * 100) / 100
-      const pagosData = [
-        { bookingId: booking.id, userId: auth.session.user.id, guestName: null, amount: amountBase + remainder, clubId: auth.session.user.clubId },
-        ...Array.from({ length: numPlayers - 1 }, (_, i) => ({
-          bookingId: booking.id, userId: null, guestName: `Jugador ${i + 2}`, amount: amountBase, clubId: auth.session.user.clubId,
-        })),
-      ]
-      db.bookingPayment.createMany({ data: pagosData }).catch(() => {})
-    }
 
     // Notificar al jugador de la confirmacion
     crearNotificacion({
@@ -274,12 +279,24 @@ export async function DELETE(req: Request) {
       }
     }
 
+    // Expirar Checkout Session activa si existe (antes de cancelar)
+    if (reserva.checkoutSessionId) {
+      try {
+        await stripe.checkout.sessions.expire(reserva.checkoutSessionId)
+      } catch {
+        // Session ya expirada o completada
+      }
+    }
+
     await db.booking.update({
       where: { id: bookingId },
       data: {
         status: "cancelled",
         cancelledAt: new Date(),
         cancelReason: "Cancelado por el jugador",
+        checkoutSessionId: null,
+        checkoutSessionExpiresAt: null,
+        checkoutLockUntil: null,
       },
     });
 

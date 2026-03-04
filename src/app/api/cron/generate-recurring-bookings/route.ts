@@ -130,6 +130,7 @@ export async function POST(req: Request) {
               endTime,
               totalPrice,
               paymentStatus: "exempt",
+              paymentMethod: "exempt",
               status: "confirmed",
               clubId: plantilla.clubId,
               recurringBookingId: plantilla.id,

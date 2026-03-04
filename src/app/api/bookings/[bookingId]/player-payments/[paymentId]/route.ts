@@ -2,6 +2,7 @@ import { db } from "@/lib/db"
 import { requireAuth, isAuthError } from "@/lib/api-auth"
 import { NextResponse } from "next/server"
 import { validarBody } from "@/lib/validation"
+import { sincronizarEstadoPago } from "@/lib/payment-sync"
 import { logger } from "@/lib/logger"
 import * as z from "zod"
 
@@ -29,6 +30,18 @@ export async function PATCH(
 
     if (!status && guestName === undefined) {
       return NextResponse.json({ error: "Se requiere al menos un campo para actualizar." }, { status: 400 })
+    }
+
+    // Guard: bloquear modificacion de pagos en reservas exentas
+    const bookingCheck = await db.booking.findUnique({
+      where: { id: bookingId, clubId: auth.session.user.clubId },
+      select: { paymentMethod: true, paymentStatus: true },
+    })
+    if (!bookingCheck) {
+      return NextResponse.json({ error: "Reserva no encontrada." }, { status: 404 })
+    }
+    if (bookingCheck.paymentMethod === "exempt" || bookingCheck.paymentStatus === "exempt") {
+      return NextResponse.json({ error: "No se pueden modificar pagos de una reserva exenta." }, { status: 400 })
     }
 
     // Transaccion atomica para evitar race conditions
@@ -77,19 +90,9 @@ export async function PATCH(
         },
       })
 
-      // Auto-sync: verificar si todos los pagos del booking estan pagados
+      // Auto-sync: recalcular Booking.paymentStatus (protege exempt)
       if (status) {
-        const allPayments = await tx.bookingPayment.findMany({
-          where: { bookingId },
-          select: { status: true },
-        })
-
-        const todosPagados = allPayments.length > 0 && allPayments.every(p => p.status === "paid")
-
-        await tx.booking.update({
-          where: { id: bookingId },
-          data: { paymentStatus: todosPagados ? "paid" : "pending" },
-        })
+        await sincronizarEstadoPago(tx, bookingId)
       }
 
       return updated

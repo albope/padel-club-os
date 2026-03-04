@@ -4,6 +4,7 @@ import { NextResponse } from "next/server"
 import { calcularPrecioReserva } from "@/lib/pricing"
 import { crearNotificacion } from "@/lib/notifications"
 import { enviarEmailReagendamientoReserva } from "@/lib/email"
+import { generarDatosPagoPorJugador } from "@/lib/payment-sync"
 import { liberarSlotYNotificar, limpiarWaitlistAlReservar } from "@/lib/waitlist"
 import { logger } from "@/lib/logger"
 import { validarBody } from "@/lib/validation"
@@ -48,6 +49,14 @@ export async function PATCH(
       return NextResponse.json(
         { error: "Reserva no encontrada." },
         { status: 404 }
+      )
+    }
+
+    // Fail closed: reservas legacy sin paymentMethod no se pueden reagendar
+    if (reservaOriginal.paymentMethod === null) {
+      return NextResponse.json(
+        { error: "Esta reserva requiere revision manual. Contacta al club." },
+        { status: 409 }
       )
     }
 
@@ -150,19 +159,50 @@ export async function PATCH(
     // Calcular nuevo precio
     const nuevoPrecio = await calcularPrecioReserva(courtIdDestino, clubId, nuevaStartTime, nuevaEndTime)
 
-    // Transaccion atomica: cancelar la original + crear la nueva
-    const [, nuevaReserva] = await db.$transaction([
+    // Determinar paymentMethod y paymentStatus de la nueva reserva segun la original
+    const origMethod = reservaOriginal.paymentMethod
+    let nuevoPaymentMethod: string
+    let nuevoPaymentStatus: string
+
+    if (origMethod === "exempt") {
+      nuevoPaymentMethod = "exempt"
+      nuevoPaymentStatus = "exempt"
+    } else if (origMethod === "presential") {
+      nuevoPaymentMethod = "presential"
+      nuevoPaymentStatus = "pending"
+    } else {
+      // online (pending o paid)
+      nuevoPaymentMethod = "online"
+      nuevoPaymentStatus = "pending"
+    }
+
+    // Expirar Checkout Session activa si existe (antes de cancelar)
+    if (reservaOriginal.checkoutSessionId) {
+      try {
+        const { stripe: stripeClient } = await import("@/lib/stripe")
+        await stripeClient.checkout.sessions.expire(reservaOriginal.checkoutSessionId)
+      } catch {
+        // Session ya expirada o completada
+      }
+    }
+
+    // Transaccion atomica: cancelar la original + crear la nueva + BookingPayments
+    const nuevaReserva = await db.$transaction(async (tx) => {
       // Cancelar la reserva original
-      db.booking.update({
+      await tx.booking.update({
         where: { id: bookingId },
         data: {
           status: "cancelled",
-          cancelledAt: new Date(),
+          cancelledAt: now,
           cancelReason: "Reagendada por el jugador",
+          checkoutSessionId: null,
+          checkoutSessionExpiresAt: null,
+          checkoutLockUntil: null,
         },
-      }),
+      })
+
       // Crear la nueva reserva
-      db.booking.create({
+      const nueva = await tx.booking.create({
         data: {
           courtId: courtIdDestino,
           userId,
@@ -170,12 +210,55 @@ export async function PATCH(
           endTime: nuevaEndTime,
           totalPrice: nuevoPrecio,
           numPlayers: reservaOriginal.numPlayers,
-          paymentStatus: reservaOriginal.paymentStatus || "exempt",
+          paymentMethod: nuevoPaymentMethod,
+          paymentStatus: nuevoPaymentStatus,
           status: "confirmed",
           clubId,
         },
-      }),
-    ])
+      })
+
+      // Crear BookingPayments en la transaccion (no fire-and-forget)
+      if (nuevoPaymentMethod !== "exempt" && nuevoPrecio > 0) {
+        const pagosData = generarDatosPagoPorJugador({
+          bookingId: nueva.id,
+          clubId,
+          totalPrice: nuevoPrecio,
+          numPlayers: reservaOriginal.numPlayers || 4,
+          titularUserId: userId,
+        })
+        await tx.bookingPayment.createMany({ data: pagosData })
+      }
+
+      return nueva
+    })
+
+    // Reembolso post-transaccion si la reserva original fue pagada online
+    if (origMethod === "online" && reservaOriginal.paymentStatus === "paid") {
+      const payment = await db.payment.findUnique({
+        where: { bookingId },
+        select: { id: true, stripePaymentId: true, status: true, amount: true },
+      })
+      if (payment?.stripePaymentId && payment.status === "succeeded") {
+        try {
+          const { stripe: stripeClient } = await import("@/lib/stripe")
+          await stripeClient.refunds.create({
+            payment_intent: payment.stripePaymentId,
+            refund_application_fee: false,
+          })
+          await db.payment.update({
+            where: { id: payment.id },
+            data: { status: "refunded" },
+          })
+          logger.info("RESCHEDULE_REFUND", "Reembolso procesado por reagendamiento", {
+            bookingId,
+            paymentId: payment.id,
+            amount: payment.amount,
+          })
+        } catch (refundError) {
+          logger.error("RESCHEDULE_REFUND", "Error al procesar reembolso", { bookingId, paymentId: payment.id }, refundError)
+        }
+      }
+    }
 
     // Notificar lista de espera del slot liberado (fire-and-forget)
     liberarSlotYNotificar({
@@ -190,20 +273,6 @@ export async function PATCH(
 
     // Limpiar waitlist del nuevo slot
     limpiarWaitlistAlReservar({ courtId: courtIdDestino, startTime: nuevaStartTime, userId }).catch(() => {})
-
-    // Crear BookingPayments para la nueva reserva
-    if (reservaOriginal.paymentStatus !== "exempt" && nuevoPrecio > 0) {
-      const numPlayers = reservaOriginal.numPlayers || 4
-      const amountBase = Math.floor((nuevoPrecio / numPlayers) * 100) / 100
-      const remainder = Math.round((nuevoPrecio - amountBase * numPlayers) * 100) / 100
-      const pagosData = [
-        { bookingId: nuevaReserva.id, userId, guestName: null, amount: amountBase + remainder, clubId },
-        ...Array.from({ length: numPlayers - 1 }, (_, i) => ({
-          bookingId: nuevaReserva.id, userId: null, guestName: `Jugador ${i + 2}`, amount: amountBase, clubId,
-        })),
-      ]
-      db.bookingPayment.createMany({ data: pagosData }).catch(() => {})
-    }
 
     // Notificacion in-app + push
     crearNotificacion({
@@ -232,7 +301,7 @@ export async function PATCH(
         fechaHoraInicioNueva: nuevaStartTime,
         fechaHoraFinNueva: nuevaEndTime,
         precioTotal: nuevoPrecio,
-        estadoPago: nuevaReserva.paymentStatus || "exempt",
+        estadoPago: nuevaReserva.paymentStatus || "pending",
         clubNombre: datosEmail.club?.name || "",
         clubSlug: datosEmail.club?.slug || "",
       }).catch(() => {})

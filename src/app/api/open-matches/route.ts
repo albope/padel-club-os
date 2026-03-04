@@ -76,8 +76,9 @@ export async function POST(req: Request) {
       const provisionalBooking = await prisma.booking.create({
         data: {
           clubId, courtId, startTime, endTime,
-          status: 'provisional', totalPrice,
+          status: 'confirmed', totalPrice,
           paymentStatus: "exempt",
+          paymentMethod: "exempt",
         },
       });
 

@@ -114,6 +114,7 @@ export async function POST(req: Request) {
           totalPrice,
           status: "confirmed",
           paymentStatus: "exempt",
+          paymentMethod: "exempt",
         },
       });
 

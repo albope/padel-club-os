@@ -101,21 +101,16 @@ export async function POST(req: Request) {
 
     logger.info("BOOKING_REMINDERS", `Procesadas: ${reservas.length}, Enviadas: ${enviados}, Errores: ${errores}`)
 
-    // Auto-cancelar reservas pendientes de pago online que llevan mas de 15 minutos
+    // Auto-cancelar reservas online pendientes creadas hace mas de 15 minutos sin pago
     const limiteExpiracion = new Date(ahora.getTime() - 15 * 60 * 1000)
 
     const reservasExpiradas = await db.booking.findMany({
       where: {
         status: "confirmed",
         paymentStatus: "pending",
-        startTime: { lt: limiteExpiracion },
-        // Solo cancelar si NO tienen un pago ya registrado
-        payment: null,
-        // Solo reservas que pertenecen a clubs con pagos online configurados
-        club: {
-          bookingPaymentMode: { in: ["online", "both"] },
-          stripeConnectOnboarded: true,
-        },
+        paymentMethod: "online", // Solo reservas que requieren Stripe (sin fallback null)
+        createdAt: { lt: limiteExpiracion }, // 15 min desde creacion, no desde hora del partido
+        payment: null, // No tienen pago completado
       },
       select: {
         id: true,
@@ -123,6 +118,7 @@ export async function POST(req: Request) {
         startTime: true,
         endTime: true,
         clubId: true,
+        checkoutSessionId: true,
         court: { select: { name: true } },
         club: { select: { slug: true, name: true } },
       },
@@ -131,12 +127,25 @@ export async function POST(req: Request) {
     let canceladas = 0
     for (const reserva of reservasExpiradas) {
       try {
+        // Expirar Checkout Session activa si existe
+        if (reserva.checkoutSessionId) {
+          try {
+            const { stripe: stripeClient } = await import("@/lib/stripe")
+            await stripeClient.checkout.sessions.expire(reserva.checkoutSessionId)
+          } catch {
+            // Session ya expirada o completada
+          }
+        }
+
         await db.booking.update({
           where: { id: reserva.id },
           data: {
             status: "cancelled",
             cancelledAt: new Date(),
             cancelReason: "Pago no completado en el plazo de 15 minutos",
+            checkoutSessionId: null,
+            checkoutSessionExpiresAt: null,
+            checkoutLockUntil: null,
           },
         })
         canceladas++

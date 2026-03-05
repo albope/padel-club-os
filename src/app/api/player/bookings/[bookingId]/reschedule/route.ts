@@ -4,7 +4,7 @@ import { NextResponse } from "next/server"
 import { calcularPrecioReserva } from "@/lib/pricing"
 import { crearNotificacion } from "@/lib/notifications"
 import { enviarEmailReagendamientoReserva } from "@/lib/email"
-import { generarDatosPagoPorJugador } from "@/lib/payment-sync"
+import { generarDatosPagoPorJugador, aplicarRefundBooking } from "@/lib/payment-sync"
 import { liberarSlotYNotificar, limpiarWaitlistAlReservar } from "@/lib/waitlist"
 import { logger } from "@/lib/logger"
 import { validarBody } from "@/lib/validation"
@@ -201,6 +201,9 @@ export async function PATCH(
         },
       })
 
+      // Limpiar BookingPayments de la reserva original
+      await tx.bookingPayment.deleteMany({ where: { bookingId } })
+
       // Crear la nueva reserva
       const nueva = await tx.booking.create({
         data: {
@@ -245,9 +248,13 @@ export async function PATCH(
             payment_intent: payment.stripePaymentId,
             refund_application_fee: false,
           })
-          await db.payment.update({
-            where: { id: payment.id },
-            data: { status: "refunded" },
+          // Sincronizar Payment + Booking.paymentStatus atomicamente
+          await db.$transaction(async (tx) => {
+            await tx.payment.update({
+              where: { id: payment.id },
+              data: { status: "refunded" },
+            })
+            await aplicarRefundBooking(tx, bookingId)
           })
           logger.info("RESCHEDULE_REFUND", "Reembolso procesado por reagendamiento", {
             bookingId,

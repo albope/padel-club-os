@@ -179,9 +179,12 @@ export async function POST(
       return NextResponse.json({ error: "Reserva no encontrada." }, { status: 404 })
     }
 
-    // Guard: bloquear regeneracion en reservas exentas
+    // Guard: bloquear regeneracion en reservas exentas o reembolsadas
     if (booking.paymentStatus === "exempt" || booking.paymentMethod === "exempt") {
       return NextResponse.json({ error: "No se pueden generar pagos para una reserva exenta." }, { status: 400 })
+    }
+    if (booking.paymentStatus === "refunded") {
+      return NextResponse.json({ error: "No se pueden regenerar pagos de una reserva reembolsada." }, { status: 400 })
     }
 
     const amount = Math.round((booking.totalPrice / numPlayers) * 100) / 100

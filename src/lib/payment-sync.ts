@@ -9,6 +9,7 @@
  */
 
 import type { PrismaClient } from "@prisma/client"
+import { canTransitionBooking } from "@/lib/payment-states"
 
 // Tipo del cliente transaccional de Prisma
 type Tx = Parameters<Parameters<PrismaClient["$transaction"]>[0]>[0]
@@ -179,4 +180,53 @@ export function generarDatosPagoPorJugador(params: {
       clubId,
     })),
   ]
+}
+
+/**
+ * Marca todos los BookingPayments de un booking como "refunded".
+ * Solo transiciona los que estan en "paid" (los "pending" se congelan).
+ *
+ * Debe llamarse dentro de una transaccion Prisma.
+ */
+export async function marcarBookingPaymentsRefunded(
+  tx: Tx,
+  bookingId: string
+): Promise<number> {
+  const result = await tx.bookingPayment.updateMany({
+    where: { bookingId, status: "paid" },
+    data: { status: "refunded" },
+  })
+  return result.count
+}
+
+/**
+ * Aplica el flujo completo de refund sobre un booking:
+ * 1. Booking.paymentStatus → "refunded" (si transicion valida)
+ * 2. BookingPayments "paid" → "refunded"
+ *
+ * Debe llamarse dentro de una transaccion Prisma.
+ *
+ * @returns true si se aplico, false si la transicion no era valida
+ */
+export async function aplicarRefundBooking(
+  tx: Tx,
+  bookingId: string
+): Promise<boolean> {
+  const booking = await tx.booking.findUnique({
+    where: { id: bookingId },
+    select: { paymentStatus: true },
+  })
+  if (!booking) return false
+
+  if (!canTransitionBooking(booking.paymentStatus, "refunded")) {
+    return false
+  }
+
+  await tx.booking.update({
+    where: { id: bookingId },
+    data: { paymentStatus: "refunded" },
+  })
+
+  await marcarBookingPaymentsRefunded(tx, bookingId)
+  return true
 }

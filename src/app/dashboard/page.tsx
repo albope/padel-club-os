@@ -200,7 +200,7 @@ const getDashboardData = async (clubId: string) => {
         .reduce((sum, r) => sum + (r.totalPrice || 0), 0);
 
       const pendiente = reservasDelDia
-        .filter(r => r.paymentStatus !== 'paid')
+        .filter(r => r.paymentStatus === 'pending')
         .reduce((sum, r) => sum + (r.totalPrice || 0), 0);
 
       const fecha = dia.toLocaleDateString(localeCode, { weekday: 'short', day: 'numeric' });

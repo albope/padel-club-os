@@ -8,6 +8,7 @@ declare module "next-auth/jwt" {
     clubId?: string | null;
     clubName?: string | null;
     role?: UserRole;
+    mustResetPassword?: boolean;
     subscriptionStatus?: string | null;
     trialEndsAt?: string | null;
   }
@@ -20,6 +21,7 @@ declare module "next-auth" {
       clubId?: string | null;
       clubName?: string | null;
       role?: UserRole;
+      mustResetPassword?: boolean;
       subscriptionStatus?: string | null;
       trialEndsAt?: string | null;
     } & DefaultSession["user"]
@@ -30,5 +32,6 @@ declare module "next-auth" {
     clubId?: string | null;
     clubName?: string | null;
     role?: UserRole;
+    mustResetPassword?: boolean;
   }
 }

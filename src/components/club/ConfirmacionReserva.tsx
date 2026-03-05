@@ -125,6 +125,7 @@ export default function ConfirmacionReserva({
       });
       router.replace(`/club/${slug}/reservar`, { scroll: false });
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams, slug, router, onReservaConfirmada]);
 
   if (!pista || !startTime || !endTime) return null;

@@ -306,6 +306,7 @@ const SettingsForm: React.FC<SettingsFormProps> = ({ club }) => {
             </p>
             {bannerUrl ? (
               <div className="relative rounded-lg overflow-hidden border border-input">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={bannerUrl}
                   alt="Portada del club"

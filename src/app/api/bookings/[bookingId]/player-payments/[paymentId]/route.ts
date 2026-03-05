@@ -43,6 +43,9 @@ export async function PATCH(
     if (bookingCheck.paymentMethod === "exempt" || bookingCheck.paymentStatus === "exempt") {
       return NextResponse.json({ error: "No se pueden modificar pagos de una reserva exenta." }, { status: 400 })
     }
+    if (bookingCheck.paymentStatus === "refunded") {
+      return NextResponse.json({ error: "No se pueden modificar pagos de una reserva reembolsada." }, { status: 400 })
+    }
 
     // Transaccion atomica para evitar race conditions
     const updatedPayment = await db.$transaction(async (tx) => {

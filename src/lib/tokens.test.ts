@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from "vitest"
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest"
 import { mockDb } from "@/test/mocks/db"
 
 vi.mock("@/lib/db", () => ({ db: mockDb }))

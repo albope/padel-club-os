@@ -117,6 +117,8 @@ function traducirEstadoPago(estado: string): string {
       return "Pago presencial"
     case "pending":
       return "Pendiente de pago"
+    case "refunded":
+      return "Reembolsado"
     default:
       return estado
   }
@@ -850,6 +852,65 @@ export async function enviarEmailReagendamientoReserva({
       contenido,
       boton: { texto: "Ver mis reservas", url: reservasUrl },
       pieDePagina: "Puedes cancelar tu reserva desde tu perfil respetando la pol&iacute;tica de cancelaci&oacute;n del club.",
+    }),
+  })
+}
+
+// --- Email de activacion de cuenta (importacion) ---
+
+interface EnviarEmailActivacionCuentaParams {
+  email: string
+  token: string
+  nombre?: string | null
+  clubNombre: string
+  clubSlug: string
+}
+
+export async function enviarEmailActivacionCuenta({
+  email,
+  token,
+  nombre,
+  clubNombre,
+  clubSlug,
+}: EnviarEmailActivacionCuentaParams) {
+  const resend = getResend()
+  const baseUrl = process.env.NEXTAUTH_URL || "http://localhost:3000"
+  const resetParams = new URLSearchParams({ token })
+  resetParams.set("redirect", `/club/${clubSlug}/login`)
+  const activacionUrl = `${baseUrl}/reset-password?${resetParams.toString()}`
+  const saludo = nombre ? escaparHtml(nombre) : null
+  const clubSeguro = escaparHtml(clubNombre)
+
+  const contenido = `
+    <p style="${estiloParrafo}">
+      ${saludo ? `Hola ${saludo},` : "Hola,"}
+    </p>
+    <p style="${estiloParrafo}">
+      Has sido dado de alta como socio de <strong>${clubSeguro}</strong> en ${EMAIL_BRAND.nombre}.
+    </p>
+    <p style="${estiloParrafo}">
+      Para activar tu cuenta, haz clic en el bot&oacute;n de abajo y establece tu contrase&ntilde;a:
+    </p>
+    <p style="${estiloParrafoSecundario}">
+      Este enlace expira en <strong>1 hora</strong>.
+    </p>
+    <div style="margin-top:20px;padding-top:16px;border-top:1px solid ${EMAIL_BRAND.colorBorde};">
+      <p style="color:${EMAIL_BRAND.colorTextoTerciario};font-size:12px;margin:0;">
+        Si el bot&oacute;n no funciona, copia este enlace en tu navegador:<br />
+        <a href="${activacionUrl}" style="color:${EMAIL_BRAND.colorPrimario};word-break:break-all;">${activacionUrl}</a>
+      </p>
+    </div>
+  `
+
+  await resend.emails.send({
+    from: EMAIL_FROM,
+    to: email,
+    subject: `Activa tu cuenta en ${clubNombre} - ${EMAIL_BRAND.nombre}`,
+    html: plantillaEmail({
+      titulo: `Bienvenido a ${clubSeguro}`,
+      preheader: `Has sido dado de alta en ${clubNombre}. Activa tu cuenta estableciendo tu contrase\u00f1a.`,
+      contenido,
+      boton: { texto: "Establecer contrase\u00f1a", url: activacionUrl },
     }),
   })
 }

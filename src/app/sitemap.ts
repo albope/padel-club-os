@@ -49,34 +49,40 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     },
   ]
 
-  // Blog posts publicados
-  const blogPosts = await db.blogPost.findMany({
-    where: { published: true },
-    select: { slug: true, updatedAt: true },
-    orderBy: { updatedAt: "desc" },
-  })
+  // Contenido dinamico (puede fallar si no hay DB disponible, ej. CI)
+  let paginasBlog: MetadataRoute.Sitemap = []
+  let paginasClub: MetadataRoute.Sitemap = []
 
-  const paginasBlog: MetadataRoute.Sitemap = blogPosts.map((post) => ({
-    url: `${SITE_URL}/blog/${post.slug}`,
-    lastModified: post.updatedAt,
-    changeFrequency: "monthly" as const,
-    priority: 0.6,
-  }))
+  try {
+    const blogPosts = await db.blogPost.findMany({
+      where: { published: true },
+      select: { slug: true, updatedAt: true },
+      orderBy: { updatedAt: "desc" },
+    })
 
-  // Clubs con suscripcion activa
-  const clubs = await db.club.findMany({
-    where: {
-      subscriptionStatus: { in: ["active", "trialing"] },
-    },
-    select: { slug: true },
-  })
+    paginasBlog = blogPosts.map((post) => ({
+      url: `${SITE_URL}/blog/${post.slug}`,
+      lastModified: post.updatedAt,
+      changeFrequency: "monthly" as const,
+      priority: 0.6,
+    }))
 
-  const paginasClub: MetadataRoute.Sitemap = clubs.map((club) => ({
-    url: `${SITE_URL}/club/${club.slug}`,
-    lastModified: new Date(),
-    changeFrequency: "daily" as const,
-    priority: 0.8,
-  }))
+    const clubs = await db.club.findMany({
+      where: {
+        subscriptionStatus: { in: ["active", "trialing"] },
+      },
+      select: { slug: true },
+    })
+
+    paginasClub = clubs.map((club) => ({
+      url: `${SITE_URL}/club/${club.slug}`,
+      lastModified: new Date(),
+      changeFrequency: "daily" as const,
+      priority: 0.8,
+    }))
+  } catch {
+    // Sin DB disponible (CI/build), devolver solo paginas estaticas
+  }
 
   return [...paginasEstaticas, ...paginasBlog, ...paginasClub]
 }

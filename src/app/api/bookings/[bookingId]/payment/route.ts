@@ -34,6 +34,14 @@ export async function PATCH(
       return new NextResponse("Esta reserva ya esta marcada como pagada", { status: 400 })
     }
 
+    // Guard: bloquear cobro si booking cancelada o reembolsada
+    if (booking.status === "cancelled") {
+      return NextResponse.json({ error: "No se puede cobrar una reserva cancelada." }, { status: 400 })
+    }
+    if (booking.paymentStatus === "refunded") {
+      return NextResponse.json({ error: "No se puede cobrar una reserva reembolsada." }, { status: 400 })
+    }
+
     const now = new Date()
 
     const updatedBooking = await db.$transaction(async (tx) => {

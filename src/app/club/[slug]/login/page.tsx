@@ -46,7 +46,7 @@ export default function ClubLoginPage() {
     setIsLoading(false);
 
     if (result?.error) {
-      setError('Email o contraseña incorrectos.');
+      setError('Email o contraseña incorrectos. Si tu cuenta requiere activación, te hemos enviado instrucciones por email.');
     } else {
       router.push(`/club/${slug}`);
       router.refresh();

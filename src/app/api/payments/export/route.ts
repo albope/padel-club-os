@@ -42,6 +42,7 @@ export async function GET(request: Request) {
       succeeded: "Completado",
       pending: "Pendiente",
       failed: "Fallido",
+      refunded: "Reembolsado",
     }
 
     const tipoMap: Record<string, string> = {

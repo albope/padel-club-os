@@ -1162,5 +1162,30 @@
     "errorLoading": "Error al cargar horarios disponibles.",
     "errorGeneric": "No se pudo modificar la reserva.",
     "errorConnection": "Error de conexión."
+  },
+  "import": {
+    "step1Title": "Paso 1: Prepara tu archivo",
+    "step1Description": "El archivo debe ser un CSV o TXT con las columnas:",
+    "step1Optional": "Opcionalmente puedes añadir:",
+    "downloadTemplate": "Descargar plantilla de ejemplo",
+    "step2Title": "Paso 2: Seleccionar Archivo",
+    "fileSelected": "Archivo",
+    "previewTitle": "Vista Previa de Datos a Importar ({count} socios)",
+    "colName": "Nombre",
+    "colEmail": "Email",
+    "colPhone": "Teléfono",
+    "sendActivation": "Enviar email de activación",
+    "sendActivationDesc": "Cada socio recibirá un email para establecer su contraseña y activar su cuenta.",
+    "step3Title": "Paso 3: Confirmar e Importar",
+    "importing": "Importando...",
+    "resultTitle": "Resultado de la Importación",
+    "resultSuccess": "{count} socios importados con éxito.",
+    "resultEmails": "{sent} emails de activación enviados, {failed} fallidos.",
+    "resultErrors": "{count} socios no se pudieron importar:",
+    "errorMinLines": "El archivo debe contener una cabecera y al menos un socio.",
+    "errorHeaders": "La cabecera debe contener al menos las columnas: {headers}",
+    "errorNoData": "No hay datos para importar.",
+    "errorServer": "Error en el servidor.",
+    "errorImport": "Error al importar"
   }
 }

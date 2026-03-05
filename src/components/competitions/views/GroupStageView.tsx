@@ -24,6 +24,7 @@ const GroupStageView: React.FC<GroupStageViewProps> = ({ competition, onOpenResu
       acc[group].push(team);
       return acc;
     }, {} as Record<string, typeof competition.teams>);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [competition.teams]);
 
   return (

@@ -3,7 +3,7 @@ import { constructWebhookEvent, getPlanKeyFromPriceId, stripe } from "@/lib/stri
 import { db } from "@/lib/db"
 import { crearNotificacion } from "@/lib/notifications"
 import { enviarEmailConfirmacionReserva } from "@/lib/email"
-import { asegurarBookingPayments } from "@/lib/payment-sync"
+import { asegurarBookingPayments, aplicarRefundBooking } from "@/lib/payment-sync"
 import { logger } from "@/lib/logger"
 import type Stripe from "stripe"
 
@@ -263,9 +263,15 @@ export async function POST(req: Request) {
         })
         if (!payment || payment.status === "refunded") break
 
-        await db.payment.update({
-          where: { id: payment.id },
-          data: { status: "refunded" },
+        // Sincronizar atomicamente: Payment + Booking.paymentStatus + BookingPayments
+        await db.$transaction(async (tx) => {
+          await tx.payment.update({
+            where: { id: payment.id },
+            data: { status: "refunded" },
+          })
+          if (payment.bookingId) {
+            await aplicarRefundBooking(tx, payment.bookingId)
+          }
         })
 
         logger.info("STRIPE_REFUND", "Reembolso de reserva procesado", { paymentId: payment.id, bookingId: payment.bookingId })

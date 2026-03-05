@@ -50,9 +50,11 @@ export const mockDb = {
   },
   bookingPayment: {
     createMany: vi.fn(),
+    findFirst: vi.fn(),
     findMany: vi.fn(),
     deleteMany: vi.fn(),
     count: vi.fn(),
+    update: vi.fn(),
     updateMany: vi.fn(),
   },
   openMatch: {
@@ -65,6 +67,7 @@ export const mockDb = {
   openMatchPlayer: {
     create: vi.fn(),
     createMany: vi.fn(),
+    delete: vi.fn(),
     deleteMany: vi.fn(),
     count: vi.fn(),
   },

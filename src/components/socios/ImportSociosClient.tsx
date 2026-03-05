@@ -1,9 +1,11 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Loader2, Upload, FileText, CheckCircle, XCircle } from 'lucide-react';
+import { Loader2, Upload, FileText, CheckCircle, XCircle, Mail } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
+import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
 import {
   Table,
   TableBody,
@@ -12,22 +14,32 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import { useTranslations } from 'next-intl';
 
 type SocioData = {
   name: string;
   email: string;
-  password?: string;
   phone?: string;
   position?: string;
   level?: string;
   birthDate?: string;
 };
 
+interface ImportResult {
+  successCount: number;
+  errors: string[];
+  emailsSent: number;
+  emailsFailed: number;
+  emailError?: string;
+}
+
 const ImportSociosClient = () => {
+  const t = useTranslations('import');
   const [file, setFile] = useState<File | null>(null);
   const [parsedData, setParsedData] = useState<SocioData[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [importResult, setImportResult] = useState<{ successCount: number; errors: string[] } | null>(null);
+  const [importResult, setImportResult] = useState<ImportResult | null>(null);
+  const [enviarActivacion, setEnviarActivacion] = useState(true);
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = event.target.files?.[0];
@@ -45,14 +57,14 @@ const ImportSociosClient = () => {
       const text = e.target?.result as string;
       const lines = text.split(/\r?\n/).filter(line => line.trim() !== '');
       if (lines.length < 2) {
-        alert("El archivo debe contener una cabecera y al menos un socio.");
+        alert(t('errorMinLines'));
         return;
       }
 
       const headers = lines[0].split(',').map(h => h.trim());
       const requiredHeaders = ['name', 'email'];
       if (!requiredHeaders.every(h => headers.includes(h))) {
-        alert(`La cabecera debe contener al menos las columnas: ${requiredHeaders.join(', ')}`);
+        alert(t('errorHeaders', { headers: requiredHeaders.join(', ') }));
         return;
       }
 
@@ -60,7 +72,9 @@ const ImportSociosClient = () => {
         const values = line.split(',');
         const socio: SocioData = { name: '', email: '' };
         headers.forEach((header, index) => {
-          (socio as any)[header] = values[index]?.trim() || '';
+          if (header !== 'password') {
+            (socio as any)[header] = values[index]?.trim() || '';
+          }
         });
         return socio;
       });
@@ -71,7 +85,7 @@ const ImportSociosClient = () => {
 
   const handleImport = async () => {
     if (parsedData.length === 0) {
-      alert("No hay datos para importar.");
+      alert(t('errorNoData'));
       return;
     }
     setIsLoading(true);
@@ -80,23 +94,23 @@ const ImportSociosClient = () => {
       const response = await fetch('/api/users/import', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ socios: parsedData }),
+        body: JSON.stringify({ socios: parsedData, enviarActivacion }),
       });
       const result = await response.json();
       if (!response.ok) {
-        throw new Error(result.message || 'Error en el servidor.');
+        throw new Error(result.message || t('errorServer'));
       }
       setImportResult(result);
     } catch (error: any) {
-      alert(`Error al importar: ${error.message}`);
+      alert(`${t('errorImport')}: ${error.message}`);
     } finally {
       setIsLoading(false);
     }
   };
 
   const downloadTemplate = () => {
-    const headers = "name,email,password,phone,position,level,birthDate\n";
-    const example = "Juan Ejemplo,juan@ejemplo.com,password123,600123123,Derecha,3.5,1990-05-15\n";
+    const headers = "name,email,phone,position,level,birthDate\n";
+    const example = "Juan Ejemplo,juan@ejemplo.com,600123123,Derecha,3.5,1990-05-15\n";
     const content = headers + example;
     const blob = new Blob([content], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement("a");
@@ -112,12 +126,12 @@ const ImportSociosClient = () => {
     <div className="space-y-6">
       {/* Instrucciones y Carga de Archivo */}
       <div className="p-4 border border-dashed border-border rounded-lg text-center">
-        <h3 className="text-lg font-semibold mb-2">Paso 1: Prepara tu archivo</h3>
+        <h3 className="text-lg font-semibold mb-2">{t('step1Title')}</h3>
         <p className="text-sm text-muted-foreground mb-4">
-          El archivo debe ser un CSV o TXT con las columnas: <code className="bg-muted px-1 rounded text-xs">name</code>, <code className="bg-muted px-1 rounded text-xs">email</code>. Opcionalmente puedes anadir: <code className="bg-muted px-1 rounded text-xs">password</code>, <code className="bg-muted px-1 rounded text-xs">phone</code>, <code className="bg-muted px-1 rounded text-xs">position</code>, <code className="bg-muted px-1 rounded text-xs">level</code>, <code className="bg-muted px-1 rounded text-xs">birthDate</code> (formato YYYY-MM-DD).
+          {t('step1Description')} <code className="bg-muted px-1 rounded text-xs">name</code>, <code className="bg-muted px-1 rounded text-xs">email</code>. {t('step1Optional')} <code className="bg-muted px-1 rounded text-xs">phone</code>, <code className="bg-muted px-1 rounded text-xs">position</code>, <code className="bg-muted px-1 rounded text-xs">level</code>, <code className="bg-muted px-1 rounded text-xs">birthDate</code> (YYYY-MM-DD).
         </p>
         <Button variant="link" onClick={downloadTemplate} className="text-sm">
-          Descargar plantilla de ejemplo
+          {t('downloadTemplate')}
         </Button>
       </div>
 
@@ -126,7 +140,7 @@ const ImportSociosClient = () => {
           <Button asChild>
             <span>
               <Upload className="h-5 w-5" />
-              {file ? `Archivo: ${file.name}` : 'Paso 2: Seleccionar Archivo'}
+              {file ? `${t('fileSelected')}: ${file.name}` : t('step2Title')}
             </span>
           </Button>
         </label>
@@ -136,14 +150,14 @@ const ImportSociosClient = () => {
       {/* Vista Previa */}
       {parsedData.length > 0 && (
         <div className="space-y-4">
-          <h3 className="text-lg font-semibold">Vista Previa de Datos a Importar ({parsedData.length} socios)</h3>
+          <h3 className="text-lg font-semibold">{t('previewTitle', { count: parsedData.length })}</h3>
           <Card className="overflow-auto max-h-60">
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Nombre</TableHead>
-                  <TableHead>Email</TableHead>
-                  <TableHead>Telefono</TableHead>
+                  <TableHead>{t('colName')}</TableHead>
+                  <TableHead>{t('colEmail')}</TableHead>
+                  <TableHead>{t('colPhone')}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -157,10 +171,28 @@ const ImportSociosClient = () => {
               </TableBody>
             </Table>
           </Card>
+
+          {/* Toggle de activacion */}
+          <div className="flex items-center justify-between p-4 rounded-lg border border-border bg-muted/30">
+            <div className="space-y-0.5">
+              <Label htmlFor="enviar-activacion" className="text-sm font-medium">
+                {t('sendActivation')}
+              </Label>
+              <p className="text-xs text-muted-foreground">
+                {t('sendActivationDesc')}
+              </p>
+            </div>
+            <Switch
+              id="enviar-activacion"
+              checked={enviarActivacion}
+              onCheckedChange={setEnviarActivacion}
+            />
+          </div>
+
           <div className="text-center pt-4">
             <Button onClick={handleImport} disabled={isLoading} className="w-full max-w-xs bg-green-600 hover:bg-green-500 text-white">
               {isLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : <FileText className="h-5 w-5" />}
-              {isLoading ? 'Importando...' : 'Paso 3: Confirmar e Importar'}
+              {isLoading ? t('importing') : t('step3Title')}
             </Button>
           </div>
         </div>
@@ -169,16 +201,30 @@ const ImportSociosClient = () => {
       {/* Resultados de la Importacion */}
       {importResult && (
         <Card className="p-4">
-          <h3 className="text-lg font-semibold mb-2">Resultado de la Importacion</h3>
+          <h3 className="text-lg font-semibold mb-2">{t('resultTitle')}</h3>
           <div className="flex items-center gap-2 text-green-600 dark:text-green-400">
             <CheckCircle className="h-5 w-5" />
-            <p>{importResult.successCount} socios importados con exito.</p>
+            <p>{t('resultSuccess', { count: importResult.successCount })}</p>
           </div>
+          {enviarActivacion && (
+            <div className="flex items-center gap-2 mt-2 text-muted-foreground">
+              <Mail className="h-4 w-4" />
+              <p className="text-sm">
+                {t('resultEmails', { sent: importResult.emailsSent, failed: importResult.emailsFailed })}
+              </p>
+            </div>
+          )}
+          {importResult.emailError && (
+            <div className="flex items-start gap-2 mt-2 text-amber-600 dark:text-amber-400">
+              <XCircle className="h-4 w-4 mt-0.5" />
+              <p className="text-sm">{importResult.emailError}</p>
+            </div>
+          )}
           {importResult.errors.length > 0 && (
             <div className="mt-4">
               <div className="flex items-center gap-2 text-destructive">
                 <XCircle className="h-5 w-5" />
-                <p>{importResult.errors.length} socios no se pudieron importar:</p>
+                <p>{t('resultErrors', { count: importResult.errors.length })}</p>
               </div>
               <ul className="list-disc list-inside text-sm text-destructive/80 mt-2 max-h-40 overflow-auto">
                 {importResult.errors.map((error, index) => (

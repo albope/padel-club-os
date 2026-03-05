@@ -46,8 +46,8 @@ export async function POST(req: Request) {
       select: { id: true, email: true, name: true, password: true },
     })
 
-    // Solo enviar email si el usuario existe Y tiene contrasena (Credentials)
-    if (usuario?.email && usuario.password) {
+    // Enviar email si el usuario existe (con o sin contrasena — permite activacion de cuentas importadas)
+    if (usuario?.email) {
       try {
         const token = await crearTokenRecuperacion(usuario.email)
         await enviarEmailResetPassword({

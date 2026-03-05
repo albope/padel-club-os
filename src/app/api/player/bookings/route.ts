@@ -4,7 +4,7 @@ import { NextResponse } from "next/server";
 import { calcularPrecioReserva } from "@/lib/pricing";
 import { crearNotificacion } from "@/lib/notifications";
 import { enviarEmailConfirmacionReserva, enviarEmailCancelacionReserva } from "@/lib/email";
-import { generarDatosPagoPorJugador } from "@/lib/payment-sync";
+import { generarDatosPagoPorJugador, aplicarRefundBooking } from "@/lib/payment-sync";
 import { stripe } from "@/lib/stripe";
 import { logger } from "@/lib/logger";
 import { validarBody } from "@/lib/validation";
@@ -312,9 +312,13 @@ export async function DELETE(req: Request) {
           payment_intent: payment.stripePaymentId,
           refund_application_fee: false, // la plataforma absorbe la comision perdida
         })
-        await db.payment.update({
-          where: { id: payment.id },
-          data: { status: "refunded" },
+        // Sincronizar estados: Payment + Booking.paymentStatus + BookingPayments
+        await db.$transaction(async (tx) => {
+          await tx.payment.update({
+            where: { id: payment.id },
+            data: { status: "refunded" },
+          })
+          await aplicarRefundBooking(tx, bookingId)
         })
         logger.info("BOOKING_REFUND", "Reembolso procesado por cancelacion", {
           bookingId,

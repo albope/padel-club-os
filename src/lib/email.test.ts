@@ -119,7 +119,11 @@ describe("traducirEstadoPago", () => {
     expect(traducirEstadoPago("pending")).toBe("Pendiente de pago")
   })
 
+  it("traduce 'refunded' a 'Reembolsado'", () => {
+    expect(traducirEstadoPago("refunded")).toBe("Reembolsado")
+  })
+
   it("retorna el valor original para estados desconocidos", () => {
-    expect(traducirEstadoPago("refunded")).toBe("refunded")
+    expect(traducirEstadoPago("unknown")).toBe("unknown")
   })
 })

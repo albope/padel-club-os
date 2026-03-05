@@ -58,7 +58,7 @@ const SociosPage = async () => {
           ) : (
             <div className="text-center py-12">
               <p className="text-gray-400">Aún no tienes socios en tu club.</p>
-              <p className="text-sm text-gray-500 mt-1">Haz clic en "Añadir Socio" para empezar.</p>
+              <p className="text-sm text-gray-500 mt-1">Haz clic en &quot;Añadir Socio&quot; para empezar.</p>
             </div>
           )}
         </div>

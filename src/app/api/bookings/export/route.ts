@@ -43,6 +43,7 @@ export async function GET(request: Request) {
       paid: "Pagado",
       pending: "Pendiente",
       exempt: "Exento",
+      refunded: "Reembolsado",
     }
 
     const cabeceras = [

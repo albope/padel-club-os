@@ -1,11 +1,13 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { User } from '@prisma/client';
-import { Mail, Phone, Gamepad2, BarChart3, Cake, CalendarClock, CalendarCheck2, StickyNote } from 'lucide-react';
+import { Mail, Phone, Gamepad2, BarChart3, Cake, CalendarClock, CalendarCheck2, StickyNote, Send, Loader2 } from 'lucide-react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { toast } from '@/hooks/use-toast';
 import Image from 'next/image';
 
 type SocioWithStats = User & {
@@ -22,15 +24,37 @@ interface SocioDetailModalProps {
 }
 
 const SocioDetailModal: React.FC<SocioDetailModalProps> = ({ isOpen, onClose, socio }) => {
+  const [isResending, setIsResending] = useState(false);
+
   if (!socio) return null;
 
   const reservasActivas = socio.bookings.length;
   const reservasTotales = socio._count.bookings;
   const edad = socio.birthDate ? Math.floor((new Date().getTime() - new Date(socio.birthDate).getTime()) / 3.15576e+10) : null;
+  const necesitaActivacion = !socio.password || socio.mustResetPassword;
 
   const formattedBirthDate = socio.birthDate
     ? `(${(new Date(socio.birthDate).getDate()).toString().padStart(2, '0')}/${(new Date(socio.birthDate).getMonth() + 1).toString().padStart(2, '0')})`
     : '';
+
+  const handleResendActivation = async () => {
+    setIsResending(true);
+    try {
+      const response = await fetch(`/api/users/${socio.id}/resend-activation`, {
+        method: 'POST',
+      });
+      const data = await response.json();
+      if (response.ok) {
+        toast({ title: "Email enviado", description: "Email de activacion enviado correctamente.", variant: "success" });
+      } else {
+        toast({ title: "Error", description: data.error || "No se pudo enviar el email.", variant: "destructive" });
+      }
+    } catch {
+      toast({ title: "Error", description: "No se pudo conectar con el servidor.", variant: "destructive" });
+    } finally {
+      setIsResending(false);
+    }
+  };
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
@@ -57,6 +81,11 @@ const SocioDetailModal: React.FC<SocioDetailModalProps> = ({ isOpen, onClose, so
                 >
                   {socio.isActive !== false ? 'Activo' : 'Inactivo'}
                 </Badge>
+                {necesitaActivacion && (
+                  <Badge variant="outline" className="text-amber-600 border-amber-300 dark:text-amber-400 dark:border-amber-600">
+                    Sin activar
+                  </Badge>
+                )}
               </div>
               <p className="text-sm text-muted-foreground">{socio.email}</p>
             </div>
@@ -105,6 +134,25 @@ const SocioDetailModal: React.FC<SocioDetailModalProps> = ({ isOpen, onClose, so
             <p className="text-xs text-muted-foreground mt-1">Reservas Totales</p>
           </div>
         </div>
+
+        {necesitaActivacion && (
+          <>
+            <Separator />
+            <Button
+              variant="outline"
+              className="w-full"
+              onClick={handleResendActivation}
+              disabled={isResending}
+            >
+              {isResending ? (
+                <Loader2 className="h-4 w-4 animate-spin mr-2" />
+              ) : (
+                <Send className="h-4 w-4 mr-2" />
+              )}
+              {isResending ? 'Enviando...' : 'Reenviar email de activacion'}
+            </Button>
+          </>
+        )}
 
         {socio.adminNotes && (
           <>

@@ -1162,5 +1162,30 @@
     "errorLoading": "Error loading available slots.",
     "errorGeneric": "Could not reschedule the booking.",
     "errorConnection": "Connection error."
+  },
+  "import": {
+    "step1Title": "Step 1: Prepare your file",
+    "step1Description": "The file must be a CSV or TXT with the columns:",
+    "step1Optional": "You can optionally add:",
+    "downloadTemplate": "Download example template",
+    "step2Title": "Step 2: Select File",
+    "fileSelected": "File",
+    "previewTitle": "Data Preview ({count} members)",
+    "colName": "Name",
+    "colEmail": "Email",
+    "colPhone": "Phone",
+    "sendActivation": "Send activation email",
+    "sendActivationDesc": "Each member will receive an email to set their password and activate their account.",
+    "step3Title": "Step 3: Confirm & Import",
+    "importing": "Importing...",
+    "resultTitle": "Import Result",
+    "resultSuccess": "{count} members imported successfully.",
+    "resultEmails": "{sent} activation emails sent, {failed} failed.",
+    "resultErrors": "{count} members could not be imported:",
+    "errorMinLines": "The file must contain a header and at least one member.",
+    "errorHeaders": "The header must contain at least the columns: {headers}",
+    "errorNoData": "No data to import.",
+    "errorServer": "Server error.",
+    "errorImport": "Import error"
   }
 }

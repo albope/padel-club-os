@@ -90,6 +90,7 @@ model User {
   birthDate     DateTime?
   role          UserRole  @default(PLAYER)
   isActive      Boolean   @default(true)
+  mustResetPassword Boolean @default(false)
   adminNotes    String?   @db.Text
 
   clubId        String?

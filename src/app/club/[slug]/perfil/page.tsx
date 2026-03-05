@@ -133,6 +133,7 @@ export default function PlayerProfilePage() {
       loadBookings();
       loadWaitlist();
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [status]);
 
   const loadProfile = async () => {

@@ -1,10 +1,28 @@
 import { PrismaAdapter } from "@auth/prisma-adapter";
-import { NextAuthOptions, User } from "next-auth";
+import { NextAuthOptions } from "next-auth";
 import { Adapter } from "next-auth/adapters";
-import { JWT } from "next-auth/jwt";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { db } from "./db";
 import { compare } from "bcrypt";
+import { crearTokenRecuperacion } from "./tokens";
+import { enviarEmailActivacionCuenta } from "./email";
+import { logger } from "./logger";
+
+// Rate limiter por email para auto-envio de activacion (max 1 email cada 5 minutos por usuario)
+const activacionEmailTimestamps = new Map<string, number>();
+function puedeEnviarActivacion(email: string): boolean {
+  const ahora = Date.now();
+  const ultimo = activacionEmailTimestamps.get(email);
+  if (ultimo && ahora - ultimo < 5 * 60 * 1000) return false;
+  activacionEmailTimestamps.set(email, ahora);
+  // Limpieza periodica para evitar memory leak
+  if (activacionEmailTimestamps.size > 1000) {
+    for (const [key, ts] of activacionEmailTimestamps) {
+      if (ahora - ts > 10 * 60 * 1000) activacionEmailTimestamps.delete(key);
+    }
+  }
+  return true;
+}
 
 export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(db) as Adapter,
@@ -17,7 +35,6 @@ export const authOptions: NextAuthOptions = {
     error: "/auth/error",
   },
   providers: [
-    // GoogleProvider has been removed from this array.
     CredentialsProvider({
       name: "Credentials",
       credentials: {
@@ -31,7 +48,7 @@ export const authOptions: NextAuthOptions = {
 
         const existingUser = await db.user.findUnique({
           where: { email: credentials.email },
-          include: { club: { select: { name: true } } },
+          include: { club: { select: { name: true, slug: true } } },
         });
 
         if (!existingUser || !existingUser.password) {
@@ -41,6 +58,29 @@ export const authOptions: NextAuthOptions = {
         const passwordMatch = await compare(credentials.password, existingUser.password);
 
         if (!passwordMatch) {
+          return null;
+        }
+
+        // Si el usuario necesita resetear password, auto-enviar email de activacion
+        // y bloquear el login (retornar null)
+        if (existingUser.mustResetPassword) {
+          if (existingUser.email && existingUser.club?.slug && existingUser.club?.name) {
+            if (puedeEnviarActivacion(existingUser.email)) {
+              crearTokenRecuperacion(existingUser.email)
+                .then((token) =>
+                  enviarEmailActivacionCuenta({
+                    email: existingUser.email!,
+                    token,
+                    nombre: existingUser.name,
+                    clubNombre: existingUser.club!.name,
+                    clubSlug: existingUser.club!.slug,
+                  })
+                )
+                .catch((err) =>
+                  logger.error("AUTH_ACTIVACION", "Error enviando email de activacion en login", { email: existingUser.email }, err)
+                );
+            }
+          }
           return null;
         }
 

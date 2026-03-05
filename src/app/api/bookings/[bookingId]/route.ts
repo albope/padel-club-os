@@ -70,7 +70,7 @@ export async function PATCH(
   }
 }
 
-// DELETE: Eliminar una reserva
+// DELETE: Cancelar una reserva (soft delete para preservar Payment/BookingPayment)
 export async function DELETE(
   req: Request,
   { params }: { params: { bookingId: string } }
@@ -83,10 +83,11 @@ export async function DELETE(
       return new NextResponse("ID de reserva requerido", { status: 400 });
     }
 
-    // Leer datos antes de eliminar para notificar waitlist
+    // Leer datos antes de cancelar para notificar waitlist
     const reserva = await db.booking.findUnique({
       where: { id: params.bookingId, clubId: auth.session.user.clubId },
       select: {
+        status: true,
         courtId: true,
         startTime: true,
         endTime: true,
@@ -95,12 +96,26 @@ export async function DELETE(
       },
     })
 
-    await db.booking.delete({
+    if (!reserva) {
+      return new NextResponse("Reserva no encontrada", { status: 404 })
+    }
+
+    if (reserva.status === "cancelled") {
+      return new NextResponse("La reserva ya esta cancelada", { status: 400 })
+    }
+
+    // Cancelacion blanda: preserva Payment y BookingPayment para auditoria
+    await db.booking.update({
       where: { id: params.bookingId, clubId: auth.session.user.clubId },
+      data: {
+        status: "cancelled",
+        cancelledAt: new Date(),
+        cancelReason: "Eliminada por administrador",
+      },
     });
 
     // Notificar lista de espera si la reserva era futura
-    if (reserva && new Date(reserva.startTime) > new Date()) {
+    if (new Date(reserva.startTime) > new Date()) {
       liberarSlotYNotificar({
         courtId: reserva.courtId,
         startTime: reserva.startTime,

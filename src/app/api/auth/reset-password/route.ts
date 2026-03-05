@@ -56,11 +56,11 @@ export async function POST(req: Request) {
       )
     }
 
-    // Actualizar contrasena
+    // Actualizar contrasena y desactivar flag de reset obligatorio
     const hashedPassword = await hash(password, 10)
     await db.user.update({
       where: { id: usuario.id },
-      data: { password: hashedPassword },
+      data: { password: hashedPassword, mustResetPassword: false },
     })
 
     // Eliminar token (single-use)

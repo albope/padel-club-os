@@ -7,7 +7,7 @@ import { crearRateLimiter, obtenerIP } from "@/lib/rate-limit"
 import { NextResponse } from "next/server"
 import * as z from "zod"
 
-const limitadorBroadcast = crearRateLimiter({ maxRequests: 5, windowMs: 3600000 }) // 5 por hora
+const limitadorBroadcast = crearRateLimiter({ maxRequests: 5, windowMs: 3600000, prefix: "rl:broadcast" }) // 5 por hora
 
 const BroadcastCreateSchema = z.object({
   titulo: z.string().min(1, "El titulo es requerido").max(100, "Maximo 100 caracteres"),
@@ -46,7 +46,7 @@ export async function POST(req: Request) {
 
     // Rate limiting
     const ip = obtenerIP(req)
-    if (!limitadorBroadcast.verificar(ip)) {
+    if (!(await limitadorBroadcast.verificar(ip))) {
       return NextResponse.json(
         { error: "Has enviado demasiadas comunicaciones. Intenta de nuevo mas tarde." },
         { status: 429 }

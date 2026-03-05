@@ -1,6 +1,6 @@
 # Roadmap 90 Dias
 
-Fecha de referencia: 2026-03-04
+Fecha de referencia: 2026-03-05
 
 ## Punto de partida real
 El producto ya no esta en fase cero. Hoy el workspace ya cubre:
@@ -11,7 +11,10 @@ El producto ya no esta en fase cero. Hoy el workspace ya cubre:
 - pagos SaaS con Stripe y pagos online de reservas,
 - pagos por jugador, recurrentes, recordatorios y waitlist,
 - competiciones, rankings ELO, analiticas y notificaciones,
-- base de seguridad, RGPD, PWA e i18n.
+- base de seguridad, RGPD, PWA e i18n,
+- CI/CD (lint + typecheck + test + build en PR),
+- rate limit distribuido (Upstash Redis con fallback local),
+- 436 tests (unitarios + integracion), 0 errores TS.
 
 El roadmap de 90 dias debe partir de esta base y no rehacer trabajo ya hecho.
 
@@ -23,46 +26,48 @@ El roadmap de 90 dias debe partir de esta base y no rehacer trabajo ya hecho.
 ## Objetivo del periodo
 Llegar a pilotos reales con una historia creible de migracion, operativa diaria estable y una UX de jugador claramente mejor que la alternativa legacy.
 
-## Bloques prioritarios
+## Cerrado (ya implementado)
+- CI y comandos de calidad (lint, typecheck, test, build, GitHub Actions).
+- Importacion segura de socios (mustResetPassword, activacion por email, sin password por defecto).
+- Contrato de estados de pago (BookingPayment, transiciones, 17 tests integracion).
+- Rate limit distribuido (Upstash Redis, fallback local, fail-open con logging).
+- Consistencia multi-tenant en reservas, disponibilidad y open matches.
+- Observabilidad Sentry con logger estructurado.
 
-### 0 a 30 dias
-- Cerrar confianza tecnica: `lint`, `typecheck`, `test`, `build` y CI.
-- Corregir deuda que frena migracion real: importacion segura de socios y consistencia de pagos.
-- Definir dataset minimo de migracion v1: socios, pistas, precios, reservas futuras y configuracion basica.
-- Preparar materiales de venta y onboarding para demos de switch.
+## Pendientes activos
 
-### 31 a 60 dias
-- Construir la capa de migracion operativa: importacion util de socios, pistas/precios y reservas futuras.
-- Cerrar blockers de recepcion que aun faltan: horarios especiales, cierres, bloqueos y audit log.
-- Resolver multi-admin/staff con flujo real de invitacion y limites por plan.
-- Dejar un setup simplificado para clubes pequenos sin abrir una segunda linea de producto.
+### Bloque 1: Migracion (0-30 dias)
 
-### 61 a 90 dias
-- Empaquetar la diferenciacion de jugador: waitlist cerrada, repetir reserva, compartir mejor y portal mas pulido.
-- Mejorar narrativa de cambio: comparativa vs Matchpoint, demo de recepcion y demo de jugador.
-- Convertir 1 o 2 pilotos en caso de exito reusable.
-- Dejar una base clara para bonos/cuotas solo si los pilotos lo exigen de verdad.
+| Tarea | Descripcion | Esfuerzo |
+|-------|-------------|----------|
+| Dataset migracion v1 | Definir schema minimo: socios, pistas, precios, reservas futuras, config basica | S |
+| Importacion de pistas y precios | API + UI para importar CSV de pistas con pricing por franja | M |
+| Importacion de reservas futuras | API para importar reservas activas desde otro sistema | M |
+| Material comercial minimo | Landing de switch, comparativa vs Matchpoint, demo de recepcion | M (no codigo) |
 
-## Backlog vivo
+### Bloque 2: Operativa diaria (31-60 dias)
 
-### Ahora
-- CI y comandos de calidad.
-- Importacion segura de socios.
-- Contrato de estados de pago.
-- Dataset de migracion v1.
-- Material comercial minimo para demos.
+| Tarea | Descripcion | Esfuerzo |
+|-------|-------------|----------|
+| Multi-admin con invitacion | Flujo invitar admin/staff por email, limites por plan | M |
+| Horarios especiales y bloqueos | Modelo + UI para cierres temporales, festivos, mantenimiento pistas | M |
+| Audit log basico | Registro de acciones criticas (crear/cancelar reserva, modificar config, importar) | M |
+| Cache en auth JWT | Reducir queries DB en callback JWT (refresco controlado de datos club/suscripcion) | S |
 
-### Siguiente
-- Importacion de pistas, precios y reservas futuras.
-- Multi-admin y permisos operativos.
-- Horarios especiales y bloqueos.
-- Audit log basico.
+### Bloque 3: Diferenciacion jugador (61-90 dias)
 
-### Despues
-- Repetir reserva.
-- Pulido de UX jugador y branding del portal.
-- Comparativa publica y packaging comercial dual.
-- Bonos/cuotas si aparecen como blocker repetido en discovery.
+| Tarea | Descripcion | Esfuerzo |
+|-------|-------------|----------|
+| Repetir reserva | Boton "reservar igual" en historial (misma pista, hora, dia semana) | S |
+| Pulido UX portal jugador | Mejoras de flujo, micro-interacciones, branding por club | M |
+| Comparativa publica | Pagina de comparacion vs Matchpoint, packaging comercial dual | S (no codigo) |
+| Pilotos | Convertir 1-2 clubes en caso de exito reutilizable | - |
+
+### Bloque 4: Solo si pilotos lo exigen
+
+| Tarea | Descripcion | Esfuerzo |
+|-------|-------------|----------|
+| Bonos y cuotas | Sistema de bonos prepago y cuotas mensuales de socios | L |
 
 ## Indicadores a mirar cada 2 semanas
 - Demos de switch realizadas.

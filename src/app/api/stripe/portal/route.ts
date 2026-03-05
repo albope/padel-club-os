@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { requireAuth, isAuthError } from "@/lib/api-auth"
 import { stripe } from "@/lib/stripe"
 import { db } from "@/lib/db"
+import { logger } from "@/lib/logger"
 
 export async function POST() {
   try {
@@ -27,7 +28,7 @@ export async function POST() {
 
     return NextResponse.json({ url: session.url })
   } catch (error) {
-    console.error("[STRIPE_PORTAL_ERROR]", error)
+    logger.error("STRIPE_PORTAL", "Error al abrir portal de facturacion", { ruta: "/api/stripe/portal" }, error)
     return NextResponse.json(
       { error: "Error al abrir portal de facturacion" },
       { status: 500 }

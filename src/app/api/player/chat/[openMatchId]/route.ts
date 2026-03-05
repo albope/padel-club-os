@@ -9,6 +9,7 @@ import * as z from "zod"
 const rateLimiterChat = crearRateLimiter({
   maxRequests: 10,
   windowMs: 60 * 1000, // 10 mensajes por minuto
+  prefix: "rl:chat",
 })
 
 const EnviarMensajeSchema = z.object({
@@ -99,10 +100,9 @@ export async function POST(
     const auth = await requireAuth("chat:write")
     if (isAuthError(auth)) return auth
 
-    // Rate limiting
-    const ip = obtenerIP(req)
-    const rlKey = `chat:${auth.session.user.id}`
-    if (!rateLimiterChat.verificar(ip || rlKey)) {
+    // Rate limiting — userId como clave primaria (ruta autenticada), IP como fallback
+    const claveRL = auth.session.user.id || obtenerIP(req)
+    if (!(await rateLimiterChat.verificar(claveRL))) {
       return NextResponse.json(
         { error: "Demasiados mensajes. Espera un momento." },
         { status: 429 }

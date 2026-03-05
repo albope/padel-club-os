@@ -4,6 +4,7 @@ import { NextResponse } from "next/server";
 import { hash } from "bcrypt";
 import { canCreateMember } from "@/lib/subscription";
 import { validarBody } from "@/lib/validation";
+import { logger } from "@/lib/logger";
 import * as z from "zod";
 
 const UserCreateSchema = z.object({
@@ -55,7 +56,7 @@ export async function POST(req: Request) {
 
     return NextResponse.json(newUser, { status: 201 });
   } catch (error) {
-    console.error("[CREATE_USER_ERROR]", error);
+    logger.error("CREATE_USER", "Error al crear socio", { ruta: "/api/users" }, error);
     return new NextResponse("Internal Server Error", { status: 500 });
   }
 }

@@ -2,6 +2,7 @@ import { db } from "@/lib/db";
 import { requireAuth, isAuthError } from "@/lib/api-auth";
 import { NextResponse } from "next/server";
 import { validarBody } from "@/lib/validation";
+import { logger } from "@/lib/logger";
 import * as z from "zod";
 
 const MatchesBulkUpdateSchema = z.object({
@@ -46,7 +47,7 @@ export async function PATCH(
 
     return NextResponse.json({ message: "Fechas de partidos actualizadas con exito." });
   } catch (error) {
-    console.error("[UPDATE_MATCHES_ERROR]", error);
+    logger.error("MATCHES_UPDATE", "Error al actualizar fechas de partidos", { ruta: "/api/competitions/[competitionId]/matches" }, error);
     return new NextResponse("Internal Server Error", { status: 500 });
   }
 }

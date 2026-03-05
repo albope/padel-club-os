@@ -11,13 +11,13 @@ const ForgotPasswordSchema = z.object({
   redirectUrl: z.string().max(500).optional(),
 })
 
-const limiter = crearRateLimiter({ maxRequests: 3, windowMs: 15 * 60 * 1000 })
+const limiter = crearRateLimiter({ maxRequests: 3, windowMs: 15 * 60 * 1000, prefix: "rl:forgot-pw" })
 
 export async function POST(req: Request) {
   try {
     const ip = obtenerIP(req)
 
-    if (!limiter.verificar(ip)) {
+    if (!(await limiter.verificar(ip))) {
       return NextResponse.json(
         { error: "Demasiadas solicitudes. Intentalo de nuevo en unos minutos." },
         { status: 429 }

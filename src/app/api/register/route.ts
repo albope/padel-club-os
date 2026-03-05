@@ -12,7 +12,7 @@ const RegistroAdminSchema = z.object({
   name: z.string().min(2, "El nombre debe tener al menos 2 caracteres.").max(100),
 });
 
-const limiter = crearRateLimiter({ maxRequests: 5, windowMs: 60 * 60 * 1000 });
+const limiter = crearRateLimiter({ maxRequests: 5, windowMs: 60 * 60 * 1000, prefix: "rl:register" });
 
 // Genera un slug unico a partir de un nombre
 async function generateUniqueSlug(name: string): Promise<string> {
@@ -36,7 +36,7 @@ async function generateUniqueSlug(name: string): Promise<string> {
 export async function POST(req: Request) {
   try {
     const ip = obtenerIP(req);
-    if (!limiter.verificar(ip)) {
+    if (!(await limiter.verificar(ip))) {
       return NextResponse.json(
         { error: "Demasiadas solicitudes. Intentalo de nuevo mas tarde." },
         { status: 429 }

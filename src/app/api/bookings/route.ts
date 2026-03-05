@@ -1,5 +1,6 @@
 import { db } from "@/lib/db";
 import { requireAuth, isAuthError } from "@/lib/api-auth";
+import { logger } from "@/lib/logger";
 import { NextResponse } from "next/server";
 import { calcularPrecioReserva } from "@/lib/pricing";
 import { validarBody } from "@/lib/validation";
@@ -34,7 +35,7 @@ export async function GET() {
     });
     return NextResponse.json(bookings, { status: 200 });
   } catch (error) {
-    console.error("[GET_BOOKINGS_ERROR]", error);
+    logger.error("BOOKINGS_GET", "Error al listar reservas del club", { ruta: "/api/bookings" }, error);
     return new NextResponse("Internal Server Error", { status: 500 });
   }
 }
@@ -102,7 +103,7 @@ export async function POST(req: Request) {
 
     return NextResponse.json(newBooking, { status: 201 });
   } catch (error) {
-    console.error("[CREATE_BOOKING_ERROR]", error);
+    logger.error("BOOKING_CREATE", "Error al crear reserva", { ruta: "/api/bookings" }, error);
     return new NextResponse("Internal Server Error", { status: 500 });
   }
 }

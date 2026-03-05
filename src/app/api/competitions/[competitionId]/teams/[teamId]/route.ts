@@ -2,6 +2,7 @@ import { db } from "@/lib/db";
 import { requireAuth, isAuthError } from "@/lib/api-auth";
 import { NextResponse } from "next/server";
 import { validarBody } from "@/lib/validation";
+import { logger } from "@/lib/logger";
 import * as z from "zod";
 
 const TeamUpdateSchema = z.object({
@@ -43,7 +44,7 @@ export async function PATCH(
 
     return NextResponse.json(updatedTeam);
   } catch (error) {
-    console.error("[UPDATE_TEAM_ERROR]", error);
+    logger.error("TEAM_UPDATE", "Error al actualizar equipo", { ruta: "/api/competitions/[competitionId]/teams/[teamId]" }, error);
     return new NextResponse("Internal Server Error", { status: 500 });
   }
 }
@@ -73,7 +74,7 @@ export async function DELETE(
 
     return new NextResponse(null, { status: 204 });
   } catch (error) {
-    console.error("[DELETE_TEAM_ERROR]", error);
+    logger.error("TEAM_DELETE", "Error al eliminar equipo", { ruta: "/api/competitions/[competitionId]/teams/[teamId]" }, error);
     return new NextResponse("Internal Server Error", { status: 500 });
   }
 }

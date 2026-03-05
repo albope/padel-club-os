@@ -2,10 +2,11 @@ import { requireAuth, isAuthError } from "@/lib/api-auth"
 import { db } from "@/lib/db"
 import { crearRateLimiter, obtenerIP } from "@/lib/rate-limit"
 import { NextResponse } from "next/server"
+import { logger } from "@/lib/logger"
 import * as z from "zod"
 import bcrypt from "bcrypt"
 
-const limiter = crearRateLimiter({ maxRequests: 1, windowMs: 60 * 60 * 1000 })
+const limiter = crearRateLimiter({ maxRequests: 1, windowMs: 60 * 60 * 1000, prefix: "rl:data-delete" })
 
 const DeleteSchema = z.object({
   contrasena: z.string().min(1, "Contrasena requerida."),
@@ -18,7 +19,7 @@ export async function POST(req: Request) {
     if (isAuthError(auth)) return auth
 
     const ip = obtenerIP(req)
-    if (!limiter.verificar(ip)) {
+    if (!(await limiter.verificar(ip))) {
       return NextResponse.json(
         { error: "Demasiadas solicitudes. Intentalo mas tarde." },
         { status: 429 }
@@ -109,7 +110,7 @@ export async function POST(req: Request) {
         "Tus datos personales han sido eliminados. Tu sesion se cerrara automaticamente.",
     })
   } catch (error) {
-    console.error("[DATA_DELETE_ERROR]", error)
+    logger.error("DATA_DELETE", "Error al eliminar datos del jugador", { ruta: "/api/player/data-delete" }, error)
     return NextResponse.json(
       { error: "Error interno del servidor." },
       { status: 500 }

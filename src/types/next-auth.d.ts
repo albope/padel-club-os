@@ -11,6 +11,7 @@ declare module "next-auth/jwt" {
     mustResetPassword?: boolean;
     subscriptionStatus?: string | null;
     trialEndsAt?: string | null;
+    subscriptionRefreshedAt?: number;
   }
 }
 

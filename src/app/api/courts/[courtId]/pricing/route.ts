@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import { requireAuth, isAuthError } from "@/lib/api-auth"
 import { db } from "@/lib/db"
+import { logger } from "@/lib/logger"
 import { validarBody } from "@/lib/validation"
 import * as z from "zod"
 
@@ -48,7 +49,7 @@ export async function GET(
 
     return NextResponse.json(pricings)
   } catch (error) {
-    console.error("[COURT_PRICING_GET_ERROR]", error)
+    logger.error("COURT_PRICING_GET", "Error al obtener precios de pista", { ruta: "/api/courts/[courtId]/pricing" }, error)
     return NextResponse.json(
       { error: "Error al obtener precios" },
       { status: 500 }
@@ -113,7 +114,7 @@ export async function POST(
 
     return NextResponse.json(updated)
   } catch (error) {
-    console.error("[COURT_PRICING_POST_ERROR]", error)
+    logger.error("COURT_PRICING_POST", "Error al guardar precios de pista", { ruta: "/api/courts/[courtId]/pricing" }, error)
     return NextResponse.json(
       { error: "Error al guardar precios" },
       { status: 500 }

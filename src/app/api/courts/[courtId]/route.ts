@@ -1,5 +1,6 @@
 import { db } from "@/lib/db";
 import { requireAuth, isAuthError } from "@/lib/api-auth";
+import { logger } from "@/lib/logger";
 import { NextResponse } from "next/server";
 import { validarBody } from "@/lib/validation";
 import * as z from "zod";
@@ -34,7 +35,7 @@ export async function PATCH(
 
     return NextResponse.json(updatedCourt);
   } catch (error) {
-    console.error("[UPDATE_COURT_ERROR]", error);
+    logger.error("COURT_UPDATE", "Error al actualizar pista", { ruta: "/api/courts/[courtId]" }, error);
     return new NextResponse("Internal Server Error", { status: 500 });
   }
 }
@@ -58,7 +59,7 @@ export async function DELETE(
 
     return new NextResponse(null, { status: 204 });
   } catch (error) {
-    console.error("[DELETE_COURT_ERROR]", error);
+    logger.error("COURT_DELETE", "Error al eliminar pista", { ruta: "/api/courts/[courtId]" }, error);
     return new NextResponse("Internal Server Error", { status: 500 });
   }
 }

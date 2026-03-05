@@ -15,13 +15,13 @@ const RegistroJugadorSchema = z.object({
   slug: z.string().min(1, "Slug del club requerido.").max(100),
 });
 
-const limiter = crearRateLimiter({ maxRequests: 5, windowMs: 60 * 60 * 1000 });
+const limiter = crearRateLimiter({ maxRequests: 5, windowMs: 60 * 60 * 1000, prefix: "rl:register-player" });
 
 // POST: Registro de jugador en un club especifico (requiere slug valido)
 export async function POST(req: Request) {
   try {
     const ip = obtenerIP(req);
-    if (!limiter.verificar(ip)) {
+    if (!(await limiter.verificar(ip))) {
       return NextResponse.json(
         { error: "Demasiadas solicitudes. Intentalo de nuevo mas tarde." },
         { status: 429 }

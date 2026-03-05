@@ -1,6 +1,7 @@
 import { requireAuth, isAuthError } from "@/lib/api-auth"
 import { db } from "@/lib/db"
 import { generarCSV, formatearFechaCSV, formatearHoraCSV } from "@/lib/csv"
+import { logger } from "@/lib/logger"
 
 export async function GET(request: Request) {
   try {
@@ -79,7 +80,7 @@ export async function GET(request: Request) {
       },
     })
   } catch (error) {
-    console.error("[EXPORT_BOOKINGS_ERROR]", error)
+    logger.error("BOOKINGS_EXPORT", "Error al exportar reservas a CSV", { ruta: "/api/bookings/export" }, error)
     return new Response("Error interno del servidor", { status: 500 })
   }
 }

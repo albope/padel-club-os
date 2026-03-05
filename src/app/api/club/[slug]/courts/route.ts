@@ -1,5 +1,6 @@
 import { db } from "@/lib/db";
 import { NextResponse } from "next/server";
+import { logger } from "@/lib/logger";
 
 // GET: Obtener pistas de un club por slug (para portal publico, requiere auth de jugador)
 export async function GET(
@@ -25,7 +26,7 @@ export async function GET(
       headers: { 'Cache-Control': 'public, s-maxage=3600, stale-while-revalidate=600' },
     });
   } catch (error) {
-    console.error("[GET_CLUB_COURTS_ERROR]", error);
+    logger.error("CLUB_COURTS", "Error al obtener pistas del club", { ruta: "/api/club/[slug]/courts" }, error);
     return new NextResponse("Internal Server Error", { status: 500 });
   }
 }

@@ -1,5 +1,6 @@
 import { db } from "@/lib/db";
 import { requireAuth, isAuthError } from "@/lib/api-auth";
+import { logger } from "@/lib/logger";
 import { NextResponse } from "next/server";
 import { validarBody } from "@/lib/validation";
 import { liberarSlotYNotificar } from "@/lib/waitlist";
@@ -65,7 +66,7 @@ export async function PATCH(
 
     return NextResponse.json(updatedBooking);
   } catch (error) {
-    console.error("[UPDATE_BOOKING_ERROR]", error);
+    logger.error("BOOKING_UPDATE", "Error al actualizar reserva", { ruta: "/api/bookings/[bookingId]" }, error);
     return new NextResponse("Internal Server Error", { status: 500 });
   }
 }
@@ -129,7 +130,7 @@ export async function DELETE(
 
     return new NextResponse(null, { status: 204 });
   } catch (error) {
-    console.error("[DELETE_BOOKING_ERROR]", error);
+    logger.error("BOOKING_DELETE", "Error al cancelar reserva", { ruta: "/api/bookings/[bookingId]" }, error);
     return new NextResponse("Internal Server Error", { status: 500 });
   }
 }

@@ -2,8 +2,9 @@ import { requireAuth, isAuthError } from "@/lib/api-auth"
 import { db } from "@/lib/db"
 import { crearRateLimiter, obtenerIP } from "@/lib/rate-limit"
 import { NextResponse } from "next/server"
+import { logger } from "@/lib/logger"
 
-const limiter = crearRateLimiter({ maxRequests: 3, windowMs: 60 * 60 * 1000 })
+const limiter = crearRateLimiter({ maxRequests: 3, windowMs: 60 * 60 * 1000, prefix: "rl:data-export" })
 
 export async function GET(req: Request) {
   try {
@@ -11,7 +12,7 @@ export async function GET(req: Request) {
     if (isAuthError(auth)) return auth
 
     const ip = obtenerIP(req)
-    if (!limiter.verificar(ip)) {
+    if (!(await limiter.verificar(ip))) {
       return NextResponse.json(
         { error: "Demasiadas solicitudes. Intentalo de nuevo mas tarde." },
         { status: 429 }
@@ -152,7 +153,7 @@ export async function GET(req: Request) {
       },
     })
   } catch (error) {
-    console.error("[DATA_EXPORT_ERROR]", error)
+    logger.error("DATA_EXPORT", "Error al exportar datos del jugador", { ruta: "/api/player/data-export" }, error)
     return NextResponse.json(
       { error: "Error interno del servidor." },
       { status: 500 }

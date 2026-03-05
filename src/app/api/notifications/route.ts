@@ -1,6 +1,7 @@
 import { requireAuth, isAuthError } from "@/lib/api-auth"
 import { db } from "@/lib/db"
 import { NextResponse } from "next/server"
+import { logger } from "@/lib/logger"
 
 // GET: Obtener notificaciones del usuario autenticado
 export async function GET(req: Request) {
@@ -33,7 +34,7 @@ export async function GET(req: Request) {
       siguienteCursor: hayMas ? notificaciones[notificaciones.length - 1]?.id : null,
     })
   } catch (error) {
-    console.error("[NOTIFICATIONS_GET_ERROR]", error)
+    logger.error("NOTIFICATIONS_GET", "Error al obtener notificaciones", { ruta: "/api/notifications" }, error)
     return new NextResponse("Internal Server Error", { status: 500 })
   }
 }
@@ -51,7 +52,7 @@ export async function PATCH() {
 
     return NextResponse.json({ message: "Todas las notificaciones marcadas como leidas." })
   } catch (error) {
-    console.error("[NOTIFICATIONS_MARK_ALL_READ_ERROR]", error)
+    logger.error("NOTIFICATIONS_MARK_ALL_READ", "Error al marcar todas como leidas", { ruta: "/api/notifications" }, error)
     return new NextResponse("Internal Server Error", { status: 500 })
   }
 }

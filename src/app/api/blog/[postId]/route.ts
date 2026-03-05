@@ -1,5 +1,6 @@
 import { requireAuth, isAuthError } from "@/lib/api-auth"
 import { db } from "@/lib/db"
+import { logger } from "@/lib/logger"
 import { NextResponse } from "next/server"
 import * as z from "zod"
 
@@ -56,7 +57,7 @@ export async function GET(
 
     return NextResponse.json(post)
   } catch (error) {
-    console.error("[BLOG_GET_ONE_ERROR]", error)
+    logger.error("BLOG_GET_ONE", "Error al obtener post del blog", { ruta: "/api/blog/[postId]" }, error)
     return new NextResponse("Internal Server Error", { status: 500 })
   }
 }
@@ -104,7 +105,7 @@ export async function PATCH(
 
     return NextResponse.json(post)
   } catch (error) {
-    console.error("[BLOG_UPDATE_ERROR]", error)
+    logger.error("BLOG_UPDATE", "Error al actualizar post del blog", { ruta: "/api/blog/[postId]" }, error)
     return new NextResponse("Internal Server Error", { status: 500 })
   }
 }
@@ -124,7 +125,7 @@ export async function DELETE(
 
     return new NextResponse(null, { status: 204 })
   } catch (error) {
-    console.error("[BLOG_DELETE_ERROR]", error)
+    logger.error("BLOG_DELETE", "Error al eliminar post del blog", { ruta: "/api/blog/[postId]" }, error)
     return new NextResponse("Internal Server Error", { status: 500 })
   }
 }

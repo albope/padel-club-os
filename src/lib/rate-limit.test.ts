@@ -1,7 +1,16 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest"
-import { crearRateLimiter, obtenerIP } from "./rate-limit"
+import { crearRateLimiter, obtenerIP, _formatearVentanaUpstash } from "./rate-limit"
 
-describe("crearRateLimiter", () => {
+// Forzar fallback local en todos los tests
+beforeEach(() => {
+  process.env.RATE_LIMIT_BACKEND = "memory"
+})
+
+afterEach(() => {
+  delete process.env.RATE_LIMIT_BACKEND
+})
+
+describe("crearRateLimiter (fallback local)", () => {
   beforeEach(() => {
     vi.useFakeTimers()
   })
@@ -10,55 +19,79 @@ describe("crearRateLimiter", () => {
     vi.useRealTimers()
   })
 
-  it("permite la primera llamada", () => {
-    const limiter = crearRateLimiter({ maxRequests: 3, windowMs: 60000 })
-    expect(limiter.verificar("1.1.1.1")).toBe(true)
+  it("permite la primera llamada", async () => {
+    const limiter = crearRateLimiter({ maxRequests: 3, windowMs: 60000, prefix: "rl:test" })
+    expect(await limiter.verificar("1.1.1.1")).toBe(true)
   })
 
-  it("permite hasta maxRequests llamadas", () => {
-    const limiter = crearRateLimiter({ maxRequests: 3, windowMs: 60000 })
-    expect(limiter.verificar("1.1.1.1")).toBe(true)
-    expect(limiter.verificar("1.1.1.1")).toBe(true)
-    expect(limiter.verificar("1.1.1.1")).toBe(true)
+  it("permite hasta maxRequests llamadas", async () => {
+    const limiter = crearRateLimiter({ maxRequests: 3, windowMs: 60000, prefix: "rl:test" })
+    expect(await limiter.verificar("1.1.1.1")).toBe(true)
+    expect(await limiter.verificar("1.1.1.1")).toBe(true)
+    expect(await limiter.verificar("1.1.1.1")).toBe(true)
   })
 
-  it("bloquea la llamada maxRequests+1", () => {
-    const limiter = crearRateLimiter({ maxRequests: 3, windowMs: 60000 })
-    limiter.verificar("1.1.1.1")
-    limiter.verificar("1.1.1.1")
-    limiter.verificar("1.1.1.1")
-    expect(limiter.verificar("1.1.1.1")).toBe(false)
+  it("bloquea la llamada maxRequests+1", async () => {
+    const limiter = crearRateLimiter({ maxRequests: 3, windowMs: 60000, prefix: "rl:test" })
+    await limiter.verificar("1.1.1.1")
+    await limiter.verificar("1.1.1.1")
+    await limiter.verificar("1.1.1.1")
+    expect(await limiter.verificar("1.1.1.1")).toBe(false)
   })
 
-  it("resetea tras expirar la ventana de tiempo", () => {
-    const limiter = crearRateLimiter({ maxRequests: 2, windowMs: 60000 })
-    limiter.verificar("1.1.1.1")
-    limiter.verificar("1.1.1.1")
-    expect(limiter.verificar("1.1.1.1")).toBe(false)
+  it("resetea tras expirar la ventana de tiempo", async () => {
+    const limiter = crearRateLimiter({ maxRequests: 2, windowMs: 60000, prefix: "rl:test" })
+    await limiter.verificar("1.1.1.1")
+    await limiter.verificar("1.1.1.1")
+    expect(await limiter.verificar("1.1.1.1")).toBe(false)
 
-    // Avanzar 60 segundos
     vi.advanceTimersByTime(60001)
 
-    expect(limiter.verificar("1.1.1.1")).toBe(true)
+    expect(await limiter.verificar("1.1.1.1")).toBe(true)
   })
 
-  it("mantiene contadores independientes por IP", () => {
-    const limiter = crearRateLimiter({ maxRequests: 1, windowMs: 60000 })
-    expect(limiter.verificar("1.1.1.1")).toBe(true)
-    expect(limiter.verificar("1.1.1.1")).toBe(false)
-    // Otra IP sigue permitida
-    expect(limiter.verificar("2.2.2.2")).toBe(true)
+  it("mantiene contadores independientes por clave", async () => {
+    const limiter = crearRateLimiter({ maxRequests: 1, windowMs: 60000, prefix: "rl:test" })
+    expect(await limiter.verificar("1.1.1.1")).toBe(true)
+    expect(await limiter.verificar("1.1.1.1")).toBe(false)
+    expect(await limiter.verificar("2.2.2.2")).toBe(true)
   })
 
-  it("no resetea dentro de la ventana activa", () => {
-    const limiter = crearRateLimiter({ maxRequests: 2, windowMs: 60000 })
-    limiter.verificar("1.1.1.1")
-    limiter.verificar("1.1.1.1")
+  it("no resetea dentro de la ventana activa", async () => {
+    const limiter = crearRateLimiter({ maxRequests: 2, windowMs: 60000, prefix: "rl:test" })
+    await limiter.verificar("1.1.1.1")
+    await limiter.verificar("1.1.1.1")
 
-    // Avanzar 30 segundos (mitad de la ventana)
     vi.advanceTimersByTime(30000)
 
-    expect(limiter.verificar("1.1.1.1")).toBe(false)
+    expect(await limiter.verificar("1.1.1.1")).toBe(false)
+  })
+
+  it("verificar siempre retorna Promise", () => {
+    const limiter = crearRateLimiter({ maxRequests: 1, windowMs: 60000, prefix: "rl:test" })
+    const resultado = limiter.verificar("1.1.1.1")
+    expect(resultado).toBeInstanceOf(Promise)
+  })
+})
+
+describe("formatearVentanaUpstash", () => {
+  it("convierte horas", () => {
+    expect(_formatearVentanaUpstash(3600000)).toBe("1 h")
+    expect(_formatearVentanaUpstash(7200000)).toBe("2 h")
+  })
+
+  it("convierte minutos", () => {
+    expect(_formatearVentanaUpstash(60000)).toBe("1 m")
+    expect(_formatearVentanaUpstash(900000)).toBe("15 m")
+  })
+
+  it("convierte segundos", () => {
+    expect(_formatearVentanaUpstash(1000)).toBe("1 s")
+    expect(_formatearVentanaUpstash(5000)).toBe("5 s")
+  })
+
+  it("convierte milisegundos cuando no encaja en s/m/h", () => {
+    expect(_formatearVentanaUpstash(1500)).toBe("1500 ms")
   })
 })
 

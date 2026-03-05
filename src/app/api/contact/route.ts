@@ -1,5 +1,6 @@
 import { db } from "@/lib/db"
 import { enviarEmailContacto } from "@/lib/email"
+import { logger } from "@/lib/logger"
 import { crearRateLimiter, obtenerIP } from "@/lib/rate-limit"
 import { NextResponse } from "next/server"
 import * as z from "zod"
@@ -20,13 +21,13 @@ const ContactoSchema = z.object({
   mensaje: z.string().min(10, "El mensaje debe tener al menos 10 caracteres.").max(5000),
 })
 
-const limiter = crearRateLimiter({ maxRequests: 3, windowMs: 15 * 60 * 1000 })
+const limiter = crearRateLimiter({ maxRequests: 3, windowMs: 15 * 60 * 1000, prefix: "rl:contact" })
 
 // POST: Enviar formulario de contacto (publico, sin auth)
 export async function POST(req: Request) {
   try {
     const ip = obtenerIP(req)
-    if (!limiter.verificar(ip)) {
+    if (!(await limiter.verificar(ip))) {
       return NextResponse.json(
         { error: "Demasiadas solicitudes. Intentalo de nuevo en unos minutos." },
         { status: 429 }
@@ -54,7 +55,7 @@ export async function POST(req: Request) {
     try {
       await enviarEmailContacto({ nombre, email, asunto, mensaje })
     } catch (emailError) {
-      console.error("[CONTACT_EMAIL_ERROR]", emailError)
+      logger.error("CONTACT_EMAIL", "Error al enviar email de contacto", { ruta: "/api/contact" }, emailError)
     }
 
     return NextResponse.json(
@@ -62,7 +63,7 @@ export async function POST(req: Request) {
       { status: 201 }
     )
   } catch (error) {
-    console.error("[CONTACT_SUBMIT_ERROR]", error)
+    logger.error("CONTACT_SUBMIT", "Error al procesar formulario de contacto", { ruta: "/api/contact" }, error)
     return new NextResponse("Internal Server Error", { status: 500 })
   }
 }

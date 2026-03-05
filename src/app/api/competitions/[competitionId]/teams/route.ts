@@ -2,6 +2,7 @@ import { db } from "@/lib/db";
 import { requireAuth, isAuthError } from "@/lib/api-auth";
 import { NextResponse } from "next/server";
 import { validarBody } from "@/lib/validation";
+import { logger } from "@/lib/logger";
 import * as z from "zod";
 
 const TeamCreateSchema = z.object({
@@ -39,7 +40,7 @@ export async function POST(
     return NextResponse.json(newTeam, { status: 201 });
 
   } catch (error) {
-    console.error("[ADD_TEAM_ERROR]", error);
+    logger.error("TEAM_CREATE", "Error al añadir equipo a competicion", { ruta: "/api/competitions/[competitionId]/teams" }, error);
     if ((error as any).code === 'P2002' || (error as any).code === 'P2003') {
       return NextResponse.json(
         { error: "Error de validación de base de datos." },

@@ -1,5 +1,6 @@
 import { requireAuth, isAuthError } from "@/lib/api-auth"
 import { db } from "@/lib/db"
+import { logger } from "@/lib/logger"
 import { NextResponse } from "next/server"
 import * as z from "zod"
 
@@ -40,7 +41,7 @@ export async function GET() {
 
     return NextResponse.json(posts)
   } catch (error) {
-    console.error("[BLOG_GET_ERROR]", error)
+    logger.error("BLOG_GET", "Error al listar posts del blog", { ruta: "/api/blog" }, error)
     return new NextResponse("Internal Server Error", { status: 500 })
   }
 }
@@ -98,7 +99,7 @@ export async function POST(req: Request) {
 
     return NextResponse.json(post, { status: 201 })
   } catch (error) {
-    console.error("[BLOG_CREATE_ERROR]", error)
+    logger.error("BLOG_CREATE", "Error al crear post del blog", { ruta: "/api/blog" }, error)
     return new NextResponse("Internal Server Error", { status: 500 })
   }
 }

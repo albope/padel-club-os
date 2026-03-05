@@ -2,6 +2,7 @@ import { db } from "@/lib/db";
 import { requireAuth, isAuthError } from "@/lib/api-auth";
 import { NextResponse } from "next/server";
 import { eloANivel } from "@/lib/elo";
+import { logger } from "@/lib/logger";
 
 // GET: Stats y posicion del jugador autenticado
 export async function GET() {
@@ -63,7 +64,7 @@ export async function GET() {
       totalJugadores,
     });
   } catch (error) {
-    console.error("[GET_PLAYER_STATS_ERROR]", error);
+    logger.error("GET_PLAYER_STATS", "Error al obtener estadisticas del jugador", { ruta: "/api/player/stats" }, error);
     return new NextResponse("Internal Server Error", { status: 500 });
   }
 }

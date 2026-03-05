@@ -8,6 +8,9 @@ import { crearTokenRecuperacion } from "./tokens";
 import { enviarEmailActivacionCuenta } from "./email";
 import { logger } from "./logger";
 
+// TTL para refresco de suscripcion en JWT (5 minutos)
+const SUBSCRIPTION_REFRESH_TTL_MS = 5 * 60 * 1000;
+
 // Rate limiter por email para auto-envio de activacion (max 1 email cada 5 minutos por usuario)
 const activacionEmailTimestamps = new Map<string, number>();
 function puedeEnviarActivacion(email: string): boolean {
@@ -115,8 +118,12 @@ export const authOptions: NextAuthOptions = {
           token.role = dbUser.role;
         }
       }
-      // Refrescar estado de suscripcion periodicamente (cada request de JWT)
-      if (token.clubId) {
+      // Refrescar estado de suscripcion con TTL (cada 5 min)
+      const ahora = Date.now();
+      const necesitaRefrescar = !token.subscriptionRefreshedAt
+        || (ahora - token.subscriptionRefreshedAt) >= SUBSCRIPTION_REFRESH_TTL_MS;
+
+      if (token.clubId && necesitaRefrescar) {
         const club = await db.club.findUnique({
           where: { id: token.clubId },
           select: { subscriptionStatus: true, trialEndsAt: true },
@@ -125,6 +132,7 @@ export const authOptions: NextAuthOptions = {
           token.subscriptionStatus = club.subscriptionStatus;
           token.trialEndsAt = club.trialEndsAt?.toISOString() ?? null;
         }
+        token.subscriptionRefreshedAt = ahora;
       }
       return token;
     },

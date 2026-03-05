@@ -1,6 +1,7 @@
 import { requireAuth, isAuthError } from "@/lib/api-auth"
 import { db } from "@/lib/db"
 import { generarCSV, formatearFechaCSV } from "@/lib/csv"
+import { logger } from "@/lib/logger"
 
 export async function GET() {
   try {
@@ -44,7 +45,7 @@ export async function GET() {
       },
     })
   } catch (error) {
-    console.error("[EXPORT_USERS_ERROR]", error)
+    logger.error("EXPORT_USERS", "Error al exportar socios", { ruta: "/api/users/export" }, error)
     return new Response("Error interno del servidor", { status: 500 })
   }
 }

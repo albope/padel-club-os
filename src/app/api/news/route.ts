@@ -3,6 +3,7 @@ import { db } from "@/lib/db"
 import { NextResponse } from "next/server"
 import * as z from "zod"
 import { notificarClub } from "@/lib/notifications"
+import { logger } from "@/lib/logger"
 
 const NewsCreateSchema = z.object({
   title: z.string().min(3, "El titulo debe tener al menos 3 caracteres.").max(200, "El titulo no puede superar 200 caracteres."),
@@ -24,7 +25,7 @@ export async function GET() {
 
     return NextResponse.json(news)
   } catch (error) {
-    console.error("[NEWS_GET_ERROR]", error)
+    logger.error("NEWS_GET", "Error al listar noticias", { ruta: "/api/news" }, error)
     return new NextResponse("Internal Server Error", { status: 500 })
   }
 }
@@ -71,7 +72,7 @@ export async function POST(req: Request) {
 
     return NextResponse.json(noticia, { status: 201 })
   } catch (error) {
-    console.error("[NEWS_CREATE_ERROR]", error)
+    logger.error("NEWS_CREATE", "Error al crear noticia", { ruta: "/api/news" }, error)
     return new NextResponse("Internal Server Error", { status: 500 })
   }
 }

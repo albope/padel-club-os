@@ -5,7 +5,6 @@ import { MobileNavBar } from '@/components/layout/MobileNavBar';
 import { SkipToContent } from '@/components/layout/SkipToContent';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
-import { db } from '@/lib/db';
 import SubscriptionBanner from '@/components/facturacion/SubscriptionBanner';
 import { PushNotificationPrompt } from '@/components/layout/PushNotificationPrompt';
 
@@ -15,17 +14,8 @@ interface DashboardLayoutProps {
 
 const DashboardLayout = async ({ children }: DashboardLayoutProps) => {
   const session = await getServerSession(authOptions);
-  let subscriptionStatus: string | null = null;
-  let trialEndsAt: string | null = null;
-
-  if (session?.user?.clubId) {
-    const club = await db.club.findUnique({
-      where: { id: session.user.clubId },
-      select: { subscriptionStatus: true, trialEndsAt: true },
-    });
-    subscriptionStatus = club?.subscriptionStatus ?? null;
-    trialEndsAt = club?.trialEndsAt?.toISOString() ?? null;
-  }
+  const subscriptionStatus = session?.user?.subscriptionStatus ?? null;
+  const trialEndsAt = session?.user?.trialEndsAt ?? null;
 
   return (
     <div className="flex h-screen bg-background text-foreground">

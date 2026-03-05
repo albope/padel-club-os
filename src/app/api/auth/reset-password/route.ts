@@ -1,6 +1,7 @@
 import { db } from "@/lib/db"
 import { verificarTokenRecuperacion, eliminarTokenRecuperacion } from "@/lib/tokens"
 import { crearRateLimiter, obtenerIP } from "@/lib/rate-limit"
+import { logger } from "@/lib/logger"
 import { hash } from "bcrypt"
 import { NextResponse } from "next/server"
 import * as z from "zod"
@@ -10,12 +11,12 @@ const ResetPasswordSchema = z.object({
   password: z.string().min(8, "La contrasena debe tener al menos 8 caracteres.").max(128),
 })
 
-const limiter = crearRateLimiter({ maxRequests: 5, windowMs: 15 * 60 * 1000 })
+const limiter = crearRateLimiter({ maxRequests: 5, windowMs: 15 * 60 * 1000, prefix: "rl:reset-pw" })
 
 export async function POST(req: Request) {
   try {
     const ip = obtenerIP(req)
-    if (!limiter.verificar(ip)) {
+    if (!(await limiter.verificar(ip))) {
       return NextResponse.json(
         { error: "Demasiadas solicitudes. Intentalo de nuevo en unos minutos." },
         { status: 429 }
@@ -71,7 +72,7 @@ export async function POST(req: Request) {
       { status: 200 }
     )
   } catch (error) {
-    console.error("[RESET_PASSWORD_ERROR]", error)
+    logger.error("RESET_PASSWORD", "Error al restablecer contraseña", { ruta: "/api/auth/reset-password" }, error)
     return NextResponse.json(
       { error: "Error interno del servidor." },
       { status: 500 }

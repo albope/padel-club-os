@@ -1,5 +1,6 @@
 import { db } from "@/lib/db"
 import { NextResponse } from "next/server"
+import { logger } from "@/lib/logger"
 
 // GET: Obtener precios de una pista para un dia concreto (API publica)
 export async function GET(
@@ -59,7 +60,7 @@ export async function GET(
       headers: { 'Cache-Control': 'public, s-maxage=43200, stale-while-revalidate=3600' },
     })
   } catch (error) {
-    console.error("[GET_CLUB_PRICING_ERROR]", error)
+    logger.error("CLUB_PRICING", "Error al obtener precios del club", { ruta: "/api/club/[slug]/pricing" }, error)
     return new NextResponse("Internal Server Error", { status: 500 })
   }
 }

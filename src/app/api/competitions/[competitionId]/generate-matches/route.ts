@@ -2,6 +2,7 @@ import { db } from "@/lib/db";
 import { requireAuth, isAuthError } from "@/lib/api-auth";
 import { NextResponse } from "next/server";
 import { CompetitionFormat } from "@prisma/client";
+import { logger } from "@/lib/logger";
 
 function getRoundName(teamsInRound: number): string {
   switch (teamsInRound) {
@@ -162,7 +163,7 @@ export async function POST(
 
     return new NextResponse("Formato de competición no soportado.", { status: 400 });
   } catch (error) {
-    console.error("[GENERATE_MATCHES_ERROR]", error);
+    logger.error("MATCHES_GENERATE", "Error al generar calendario de partidos", { ruta: "/api/competitions/[competitionId]/generate-matches" }, error);
     return new NextResponse("Internal Server Error", { status: 500 });
   }
 }

@@ -1,6 +1,7 @@
 import { requireAuth, isAuthError } from "@/lib/api-auth"
 import { db } from "@/lib/db"
 import { NextResponse } from "next/server"
+import { logger } from "@/lib/logger"
 
 // PATCH: Marcar una notificacion como leida
 export async function PATCH(
@@ -29,7 +30,7 @@ export async function PATCH(
 
     return NextResponse.json({ message: "Notificacion marcada como leida." })
   } catch (error) {
-    console.error("[NOTIFICATION_MARK_READ_ERROR]", error)
+    logger.error("NOTIFICATION_MARK_READ", "Error al marcar notificacion como leida", { ruta: "/api/notifications/[notificationId]" }, error)
     return new NextResponse("Internal Server Error", { status: 500 })
   }
 }
@@ -58,7 +59,7 @@ export async function DELETE(
 
     return NextResponse.json({ message: "Notificacion eliminada." })
   } catch (error) {
-    console.error("[NOTIFICATION_DELETE_ERROR]", error)
+    logger.error("NOTIFICATION_DELETE", "Error al eliminar notificacion", { ruta: "/api/notifications/[notificationId]" }, error)
     return new NextResponse("Internal Server Error", { status: 500 })
   }
 }

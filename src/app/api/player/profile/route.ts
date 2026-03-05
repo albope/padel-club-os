@@ -2,6 +2,7 @@ import { db } from "@/lib/db";
 import { requireAuth, isAuthError } from "@/lib/api-auth";
 import { NextResponse } from "next/server";
 import { validarBody } from "@/lib/validation";
+import { logger } from "@/lib/logger";
 import * as z from "zod";
 
 const ProfileUpdateSchema = z.object({
@@ -33,7 +34,7 @@ export async function GET() {
 
     return NextResponse.json(user);
   } catch (error) {
-    console.error("[GET_PLAYER_PROFILE_ERROR]", error);
+    logger.error("GET_PLAYER_PROFILE", "Error al obtener perfil del jugador", { ruta: "/api/player/profile" }, error);
     return new NextResponse("Internal Server Error", { status: 500 });
   }
 }
@@ -60,7 +61,7 @@ export async function PATCH(req: Request) {
 
     return NextResponse.json(updatedUser);
   } catch (error) {
-    console.error("[UPDATE_PLAYER_PROFILE_ERROR]", error);
+    logger.error("UPDATE_PLAYER_PROFILE", "Error al actualizar perfil del jugador", { ruta: "/api/player/profile" }, error);
     return new NextResponse("Internal Server Error", { status: 500 });
   }
 }

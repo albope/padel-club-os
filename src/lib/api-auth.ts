@@ -82,6 +82,15 @@ export async function requireAuth(
     }
   }
 
+  // Contexto de usuario en Sentry para todas las API routes autenticadas
+  import("@sentry/nextjs")
+    .then((Sentry) => {
+      Sentry.setUser({ id: session.user.id })
+      Sentry.setTag("clubId", session.user.clubId)
+      Sentry.setTag("role", session.user.role as string)
+    })
+    .catch(() => {})
+
   return {
     session: {
       user: {

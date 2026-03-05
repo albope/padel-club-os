@@ -1,5 +1,6 @@
 import { db } from "@/lib/db";
 import { NextResponse } from "next/server";
+import { logger } from "@/lib/logger";
 
 // GET: Obtener datos publicos de un club por slug (sin auth)
 export async function GET(
@@ -41,7 +42,7 @@ export async function GET(
       headers: { 'Cache-Control': 'public, s-maxage=3600, stale-while-revalidate=600' },
     });
   } catch (error) {
-    console.error("[GET_CLUB_BY_SLUG_ERROR]", error);
+    logger.error("CLUB_SLUG_GET", "Error al obtener club por slug", { ruta: "/api/club/[slug]" }, error);
     return new NextResponse("Internal Server Error", { status: 500 });
   }
 }

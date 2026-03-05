@@ -1,6 +1,7 @@
 import { requireAuth, isAuthError } from "@/lib/api-auth"
 import { db } from "@/lib/db"
 import { NextResponse } from "next/server"
+import { logger } from "@/lib/logger"
 import * as z from "zod"
 
 const SubscribeSchema = z.object({
@@ -47,7 +48,7 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ message: "Suscripcion guardada." }, { status: 201 })
   } catch (error) {
-    console.error("[PUSH_SUBSCRIBE_ERROR]", error)
+    logger.error("PUSH_SUBSCRIBE", "Error al guardar suscripcion push", { ruta: "/api/notifications/subscribe" }, error)
     return new NextResponse("Internal Server Error", { status: 500 })
   }
 }
@@ -71,7 +72,7 @@ export async function DELETE(req: Request) {
 
     return NextResponse.json({ message: "Suscripcion eliminada." })
   } catch (error) {
-    console.error("[PUSH_UNSUBSCRIBE_ERROR]", error)
+    logger.error("PUSH_UNSUBSCRIBE", "Error al eliminar suscripcion push", { ruta: "/api/notifications/subscribe" }, error)
     return new NextResponse("Internal Server Error", { status: 500 })
   }
 }

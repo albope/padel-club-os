@@ -4,6 +4,7 @@ import { NextResponse } from "next/server";
 import { OpenMatchStatus } from "@prisma/client";
 import { crearNotificacion } from "@/lib/notifications";
 import { validarBody } from "@/lib/validation";
+import { logger } from "@/lib/logger";
 import * as z from "zod";
 
 const JoinOpenMatchSchema = z.object({
@@ -33,7 +34,7 @@ export async function GET() {
 
     return NextResponse.json(openMatches);
   } catch (error) {
-    console.error("[GET_PLAYER_OPEN_MATCHES_ERROR]", error);
+    logger.error("GET_PLAYER_OPEN_MATCHES", "Error al obtener partidas abiertas del jugador", { ruta: "/api/player/open-matches" }, error);
     return new NextResponse("Internal Server Error", { status: 500 });
   }
 }
@@ -139,7 +140,7 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ message: "Te has unido a la partida." });
   } catch (error) {
-    console.error("[JOIN_OPEN_MATCH_ERROR]", error);
+    logger.error("JOIN_OPEN_MATCH", "Error al unirse a partida abierta", { ruta: "/api/player/open-matches" }, error);
     return new NextResponse("Internal Server Error", { status: 500 });
   }
 }
@@ -187,7 +188,7 @@ export async function DELETE(req: Request) {
 
     return NextResponse.json({ message: "Has salido de la partida." });
   } catch (error) {
-    console.error("[LEAVE_OPEN_MATCH_ERROR]", error);
+    logger.error("LEAVE_OPEN_MATCH", "Error al salir de partida abierta", { ruta: "/api/player/open-matches" }, error);
     return new NextResponse("Internal Server Error", { status: 500 });
   }
 }

@@ -8,8 +8,16 @@ if (process.env.NEXT_PUBLIC_SENTRY_DSN) {
     tracesSampleRate: 0.1,
     enabled: process.env.NODE_ENV === "production",
 
-    // Replay desactivado por defecto (consume recursos)
+    // Replay: 0% sesiones normales, 50% sesiones con error (util para debug)
     replaysSessionSampleRate: 0,
-    replaysOnErrorSampleRate: 0.1,
+    replaysOnErrorSampleRate: 0.5,
+
+    ignoreErrors: [
+      "NEXT_NOT_FOUND",
+      "NEXT_REDIRECT",
+      "ResizeObserver loop",
+      "AbortError",
+      "ChunkLoadError",
+    ],
   })
 }

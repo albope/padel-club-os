@@ -4,6 +4,7 @@ import { NextResponse } from "next/server";
 import { calcularPrecioReserva } from "@/lib/pricing";
 import { notificarClub } from "@/lib/notifications";
 import { validarBody } from "@/lib/validation";
+import { logger } from "@/lib/logger";
 import * as z from "zod";
 
 const PlayerOpenMatchCreateSchema = z.object({
@@ -154,7 +155,7 @@ export async function POST(req: Request) {
 
     return NextResponse.json(partida, { status: 201 });
   } catch (error) {
-    console.error("[CREATE_PLAYER_OPEN_MATCH_ERROR]", error);
+    logger.error("CREATE_PLAYER_OPEN_MATCH", "Error al crear partida abierta", { ruta: "/api/player/open-matches/create" }, error);
     return new NextResponse("Internal Server Error", { status: 500 });
   }
 }

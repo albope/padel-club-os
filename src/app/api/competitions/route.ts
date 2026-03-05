@@ -3,6 +3,7 @@ import { requireAuth, isAuthError } from "@/lib/api-auth";
 import { NextResponse } from "next/server";
 import { CompetitionFormat } from "@prisma/client";
 import { validarBody } from "@/lib/validation";
+import { logger } from "@/lib/logger";
 import * as z from "zod";
 
 const CompetitionCreateSchema = z.object({
@@ -31,7 +32,7 @@ export async function GET() {
 
     return NextResponse.json(competitions);
   } catch (error) {
-    console.error("[GET_COMPETITIONS_ERROR]", error);
+    logger.error("COMPETITIONS_GET", "Error al obtener competiciones", { ruta: "/api/competitions" }, error);
     return new NextResponse("Internal Server Error", { status: 500 });
   }
 }
@@ -60,7 +61,7 @@ export async function POST(req: Request) {
 
     return NextResponse.json(competition, { status: 201 });
   } catch (error) {
-    console.error("[CREATE_COMPETITION_ERROR]", error);
+    logger.error("COMPETITION_CREATE", "Error al crear competicion", { ruta: "/api/competitions" }, error);
     return new NextResponse("Internal Server Error", { status: 500 });
   }
 }

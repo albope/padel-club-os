@@ -2,6 +2,7 @@ import { db } from "@/lib/db";
 import { requireAuth, isAuthError } from "@/lib/api-auth";
 import { NextResponse } from "next/server";
 import { validarBody } from "@/lib/validation";
+import { logger } from "@/lib/logger";
 import * as z from "zod";
 
 const UserUpdateSchema = z.object({
@@ -49,7 +50,7 @@ export async function PATCH(
 
     return NextResponse.json(updatedUser);
   } catch (error) {
-    console.error("[UPDATE_USER_ERROR]", error);
+    logger.error("UPDATE_USER", "Error al actualizar socio", { ruta: "/api/users/[userId]" }, error);
     return new NextResponse("Internal Server Error", { status: 500 });
   }
 }
@@ -77,7 +78,7 @@ export async function DELETE(
 
     return new NextResponse(null, { status: 204 });
   } catch (error) {
-    console.error("[DELETE_USER_ERROR]", error);
+    logger.error("DELETE_USER", "Error al eliminar socio", { ruta: "/api/users/[userId]" }, error);
     return new NextResponse("Internal Server Error", { status: 500 });
   }
 }

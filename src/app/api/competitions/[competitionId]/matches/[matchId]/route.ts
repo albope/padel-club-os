@@ -5,6 +5,7 @@ import { CompetitionFormat, Prisma } from "@prisma/client";
 import { calculateMatchRatings, eloANivel } from "@/lib/elo";
 import { crearNotificacion } from "@/lib/notifications";
 import { validarBody } from "@/lib/validation";
+import { logger } from "@/lib/logger";
 import * as z from "zod";
 
 const MatchResultSchema = z.object({
@@ -367,7 +368,7 @@ export async function PATCH(
 
     return NextResponse.json({ message: "Resultado actualizado con éxito." });
   } catch (error) {
-    console.error("[MATCH_PATCH_ERROR]", error);
+    logger.error("MATCH_RESULT_UPDATE", "Error al actualizar resultado de partido", { ruta: "/api/competitions/[competitionId]/matches/[matchId]" }, error);
     return new NextResponse("Internal Server Error", { status: 500 });
   }
 }

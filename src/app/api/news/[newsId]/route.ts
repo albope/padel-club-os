@@ -1,6 +1,7 @@
 import { requireAuth, isAuthError } from "@/lib/api-auth"
 import { db } from "@/lib/db"
 import { NextResponse } from "next/server"
+import { logger } from "@/lib/logger"
 import * as z from "zod"
 
 const NewsUpdateSchema = z.object({
@@ -32,7 +33,7 @@ export async function GET(
 
     return NextResponse.json(noticia)
   } catch (error) {
-    console.error("[NEWS_GET_ONE_ERROR]", error)
+    logger.error("NEWS_GET_ONE", "Error al obtener noticia", { ruta: "/api/news/[newsId]" }, error)
     return new NextResponse("Internal Server Error", { status: 500 })
   }
 }
@@ -67,7 +68,7 @@ export async function PATCH(
 
     return NextResponse.json(noticia)
   } catch (error) {
-    console.error("[NEWS_UPDATE_ERROR]", error)
+    logger.error("NEWS_UPDATE", "Error al actualizar noticia", { ruta: "/api/news/[newsId]" }, error)
     return new NextResponse("Internal Server Error", { status: 500 })
   }
 }
@@ -87,7 +88,7 @@ export async function DELETE(
 
     return new NextResponse(null, { status: 204 })
   } catch (error) {
-    console.error("[NEWS_DELETE_ERROR]", error)
+    logger.error("NEWS_DELETE", "Error al eliminar noticia", { ruta: "/api/news/[newsId]" }, error)
     return new NextResponse("Internal Server Error", { status: 500 })
   }
 }

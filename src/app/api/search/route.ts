@@ -1,5 +1,6 @@
 import { db } from "@/lib/db"
 import { requireAuth, isAuthError } from "@/lib/api-auth"
+import { logger } from "@/lib/logger"
 import { NextResponse } from "next/server"
 
 export async function GET(req: Request) {
@@ -88,7 +89,7 @@ export async function GET(req: Request) {
 
     return NextResponse.json({ resultados })
   } catch (error) {
-    console.error("[SEARCH_ERROR]", error)
+    logger.error("SEARCH", "Error en busqueda global", { ruta: "/api/search" }, error)
     return new NextResponse("Internal Server Error", { status: 500 })
   }
 }

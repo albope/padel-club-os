@@ -2,6 +2,7 @@ import { db } from "@/lib/db";
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
+import { logger } from "@/lib/logger";
 
 // GET: Obtener disponibilidad de todas las pistas de un club para una fecha
 // Publica (sin auth) - devuelve bloques ocupados anonimizados
@@ -130,7 +131,7 @@ export async function GET(
       headers: { 'Cache-Control': cacheControl },
     });
   } catch (error) {
-    console.error("[GET_CLUB_AVAILABILITY_ERROR]", error);
+    logger.error("CLUB_AVAILABILITY", "Error al obtener disponibilidad del club", { ruta: "/api/club/[slug]/availability" }, error);
     return new NextResponse("Internal Server Error", { status: 500 });
   }
 }

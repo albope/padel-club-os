@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { requireAuth, isAuthError } from "@/lib/api-auth"
 import { stripe, PLAN_PRICES, PlanKey } from "@/lib/stripe"
 import { db } from "@/lib/db"
+import { logger } from "@/lib/logger"
 import { validarBody } from "@/lib/validation"
 import * as z from "zod"
 
@@ -69,7 +70,7 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ url: session.url })
   } catch (error) {
-    console.error("[STRIPE_CHECKOUT_ERROR]", error)
+    logger.error("STRIPE_CHECKOUT", "Error al crear sesion de pago", { ruta: "/api/stripe/checkout" }, error)
     return NextResponse.json(
       { error: "Error al crear sesion de pago" },
       { status: 500 }

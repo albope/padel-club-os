@@ -3,6 +3,7 @@ import { requireAuth, isAuthError } from "@/lib/api-auth";
 import { NextResponse } from "next/server";
 import { validarBody } from "@/lib/validation";
 import { canUseOnlinePayments, getSubscriptionInfo } from "@/lib/subscription";
+import { logger } from "@/lib/logger";
 import * as z from "zod";
 
 const urlOpcional = z.string().url("URL no valida.").max(2000).optional().or(z.literal("")).or(z.literal(null))
@@ -39,7 +40,7 @@ export async function GET() {
 
     return NextResponse.json(club);
   } catch (error) {
-    console.error("[GET_CLUB_ERROR]", error);
+    logger.error("CLUB_GET", "Error al obtener datos del club", { ruta: "/api/club" }, error);
     return new NextResponse("Internal Server Error", { status: 500 });
   }
 }
@@ -101,7 +102,7 @@ export async function PATCH(req: Request) {
 
     return NextResponse.json(updatedClub);
   } catch (error) {
-    console.error("[UPDATE_CLUB_SETTINGS_ERROR]", error);
+    logger.error("CLUB_SETTINGS_UPDATE", "Error al actualizar configuracion del club", { ruta: "/api/club" }, error);
     return new NextResponse("Internal Server Error", { status: 500 });
   }
 }

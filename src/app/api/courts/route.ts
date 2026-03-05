@@ -1,5 +1,6 @@
 import { db } from "@/lib/db";
 import { requireAuth, isAuthError } from "@/lib/api-auth";
+import { logger } from "@/lib/logger";
 import { NextResponse } from "next/server";
 import { canCreateCourt } from "@/lib/subscription";
 import { validarBody } from "@/lib/validation";
@@ -23,7 +24,7 @@ export async function GET() {
 
     return NextResponse.json(courts);
   } catch (error) {
-    console.error("[GET_COURTS_ERROR]", error);
+    logger.error("COURTS_GET", "Error al listar pistas del club", { ruta: "/api/courts" }, error);
     return new NextResponse("Internal Server Error", { status: 500 });
   }
 }
@@ -58,7 +59,7 @@ export async function POST(req: Request) {
 
     return NextResponse.json(court, { status: 201 });
   } catch (error) {
-    console.error("[CREATE_COURT_ERROR]", error);
+    logger.error("COURT_CREATE", "Error al crear pista", { ruta: "/api/courts" }, error);
     return new NextResponse("Internal Server Error", { status: 500 });
   }
 }

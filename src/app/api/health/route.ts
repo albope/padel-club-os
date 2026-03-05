@@ -1,4 +1,5 @@
 import { db } from "@/lib/db"
+import { logger } from "@/lib/logger"
 import { NextResponse } from "next/server"
 
 export const dynamic = "force-dynamic"
@@ -17,7 +18,7 @@ export async function GET() {
       db: { status: "connected", responseMs: dbMs },
     })
   } catch (error) {
-    console.error("[HEALTH_CHECK_ERROR]", error)
+    logger.error("HEALTH", "Error en health check de base de datos", { ruta: "/api/health" }, error)
 
     return NextResponse.json(
       {

@@ -1,5 +1,6 @@
 import { requireAuth, isAuthError } from "@/lib/api-auth"
 import { db } from "@/lib/db"
+import { logger } from "@/lib/logger"
 import { generarCSV, formatearFechaCSV, formatearHoraCSV } from "@/lib/csv"
 
 export async function GET(request: Request) {
@@ -87,7 +88,7 @@ export async function GET(request: Request) {
       },
     })
   } catch (error) {
-    console.error("[EXPORT_PAYMENTS_ERROR]", error)
+    logger.error("EXPORT_PAYMENTS", "Error al exportar pagos CSV", { ruta: "/api/payments/export" }, error)
     return new Response("Error interno del servidor", { status: 500 })
   }
 }

@@ -1,4 +1,5 @@
 import { db } from "@/lib/db"
+import { logger } from "@/lib/logger"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { NextResponse } from "next/server"
@@ -39,7 +40,7 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ ok: true })
   } catch (error) {
-    console.error("[CONSENT_LOG_ERROR]", error)
+    logger.error("CONSENT_LOG", "Error al registrar consentimiento de cookies", { ruta: "/api/consent" }, error)
     return NextResponse.json({ error: "Error interno" }, { status: 500 })
   }
 }

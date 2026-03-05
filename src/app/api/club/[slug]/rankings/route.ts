@@ -1,6 +1,7 @@
 import { db } from "@/lib/db";
 import { NextResponse } from "next/server";
 import { eloANivel } from "@/lib/elo";
+import { logger } from "@/lib/logger";
 
 // GET: Rankings publicos del club (sin auth)
 export async function GET(
@@ -54,7 +55,7 @@ export async function GET(
       headers: { 'Cache-Control': 'public, s-maxage=1800, stale-while-revalidate=600' },
     });
   } catch (error) {
-    console.error("[GET_CLUB_RANKINGS_ERROR]", error);
+    logger.error("CLUB_RANKINGS", "Error al obtener rankings del club", { ruta: "/api/club/[slug]/rankings" }, error);
     return new NextResponse("Internal Server Error", { status: 500 });
   }
 }

@@ -1,6 +1,7 @@
 import { handleUpload, type HandleUploadBody } from "@vercel/blob/client"
 import { NextRequest, NextResponse } from "next/server"
 import { requireAuth, isAuthError } from "@/lib/api-auth"
+import { logger } from "@/lib/logger"
 
 export async function POST(request: NextRequest): Promise<NextResponse> {
   const auth = await requireAuth("settings:update")
@@ -28,7 +29,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
     return NextResponse.json(jsonResponse)
   } catch (error) {
-    console.error("[UPLOAD_ERROR]", error)
+    logger.error("UPLOAD", "Error al subir imagen", { ruta: "/api/upload" }, error)
     return NextResponse.json({ error: "Error al subir imagen" }, { status: 500 })
   }
 }

@@ -418,13 +418,25 @@ model CourtPricing {
 
 // --- FORMULARIO DE CONTACTO (plataforma) ---
 model ContactSubmission {
-  id        String   @id @default(cuid())
-  nombre    String
-  email     String
-  asunto    String
-  mensaje   String   @db.Text
-  leido     Boolean  @default(false)
-  createdAt DateTime @default(now())
+  id             String   @id @default(cuid())
+  nombre         String
+  email          String
+  asunto         String
+  mensaje        String   @db.Text
+  leido          Boolean  @default(false)
+  // --- Campos demo funnel ---
+  tipo           String?  @default("general") // "general" | "demo"
+  clubNombre     String?
+  numeroPistas   Int?
+  softwareActual String?
+  urgencia       String?
+  paginaOrigen   String?
+  utmSource      String?
+  utmMedium      String?
+  utmCampaign    String?
+  createdAt      DateTime @default(now())
+
+  @@index([tipo])
 }
 
 // --- BLOG DE LA PLATAFORMA ---

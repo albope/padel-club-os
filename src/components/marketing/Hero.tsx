@@ -56,7 +56,7 @@ export default async function Hero() {
             className="landing-cta-pulse gap-2 bg-white text-base font-semibold text-slate-900 hover:bg-white/90"
             asChild
           >
-            <Link href="/register">
+            <Link href="/demo?source=hero">
               {t('ctaPrimary')}
               <ArrowRight className="h-4 w-4" />
             </Link>

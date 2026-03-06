@@ -7,6 +7,7 @@ const SUBSCRIPTION_EXEMPT_PATHS = [
   "/dashboard/facturacion",
   "/dashboard/ajustes",
   "/dashboard/configuracion-inicial",
+  "/dashboard/migracion",
 ]
 
 /**
@@ -73,6 +74,7 @@ export default withAuth(
           pathname.startsWith("/api/cron") ||
           pathname.startsWith("/api/consent") ||
           pathname.startsWith("/api/contact") ||
+          pathname.startsWith("/api/demo") ||
           pathname.startsWith("/api/health") ||
           pathname.startsWith("/api/blog/public") ||
           pathname.startsWith("/api/club/") ||

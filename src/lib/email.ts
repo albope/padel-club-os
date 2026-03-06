@@ -915,5 +915,89 @@ export async function enviarEmailActivacionCuenta({
   })
 }
 
+// --- Email interno de solicitud de demo ---
+
+interface EnviarEmailSolicitudDemoParams {
+  nombre: string
+  email: string
+  telefono?: string
+  clubNombre: string
+  numeroPistas: number
+  softwareActual: string
+  urgencia: string
+  mensaje?: string
+  source?: string
+  paginaOrigen?: string
+  utmSource?: string
+  utmMedium?: string
+  utmCampaign?: string
+}
+
+export async function enviarEmailSolicitudDemo({
+  nombre,
+  email,
+  telefono,
+  clubNombre,
+  numeroPistas,
+  softwareActual,
+  urgencia,
+  mensaje,
+  source,
+  paginaOrigen,
+  utmSource,
+  utmMedium,
+  utmCampaign,
+}: EnviarEmailSolicitudDemoParams) {
+  const resend = getResend()
+  const destinatario = process.env.CONTACT_EMAIL || "contacto@padelclubos.com"
+
+  const detallesLead = [
+    { etiqueta: "Nombre", valor: escaparHtml(nombre) },
+    { etiqueta: "Email", valor: escaparHtml(email) },
+    ...(telefono ? [{ etiqueta: "Telefono", valor: escaparHtml(telefono) }] : []),
+    { etiqueta: "Club", valor: escaparHtml(clubNombre) },
+    { etiqueta: "Pistas", valor: String(numeroPistas) },
+    { etiqueta: "Software actual", valor: escaparHtml(softwareActual) },
+    { etiqueta: "Urgencia", valor: escaparHtml(urgencia) },
+  ]
+
+  const detallesTracking = [
+    ...(source ? [{ etiqueta: "Source", valor: escaparHtml(source) }] : []),
+    ...(paginaOrigen ? [{ etiqueta: "Pagina origen", valor: escaparHtml(paginaOrigen) }] : []),
+    ...(utmSource ? [{ etiqueta: "UTM Source", valor: escaparHtml(utmSource) }] : []),
+    ...(utmMedium ? [{ etiqueta: "UTM Medium", valor: escaparHtml(utmMedium) }] : []),
+    ...(utmCampaign ? [{ etiqueta: "UTM Campaign", valor: escaparHtml(utmCampaign) }] : []),
+  ]
+
+  const contenido = `
+    <p style="${estiloParrafo}">
+      Se ha recibido una nueva solicitud de demo.
+    </p>
+    ${cajaDetalle(detallesLead)}
+    ${mensaje ? `
+    <div style="background-color:${EMAIL_BRAND.colorFondo};border-radius:8px;padding:16px 20px;margin:16px 0;">
+      <p style="font-size:13px;color:${EMAIL_BRAND.colorTextoSecundario};margin:0 0 8px;font-weight:600;">Mensaje:</p>
+      <p style="font-size:14px;color:${EMAIL_BRAND.colorTexto};margin:0;line-height:1.6;white-space:pre-wrap;">${escaparHtml(mensaje)}</p>
+    </div>
+    ` : ""}
+    ${detallesTracking.length > 0 ? `
+    <p style="${estiloParrafoSecundario};margin-top:24px;font-weight:600;">Tracking</p>
+    ${cajaDetalle(detallesTracking)}
+    ` : ""}
+  `
+
+  await resend.emails.send({
+    from: EMAIL_FROM,
+    to: destinatario,
+    replyTo: email,
+    subject: `[Demo] Solicitud de ${nombre} - ${clubNombre}`,
+    html: plantillaEmail({
+      titulo: "Nueva solicitud de demo",
+      preheader: `Solicitud de demo de ${nombre} (${clubNombre})`,
+      contenido,
+    }),
+  })
+}
+
 // Exportar helpers para testing
 export { escaparHtml, cajaDetalle, formatearFecha, formatearHora, calcularDuracionMin, traducirEstadoPago }

@@ -8,6 +8,7 @@ export type Permission =
   | "bookings:create-any"   // crear reserva para cualquier usuario
   | "bookings:update"
   | "bookings:delete"
+  | "bookings:import"
   // Pistas
   | "courts:read"
   | "courts:create"
@@ -84,7 +85,7 @@ export type Permission =
 // Permisos por rol
 const rolePermissions: Record<UserRole, Permission[]> = {
   SUPER_ADMIN: [
-    "bookings:read", "bookings:create", "bookings:create-any", "bookings:update", "bookings:delete",
+    "bookings:read", "bookings:create", "bookings:create-any", "bookings:update", "bookings:delete", "bookings:import",
     "courts:read", "courts:create", "courts:update", "courts:delete", "courts:import",
     "users:read", "users:create", "users:update", "users:delete", "users:import",
     "competitions:read", "competitions:create", "competitions:update", "competitions:delete",
@@ -104,7 +105,7 @@ const rolePermissions: Record<UserRole, Permission[]> = {
     "booking-waitlist:create", "booking-waitlist:delete",
   ],
   CLUB_ADMIN: [
-    "bookings:read", "bookings:create", "bookings:create-any", "bookings:update", "bookings:delete",
+    "bookings:read", "bookings:create", "bookings:create-any", "bookings:update", "bookings:delete", "bookings:import",
     "courts:read", "courts:create", "courts:update", "courts:delete", "courts:import",
     "users:read", "users:create", "users:update", "users:delete", "users:import",
     "competitions:read", "competitions:create", "competitions:update", "competitions:delete",

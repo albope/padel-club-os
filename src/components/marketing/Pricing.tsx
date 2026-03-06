@@ -135,7 +135,7 @@ export default function Pricing() {
                     size="lg"
                     asChild
                   >
-                    <Link href="/register">
+                    <Link href="/demo?source=pricing">
                       {t('startTrial')}
                       <ArrowRight className="h-4 w-4" />
                     </Link>

@@ -13,6 +13,7 @@ import {
   Medal,
   Megaphone,
   Repeat,
+  DatabaseZap,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -35,6 +36,7 @@ export const navItems: NavItem[] = [
   { nameKey: 'nav.comunicacion', href: '/dashboard/comunicacion', icon: Megaphone },
   { nameKey: 'nav.blog', href: '/dashboard/blog', icon: FileText },
   { nameKey: 'nav.analiticas', href: '/dashboard/analiticas', icon: BarChart3 },
+  { nameKey: 'nav.migracion', href: '/dashboard/migracion', icon: DatabaseZap },
   { nameKey: 'nav.facturacion', href: '/dashboard/facturacion', icon: CreditCard },
   { nameKey: 'nav.ajustes', href: '/dashboard/ajustes', icon: Settings },
 ];

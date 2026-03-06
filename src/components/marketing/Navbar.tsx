@@ -107,7 +107,7 @@ export default function Navbar() {
             )}
             asChild
           >
-            <Link href="/register">{t('tryFree')}</Link>
+            <Link href="/demo?source=navbar">{t('tryFree')}</Link>
           </Button>
         </div>
 
@@ -179,7 +179,7 @@ export default function Navbar() {
               <Link href="/login">{t('login')}</Link>
             </Button>
             <Button asChild>
-              <Link href="/register">{t('tryFree')}</Link>
+              <Link href="/demo?source=navbar">{t('tryFree')}</Link>
             </Button>
           </div>
         </div>

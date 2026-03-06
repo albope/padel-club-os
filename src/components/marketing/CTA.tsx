@@ -34,7 +34,7 @@ export default async function CTA() {
               className="landing-cta-pulse gap-2 bg-white text-base font-semibold text-slate-900 hover:bg-white/90"
               asChild
             >
-              <Link href="/register">
+              <Link href="/demo?source=cta">
                 {t('primary')}
                 <ArrowRight className="h-4 w-4" />
               </Link>

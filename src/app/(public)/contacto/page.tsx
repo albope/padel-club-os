@@ -192,7 +192,7 @@ export default async function ContactoPage() {
                   className="gap-2 text-base"
                   asChild
                 >
-                  <Link href="/register">
+                  <Link href="/demo?source=contacto">
                     {t('startNow')}
                     <ArrowRight className="h-4 w-4" />
                   </Link>

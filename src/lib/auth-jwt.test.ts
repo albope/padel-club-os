@@ -44,7 +44,6 @@ vi.mock("./logger", () => ({
 import { authOptions } from "./auth"
 
 // Extraer el callback jwt para testear directamente
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const jwtCallback = authOptions.callbacks!.jwt! as any
 
 describe("JWT callback - TTL de suscripcion", () => {

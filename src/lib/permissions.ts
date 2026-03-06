@@ -13,6 +13,7 @@ export type Permission =
   | "courts:create"
   | "courts:update"
   | "courts:delete"
+  | "courts:import"
   // Socios
   | "users:read"
   | "users:create"
@@ -84,7 +85,7 @@ export type Permission =
 const rolePermissions: Record<UserRole, Permission[]> = {
   SUPER_ADMIN: [
     "bookings:read", "bookings:create", "bookings:create-any", "bookings:update", "bookings:delete",
-    "courts:read", "courts:create", "courts:update", "courts:delete",
+    "courts:read", "courts:create", "courts:update", "courts:delete", "courts:import",
     "users:read", "users:create", "users:update", "users:delete", "users:import",
     "competitions:read", "competitions:create", "competitions:update", "competitions:delete",
     "open-matches:read", "open-matches:create", "open-matches:join", "open-matches:update", "open-matches:delete",
@@ -104,7 +105,7 @@ const rolePermissions: Record<UserRole, Permission[]> = {
   ],
   CLUB_ADMIN: [
     "bookings:read", "bookings:create", "bookings:create-any", "bookings:update", "bookings:delete",
-    "courts:read", "courts:create", "courts:update", "courts:delete",
+    "courts:read", "courts:create", "courts:update", "courts:delete", "courts:import",
     "users:read", "users:create", "users:update", "users:delete", "users:import",
     "competitions:read", "competitions:create", "competitions:update", "competitions:delete",
     "open-matches:read", "open-matches:create", "open-matches:join", "open-matches:update", "open-matches:delete",

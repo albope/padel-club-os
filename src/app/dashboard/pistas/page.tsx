@@ -3,7 +3,7 @@ import { db } from '@/lib/db';
 import { authOptions } from '@/lib/auth';
 import { getServerSession } from 'next-auth';
 import { redirect } from 'next/navigation';
-import { Fence, PlusCircle, Pencil } from 'lucide-react';
+import { Fence, PlusCircle, Pencil, Upload } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import EmptyState from '@/components/onboarding/EmptyState';
@@ -27,12 +27,20 @@ const PistasPage = async () => {
           <h1 className="text-3xl font-bold">Gestion de Pistas</h1>
           <p className="mt-1 text-muted-foreground">Añade, edita y gestiona las pistas de tu club.</p>
         </div>
-        <Button asChild>
-          <Link href="/dashboard/pistas/nueva">
-            <PlusCircle className="mr-2 h-4 w-4" />
-            Añadir Pista
-          </Link>
-        </Button>
+        <div className="flex flex-wrap gap-2">
+          <Button variant="outline" asChild>
+            <Link href="/dashboard/pistas/importar">
+              <Upload className="mr-2 h-4 w-4" />
+              Importar
+            </Link>
+          </Button>
+          <Button asChild>
+            <Link href="/dashboard/pistas/nueva">
+              <PlusCircle className="mr-2 h-4 w-4" />
+              Añadir Pista
+            </Link>
+          </Button>
+        </div>
       </div>
 
       <div className="bg-card border rounded-xl shadow-sm">

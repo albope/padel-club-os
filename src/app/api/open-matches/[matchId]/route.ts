@@ -5,6 +5,7 @@ import { OpenMatchStatus } from "@prisma/client";
 import { calcularPrecioReserva } from "@/lib/pricing";
 import { validarBody } from "@/lib/validation";
 import { liberarSlotYNotificar, limpiarWaitlistAlReservar } from "@/lib/waitlist";
+import { verificarBloqueo } from "@/lib/court-blocks";
 import { logger } from "@/lib/logger";
 import * as z from "zod";
 
@@ -89,6 +90,15 @@ export async function PATCH(
 
     if (overlapping) {
       return new NextResponse("Ya existe una reserva en esa pista y a esa hora.", { status: 409 });
+    }
+
+    // Verificar bloqueo de pista
+    const bloqueo = await verificarBloqueo(clubId, courtId, startTime, endTime);
+    if (bloqueo) {
+      return NextResponse.json(
+        { error: `La pista esta bloqueada en ese horario (${bloqueo.reason}${bloqueo.note ? `: ${bloqueo.note}` : ""}).` },
+        { status: 409 }
+      );
     }
 
     // Recalcular precio para el nuevo slot

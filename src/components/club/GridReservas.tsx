@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTranslations, useLocale } from 'next-intl';
-import { ChevronLeft, ChevronRight, Loader2, Users, Bell, BellOff } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Loader2, Users, Bell, BellOff, Ban } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
@@ -19,7 +19,7 @@ interface Pista {
 
 interface Bloque {
   courtId: string;
-  tipo: 'reserva' | 'partida-abierta';
+  tipo: 'reserva' | 'partida-abierta' | 'bloqueo';
   inicio: string;
   fin: string;
   esPropia: boolean;
@@ -27,6 +27,8 @@ interface Bloque {
   nivelMin?: number | null;
   nivelMax?: number | null;
   openMatchId?: string;
+  reason?: string;
+  note?: string;
 }
 
 interface GridReservasProps {
@@ -337,6 +339,10 @@ export default function GridReservas({ club, pistas, sesionUserId, slug }: GridR
           <div className="w-3 h-3 rounded-sm bg-green-100 border border-green-200" />
           <span className="text-muted-foreground">{t('openMatch')}</span>
         </div>
+        <div className="flex items-center gap-1.5">
+          <div className="w-3 h-3 rounded-sm bg-gray-200 border border-gray-300" />
+          <span className="text-muted-foreground">{t('blocked')}</span>
+        </div>
       </div>
 
       {/* Grid */}
@@ -438,6 +444,30 @@ export default function GridReservas({ club, pistas, sesionUserId, slug }: GridR
                               </span>
                             )}
                           </button>
+                        );
+                      }
+
+                      // Bloqueo de pista
+                      if (bloque.tipo === 'bloqueo') {
+                        const motivoMap: Record<string, string> = {
+                          MAINTENANCE: t('blockMaintenance'),
+                          HOLIDAY: t('blockHoliday'),
+                          EVENT: t('blockEvent'),
+                          OTHER: t('blockOther'),
+                        };
+                        const motivoTexto = motivoMap[bloque.reason || ''] || bloque.reason || '';
+                        return (
+                          <div
+                            key={celdaKey}
+                            style={gridStyle}
+                            className="mx-0.5 my-px rounded-sm flex flex-col items-center justify-center text-[10px] font-medium overflow-hidden select-none bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400 border border-gray-300 dark:border-gray-600"
+                            title={bloque.note || motivoTexto}
+                          >
+                            <span className="flex items-center gap-0.5 leading-tight">
+                              <Ban className="h-2.5 w-2.5" />
+                              {motivoTexto}
+                            </span>
+                          </div>
                         );
                       }
 

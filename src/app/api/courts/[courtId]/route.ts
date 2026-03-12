@@ -1,6 +1,7 @@
 import { db } from "@/lib/db";
 import { requireAuth, isAuthError } from "@/lib/api-auth";
 import { logger } from "@/lib/logger";
+import { registrarAuditoria } from "@/lib/audit";
 import { NextResponse } from "next/server";
 import { validarBody } from "@/lib/validation";
 import * as z from "zod";
@@ -33,6 +34,16 @@ export async function PATCH(
       data: { name, type },
     });
 
+    registrarAuditoria({
+      recurso: "court",
+      accion: "actualizar",
+      entidadId: params.courtId,
+      detalles: { campos: Object.keys(result.data) },
+      userId: auth.session.user.id,
+      userName: auth.session.user.name,
+      clubId: auth.session.user.clubId,
+    })
+
     return NextResponse.json(updatedCourt);
   } catch (error) {
     logger.error("COURT_UPDATE", "Error al actualizar pista", { ruta: "/api/courts/[courtId]" }, error);
@@ -53,9 +64,19 @@ export async function DELETE(
       return new NextResponse("ID de pista requerido", { status: 400 });
     }
 
-    await db.court.delete({
+    const deletedCourt = await db.court.delete({
       where: { id: params.courtId, clubId: auth.session.user.clubId },
     });
+
+    registrarAuditoria({
+      recurso: "court",
+      accion: "eliminar",
+      entidadId: params.courtId,
+      detalles: { nombre: deletedCourt.name },
+      userId: auth.session.user.id,
+      userName: auth.session.user.name,
+      clubId: auth.session.user.clubId,
+    })
 
     return new NextResponse(null, { status: 204 });
   } catch (error) {

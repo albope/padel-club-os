@@ -49,6 +49,9 @@ vi.mock("@/lib/payment-sync", () => ({
 vi.mock("@/lib/logger", () => ({
   logger: { info: vi.fn(), error: vi.fn(), warn: vi.fn() },
 }))
+vi.mock("@/lib/court-blocks", () => ({
+  verificarBloqueo: vi.fn().mockResolvedValue(null),
+}))
 
 import { POST, DELETE } from "@/app/api/player/bookings/route"
 

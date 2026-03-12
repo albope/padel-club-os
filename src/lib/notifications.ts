@@ -18,6 +18,7 @@ export type TipoNotificacion =
   | "player_rated"
   | "waitlist_slot_available"
   | "booking_rescheduled"
+  | "open_match_cancelled"
 
 interface CrearNotificacionParams {
   tipo: TipoNotificacion

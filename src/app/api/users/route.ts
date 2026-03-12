@@ -5,6 +5,7 @@ import { hash } from "bcrypt";
 import { canCreateMember } from "@/lib/subscription";
 import { validarBody } from "@/lib/validation";
 import { logger } from "@/lib/logger";
+import { registrarAuditoria } from "@/lib/audit";
 import * as z from "zod";
 
 const UserCreateSchema = z.object({
@@ -53,6 +54,16 @@ export async function POST(req: Request) {
         clubId: auth.session.user.clubId,
       },
     });
+
+    registrarAuditoria({
+      recurso: "user",
+      accion: "crear",
+      entidadId: newUser.id,
+      detalles: { email, rol: "PLAYER" },
+      userId: auth.session.user.id,
+      userName: auth.session.user.name,
+      clubId: auth.session.user.clubId,
+    })
 
     return NextResponse.json(newUser, { status: 201 });
   } catch (error) {

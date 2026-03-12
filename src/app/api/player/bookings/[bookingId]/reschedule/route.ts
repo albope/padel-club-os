@@ -6,6 +6,7 @@ import { crearNotificacion } from "@/lib/notifications"
 import { enviarEmailReagendamientoReserva } from "@/lib/email"
 import { generarDatosPagoPorJugador, aplicarRefundBooking } from "@/lib/payment-sync"
 import { liberarSlotYNotificar, limpiarWaitlistAlReservar } from "@/lib/waitlist"
+import { verificarBloqueo } from "@/lib/court-blocks"
 import { logger } from "@/lib/logger"
 import { validarBody } from "@/lib/validation"
 import * as z from "zod"
@@ -152,6 +153,15 @@ export async function PATCH(
     if (overlapping) {
       return NextResponse.json(
         { error: "El nuevo horario ya esta ocupado." },
+        { status: 409 }
+      )
+    }
+
+    // Verificar bloqueo de pista
+    const bloqueo = await verificarBloqueo(clubId, courtIdDestino, nuevaStartTime, nuevaEndTime)
+    if (bloqueo) {
+      return NextResponse.json(
+        { error: `La pista esta bloqueada en ese horario (${bloqueo.reason}${bloqueo.note ? `: ${bloqueo.note}` : ""}).` },
         { status: 409 }
       )
     }

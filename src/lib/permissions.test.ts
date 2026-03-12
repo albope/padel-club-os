@@ -102,6 +102,18 @@ describe("hasPermission", () => {
       expect(hasPermission("PLAYER", "analytics:read")).toBe(false)
     })
   })
+
+  describe("audit:read", () => {
+    it("concedido a SUPER_ADMIN y CLUB_ADMIN", () => {
+      expect(hasPermission("SUPER_ADMIN", "audit:read")).toBe(true)
+      expect(hasPermission("CLUB_ADMIN", "audit:read")).toBe(true)
+    })
+
+    it("denegado a STAFF y PLAYER", () => {
+      expect(hasPermission("STAFF", "audit:read")).toBe(false)
+      expect(hasPermission("PLAYER", "audit:read")).toBe(false)
+    })
+  })
 })
 
 describe("hasAnyPermission", () => {

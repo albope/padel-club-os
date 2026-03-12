@@ -4,6 +4,7 @@ import { NextResponse } from "next/server"
 import { validarBody } from "@/lib/validation"
 import { logger } from "@/lib/logger"
 import { calcularPrecioReserva } from "@/lib/pricing"
+import { registrarAuditoria } from "@/lib/audit"
 import { normalizarNombre, type ImportError } from "@/lib/import-courts"
 import {
   parsearFecha,
@@ -200,6 +201,16 @@ export async function POST(req: Request) {
       select: { courtId: true, startTime: true, endTime: true },
     })
 
+    // Prefetch bloqueos activos en el rango para check en memoria
+    const bloqueos = await db.courtBlock.findMany({
+      where: {
+        clubId,
+        startTime: { lt: maxDate },
+        endTime: { gt: minDate },
+      },
+      select: { courtId: true, startTime: true, endTime: true, reason: true },
+    })
+
     // Index existentes por courtId para busqueda rapida
     const existentesPorPista = new Map<string, { start: number; end: number }[]>()
     for (const r of reservasExistentes) {
@@ -237,6 +248,20 @@ export async function POST(req: Request) {
           fila: reserva.fila,
           campo: "horaInicio",
           mensaje: `Solapamiento con otra reserva del mismo CSV.`,
+        })
+        continue
+      }
+
+      // Check bloqueo de pista (club-wide courtId=null o especifico)
+      const bloqueada = bloqueos.some(b =>
+        (b.courtId === null || b.courtId === reserva.courtId) &&
+        startMs < b.endTime.getTime() && endMs > b.startTime.getTime()
+      )
+      if (bloqueada) {
+        errors.push({
+          fila: reserva.fila,
+          campo: "horaInicio",
+          mensaje: `La pista esta bloqueada en ese horario.`,
         })
         continue
       }
@@ -329,6 +354,15 @@ export async function POST(req: Request) {
       }
 
       return resultado
+    })
+
+    registrarAuditoria({
+      recurso: "booking",
+      accion: "importar",
+      detalles: { creados: creadas.length, errores: errors.length, warnings: warnings.length },
+      userId: auth.session.user.id,
+      userName: auth.session.user.name,
+      clubId: auth.session.user.clubId,
     })
 
     logger.info("IMPORT_BOOKINGS", `${creadas.length} reservas importadas`, {

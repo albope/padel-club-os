@@ -4,6 +4,7 @@ import { NextResponse } from "next/server";
 import { validarBody } from "@/lib/validation";
 import { canUseOnlinePayments, getSubscriptionInfo } from "@/lib/subscription";
 import { logger } from "@/lib/logger";
+import { registrarAuditoria } from "@/lib/audit";
 import * as z from "zod";
 
 const urlOpcional = z.string().url("URL no valida.").max(2000).optional().or(z.literal("")).or(z.literal(null))
@@ -99,6 +100,16 @@ export async function PATCH(req: Request) {
         bookingPaymentMode, bookingDuration,
       },
     });
+
+    registrarAuditoria({
+      recurso: "club",
+      accion: "actualizar",
+      entidadId: auth.session.user.clubId,
+      detalles: { campos: Object.keys(result.data) },
+      userId: auth.session.user.id,
+      userName: auth.session.user.name,
+      clubId: auth.session.user.clubId,
+    })
 
     return NextResponse.json(updatedClub);
   } catch (error) {

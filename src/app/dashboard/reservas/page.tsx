@@ -7,31 +7,52 @@ import ReservasContainer from '@/components/reservas/ReservasContainer';
 
 const getReservasData = async (clubId: string) => {
   try {
-    const bookings = await db.booking.findMany({
-      where: { clubId },
-      include: {
-        user: { select: { name: true } },
-        court: { select: { name: true } },
-        // --- AÑADIDO: Incluimos los datos de la partida abierta asociada ---
-        openMatch: {
-          select: {
-            levelMin: true,
-            levelMax: true,
+    // Bloqueos del dia actual para carga inicial
+    const hoy = new Date();
+    const inicioDia = new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate());
+    const finDia = new Date(inicioDia.getTime() + 24 * 60 * 60 * 1000);
+
+    const [bookings, courts, users, courtBlocks] = await Promise.all([
+      db.booking.findMany({
+        where: { clubId },
+        include: {
+          user: { select: { name: true } },
+          court: { select: { name: true } },
+          openMatch: {
+            select: {
+              levelMin: true,
+              levelMax: true,
+            }
           }
-        }
-      },
-    });
-    const courts = await db.court.findMany({
-      where: { clubId },
-      orderBy: { name: 'asc' },
-    });
-    const users = await db.user.findMany({ where: { clubId }, orderBy: { name: 'asc' } });
-    
+        },
+      }),
+      db.court.findMany({
+        where: { clubId },
+        orderBy: { name: 'asc' },
+      }),
+      db.user.findMany({ where: { clubId }, orderBy: { name: 'asc' } }),
+      db.courtBlock.findMany({
+        where: {
+          clubId,
+          startTime: { lt: finDia },
+          endTime: { gt: inicioDia },
+        },
+        select: {
+          id: true,
+          reason: true,
+          note: true,
+          startTime: true,
+          endTime: true,
+          courtId: true,
+        },
+      }),
+    ]);
+
     // Usamos JSON.parse(JSON.stringify(...)) para evitar errores de serialización
-    return JSON.parse(JSON.stringify({ bookings, courts, users }));
+    return JSON.parse(JSON.stringify({ bookings, courts, users, courtBlocks }));
   } catch (error) {
     console.error("Failed to fetch reservations data:", error);
-    return { bookings: [], courts: [], users: [] };
+    return { bookings: [], courts: [], users: [], courtBlocks: [] };
   }
 };
 
@@ -41,11 +62,12 @@ const ReservasPage = async () => {
     redirect('/dashboard'); 
   }
 
-  const { bookings, courts, users } = await getReservasData(session.user.clubId);
+  const { bookings, courts, users, courtBlocks } = await getReservasData(session.user.clubId);
 
   return (
-    <ReservasContainer 
+    <ReservasContainer
       initialBookings={bookings}
+      initialCourtBlocks={courtBlocks}
       courts={courts}
       users={users}
     />

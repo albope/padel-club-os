@@ -13,11 +13,11 @@ import { cn } from '@/lib/utils';
 
 const ResetPasswordSchema = z
   .object({
-    password: z.string().min(8, 'La contrasena debe tener al menos 8 caracteres.'),
-    confirmPassword: z.string().min(1, 'Confirma tu contrasena.'),
+    password: z.string().min(8, 'La contraseña debe tener al menos 8 caracteres.'),
+    confirmPassword: z.string().min(1, 'Confirma tu contraseña.'),
   })
   .refine((data) => data.password === data.confirmPassword, {
-    message: 'Las contrasenas no coinciden.',
+    message: 'Las contraseñas no coinciden.',
     path: ['confirmPassword'],
   });
 
@@ -40,8 +40,8 @@ function evaluarPassword(password: string): PasswordStrength {
   const nivel = Math.min(4, Math.max(1, score));
 
   const mapa: Record<number, Omit<PasswordStrength, 'score'>> = {
-    1: { label: 'Muy debil', segmentColor: 'bg-red-500' },
-    2: { label: 'Debil', segmentColor: 'bg-orange-400' },
+    1: { label: 'Muy débil', segmentColor: 'bg-red-500' },
+    2: { label: 'Débil', segmentColor: 'bg-orange-400' },
     3: { label: 'Buena', segmentColor: 'bg-amber-400' },
     4: { label: 'Fuerte', segmentColor: 'bg-emerald-500' },
   };
@@ -69,7 +69,7 @@ function ResetPasswordContent() {
 
   const onSubmit = async (values: z.infer<typeof ResetPasswordSchema>) => {
     if (!token) {
-      setError('Token no valido. Solicita un nuevo enlace.');
+      setError('Token no válido. Solicita un nuevo enlace.');
       return;
     }
 
@@ -88,7 +88,7 @@ function ResetPasswordContent() {
       if (response.ok) {
         setExito(true);
       } else {
-        setError(data.error || 'Error al restablecer la contrasena.');
+        setError(data.error || 'Error al restablecer la contraseña.');
       }
     } catch {
       setError('No se pudo conectar con el servidor.');
@@ -104,16 +104,16 @@ function ResetPasswordContent() {
         <div className="mx-auto w-12 h-12 rounded-full bg-destructive/10 flex items-center justify-center">
           <AlertCircle className="h-6 w-6 text-destructive" />
         </div>
-        <h2 className="text-xl font-bold text-foreground">Enlace no valido</h2>
+        <h2 className="text-xl font-bold text-foreground">Enlace no válido</h2>
         <p className="text-sm text-muted-foreground">
-          El enlace de recuperacion no es valido o ha expirado.
+          El enlace de recuperación no es válido o ha expirado.
         </p>
         <Link
           href={redirect}
           className="inline-flex items-center gap-2 text-sm font-semibold text-primary hover:text-primary/80 transition-colors"
         >
           <ArrowLeft className="h-4 w-4" />
-          Volver a iniciar sesion
+          Volver a iniciar sesión
         </Link>
       </div>
     );
@@ -131,7 +131,7 @@ function ResetPasswordContent() {
               Contrasena actualizada
             </h2>
             <p className="text-sm text-muted-foreground">
-              Tu contrasena ha sido restablecida correctamente. Ya puedes iniciar sesion.
+              Tu contraseña ha sido restablecida correctamente. Ya puedes iniciar sesión.
             </p>
             <Link
               href={redirect}
@@ -147,18 +147,18 @@ function ResetPasswordContent() {
           <>
             <div className="mb-7">
               <h2 className="text-[22px] font-bold tracking-tight text-foreground">
-                Nueva contrasena
+                Nueva contraseña
               </h2>
               <p className="mt-1.5 text-sm text-muted-foreground">
-                Introduce tu nueva contrasena.
+                Introduce tu nueva contraseña.
               </p>
             </div>
 
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-              {/* Nueva contrasena */}
+              {/* Nueva contraseña */}
               <div className="space-y-1.5">
                 <Label htmlFor="password" className="text-[13px] font-medium text-foreground/80">
-                  Nueva contrasena
+                  Nueva contraseña
                 </Label>
                 <div className="auth-input-glow rounded-lg">
                   <div className="relative">
@@ -187,7 +187,7 @@ function ResetPasswordContent() {
                         'text-muted-foreground/50 hover:text-foreground',
                         'transition-colors duration-150 focus-visible:outline-none'
                       )}
-                      aria-label={showPassword ? 'Ocultar contrasena' : 'Mostrar contrasena'}
+                      aria-label={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
                     >
                       {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                     </button>
@@ -215,7 +215,7 @@ function ResetPasswordContent() {
                       ))}
                     </div>
                     <div className="flex items-center justify-between">
-                      <p className="text-[11px] text-muted-foreground">Seguridad de la contrasena</p>
+                      <p className="text-[11px] text-muted-foreground">Seguridad de la contraseña</p>
                       <p
                         className={cn(
                           'text-[11px] font-semibold',
@@ -232,17 +232,17 @@ function ResetPasswordContent() {
                 )}
               </div>
 
-              {/* Confirmar contrasena */}
+              {/* Confirmar contraseña */}
               <div className="space-y-1.5">
                 <Label htmlFor="confirmPassword" className="text-[13px] font-medium text-foreground/80">
-                  Confirmar contrasena
+                  Confirmar contraseña
                 </Label>
                 <div className="auth-input-glow rounded-lg">
                   <Input
                     id="confirmPassword"
                     type={showPassword ? 'text' : 'password'}
                     {...form.register('confirmPassword')}
-                    placeholder="Repite tu contrasena"
+                    placeholder="Repite tu contraseña"
                     autoComplete="new-password"
                     className={cn(
                       'h-10 text-sm',
@@ -290,7 +290,7 @@ function ResetPasswordContent() {
                   ) : (
                     <>
                       <ShieldCheck className="h-4 w-4" />
-                      Restablecer contrasena
+                      Restablecer contraseña
                     </>
                   )}
                 </span>

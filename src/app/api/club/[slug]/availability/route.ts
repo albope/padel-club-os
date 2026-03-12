@@ -45,8 +45,8 @@ export async function GET(
     const fechaInicio = new Date(`${date}T00:00:00`);
     const fechaFin = new Date(`${date}T23:59:59`);
 
-    // Query paralela: reservas confirmadas + partidas abiertas del dia
-    const [reservas, partidasAbiertas] = await Promise.all([
+    // Query paralela: reservas + partidas abiertas + bloqueos + pistas del dia
+    const [reservas, partidasAbiertas, bloqueosDia, pistas] = await Promise.all([
       db.booking.findMany({
         where: {
           clubId: club.id,
@@ -82,6 +82,25 @@ export async function GET(
           },
         },
       }),
+      db.courtBlock.findMany({
+        where: {
+          clubId: club.id,
+          startTime: { lt: new Date(fechaFin.getTime() + 1000) },
+          endTime: { gt: fechaInicio },
+        },
+        select: {
+          id: true,
+          courtId: true,
+          reason: true,
+          note: true,
+          startTime: true,
+          endTime: true,
+        },
+      }),
+      db.court.findMany({
+        where: { clubId: club.id },
+        select: { id: true },
+      }),
     ]);
 
     // Transformar reservas en bloques (excluir las que son de partidas abiertas, ya se manejan aparte)
@@ -114,6 +133,34 @@ export async function GET(
         nivelMax: partida.levelMax,
         openMatchId: partida.id,
       });
+    }
+
+    // Agregar bloqueos como bloques
+    const pistaIds = pistas.map((p) => p.id);
+    for (const bloqueo of bloqueosDia) {
+      if (bloqueo.courtId) {
+        // Bloqueo de pista especifica
+        bloques.push({
+          courtId: bloqueo.courtId,
+          tipo: "bloqueo",
+          inicio: bloqueo.startTime.toISOString(),
+          fin: bloqueo.endTime.toISOString(),
+          reason: bloqueo.reason,
+          note: bloqueo.note,
+        });
+      } else {
+        // Bloqueo club-wide: un bloque por cada pista
+        for (const pistaId of pistaIds) {
+          bloques.push({
+            courtId: pistaId,
+            tipo: "bloqueo",
+            inicio: bloqueo.startTime.toISOString(),
+            fin: bloqueo.endTime.toISOString(),
+            reason: bloqueo.reason,
+            note: bloqueo.note,
+          });
+        }
+      }
     }
 
     // Cache publica solo para peticiones anonimas; privada si hay sesion

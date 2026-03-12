@@ -5,6 +5,8 @@ import { NextResponse } from "next/server";
 import { calcularPrecioReserva } from "@/lib/pricing";
 import { validarBody } from "@/lib/validation";
 import { limpiarWaitlistAlReservar } from "@/lib/waitlist";
+import { verificarBloqueo } from "@/lib/court-blocks";
+import { registrarAuditoria } from "@/lib/audit";
 import * as z from "zod";
 
 const BookingCreateSchema = z.object({
@@ -78,6 +80,15 @@ export async function POST(req: Request) {
       return new NextResponse("Este horario ya está ocupado en la pista seleccionada.", { status: 409 });
     }
 
+    // Verificar bloqueo de pista
+    const bloqueo = await verificarBloqueo(auth.session.user.clubId, courtId, newStartTime, newEndTime);
+    if (bloqueo) {
+      return NextResponse.json(
+        { error: `La pista esta bloqueada en ese horario (${bloqueo.reason}${bloqueo.note ? `: ${bloqueo.note}` : ""}).` },
+        { status: 409 }
+      );
+    }
+
     const totalPrice = await calcularPrecioReserva(courtId, auth.session.user.clubId, newStartTime, newEndTime);
 
     const efectivoNumPlayers = numPlayers || 4
@@ -100,6 +111,16 @@ export async function POST(req: Request) {
 
     // Limpiar lista de espera del slot
     limpiarWaitlistAlReservar({ courtId, startTime: newStartTime, userId: userId || undefined }).catch(() => {})
+
+    registrarAuditoria({
+      recurso: "booking",
+      accion: "crear",
+      entidadId: newBooking.id,
+      detalles: { pistaId: courtId, fecha: startTime, usuario: userId || guestName },
+      userId: auth.session.user.id,
+      userName: auth.session.user.name,
+      clubId: auth.session.user.clubId,
+    })
 
     return NextResponse.json(newBooking, { status: 201 });
   } catch (error) {

@@ -169,27 +169,41 @@ export async function canCreateRecurringBooking(clubId: string): Promise<{ allow
 
 /**
  * Verifica si un club puede tener mas admins/staff segun su plan.
+ * Cuenta admins actuales + invitaciones pendientes (no expiradas).
+ * @param excludeInvitationId - ID de invitacion a excluir del conteo (para el flujo de aceptacion)
  */
-export async function canCreateAdmin(clubId: string): Promise<{ allowed: boolean; reason?: string }> {
+export async function canCreateAdmin(
+  clubId: string,
+  opts?: { excludeInvitationId?: string }
+): Promise<{ allowed: boolean; reason?: string; used: number; limit: number }> {
   const info = await getSubscriptionInfo(clubId)
   const limits = getPlanLimits(info.tier)
 
-  if (limits.admins === -1) return { allowed: true }
+  if (limits.admins === -1) return { allowed: true, used: 0, limit: -1 }
 
-  const adminCount = await db.user.count({
-    where: {
-      clubId,
-      role: { in: ["CLUB_ADMIN", "STAFF"] },
-    },
-  })
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const inviteWhere: any = { clubId, expires: { gt: new Date() } }
+  if (opts?.excludeInvitationId) {
+    inviteWhere.id = { not: opts.excludeInvitationId }
+  }
 
-  // No contar el SUPER_ADMIN (el creador del club)
-  if (adminCount >= limits.admins) {
+  const [adminCount, pendingInvites] = await Promise.all([
+    db.user.count({
+      where: { clubId, role: { in: ["CLUB_ADMIN", "STAFF"] } },
+    }),
+    db.adminInvitation.count({ where: inviteWhere }),
+  ])
+
+  const used = adminCount + pendingInvites
+
+  if (used >= limits.admins) {
     return {
       allowed: false,
-      reason: `Tu plan ${PLAN_PRICES[info.tier].name} permite hasta ${limits.admins} administrador${limits.admins !== 1 ? "es" : ""}. Actualiza tu plan para añadir mas.`,
+      used,
+      limit: limits.admins,
+      reason: `Tu plan ${PLAN_PRICES[info.tier].name} permite hasta ${limits.admins} administrador${limits.admins !== 1 ? "es" : ""}. Actualiza tu plan para anadir mas.`,
     }
   }
 
-  return { allowed: true }
+  return { allowed: true, used, limit: limits.admins }
 }

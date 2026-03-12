@@ -47,6 +47,9 @@ vi.mock("@/lib/stripe", () => ({
 vi.mock("@/lib/logger", () => ({
   logger: { info: vi.fn(), error: vi.fn(), warn: vi.fn() },
 }))
+vi.mock("@/lib/court-blocks", () => ({
+  verificarBloqueo: vi.fn().mockResolvedValue(null),
+}))
 
 import { PATCH } from "@/app/api/player/bookings/[bookingId]/reschedule/route"
 

@@ -2,7 +2,9 @@ import { db } from "@/lib/db"
 import { calcularPrecioReserva } from "@/lib/pricing"
 import { crearNotificacion } from "@/lib/notifications"
 import { isSubscriptionActive } from "@/lib/subscription"
+import { verificarBloqueo } from "@/lib/court-blocks"
 import { logger } from "@/lib/logger"
+import { registrarAuditoria } from "@/lib/audit"
 import { NextResponse } from "next/server"
 
 // Generar reservas hasta 7 dias en el futuro
@@ -56,6 +58,7 @@ export async function POST(req: Request) {
     let conflictos = 0
     let errores = 0
     let omitidas = 0
+    let bloqueados = 0
 
     for (const plantilla of plantillas) {
       // Verificar suscripcion activa del club
@@ -112,6 +115,13 @@ export async function POST(req: Request) {
             continue
           }
 
+          // Verificar bloqueo de pista
+          const bloqueo = await verificarBloqueo(plantilla.clubId, plantilla.courtId, startTime, endTime)
+          if (bloqueo) {
+            bloqueados++
+            continue
+          }
+
           // Calcular precio dinamico
           const totalPrice = await calcularPrecioReserva(
             plantilla.courtId,
@@ -121,7 +131,7 @@ export async function POST(req: Request) {
           )
 
           // Crear la reserva
-          await db.booking.create({
+          const nuevaReserva = await db.booking.create({
             data: {
               courtId: plantilla.courtId,
               userId: plantilla.userId,
@@ -135,6 +145,18 @@ export async function POST(req: Request) {
               clubId: plantilla.clubId,
               recurringBookingId: plantilla.id,
             },
+          })
+
+          registrarAuditoria({
+            recurso: "booking",
+            accion: "crear",
+            entidadId: nuevaReserva.id,
+            detalles: { recurringBookingId: plantilla.id, pistaId: plantilla.courtId },
+            userId: null,
+            userName: null,
+            origen: "cron",
+            clubId: plantilla.clubId,
+            clubName: plantilla.club?.name || null,
           })
 
           // Notificar al usuario asignado (fire-and-forget)
@@ -166,12 +188,13 @@ export async function POST(req: Request) {
       }
     }
 
-    logger.info("RECURRING_BOOKINGS_CRON", `Procesadas: ${plantillas.length}, Generadas: ${generadas}, Conflictos: ${conflictos}, Omitidas: ${omitidas}, Errores: ${errores}`)
+    logger.info("RECURRING_BOOKINGS_CRON", `Procesadas: ${plantillas.length}, Generadas: ${generadas}, Conflictos: ${conflictos}, Bloqueados: ${bloqueados}, Omitidas: ${omitidas}, Errores: ${errores}`)
 
     return NextResponse.json({
       procesadas: plantillas.length,
       generadas,
       conflictos,
+      bloqueados,
       omitidas,
       errores,
     })

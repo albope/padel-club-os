@@ -4,6 +4,7 @@ import { logger } from "@/lib/logger"
 import { validarBody } from "@/lib/validation"
 import { resolverSegmento, enviarBroadcast } from "@/lib/broadcast"
 import { crearRateLimiter, obtenerIP } from "@/lib/rate-limit"
+import { registrarAuditoria } from "@/lib/audit"
 import { NextResponse } from "next/server"
 import * as z from "zod"
 
@@ -110,6 +111,16 @@ export async function POST(req: Request) {
         where: { id: broadcast.id },
         data: { status: "failed" },
       }).catch(() => {})
+    })
+
+    registrarAuditoria({
+      recurso: "broadcast",
+      accion: "enviar",
+      entidadId: broadcast.id,
+      detalles: { segmento, canales, destinatarios: recipientCount },
+      userId: auth.session.user.id,
+      userName: auth.session.user.name,
+      clubId: auth.session.user.clubId,
     })
 
     return NextResponse.json(

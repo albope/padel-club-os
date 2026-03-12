@@ -34,6 +34,9 @@ vi.mock("@/lib/stripe", () => ({
 vi.mock("@/lib/logger", () => ({
   logger: { info: vi.fn(), error: vi.fn(), warn: vi.fn() },
 }))
+vi.mock("@/lib/court-blocks", () => ({
+  verificarBloqueo: vi.fn().mockResolvedValue(null),
+}))
 
 // Importar handlers DESPUES de los mocks
 import { POST as adminBookingPOST } from "@/app/api/bookings/route"

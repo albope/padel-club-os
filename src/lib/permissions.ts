@@ -81,6 +81,18 @@ export type Permission =
   // Lista de espera de reservas
   | "booking-waitlist:create"
   | "booking-waitlist:delete"
+  // Bloqueos de pista
+  | "court-blocks:read"
+  | "court-blocks:create"
+  | "court-blocks:update"
+  | "court-blocks:delete"
+  // Audit log
+  | "audit:read"
+  // Equipo (gestion admin/staff)
+  | "team:read"
+  | "team:invite"
+  | "team:update"
+  | "team:remove"
 
 // Permisos por rol
 const rolePermissions: Record<UserRole, Permission[]> = {
@@ -103,6 +115,9 @@ const rolePermissions: Record<UserRole, Permission[]> = {
     "booking-payments:read", "booking-payments:update",
     "players:read", "chat:read", "chat:write", "ratings:read", "ratings:write",
     "booking-waitlist:create", "booking-waitlist:delete",
+    "court-blocks:read", "court-blocks:create", "court-blocks:update", "court-blocks:delete",
+    "audit:read",
+    "team:read", "team:invite", "team:update", "team:remove",
   ],
   CLUB_ADMIN: [
     "bookings:read", "bookings:create", "bookings:create-any", "bookings:update", "bookings:delete", "bookings:import",
@@ -123,6 +138,9 @@ const rolePermissions: Record<UserRole, Permission[]> = {
     "booking-payments:read", "booking-payments:update",
     "players:read", "chat:read", "chat:write", "ratings:read", "ratings:write",
     "booking-waitlist:create", "booking-waitlist:delete",
+    "court-blocks:read", "court-blocks:create", "court-blocks:update", "court-blocks:delete",
+    "audit:read",
+    "team:read", "team:invite", "team:update", "team:remove",
   ],
   STAFF: [
     "bookings:read", "bookings:create", "bookings:create-any", "bookings:update", "bookings:delete",
@@ -138,6 +156,8 @@ const rolePermissions: Record<UserRole, Permission[]> = {
     "booking-payments:read", "booking-payments:update",
     "players:read", "chat:read", "ratings:read",
     "booking-waitlist:create", "booking-waitlist:delete",
+    "court-blocks:read", "court-blocks:create", "court-blocks:delete",
+    "team:read",
   ],
   PLAYER: [
     "bookings:read", "bookings:create",

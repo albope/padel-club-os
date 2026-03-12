@@ -3,8 +3,10 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useTranslations } from 'next-intl';
+import { useSession } from 'next-auth/react';
 import { Menu } from 'lucide-react';
 import { navItems } from '@/lib/nav-items';
+import { hasPermission } from '@/lib/permissions';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import {
@@ -16,11 +18,18 @@ import {
 } from '@/components/ui/sheet';
 import { LogoIcon } from '@/components/ui/logo-icon';
 import { useState } from 'react';
+import type { UserRole } from '@prisma/client';
 
 export function MobileSidebar() {
   const pathname = usePathname();
   const t = useTranslations();
+  const { data: session } = useSession();
+  const role = session?.user?.role as UserRole | undefined;
   const [open, setOpen] = useState(false);
+
+  const filteredNavItems = navItems.filter(
+    (item) => !item.requiredPermission || (role && hasPermission(role, item.requiredPermission))
+  );
 
   const isActive = (href: string) => {
     if (href === '/dashboard') return pathname === '/dashboard';
@@ -44,7 +53,7 @@ export function MobileSidebar() {
         </SheetHeader>
         <nav className="p-4">
           <ul className="space-y-1">
-            {navItems.map((item) => (
+            {filteredNavItems.map((item) => (
               <li key={item.nameKey}>
                 <Link
                   href={item.href}

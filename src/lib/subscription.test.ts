@@ -235,6 +235,7 @@ describe("canCreateAdmin", () => {
       trialEndsAt: null,
     })
     mockDb.user.count.mockResolvedValue(0)
+    mockDb.adminInvitation.count.mockResolvedValue(0)
 
     const result = await canCreateAdmin("club-1")
     expect(result.allowed).toBe(true)
@@ -247,9 +248,24 @@ describe("canCreateAdmin", () => {
       trialEndsAt: null,
     })
     mockDb.user.count.mockResolvedValue(1)
+    mockDb.adminInvitation.count.mockResolvedValue(0)
 
     const result = await canCreateAdmin("club-1")
     expect(result.allowed).toBe(false)
     expect(result.reason).toContain("1")
+  })
+
+  it("cuenta invitaciones pendientes en el limite", async () => {
+    mockDb.club.findUnique.mockResolvedValue({
+      subscriptionStatus: "active",
+      subscriptionTier: "starter",
+      trialEndsAt: null,
+    })
+    mockDb.user.count.mockResolvedValue(0)
+    mockDb.adminInvitation.count.mockResolvedValue(1)
+
+    const result = await canCreateAdmin("club-1")
+    expect(result.allowed).toBe(false)
+    expect(result.used).toBe(1)
   })
 })

@@ -71,6 +71,14 @@ export const mockDb = {
     deleteMany: vi.fn(),
     count: vi.fn(),
   },
+  adminInvitation: {
+    count: vi.fn(),
+    findUnique: vi.fn(),
+    findMany: vi.fn(),
+    create: vi.fn(),
+    delete: vi.fn(),
+    deleteMany: vi.fn(),
+  },
   bookingWaitlist: {
     findMany: vi.fn(),
     findFirst: vi.fn(),

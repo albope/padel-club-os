@@ -3,6 +3,7 @@ import { crearNotificacion } from "@/lib/notifications"
 import { enviarEmailRecordatorioReserva } from "@/lib/email"
 import { liberarSlotYNotificar } from "@/lib/waitlist"
 import { logger } from "@/lib/logger"
+import { registrarAuditoria } from "@/lib/audit"
 import { NextResponse } from "next/server"
 
 // Tiempo de antelacion para enviar recordatorio (1 hora)
@@ -149,6 +150,18 @@ export async function POST(req: Request) {
           },
         })
         canceladas++
+
+        registrarAuditoria({
+          recurso: "booking",
+          accion: "cancelar",
+          entidadId: reserva.id,
+          detalles: { motivo: "impago_15min", pistaId: reserva.courtId },
+          userId: null,
+          userName: null,
+          origen: "cron",
+          clubId: reserva.clubId,
+          clubName: reserva.club?.name || null,
+        })
 
         // Notificar lista de espera del slot liberado
         liberarSlotYNotificar({

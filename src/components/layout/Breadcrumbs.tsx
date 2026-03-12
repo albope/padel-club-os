@@ -20,6 +20,7 @@ const ROUTE_LABELS: Record<string, string> = {
   noticias: 'Noticias',
   analiticas: 'Analiticas',
   rankings: 'Rankings',
+  equipo: 'Equipo',
 };
 
 export function Breadcrumbs() {

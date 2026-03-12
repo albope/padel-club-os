@@ -2,13 +2,30 @@
 
 import React, { useState, useEffect } from 'react';
 import { useLocale } from 'next-intl';
-import { Court } from '@prisma/client';
-import { PlusCircle, Clock, ChevronDown, Users, BarChart3, Maximize, Minimize } from 'lucide-react';
+import { Court, CourtBlockReason } from '@prisma/client';
+import { PlusCircle, Clock, ChevronDown, Users, BarChart3, Maximize, Minimize, Lock } from 'lucide-react';
 import { BookingWithDetails } from './CalendarView';
+
+export interface CourtBlockForGrid {
+  id: string;
+  reason: CourtBlockReason;
+  note: string | null;
+  startTime: string;
+  endTime: string;
+  courtId: string | null;
+}
+
+const MOTIVO_BLOQUEO: Record<CourtBlockReason, string> = {
+  MAINTENANCE: 'Mantenimiento',
+  HOLIDAY: 'Festivo',
+  EVENT: 'Evento',
+  OTHER: 'Otro',
+};
 
 interface CourtGridViewProps {
   courts: Court[];
   bookings: BookingWithDetails[];
+  courtBlocks: CourtBlockForGrid[];
   selectedDate: Date;
   onSlotClick: (date: Date, courtId: string) => void;
   onBookingClick: (booking: BookingWithDetails) => void;
@@ -26,7 +43,7 @@ const generateTimeSlots = (startHour: number, endHour: number, interval: number)
   return slots;
 };
 
-const CourtGridView: React.FC<CourtGridViewProps> = ({ courts, bookings, selectedDate, onSlotClick, onBookingClick }) => {
+const CourtGridView: React.FC<CourtGridViewProps> = ({ courts, bookings, courtBlocks, selectedDate, onSlotClick, onBookingClick }) => {
   const locale = useLocale();
   const localeCode = locale === 'es' ? 'es-ES' : 'en-GB';
   const timeSlots = generateTimeSlots(9, 23, 90);
@@ -103,6 +120,28 @@ const CourtGridView: React.FC<CourtGridViewProps> = ({ courts, bookings, selecte
                     const [hour, minute] = slot.split(':').map(Number);
                     const slotDate = new Date(selectedDate);
                     slotDate.setHours(hour, minute, 0, 0);
+                    const slotEnd = new Date(slotDate.getTime() + 90 * 60 * 1000);
+
+                    // Verificar bloqueo por overlap (antes de buscar booking)
+                    const bloqueo = courtBlocks.find(b => {
+                      const bStart = new Date(b.startTime).getTime();
+                      const bEnd = new Date(b.endTime).getTime();
+                      const matchCourt = b.courtId === null || b.courtId === court.id;
+                      return matchCourt && bStart < slotEnd.getTime() && bEnd > slotDate.getTime();
+                    });
+
+                    if (bloqueo) {
+                      return (
+                        <div key={slot} className="w-full bg-gray-200 dark:bg-gray-700 rounded-lg p-3 text-gray-500 dark:text-gray-400 space-y-1">
+                          <div className="flex items-center gap-2 font-semibold text-sm">
+                            <Lock className="h-4 w-4" /> {MOTIVO_BLOQUEO[bloqueo.reason]}
+                          </div>
+                          <p className="text-xs">{slot}</p>
+                          {bloqueo.note && <p className="text-xs opacity-75">{bloqueo.note}</p>}
+                        </div>
+                      );
+                    }
+
                     const booking = courtBookings.find(b => new Date(b.startTime).getTime() === slotDate.getTime());
 
                     if (booking) {

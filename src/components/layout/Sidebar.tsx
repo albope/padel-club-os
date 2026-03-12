@@ -3,14 +3,23 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useTranslations } from 'next-intl';
+import { useSession } from 'next-auth/react';
 import { navItems } from '@/lib/nav-items';
+import { hasPermission } from '@/lib/permissions';
 import { cn } from '@/lib/utils';
 import { LogoIcon } from '@/components/ui/logo-icon';
+import type { UserRole } from '@prisma/client';
 import React from 'react';
 
 const Sidebar = () => {
   const pathname = usePathname();
   const t = useTranslations();
+  const { data: session } = useSession();
+  const role = session?.user?.role as UserRole | undefined;
+
+  const filteredNavItems = navItems.filter(
+    (item) => !item.requiredPermission || (role && hasPermission(role, item.requiredPermission))
+  );
 
   const isActive = (href: string) => {
     if (href === '/dashboard') return pathname === '/dashboard';
@@ -28,7 +37,7 @@ const Sidebar = () => {
 
       <nav aria-label="Navegacion principal" className="flex-grow p-4">
         <ul className="space-y-1">
-          {navItems.map((item) => (
+          {filteredNavItems.map((item) => (
             <li key={item.nameKey}>
               <Link
                 href={item.href}

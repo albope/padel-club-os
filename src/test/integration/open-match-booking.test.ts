@@ -30,6 +30,9 @@ vi.mock("@/lib/logger", () => ({
 vi.mock("@prisma/client", () => ({
   OpenMatchStatus: { OPEN: "OPEN", FULL: "FULL", CONFIRMED: "CONFIRMED", CANCELLED: "CANCELLED" },
 }))
+vi.mock("@/lib/court-blocks", () => ({
+  verificarBloqueo: vi.fn().mockResolvedValue(null),
+}))
 
 import { POST } from "@/app/api/open-matches/route"
 import { PATCH, DELETE } from "@/app/api/open-matches/[matchId]/route"

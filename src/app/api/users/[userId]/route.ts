@@ -3,6 +3,7 @@ import { requireAuth, isAuthError } from "@/lib/api-auth";
 import { NextResponse } from "next/server";
 import { validarBody } from "@/lib/validation";
 import { logger } from "@/lib/logger";
+import { registrarAuditoria } from "@/lib/audit";
 import * as z from "zod";
 
 const UserUpdateSchema = z.object({
@@ -38,6 +39,21 @@ export async function PATCH(
       return new NextResponse("No puedes editar tu propia cuenta desde este panel", { status: 403 });
     }
 
+    // Blindar: solo se pueden editar jugadores desde este endpoint
+    const targetUser = await db.user.findUnique({
+      where: { id: params.userId, clubId: auth.session.user.clubId },
+      select: { role: true },
+    });
+    if (!targetUser) {
+      return new NextResponse("Usuario no encontrado", { status: 404 });
+    }
+    if (targetUser.role !== "PLAYER") {
+      return NextResponse.json(
+        { error: "Usa la seccion Equipo para gestionar administradores y staff." },
+        { status: 403 }
+      );
+    }
+
     const updatedUser = await db.user.update({
       where: { id: params.userId, clubId: auth.session.user.clubId },
       data: {
@@ -47,6 +63,16 @@ export async function PATCH(
         ...(typeof adminNotes === 'string' || adminNotes === null ? { adminNotes } : {}),
       },
     });
+
+    registrarAuditoria({
+      recurso: "user",
+      accion: "actualizar",
+      entidadId: params.userId,
+      detalles: { campos: Object.keys(result.data) },
+      userId: auth.session.user.id,
+      userName: auth.session.user.name,
+      clubId: auth.session.user.clubId,
+    })
 
     return NextResponse.json(updatedUser);
   } catch (error) {
@@ -72,9 +98,34 @@ export async function DELETE(
       return new NextResponse("No puedes eliminar tu propia cuenta", { status: 403 });
     }
 
-    await db.user.delete({
+    // Blindar: solo se pueden eliminar jugadores desde este endpoint
+    const targetUser = await db.user.findUnique({
+      where: { id: params.userId, clubId: auth.session.user.clubId },
+      select: { role: true },
+    });
+    if (!targetUser) {
+      return new NextResponse("Usuario no encontrado", { status: 404 });
+    }
+    if (targetUser.role !== "PLAYER") {
+      return NextResponse.json(
+        { error: "Usa la seccion Equipo para gestionar administradores y staff." },
+        { status: 403 }
+      );
+    }
+
+    const deletedUser = await db.user.delete({
       where: { id: params.userId, clubId: auth.session.user.clubId },
     });
+
+    registrarAuditoria({
+      recurso: "user",
+      accion: "eliminar",
+      entidadId: params.userId,
+      detalles: { email: deletedUser.email, nombre: deletedUser.name },
+      userId: auth.session.user.id,
+      userName: auth.session.user.name,
+      clubId: auth.session.user.clubId,
+    })
 
     return new NextResponse(null, { status: 204 });
   } catch (error) {

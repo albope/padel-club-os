@@ -1,23 +1,25 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { Court, User } from '@prisma/client';
 import { Calendar, LayoutGrid, ChevronLeft, ChevronRight, Download, CreditCard } from 'lucide-react';
 import CalendarView, { BookingWithDetails } from './CalendarView';
-import CourtGridView from './CourtGridView';
+import CourtGridView, { CourtBlockForGrid } from './CourtGridView';
 import BookingModal from './BookingModal';
 import PendingPayments from './PendingPayments';
 import { Button } from '@/components/ui/button';
 
 interface ReservasContainerProps {
   initialBookings: BookingWithDetails[];
+  initialCourtBlocks: CourtBlockForGrid[];
   courts: Court[];
   users: User[];
 }
 
-const ReservasContainer: React.FC<ReservasContainerProps> = ({ initialBookings, courts, users }) => {
+const ReservasContainer: React.FC<ReservasContainerProps> = ({ initialBookings, initialCourtBlocks, courts, users }) => {
   const [view, setView] = useState<'calendar' | 'grid' | 'payments'>('grid');
   const [currentDate, setCurrentDate] = useState(new Date());
+  const [courtBlocks, setCourtBlocks] = useState<CourtBlockForGrid[]>(initialCourtBlocks);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedInfo, setSelectedInfo] = useState<Date | BookingWithDetails | null>(null);
 
@@ -26,10 +28,27 @@ const ReservasContainer: React.FC<ReservasContainerProps> = ({ initialBookings, 
     [initialBookings]
   );
 
+  const fetchCourtBlocks = useCallback(async (date: Date) => {
+    const yyyy = date.getFullYear();
+    const mm = String(date.getMonth() + 1).padStart(2, '0');
+    const dd = String(date.getDate()).padStart(2, '0');
+    const dateStr = `${yyyy}-${mm}-${dd}`;
+    try {
+      const res = await fetch(`/api/court-blocks?from=${dateStr}&to=${dateStr}`);
+      if (res.ok) {
+        const data = await res.json();
+        setCourtBlocks(data);
+      }
+    } catch {
+      // Silenciar errores de red
+    }
+  }, []);
+
   const handlePrevDay = () => {
     setCurrentDate(prevDate => {
       const newDate = new Date(prevDate);
       newDate.setDate(newDate.getDate() - 1);
+      fetchCourtBlocks(newDate);
       return newDate;
     });
   };
@@ -38,6 +57,7 @@ const ReservasContainer: React.FC<ReservasContainerProps> = ({ initialBookings, 
     setCurrentDate(prevDate => {
       const newDate = new Date(prevDate);
       newDate.setDate(newDate.getDate() + 1);
+      fetchCourtBlocks(newDate);
       return newDate;
     });
   };
@@ -142,6 +162,7 @@ const ReservasContainer: React.FC<ReservasContainerProps> = ({ initialBookings, 
             <CourtGridView
               courts={courts}
               bookings={initialBookings}
+              courtBlocks={courtBlocks}
               selectedDate={currentDate}
               onSlotClick={handleSlotClick}
               onBookingClick={handleBookingClick}

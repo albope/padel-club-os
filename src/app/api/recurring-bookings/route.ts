@@ -4,6 +4,7 @@ import { NextResponse } from "next/server"
 import { validarBody } from "@/lib/validation"
 import { canCreateRecurringBooking } from "@/lib/subscription"
 import { logger } from "@/lib/logger"
+import { registrarAuditoria } from "@/lib/audit"
 import * as z from "zod"
 
 const RecurringBookingCreateSchema = z.object({
@@ -116,6 +117,16 @@ export async function POST(req: Request) {
       id: recurringBooking.id,
       clubId,
       dayOfWeek: data.dayOfWeek,
+    })
+
+    registrarAuditoria({
+      recurso: "recurring-booking",
+      accion: "crear",
+      entidadId: recurringBooking.id,
+      detalles: { dia: data.dayOfWeek, hora: data.startHour, pista: data.courtId },
+      userId: auth.session.user.id,
+      userName: auth.session.user.name,
+      clubId,
     })
 
     return NextResponse.json(recurringBooking, { status: 201 })

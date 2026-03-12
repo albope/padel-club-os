@@ -9,6 +9,8 @@ import { stripe } from "@/lib/stripe";
 import { logger } from "@/lib/logger";
 import { validarBody } from "@/lib/validation";
 import { liberarSlotYNotificar, limpiarWaitlistAlReservar } from "@/lib/waitlist";
+import { verificarBloqueo } from "@/lib/court-blocks";
+import { registrarAuditoria } from "@/lib/audit";
 import * as z from "zod";
 
 const PlayerBookingCreateSchema = z.object({
@@ -118,6 +120,15 @@ export async function POST(req: Request) {
       );
     }
 
+    // Verificar bloqueo de pista
+    const bloqueo = await verificarBloqueo(auth.session.user.clubId, courtId, newStartTime, newEndTime);
+    if (bloqueo) {
+      return NextResponse.json(
+        { error: `La pista esta bloqueada en ese horario (${bloqueo.reason}${bloqueo.note ? `: ${bloqueo.note}` : ""}).` },
+        { status: 409 }
+      );
+    }
+
     // Verificar que la pista pertenece al club
     const court = await db.court.findFirst({
       where: { id: courtId, clubId: auth.session.user.clubId },
@@ -179,6 +190,16 @@ export async function POST(req: Request) {
 
     // Limpiar lista de espera del slot
     limpiarWaitlistAlReservar({ courtId, startTime: newStartTime, userId: auth.session.user.id }).catch(() => {})
+
+    registrarAuditoria({
+      recurso: "booking",
+      accion: "crear",
+      entidadId: booking.id,
+      detalles: { pistaId: courtId, fecha: startTime, hora: startTime },
+      userId: auth.session.user.id,
+      userName: auth.session.user.name,
+      clubId: auth.session.user.clubId,
+    })
 
     // Notificar al jugador de la confirmacion
     crearNotificacion({
@@ -330,6 +351,16 @@ export async function DELETE(req: Request) {
         logger.error("BOOKING_REFUND", "Error al procesar reembolso", { bookingId, paymentId: payment.id }, refundError)
       }
     }
+
+    registrarAuditoria({
+      recurso: "booking",
+      accion: "cancelar",
+      entidadId: bookingId,
+      detalles: { pistaId: reserva.courtId, fecha: reserva.startTime },
+      userId: auth.session.user.id,
+      userName: auth.session.user.name,
+      clubId: auth.session.user.clubId,
+    })
 
     // Notificar al jugador de la cancelacion
     crearNotificacion({

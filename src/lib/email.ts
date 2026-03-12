@@ -19,7 +19,7 @@ function getResend(): Resend {
 // CONSTANTES DE MARCA
 // =============================================================================
 
-const EMAIL_FROM = "Padel Club OS <onboarding@resend.dev>"
+const EMAIL_FROM = "Padel Club OS <no-reply@padelclubos.com>"
 
 const EMAIL_BRAND = {
   nombre: "Padel Club OS",
@@ -995,6 +995,107 @@ export async function enviarEmailSolicitudDemo({
       titulo: "Nueva solicitud de demo",
       preheader: `Solicitud de demo de ${nombre} (${clubNombre})`,
       contenido,
+    }),
+  })
+}
+
+// =============================================================================
+// INVITACION DE EQUIPO (ADMIN/STAFF)
+// =============================================================================
+
+const estiloParrafoInvitacion = `font-size:15px;color:${EMAIL_BRAND.colorTexto};line-height:1.6;margin:0 0 16px;`
+
+interface EnviarEmailInvitacionEquipoParams {
+  email: string
+  invitadorNombre: string
+  clubNombre: string
+  rol: string // "Administrador" o "Staff"
+  token: string // plaintext (no el hash)
+}
+
+/**
+ * Email de invitacion para unirse al equipo de un club como admin o staff.
+ */
+export async function enviarEmailInvitacionEquipo({
+  email,
+  invitadorNombre,
+  clubNombre,
+  rol,
+  token,
+}: EnviarEmailInvitacionEquipoParams): Promise<void> {
+  const resend = getResend()
+  const enlace = `${EMAIL_BRAND.siteUrl}/invitacion?token=${token}`
+
+  const contenido = `
+    <p style="${estiloParrafoInvitacion}">
+      <strong>${escaparHtml(invitadorNombre)}</strong> te ha invitado a unirte al equipo de
+      <strong>${escaparHtml(clubNombre)}</strong> en Padel Club OS.
+    </p>
+    ${cajaDetalle([
+      { etiqueta: "Club", valor: escaparHtml(clubNombre) },
+      { etiqueta: "Rol", valor: escaparHtml(rol) },
+      { etiqueta: "Invitado por", valor: escaparHtml(invitadorNombre) },
+    ])}
+    <p style="${estiloParrafoInvitacion}">
+      Haz clic en el boton para aceptar la invitacion y configurar tu cuenta.
+    </p>
+  `
+
+  await resend.emails.send({
+    from: EMAIL_FROM,
+    to: email,
+    subject: `${invitadorNombre} te invita a gestionar ${clubNombre}`,
+    html: plantillaEmail({
+      titulo: "Invitacion al equipo",
+      preheader: `${invitadorNombre} te invita como ${rol} de ${clubNombre}`,
+      contenido,
+      boton: { texto: "Aceptar invitacion", url: enlace },
+      pieDePagina: "Este enlace expira en 48 horas. Si no esperabas esta invitacion, puedes ignorar este email.",
+    }),
+  })
+}
+
+interface EnviarEmailBienvenidaEquipoParams {
+  email: string
+  nombre: string
+  clubNombre: string
+  rol: string
+}
+
+/**
+ * Email de bienvenida tras aceptar una invitacion de equipo.
+ */
+export async function enviarEmailBienvenidaEquipo({
+  email,
+  nombre,
+  clubNombre,
+  rol,
+}: EnviarEmailBienvenidaEquipoParams): Promise<void> {
+  const resend = getResend()
+
+  const contenido = `
+    <p style="${estiloParrafoInvitacion}">
+      Hola <strong>${escaparHtml(nombre)}</strong>,
+    </p>
+    <p style="${estiloParrafoInvitacion}">
+      Ya formas parte del equipo de <strong>${escaparHtml(clubNombre)}</strong> como <strong>${escaparHtml(rol)}</strong>.
+      Accede al panel de administracion para empezar a gestionar el club.
+    </p>
+    ${cajaDetalle([
+      { etiqueta: "Club", valor: escaparHtml(clubNombre) },
+      { etiqueta: "Tu rol", valor: escaparHtml(rol) },
+    ])}
+  `
+
+  await resend.emails.send({
+    from: EMAIL_FROM,
+    to: email,
+    subject: `Bienvenido al equipo de ${clubNombre}`,
+    html: plantillaEmail({
+      titulo: "Bienvenido al equipo",
+      preheader: `Ya formas parte del equipo de ${clubNombre} como ${rol}`,
+      contenido,
+      boton: { texto: "Ir al panel", url: `${EMAIL_BRAND.siteUrl}/login` },
     }),
   })
 }

@@ -47,6 +47,9 @@ vi.mock("@/lib/logger", () => ({
 vi.mock("@prisma/client", () => ({
   OpenMatchStatus: { OPEN: "OPEN", FULL: "FULL", CONFIRMED: "CONFIRMED", CANCELLED: "CANCELLED" },
 }))
+vi.mock("@/lib/court-blocks", () => ({
+  verificarBloqueo: vi.fn().mockResolvedValue(null),
+}))
 
 // Importar handlers
 import { DELETE as playerBookingDELETE } from "@/app/api/player/bookings/route"

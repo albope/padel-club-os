@@ -4,6 +4,7 @@ import { NextResponse } from "next/server"
 import { validarBody } from "@/lib/validation"
 import { getSubscriptionInfo, getPlanLimits } from "@/lib/subscription"
 import { logger } from "@/lib/logger"
+import { registrarAuditoria } from "@/lib/audit"
 import {
   normalizarNombre,
   dedupPistasCSV,
@@ -134,6 +135,15 @@ export async function POST(req: Request) {
       clubId,
       importadas: courtsCreated.length,
       errores: errors.length,
+    })
+
+    registrarAuditoria({
+      recurso: "court",
+      accion: "importar",
+      detalles: { creados: courtsCreated.length, errores: errors.length },
+      userId: auth.session.user.id,
+      userName: auth.session.user.name,
+      clubId: clubId,
     })
 
     return NextResponse.json({

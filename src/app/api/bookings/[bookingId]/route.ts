@@ -4,6 +4,8 @@ import { logger } from "@/lib/logger";
 import { NextResponse } from "next/server";
 import { validarBody } from "@/lib/validation";
 import { liberarSlotYNotificar } from "@/lib/waitlist";
+import { verificarBloqueo } from "@/lib/court-blocks";
+import { registrarAuditoria } from "@/lib/audit";
 import * as z from "zod";
 
 const BookingUpdateSchema = z.object({
@@ -59,10 +61,29 @@ export async function PATCH(
       return new NextResponse("El nuevo horario se solapa con otra reserva existente.", { status: 409 });
     }
 
+    // Verificar bloqueo de pista
+    const bloqueo = await verificarBloqueo(auth.session.user.clubId, courtId, newStartTime, newEndTime);
+    if (bloqueo) {
+      return NextResponse.json(
+        { error: `La pista esta bloqueada en ese horario (${bloqueo.reason}${bloqueo.note ? `: ${bloqueo.note}` : ""}).` },
+        { status: 409 }
+      );
+    }
+
     const updatedBooking = await db.booking.update({
       where: { id: params.bookingId, clubId: auth.session.user.clubId },
       data: { courtId, userId, startTime: newStartTime, endTime: newEndTime },
     });
+
+    registrarAuditoria({
+      recurso: "booking",
+      accion: "actualizar",
+      entidadId: params.bookingId,
+      detalles: { campos: Object.keys(result.data) },
+      userId: auth.session.user.id,
+      userName: auth.session.user.name,
+      clubId: auth.session.user.clubId,
+    })
 
     return NextResponse.json(updatedBooking);
   } catch (error) {
@@ -114,6 +135,16 @@ export async function DELETE(
         cancelReason: "Eliminada por administrador",
       },
     });
+
+    registrarAuditoria({
+      recurso: "booking",
+      accion: "cancelar",
+      entidadId: params.bookingId,
+      detalles: { pistaId: reserva.courtId, fecha: reserva.startTime },
+      userId: auth.session.user.id,
+      userName: auth.session.user.name,
+      clubId: auth.session.user.clubId,
+    })
 
     // Notificar lista de espera si la reserva era futura
     if (new Date(reserva.startTime) > new Date()) {

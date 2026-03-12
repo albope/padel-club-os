@@ -29,6 +29,9 @@ vi.mock("@/lib/waitlist", () => ({
   limpiarWaitlistAlReservar: (...args: unknown[]) => mockLimpiarWaitlist(...args),
   liberarSlotYNotificar: (...args: unknown[]) => mockLiberarSlot(...args),
 }))
+vi.mock("@/lib/court-blocks", () => ({
+  verificarBloqueo: vi.fn().mockResolvedValue(null),
+}))
 
 import { GET, POST } from "@/app/api/bookings/route"
 import { PATCH, DELETE } from "@/app/api/bookings/[bookingId]/route"

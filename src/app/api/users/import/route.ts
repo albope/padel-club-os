@@ -5,6 +5,7 @@ import { validarBody } from "@/lib/validation";
 import { crearTokenRecuperacion } from "@/lib/tokens";
 import { enviarEmailActivacionCuenta } from "@/lib/email";
 import { logger } from "@/lib/logger";
+import { registrarAuditoria } from "@/lib/audit";
 import * as z from "zod";
 
 const SocioImportSchema = z.object({
@@ -125,6 +126,15 @@ export async function POST(req: Request) {
         logger.error("IMPORT_USERS", `${emailsFailed} emails de activacion fallaron`, { clubId, emailsFailed })
       }
     }
+
+    registrarAuditoria({
+      recurso: "user",
+      accion: "importar",
+      detalles: { creados: successCount, emailsEnviados: emailsSent, emailsFallidos: emailsFailed },
+      userId: auth.session.user.id,
+      userName: auth.session.user.name,
+      clubId: auth.session.user.clubId,
+    })
 
     return NextResponse.json({ successCount, errors, emailsSent, emailsFailed });
   } catch (error) {

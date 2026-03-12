@@ -8,6 +8,7 @@ const SUBSCRIPTION_EXEMPT_PATHS = [
   "/dashboard/ajustes",
   "/dashboard/configuracion-inicial",
   "/dashboard/migracion",
+  "/dashboard/audit-log",
 ]
 
 /**
@@ -79,6 +80,7 @@ export default withAuth(
           pathname.startsWith("/api/blog/public") ||
           pathname.startsWith("/api/club/") ||
           pathname.startsWith("/api/locale") ||
+          pathname.startsWith("/api/team/accept") ||
           pathname.startsWith("/club")
         ) {
           return true

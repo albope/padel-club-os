@@ -4,6 +4,7 @@ import { NextResponse } from "next/server";
 import { calcularPrecioReserva } from "@/lib/pricing";
 import { notificarClub } from "@/lib/notifications";
 import { validarBody } from "@/lib/validation";
+import { verificarBloqueo } from "@/lib/court-blocks";
 import { logger } from "@/lib/logger";
 import * as z from "zod";
 
@@ -93,6 +94,15 @@ export async function POST(req: Request) {
     if (solapamiento) {
       return NextResponse.json(
         { error: "Ese horario ya esta ocupado." },
+        { status: 409 }
+      );
+    }
+
+    // Verificar bloqueo de pista
+    const bloqueo = await verificarBloqueo(auth.session.user.clubId, courtId, startTime, endTime);
+    if (bloqueo) {
+      return NextResponse.json(
+        { error: `La pista esta bloqueada en ese horario (${bloqueo.reason}${bloqueo.note ? `: ${bloqueo.note}` : ""}).` },
         { status: 409 }
       );
     }

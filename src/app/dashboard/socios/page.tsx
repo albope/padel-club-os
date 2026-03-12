@@ -15,7 +15,7 @@ const SociosPage = async () => {
   }
 
   const usersWithStatsData = await db.user.findMany({
-    where: { clubId: session.user.clubId },
+    where: { clubId: session.user.clubId, role: "PLAYER" },
     orderBy: { name: 'asc' },
     include: {
       _count: { select: { bookings: true } },
@@ -23,10 +23,7 @@ const SociosPage = async () => {
     },
   });
 
-  const initialSocios = usersWithStatsData.map(user => ({
-    ...user,
-    isAdmin: user.id === session.user.id,
-  }));
+  const initialSocios = usersWithStatsData;
 
   return (
     <div className="space-y-8">

@@ -1,6 +1,7 @@
 import { db } from "@/lib/db";
 import { requireAuth, isAuthError } from "@/lib/api-auth";
 import { logger } from "@/lib/logger";
+import { registrarAuditoria } from "@/lib/audit";
 import { NextResponse } from "next/server";
 import { canCreateCourt } from "@/lib/subscription";
 import { validarBody } from "@/lib/validation";
@@ -56,6 +57,16 @@ export async function POST(req: Request) {
         clubId: auth.session.user.clubId,
       },
     });
+
+    registrarAuditoria({
+      recurso: "court",
+      accion: "crear",
+      entidadId: court.id,
+      detalles: { nombre: court.name, tipo: court.type },
+      userId: auth.session.user.id,
+      userName: auth.session.user.name,
+      clubId: auth.session.user.clubId,
+    })
 
     return NextResponse.json(court, { status: 201 });
   } catch (error) {

@@ -3,7 +3,7 @@
 import React, { useState, useMemo } from 'react';
 import { User } from '@prisma/client';
 import { useTranslations } from 'next-intl';
-import { Pencil, ShieldCheck, Search, ChevronLeft, ChevronRight, Users } from 'lucide-react';
+import { Pencil, Search, ChevronLeft, ChevronRight, Users } from 'lucide-react';
 import Link from 'next/link';
 import SocioDetailModal from './SocioDetailModal';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
@@ -20,7 +20,6 @@ type SocioWithStats = User & {
     bookings: number;
   };
   bookings: { id: string }[];
-  isAdmin: boolean;
 };
 
 interface SociosClientProps {
@@ -66,9 +65,7 @@ const SociosClient: React.FC<SociosClientProps> = ({ initialSocios }) => {
     setSelectedSocio(null);
   };
 
-  const tieneSocios = initialSocios.some(s => !s.isAdmin);
-
-  if (!tieneSocios && !searchTerm) {
+  if (initialSocios.length === 0 && !searchTerm) {
     return (
       <Card>
         <CardContent className="p-6">
@@ -148,12 +145,6 @@ const SociosClient: React.FC<SociosClientProps> = ({ initialSocios }) => {
                       />
                       <div className="flex items-center gap-2">
                         <p className="font-semibold text-foreground">{socio.name}</p>
-                        {socio.isAdmin && (
-                          <Badge variant="secondary" className="gap-1">
-                            <ShieldCheck className="h-3 w-3" />
-                            Admin
-                          </Badge>
-                        )}
                         {!socio.isActive && (
                           <Badge variant="secondary" className="bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400">
                             {t('inactiveBadge')}
@@ -161,14 +152,12 @@ const SociosClient: React.FC<SociosClientProps> = ({ initialSocios }) => {
                         )}
                       </div>
                     </button>
-                    {!socio.isAdmin && (
-                      <Link
-                        href={`/dashboard/socios/${socio.id}`}
-                        className="p-2 text-muted-foreground opacity-0 group-hover:opacity-100 hover:text-foreground rounded-full hover:bg-muted transition-all"
-                      >
-                        <Pencil className="h-4 w-4" />
-                      </Link>
-                    )}
+                    <Link
+                      href={`/dashboard/socios/${socio.id}`}
+                      className="p-2 text-muted-foreground opacity-0 group-hover:opacity-100 hover:text-foreground rounded-full hover:bg-muted transition-all"
+                    >
+                      <Pencil className="h-4 w-4" />
+                    </Link>
                   </li>
                 </React.Fragment>
               ))}

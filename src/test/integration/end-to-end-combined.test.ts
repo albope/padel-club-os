@@ -79,6 +79,9 @@ vi.mock("@/lib/payment-sync", () => ({
 vi.mock("@/lib/logger", () => ({
   logger: { info: vi.fn(), error: vi.fn(), warn: vi.fn() },
 }))
+vi.mock("@/lib/court-blocks", () => ({
+  verificarBloqueo: vi.fn().mockResolvedValue(null),
+}))
 
 // =============================================================================
 // Journey 1: Reserva online → Checkout → Webhook → Cancel → Refund

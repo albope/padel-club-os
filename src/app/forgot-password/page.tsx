@@ -12,7 +12,7 @@ import { cn } from '@/lib/utils';
 import AuthBrandingPanel from '@/components/auth/AuthBrandingPanel';
 
 const ForgotPasswordSchema = z.object({
-  email: z.string().min(1, 'El email es requerido.').email('Email invalido.'),
+  email: z.string().min(1, 'El email es requerido.').email('Email inválido.'),
 });
 
 export default function ForgotPasswordPage() {
@@ -109,21 +109,21 @@ export default function ForgotPasswordPage() {
                     Revisa tu correo
                   </h2>
                   <p className="text-sm text-muted-foreground">
-                    Si el email esta registrado, recibiras instrucciones para restablecer tu contrasena.
+                    Si el email está registrado, recibirás instrucciones para restablecer tu contraseña.
                   </p>
                   <Link
                     href="/login"
                     className="inline-flex items-center gap-2 text-sm font-semibold text-primary hover:text-primary/80 transition-colors"
                   >
                     <ArrowLeft className="h-4 w-4" />
-                    Volver a iniciar sesion
+                    Volver a iniciar sesión
                   </Link>
                 </div>
               ) : (
                 <>
                   <div className="mb-7">
                     <h2 className="text-[22px] font-bold tracking-tight text-foreground">
-                      Recuperar contrasena
+                      Recuperar contraseña
                     </h2>
                     <p className="mt-1.5 text-sm text-muted-foreground">
                       Introduce tu email y te enviaremos instrucciones.
@@ -133,7 +133,7 @@ export default function ForgotPasswordPage() {
                   <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
                     <div className="space-y-1.5">
                       <Label htmlFor="email" className="text-[13px] font-medium text-foreground/80">
-                        Correo electronico
+                        Correo electrónico
                       </Label>
                       <div className="auth-input-glow rounded-lg">
                         <Input
@@ -200,7 +200,7 @@ export default function ForgotPasswordPage() {
                       className="inline-flex items-center gap-2 text-sm font-semibold text-primary hover:text-primary/80 transition-colors"
                     >
                       <ArrowLeft className="h-4 w-4" />
-                      Volver a iniciar sesion
+                      Volver a iniciar sesión
                     </Link>
                   </div>
                 </>

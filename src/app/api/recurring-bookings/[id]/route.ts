@@ -3,6 +3,7 @@ import { requireAuth, isAuthError } from "@/lib/api-auth"
 import { NextResponse } from "next/server"
 import { validarBody } from "@/lib/validation"
 import { logger } from "@/lib/logger"
+import { registrarAuditoria } from "@/lib/audit"
 import * as z from "zod"
 
 const RecurringBookingUpdateSchema = z.object({
@@ -114,6 +115,16 @@ export async function PATCH(
 
     logger.info("RECURRING_BOOKINGS", "Reserva recurrente actualizada", { id, clubId })
 
+    registrarAuditoria({
+      recurso: "recurring-booking",
+      accion: "actualizar",
+      entidadId: id,
+      detalles: { campos: Object.keys(data) },
+      userId: auth.session.user.id,
+      userName: auth.session.user.name,
+      clubId,
+    })
+
     return NextResponse.json(updated)
   } catch (error) {
     logger.error("RECURRING_BOOKINGS", "Error al actualizar reserva recurrente", {}, error as Error)
@@ -142,6 +153,16 @@ export async function DELETE(
 
     logger.info("RECURRING_BOOKINGS", "Reserva recurrente eliminada", {
       id,
+      clubId: auth.session.user.clubId,
+    })
+
+    registrarAuditoria({
+      recurso: "recurring-booking",
+      accion: "eliminar",
+      entidadId: id,
+      detalles: { descripcion: existing.description },
+      userId: auth.session.user.id,
+      userName: auth.session.user.name,
       clubId: auth.session.user.clubId,
     })
 

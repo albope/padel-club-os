@@ -66,6 +66,9 @@ model Club {
   chatMessages      ChatMessage[]
   playerRatings     PlayerRating[]
   bookingWaitlists  BookingWaitlist[]
+  courtBlocks       CourtBlock[]
+  auditLogs         AuditLog[]
+  adminInvitations  AdminInvitation[]
 }
 
 // --- USER ROLES ---
@@ -116,6 +119,8 @@ model User {
   ratingsReceived  PlayerRating[] @relation("RatingsReceived")
   chatMessages     ChatMessage[]
   bookingWaitlists BookingWaitlist[]
+  courtBlocksCreated CourtBlock[] @relation("CourtBlocksCreated")
+  invitationsSent    AdminInvitation[] @relation("InvitationsSent")
 
   @@index([clubId])
   @@index([clubId, role])
@@ -164,6 +169,24 @@ model PasswordResetToken {
   @@index([email])
 }
 
+// --- INVITACIONES DE EQUIPO (ADMIN/STAFF) ---
+model AdminInvitation {
+  id          String    @id @default(cuid())
+  email       String
+  role        UserRole  // CLUB_ADMIN o STAFF
+  token       String    @unique  // SHA-256 hash del token original
+  expires     DateTime
+  createdAt   DateTime  @default(now())
+
+  invitedById String
+  invitedBy   User      @relation("InvitationsSent", fields: [invitedById], references: [id])
+  clubId      String
+  club        Club      @relation(fields: [clubId], references: [id], onDelete: Cascade)
+
+  @@unique([email, clubId])
+  @@index([clubId])
+}
+
 // --- BOOKING AND COURTS MODULE ---
 model Court {
   id       String    @id @default(cuid())
@@ -176,6 +199,7 @@ model Court {
   pricings CourtPricing[]
   recurringBookings RecurringBooking[]
   bookingWaitlists  BookingWaitlist[]
+  courtBlocks       CourtBlock[]
 
   @@index([clubId])
 }
@@ -624,4 +648,51 @@ model BookingWaitlist {
   @@unique([courtId, startTime, userId])
   @@index([courtId, startTime, status])
   @@index([clubId, userId])
+}
+
+// --- BLOQUEOS DE PISTA ---
+enum CourtBlockReason {
+  MAINTENANCE
+  HOLIDAY
+  EVENT
+  OTHER
+}
+
+model CourtBlock {
+  id          String           @id @default(cuid())
+  reason      CourtBlockReason
+  note        String?          @db.VarChar(300)
+  startTime   DateTime
+  endTime     DateTime
+  courtId     String?          // null = TODAS las pistas del club
+  court       Court?           @relation(fields: [courtId], references: [id], onDelete: Cascade)
+  clubId      String
+  club        Club             @relation(fields: [clubId], references: [id], onDelete: Cascade)
+  createdById String?
+  createdBy   User?            @relation("CourtBlocksCreated", fields: [createdById], references: [id], onDelete: SetNull)
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  @@index([clubId, startTime])
+  @@index([courtId, startTime])
+}
+
+// --- AUDIT LOG ---
+model AuditLog {
+  id         String   @id @default(cuid())
+  recurso    String   // "booking" | "court" | "user" | "club" | "recurring-booking" | "broadcast"
+  accion     String   // "crear" | "cancelar" | "actualizar" | "eliminar" | "importar" | "enviar"
+  entidadId  String?
+  detalles   Json?    // datos whitelisteados por accion
+  userId     String?  // null para acciones de cron/sistema
+  userName   String?  // denormalizado para consultas sin JOIN
+  origen     String   @default("usuario") // "usuario" | "sistema" | "cron"
+  clubId     String?  // nullable para sobrevivir a eliminacion de club
+  club       Club?    @relation(fields: [clubId], references: [id], onDelete: SetNull)
+  clubName   String?  // denormalizado si clubId queda null
+  createdAt  DateTime @default(now())
+
+  @@index([clubId, createdAt])
+  @@index([clubId, recurso, createdAt])
+  @@index([clubId, accion, createdAt])
 }

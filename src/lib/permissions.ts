@@ -53,6 +53,9 @@ export type Permission =
   | "blog:create"
   | "blog:update"
   | "blog:delete"
+  // Leads / solicitudes de demo (plataforma)
+  | "leads:read"
+  | "leads:update"
   // Perfil propio
   | "profile:read"
   | "profile:update"
@@ -108,6 +111,7 @@ const rolePermissions: Record<UserRole, Permission[]> = {
     "court-pricing:read", "court-pricing:update",
     "analytics:read",
     "blog:read", "blog:create", "blog:update", "blog:delete",
+    "leads:read", "leads:update",
     "profile:read", "profile:update", "profile:export", "profile:delete",
     "notifications:read", "notifications:update",
     "broadcast:create", "broadcast:read",

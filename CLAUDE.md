@@ -334,7 +334,23 @@ El plan completo de 5 fases esta en: `C:\Users\alber\.claude\plans\jaunty-tumbli
 - [x] Pagina 404 personalizada: not-found.tsx (SVG padel, orbes animados, gradiente azul/cyan)
 - [x] i18n: secciones cookies, auth en es.json y en.json
 
-**Siguiente: D2, D5, E1**
+**Siguiente: D2, E1, gestion de trials sin SQL**
+
+## Estado - Post-roadmap (marzo-julio 2026)
+
+Sesiones posteriores al roadmap original (ver git log para detalle):
+
+- [x] CI/CD GitHub Actions (lint + typecheck + test + build), ~506 tests
+- [x] Rate limit distribuido (Upstash Redis con fallback en memoria), Sentry, logger
+- [x] Importacion masiva CSV: socios, pistas con pricing, reservas + wizard /dashboard/migracion
+- [x] Embudo demo: /demo con lead capture (ContactSubmission tipo "demo"), /cambiar-desde-matchpoint, /comparativa/matchpoint
+- [x] Multi-admin: invitaciones por email con token 48h (/dashboard/equipo), limites por plan
+- [x] Audit log: registrarAuditoria() en acciones criticas, /dashboard/audit-log (permiso audit:read)
+- [x] Bloqueos de pista: CRUD /dashboard/bloqueos (modelo CourtBlock, verificarBloqueo() en flujos de reserva)
+- [x] Fix crons Vercel: las rutas cron exportan GET (Vercel Cron invoca con GET); ambos crons en vercel.json (6:00 y 7:00)
+- [x] Seed club demo: scripts/seed-demo-club.ts (parametrizable, guardas para produccion, --reset/--delete/--confirm)
+- [x] Blog de plataforma restringido a SUPER_ADMIN (antes cualquier CLUB_ADMIN podia editarlo)
+- [x] Panel de leads: /dashboard/leads (solo SUPER_ADMIN, permisos leads:read/update, API /api/leads)
 
 ## Notas
 

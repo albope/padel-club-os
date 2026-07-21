@@ -46,8 +46,9 @@ export default withAuth(
       }
 
       // Verificar suscripcion activa para rutas del dashboard
+      // (SUPER_ADMIN es el dueño de la plataforma: exento del paywall)
       const isExempt = SUBSCRIPTION_EXEMPT_PATHS.some((p) => pathname.startsWith(p))
-      if (!isExempt && !isTokenSubscriptionActive(token)) {
+      if (!isExempt && token.role !== "SUPER_ADMIN" && !isTokenSubscriptionActive(token)) {
         return NextResponse.redirect(new URL("/dashboard/facturacion", req.url))
       }
     }

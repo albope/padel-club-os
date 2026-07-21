@@ -64,8 +64,13 @@ export async function requireAuth(
     )
   }
 
-  // Verificar suscripcion activa si se solicita (solo para roles admin)
-  if (options?.requireSubscription && ADMIN_ROLES.includes(session.user.role as UserRole)) {
+  // Verificar suscripcion activa si se solicita (solo para roles admin;
+  // SUPER_ADMIN es el dueño de la plataforma y queda exento del paywall)
+  if (
+    options?.requireSubscription &&
+    session.user.role !== UserRole.SUPER_ADMIN &&
+    ADMIN_ROLES.includes(session.user.role as UserRole)
+  ) {
     const status = session.user.subscriptionStatus ?? "trialing"
     const trialEndsAt = session.user.trialEndsAt ? new Date(session.user.trialEndsAt) : null
     const activa = isSubscriptionActive(status, trialEndsAt)

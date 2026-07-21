@@ -1,11 +1,19 @@
 import React from 'react'
 import { ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
+import { getServerSession } from 'next-auth'
+import { redirect } from 'next/navigation'
+import { authOptions } from '@/lib/auth'
+import { hasPermission } from '@/lib/permissions'
 import BlogForm from '@/components/blog/BlogForm'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 
-const NuevoArticuloPage = () => {
+const NuevoArticuloPage = async () => {
+  const session = await getServerSession(authOptions)
+  if (!session?.user?.role || !hasPermission(session.user.role, 'blog:create')) {
+    redirect('/dashboard')
+  }
   return (
     <div className="space-y-8">
       <div className="flex items-center gap-4">

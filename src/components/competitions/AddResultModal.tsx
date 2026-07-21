@@ -56,7 +56,7 @@ const AddResultModal: React.FC<AddResultModalProps> = ({ isOpen, onClose, match 
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Añadir Resultado</DialogTitle>
-          <DialogDescription>{match.team1?.name ?? 'TBD'} vs {match.team2?.name ?? 'TBD'}</DialogDescription>
+          <DialogDescription>{match.team1?.name ?? 'Por determinar'} vs {match.team2?.name ?? 'Por determinar'}</DialogDescription>
         </DialogHeader>
 
         <form onSubmit={form.handleSubmit(handleFormSubmit)} className="space-y-4">

@@ -8,6 +8,7 @@ import Link from 'next/link'
 import BlogForm from '@/components/blog/BlogForm'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
+import { hasPermission } from '@/lib/permissions'
 
 interface EditArticuloPageProps {
   params: { id: string }
@@ -16,6 +17,7 @@ interface EditArticuloPageProps {
 const EditArticuloPage = async ({ params }: EditArticuloPageProps) => {
   const session = await getServerSession(authOptions)
   if (!session?.user?.clubId) redirect('/login')
+  if (!session.user.role || !hasPermission(session.user.role, 'blog:update')) redirect('/dashboard')
 
   const post = await db.blogPost.findUnique({
     where: { id: params.id },

@@ -7,10 +7,11 @@ import { PlusCircle } from 'lucide-react'
 import Link from 'next/link'
 import BlogListClient from '@/components/blog/BlogListClient'
 import { Button } from '@/components/ui/button'
+import { hasPermission } from '@/lib/permissions'
 
 const BlogAdminPage = async () => {
   const session = await getServerSession(authOptions)
-  if (!session?.user?.clubId) {
+  if (!session?.user?.clubId || !session.user.role || !hasPermission(session.user.role, 'blog:read')) {
     redirect('/dashboard')
   }
 

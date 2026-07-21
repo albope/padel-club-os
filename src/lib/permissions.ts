@@ -130,7 +130,6 @@ const rolePermissions: Record<UserRole, Permission[]> = {
     "billing:read", "billing:update",
     "court-pricing:read", "court-pricing:update",
     "analytics:read",
-    "blog:read", "blog:create", "blog:update", "blog:delete",
     "profile:read", "profile:update", "profile:export", "profile:delete",
     "notifications:read", "notifications:update",
     "broadcast:create", "broadcast:read",

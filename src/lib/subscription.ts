@@ -181,8 +181,10 @@ export async function canCreateAdmin(
 
   if (limits.admins === -1) return { allowed: true, used: 0, limit: -1 }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const inviteWhere: any = { clubId, expires: { gt: new Date() } }
+  const inviteWhere: { clubId: string; expires: { gt: Date }; id?: { not: string } } = {
+    clubId,
+    expires: { gt: new Date() },
+  }
   if (opts?.excludeInvitationId) {
     inviteWhere.id = { not: opts.excludeInvitationId }
   }

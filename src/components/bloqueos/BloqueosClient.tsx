@@ -81,9 +81,13 @@ export default function BloqueosClient({ initialItems }: BloqueosClientProps) {
     action: () => Promise<void>
   }>({ open: false, title: '', description: '', action: async () => {} })
 
-  const now = new Date()
-  const upcomingItems = useMemo(() => items.filter(i => new Date(i.endTime) > now), [items])
-  const pastItems = useMemo(() => items.filter(i => new Date(i.endTime) <= now), [items])
+  const { upcomingItems, pastItems } = useMemo(() => {
+    const now = new Date()
+    return {
+      upcomingItems: items.filter(i => new Date(i.endTime) > now),
+      pastItems: items.filter(i => new Date(i.endTime) <= now),
+    }
+  }, [items])
   const filteredItems = filter === 'upcoming' ? upcomingItems : pastItems
 
   const handleDelete = (item: CourtBlockItem) => {

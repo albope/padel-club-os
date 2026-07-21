@@ -243,3 +243,6 @@ function formatearFecha(fecha: Date): string {
     timeZone: "Europe/Madrid",
   })
 }
+
+// Vercel Cron invoca los endpoints con GET
+export { POST as GET }

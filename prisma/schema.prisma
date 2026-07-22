@@ -72,6 +72,7 @@ model Club {
   courtBlocks       CourtBlock[]
   auditLogs         AuditLog[]
   adminInvitations  AdminInvitation[]
+  legalAcceptances  LegalAcceptance[]
 }
 
 // --- USER ROLES ---
@@ -124,6 +125,7 @@ model User {
   bookingWaitlists BookingWaitlist[]
   courtBlocksCreated CourtBlock[] @relation("CourtBlocksCreated")
   invitationsSent    AdminInvitation[] @relation("InvitationsSent")
+  legalAcceptances   LegalAcceptance[]
 
   @@index([clubId])
   @@index([clubId, role])
@@ -698,4 +700,26 @@ model AuditLog {
   @@index([clubId, createdAt])
   @@index([clubId, recurso, createdAt])
   @@index([clubId, accion, createdAt])
+}
+
+// --- EVIDENCIA DE ACEPTACION CONTRACTUAL ---
+model LegalAcceptance {
+  id               String   @id @default(cuid())
+  audience         String   // "CLUB" | "PLAYER"
+  termsVersion     String
+  dpaVersion       String?
+  privacyVersion   String
+  acceptedByEmail  String
+  acceptedByName   String?
+  clubName         String
+  acceptedAt       DateTime @default(now())
+
+  // Las referencias son opcionales para conservar la evidencia si se elimina la cuenta o el club.
+  userId String?
+  user   User?   @relation(fields: [userId], references: [id], onDelete: SetNull)
+  clubId String?
+  club   Club?   @relation(fields: [clubId], references: [id], onDelete: SetNull)
+
+  @@index([clubId, acceptedAt])
+  @@index([userId, acceptedAt])
 }

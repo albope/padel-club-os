@@ -1,207 +1,204 @@
-import { Metadata } from "next"
-import Link from "next/link"
-import { ArrowLeft } from "lucide-react"
+import type { Metadata } from "next"
+import { LegalIdentityWarning } from "@/components/legal/LegalIdentity"
+import { LegalPage } from "@/components/legal/LegalPage"
+import { getLegalProvider } from "@/lib/legal"
+import { LEGAL_LAST_UPDATED, LEGAL_VERSIONS } from "@/lib/legal-versions"
 
 export const metadata: Metadata = {
-  title: "Terminos de Uso",
-  description: "Terminos y condiciones de uso de Padel Club OS.",
+  title: "Condiciones del servicio SaaS",
+  description: "Condiciones B2B de contratación y uso de Padel Club OS.",
   alternates: { canonical: "/terminos" },
 }
 
 export default function TerminosPage() {
+  const provider = getLegalProvider()
+  const providerName = provider.legalName || "el titular identificado en el Aviso legal"
+
   return (
-    <div className="container max-w-3xl py-16">
-      <Link
-        href="/"
-        className="mb-8 inline-flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
-      >
-        <ArrowLeft className="h-4 w-4" />
-        Volver al inicio
-      </Link>
+    <LegalPage
+      title="Condiciones del servicio SaaS"
+      version={LEGAL_VERSIONS.terminos}
+      updatedAt={LEGAL_LAST_UPDATED}
+      description="Contrato de suscripción dirigido exclusivamente a clubes, empresas y profesionales que actúan en el marco de su actividad."
+    >
+      <LegalIdentityWarning provider={provider} />
 
-      <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">
-        Terminos de Uso
-      </h1>
-      <p className="mt-2 text-sm text-muted-foreground">
-        Ultima actualizacion: 21 de febrero de 2026
-      </p>
+      <section>
+        <h2>1. Partes y ámbito B2B</h2>
+        <p className="mt-3">
+          Estas condiciones regulan el contrato entre <strong>{providerName}</strong>, prestador de Padel Club OS
+          (el «Proveedor»), y la persona física o jurídica que contrata el servicio para la gestión profesional de
+          un club (el «Cliente»). Los datos completos del Proveedor figuran en el <a href="/aviso-legal">Aviso legal</a>.
+        </p>
+        <p className="mt-3">
+          Quien acepta estas condiciones declara tener capacidad y autorización suficientes para vincular al Cliente.
+          El servicio no se ofrece mediante este flujo a consumidores para fines ajenos a una actividad empresarial o profesional.
+        </p>
+      </section>
 
-      <div className="mt-10 space-y-8 text-muted-foreground leading-relaxed">
-        <section>
-          <h2 className="text-xl font-semibold text-foreground">1. Aceptacion de los terminos</h2>
-          <p className="mt-3">
-            Al acceder y utilizar la plataforma Padel Club OS (en adelante, &quot;la Plataforma&quot;),
-            aceptas quedar vinculado por estos Terminos de Uso. Si no estas de acuerdo con alguno de
-            estos terminos, no debes utilizar la Plataforma.
-          </p>
-          <p className="mt-3">
-            Nos reservamos el derecho de modificar estos terminos en cualquier momento. Las
-            modificaciones entraran en vigor desde su publicacion en esta pagina. El uso continuado
-            de la Plataforma tras la publicacion de cambios implica la aceptacion de los mismos.
-          </p>
-        </section>
+      <section>
+        <h2>2. Objeto y documentación contractual</h2>
+        <p className="mt-3">
+          El Proveedor concede al Cliente, durante la vigencia de la suscripción, un derecho limitado, no exclusivo,
+          no sublicenciable y no transferible de acceso a la plataforma Padel Club OS conforme al plan contratado.
+          Forman parte del contrato estas condiciones, el plan y precio mostrados antes del pago, el{" "}
+          <a href="/acuerdo-tratamiento-datos">Acuerdo de tratamiento de datos</a> y, si existe, una propuesta u orden
+          de servicio firmada por ambas partes. Esta última prevalecerá únicamente en lo que modifique expresamente.
+        </p>
+      </section>
 
-        <section>
-          <h2 className="text-xl font-semibold text-foreground">2. Descripcion del servicio</h2>
-          <p className="mt-3">
-            Padel Club OS es una plataforma de gestion integral para clubes de padel que ofrece:
-          </p>
-          <ul className="mt-3 list-disc space-y-2 pl-6">
-            <li>Gestion de reservas de pistas.</li>
-            <li>Organizacion de competiciones (ligas y torneos).</li>
-            <li>Creacion y gestion de partidas abiertas entre jugadores.</li>
-            <li>Portal de acceso para jugadores del club.</li>
-            <li>Herramientas de administracion para propietarios y staff del club.</li>
-            <li>Procesamiento de pagos online.</li>
-          </ul>
-        </section>
+      <section>
+        <h2>3. Contratación electrónica</h2>
+        <ol className="mt-3 list-decimal space-y-2 pl-6">
+          <li>El Cliente crea una cuenta, configura su club y selecciona un plan.</li>
+          <li>Antes de continuar puede revisar el precio, los impuestos estimados y estas condiciones.</li>
+          <li>El pago y los datos fiscales se completan en Stripe Checkout.</li>
+          <li>La confirmación se muestra en pantalla y se comunica por medios electrónicos.</li>
+        </ol>
+        <p className="mt-3">
+          El Cliente puede corregir sus datos antes de confirmar y actualizar posteriormente sus datos fiscales y
+          medio de pago en el portal de facturación. El contrato se formaliza en español. El Proveedor registra la
+          fecha y versión de los documentos aceptados; el Cliente puede guardar o imprimir estas páginas desde su navegador.
+        </p>
+      </section>
 
-        <section>
-          <h2 className="text-xl font-semibold text-foreground">3. Registro y cuentas</h2>
-          <h3 className="mt-4 text-lg font-medium text-foreground">3.1 Cuentas de club (administradores)</h3>
-          <p className="mt-2">
-            Para utilizar la Plataforma como administrador, debes registrar un club proporcionando
-            informacion veraz y completa. Eres responsable de mantener la confidencialidad de tus
-            credenciales de acceso y de todas las actividades realizadas bajo tu cuenta.
-          </p>
-          <h3 className="mt-4 text-lg font-medium text-foreground">3.2 Cuentas de jugador</h3>
-          <p className="mt-2">
-            Los jugadores pueden registrarse a traves del portal de su club. Al registrarte como
-            jugador, aceptas que el administrador del club tendra acceso a tus datos de perfil y
-            actividad dentro de la Plataforma.
-          </p>
-          <h3 className="mt-4 text-lg font-medium text-foreground">3.3 Requisitos</h3>
-          <ul className="mt-2 list-disc space-y-2 pl-6">
-            <li>Debes ser mayor de 16 anos para crear una cuenta.</li>
-            <li>Solo puedes tener una cuenta por direccion de correo electronico.</li>
-            <li>Debes proporcionar informacion veraz y mantenerla actualizada.</li>
-          </ul>
-        </section>
+      <section>
+        <h2>4. Cuenta y usuarios autorizados</h2>
+        <p className="mt-3">
+          El Cliente facilitará información exacta y mantendrá actualizados sus datos. Es responsable de asignar roles,
+          dar de baja accesos que ya no procedan, proteger sus credenciales y comunicar sin demora cualquier uso no
+          autorizado. Las acciones de sus administradores y personal se consideran realizadas por el Cliente.
+        </p>
+      </section>
 
-        <section>
-          <h2 className="text-xl font-semibold text-foreground">4. Planes y facturacion</h2>
-          <p className="mt-3">
-            La Plataforma ofrece diferentes planes de suscripcion para clubes. Los detalles de cada
-            plan, incluyendo precio, funcionalidades y limites, estan disponibles en la pagina de
-            precios.
-          </p>
-          <ul className="mt-3 list-disc space-y-2 pl-6">
-            <li>Las suscripciones se facturan mensualmente de forma anticipada.</li>
-            <li>
-              Los pagos se procesan a traves de Stripe. Al suscribirte, aceptas los{" "}
-              <a href="https://stripe.com/es/legal" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
-                terminos de servicio de Stripe
-              </a>.
-            </li>
-            <li>Puedes cancelar tu suscripcion en cualquier momento. La cancelacion sera efectiva al final del periodo de facturacion vigente.</li>
-            <li>No se realizan reembolsos por periodos parciales de uso.</li>
-          </ul>
-        </section>
+      <section>
+        <h2>5. Prueba, planes, precios e impuestos</h2>
+        <ul className="mt-3 list-disc space-y-2 pl-6">
+          <li>La prueba gratuita se concede una sola vez por club durante el plazo indicado al registrarse.</li>
+          <li>Las funcionalidades y límites son los publicados para el plan seleccionado en el momento de contratar.</li>
+          <li>Los precios publicados son netos y no incluyen IVA u otros tributos, salvo indicación expresa.</li>
+          <li>La suscripción se factura por periodos mensuales anticipados y se renueva automáticamente.</li>
+          <li>Stripe procesa el pago y genera la documentación de facturación con los datos facilitados por el Cliente.</li>
+        </ul>
+        <p className="mt-3">
+          Antes de una subida de precio aplicable a una renovación, el Proveedor lo comunicará con antelación razonable.
+          El Cliente podrá cancelar antes de que el nuevo precio entre en vigor.
+        </p>
+      </section>
 
-        <section>
-          <h2 className="text-xl font-semibold text-foreground">5. Uso aceptable</h2>
-          <p className="mt-3">Al utilizar la Plataforma, te comprometes a:</p>
-          <ul className="mt-3 list-disc space-y-2 pl-6">
-            <li>Utilizar el servicio unicamente para fines legitimos relacionados con la gestion de actividades de padel.</li>
-            <li>No intentar acceder a cuentas, datos o funcionalidades no autorizadas.</li>
-            <li>No utilizar la Plataforma para enviar spam, malware o contenido ilicito.</li>
-            <li>No realizar ingenieria inversa, descompilar o desensamblar el software.</li>
-            <li>No sobrecargar intencionadamente la infraestructura de la Plataforma.</li>
-            <li>Respetar los derechos de propiedad intelectual de Padel Club OS y de terceros.</li>
-          </ul>
-        </section>
+      <section>
+        <h2>6. Duración, renovación y cancelación</h2>
+        <p className="mt-3">
+          El contrato comienza cuando el Cliente acepta estas condiciones y continúa mientras exista una prueba o
+          suscripción activa. El Cliente puede cancelar desde el portal de facturación; la cancelación ordinaria surte
+          efecto al final del periodo ya pagado. Salvo obligación legal o incumplimiento del Proveedor, no se reembolsan
+          periodos parciales ni importes correspondientes a tiempo no utilizado.
+        </p>
+      </section>
 
-        <section>
-          <h2 className="text-xl font-semibold text-foreground">6. Reservas y cancelaciones</h2>
-          <p className="mt-3">
-            Las politicas de reserva y cancelacion son configuradas individualmente por cada club.
-            Padel Club OS actua como intermediario tecnologico y no es responsable de:
-          </p>
-          <ul className="mt-3 list-disc space-y-2 pl-6">
-            <li>Las politicas de precios establecidas por cada club.</li>
-            <li>Las condiciones de cancelacion y reembolso definidas por cada club.</li>
-            <li>La disponibilidad real de las instalaciones del club.</li>
-            <li>Disputas entre jugadores y clubes relacionadas con reservas.</li>
-          </ul>
-        </section>
+      <section>
+        <h2>7. Uso permitido y obligaciones del Cliente</h2>
+        <p className="mt-3">El Cliente se obliga a:</p>
+        <ul className="mt-3 list-disc space-y-2 pl-6">
+          <li>usar el servicio de forma lícita y únicamente para su actividad;</li>
+          <li>no introducir malware, eludir límites, realizar pruebas intrusivas no autorizadas ni revender accesos;</li>
+          <li>no cargar datos que no necesite o para los que carezca de base jurídica;</li>
+          <li>informar a jugadores y personal sobre sus tratamientos y atender sus derechos como responsable;</li>
+          <li>no utilizar campos libres para categorías especiales de datos salvo acuerdo escrito y medidas específicas.</li>
+        </ul>
+      </section>
 
-        <section>
-          <h2 className="text-xl font-semibold text-foreground">7. Propiedad intelectual</h2>
-          <p className="mt-3">
-            Todos los derechos de propiedad intelectual sobre la Plataforma (codigo, diseno,
-            logotipos, textos, graficos) pertenecen a Padel Club OS o a sus licenciantes. No se
-            concede ninguna licencia o derecho sobre estos elementos mas alla del uso normal de la
-            Plataforma.
-          </p>
-          <p className="mt-3">
-            Los datos introducidos por los clubes y jugadores en la Plataforma son propiedad de sus
-            respectivos titulares. Padel Club OS se compromete a facilitar la exportacion de estos
-            datos cuando sea solicitado.
-          </p>
-        </section>
+      <section>
+        <h2>8. Datos, privacidad y confidencialidad</h2>
+        <p className="mt-3">
+          El Cliente conserva el control sobre los datos que incorpora. Cuando el Proveedor trata datos de jugadores,
+          socios o personal siguiendo instrucciones del Cliente, actúa como encargado conforme al DPA. Cada parte
+          mantendrá confidencial la información no pública recibida de la otra y la usará solo para ejecutar el contrato.
+        </p>
+      </section>
 
-        <section>
-          <h2 className="text-xl font-semibold text-foreground">8. Disponibilidad del servicio</h2>
-          <p className="mt-3">
-            Nos esforzamos por mantener la Plataforma disponible de forma ininterrumpida, pero no
-            garantizamos una disponibilidad del 100%. Podemos realizar tareas de mantenimiento que
-            requieran interrupciones temporales del servicio, notificandolo con la mayor antelacion
-            posible.
-          </p>
-          <p className="mt-3">
-            Padel Club OS no sera responsable de interrupciones causadas por fuerza mayor, fallos
-            de terceros proveedores, o circunstancias fuera de nuestro control razonable.
-          </p>
-        </section>
+      <section>
+        <h2>9. Pagos de reservas y relación con jugadores</h2>
+        <p className="mt-3">
+          Cuando el Cliente activa Stripe Connect, el Cliente continúa siendo quien ofrece la pista o actividad al
+          jugador, fija el precio, emite la factura o justificante que corresponda y define la política de cancelación.
+          Padel Club OS facilita la tecnología de cobro y puede percibir una comisión, pero no sustituye al club como
+          prestador del servicio deportivo. El Cliente atenderá reclamaciones, devoluciones y obligaciones fiscales de sus ventas.
+        </p>
+      </section>
 
-        <section>
-          <h2 className="text-xl font-semibold text-foreground">9. Limitacion de responsabilidad</h2>
-          <p className="mt-3">
-            En la maxima medida permitida por la ley, Padel Club OS no sera responsable de danos
-            indirectos, incidentales, especiales o consecuentes derivados del uso o la imposibilidad
-            de uso de la Plataforma.
-          </p>
-          <p className="mt-3">
-            Nuestra responsabilidad total acumulada no excedera el importe abonado por el usuario en
-            los 12 meses anteriores al evento que genere la reclamacion.
-          </p>
-        </section>
+      <section>
+        <h2>10. Soporte, mantenimiento y disponibilidad</h2>
+        <p className="mt-3">
+          El soporte se presta por los canales y con la prioridad incluidos en cada plan. El Proveedor aplica medidas
+          razonables para mantener la continuidad, pero no garantiza disponibilidad ininterrumpida. Puede realizar
+          mantenimiento y adoptar cambios necesarios por seguridad, cumplimiento o evolución técnica, procurando reducir su impacto.
+        </p>
+      </section>
 
-        <section>
-          <h2 className="text-xl font-semibold text-foreground">10. Suspension y cancelacion</h2>
-          <p className="mt-3">
-            Nos reservamos el derecho de suspender o cancelar cuentas que:
-          </p>
-          <ul className="mt-3 list-disc space-y-2 pl-6">
-            <li>Incumplan estos Terminos de Uso.</li>
-            <li>Realicen un uso fraudulento o abusivo de la Plataforma.</li>
-            <li>No abonen las cuotas de suscripcion en los plazos establecidos.</li>
-          </ul>
-          <p className="mt-3">
-            En caso de cancelacion, facilitaremos la exportacion de los datos del club durante un
-            periodo de 30 dias.
-          </p>
-        </section>
+      <section>
+        <h2>11. Servicios de terceros</h2>
+        <p className="mt-3">
+          Algunas funciones dependen de proveedores como Stripe, servicios de alojamiento, correo o notificaciones.
+          Sus interrupciones pueden afectar temporalmente a la plataforma. El Proveedor seleccionará y supervisará a
+          quienes traten datos por su cuenta conforme al DPA.
+        </p>
+      </section>
 
-        <section>
-          <h2 className="text-xl font-semibold text-foreground">11. Legislacion aplicable</h2>
-          <p className="mt-3">
-            Estos terminos se rigen por la legislacion espanola. Para cualquier controversia derivada
-            del uso de la Plataforma, las partes se someten a la jurisdiccion de los juzgados y
-            tribunales de Espana.
-          </p>
-        </section>
+      <section>
+        <h2>12. Propiedad intelectual</h2>
+        <p className="mt-3">
+          El Proveedor y sus licenciantes conservan todos los derechos sobre la plataforma, su código, diseño,
+          documentación y marca. El Cliente conserva sus datos y contenidos. Si facilita sugerencias, autoriza al
+          Proveedor a utilizarlas sin revelar información confidencial ni datos personales.
+        </p>
+      </section>
 
-        <section>
-          <h2 className="text-xl font-semibold text-foreground">12. Contacto</h2>
-          <p className="mt-3">
-            Para cualquier consulta relacionada con estos terminos, contactanos en{" "}
-            <a href="mailto:contacto@padelclubos.com" className="text-primary hover:underline">
-              contacto@padelclubos.com
-            </a>.
-          </p>
-        </section>
-      </div>
-    </div>
+      <section>
+        <h2>13. Suspensión y terminación</h2>
+        <p className="mt-3">
+          El Proveedor puede suspender el acceso cuando exista impago, riesgo de seguridad, uso ilícito o incumplimiento
+          material, limitando la medida a lo necesario y avisando cuando sea razonablemente posible. Antes de una
+          terminación por incumplimiento subsanable se concederá un plazo razonable para corregirlo.
+        </p>
+        <p className="mt-3">
+          Tras finalizar el contrato, el Cliente debe exportar la información que necesite. El destino de los datos
+          personales se regula en el DPA, sin perjuicio de bloqueos o conservación exigidos legalmente.
+        </p>
+      </section>
+
+      <section>
+        <h2>14. Garantías y responsabilidad</h2>
+        <p className="mt-3">
+          El Proveedor prestará el servicio con diligencia profesional y corregirá incidencias reproducibles en un plazo
+          razonable según su gravedad. En la máxima medida permitida en relaciones B2B, ninguna parte responderá por lucro
+          cesante o daños indirectos imprevisibles. La responsabilidad agregada del Proveedor derivada del contrato no
+          excederá de las cuotas SaaS pagadas por el Cliente en los doce meses anteriores al hecho causante.
+        </p>
+        <p className="mt-3">
+          Los límites no se aplican a dolo, culpa grave, vulneraciones de confidencialidad o protección de datos imputables
+          a la parte responsable, ni a responsabilidades que la ley no permita excluir o limitar.
+        </p>
+      </section>
+
+      <section>
+        <h2>15. Modificaciones</h2>
+        <p className="mt-3">
+          Los cambios materiales se comunicarán antes de su entrada en vigor. Si afectan de forma sustancial a derechos
+          u obligaciones vigentes, se solicitará aceptación o se permitirá cancelar antes de la siguiente renovación.
+          Las modificaciones exigidas por ley o necesarias ante un riesgo urgente podrán aplicarse de inmediato, explicando el motivo.
+        </p>
+      </section>
+
+      <section>
+        <h2>16. Ley aplicable, comunicaciones y jurisdicción</h2>
+        <p className="mt-3">
+          El contrato se rige por la legislación española. Las comunicaciones operativas se enviarán al correo del
+          administrador del Cliente y las dirigidas al Proveedor a <a href={`mailto:${provider.email}`}>{provider.email}</a>.
+          Las partes intentarán resolver de buena fe cualquier controversia. Si no fuera posible, se someten a los
+          juzgados y tribunales que resulten competentes conforme a la normativa procesal aplicable a relaciones entre empresas.
+        </p>
+      </section>
+    </LegalPage>
   )
 }

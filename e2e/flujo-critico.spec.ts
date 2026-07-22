@@ -47,6 +47,7 @@ test.describe.serial("Flujo critico: alta de club, configuracion y reservas", ()
     await page.locator("#name").fill(adminName)
     await page.locator("#email").fill(adminEmail)
     await page.locator("#password").fill(password)
+    await page.getByRole("checkbox", { name: /condiciones/i }).check()
     await page.getByRole("button", { name: "Crear cuenta gratis" }).click()
     await page.waitForURL("**/login", { timeout: 30_000 })
 

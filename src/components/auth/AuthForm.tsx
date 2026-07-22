@@ -12,6 +12,7 @@ import { Eye, EyeOff, Loader2, AlertCircle, ArrowRight, CheckCircle2 } from 'luc
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';
+import { Checkbox } from '@/components/ui/checkbox';
 
 /* ─── Password strength ──────────────────────────────────────────────────── */
 
@@ -68,11 +69,14 @@ const AuthForm: React.FC<AuthFormProps> = ({ isRegister = false }) => {
       .min(1, t('passwordRequired'))
       .min(8, t('passwordMinLength')),
     name: z.string().optional(),
-  }), [t]);
+    legalAccepted: isRegister
+      ? z.boolean().refine((accepted) => accepted, t('legalRequired'))
+      : z.boolean().optional(),
+  }), [isRegister, t]);
 
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
-    defaultValues: { email: '', password: '', name: '' },
+    defaultValues: { email: '', password: '', name: '', legalAccepted: false },
   });
 
   const fortaleza = useMemo(() => evaluarPassword(passwordValue), [passwordValue]);
@@ -296,24 +300,38 @@ const AuthForm: React.FC<AuthFormProps> = ({ isRegister = false }) => {
           </div>
         )}
 
-        {/* Terminos (solo registro) */}
+        {/* Aceptacion contractual (solo registro) */}
         {isRegister && (
-          <p className="auth-fade-up-5 text-[11px] text-muted-foreground leading-relaxed pt-0.5">
-            {t('termsPrefix')}{' '}
-            <Link
-              href="/terminos"
-              className="text-foreground/60 hover:text-foreground underline-offset-2 hover:underline transition-colors"
-            >
-              {t('termsOfService')}
-            </Link>{' '}
-            {t('and')}{' '}
-            <Link
-              href="/privacidad"
-              className="text-foreground/60 hover:text-foreground underline-offset-2 hover:underline transition-colors"
-            >
-              {t('privacyPolicy')}
-            </Link>.
-          </p>
+          <div className="auth-fade-up-5 space-y-1.5 pt-0.5">
+            <div className="flex items-start gap-2.5">
+              <Checkbox
+                id="legalAccepted"
+                checked={form.watch('legalAccepted') === true}
+                onCheckedChange={(checked) => {
+                  form.setValue('legalAccepted', checked === true, { shouldDirty: true, shouldValidate: true });
+                }}
+                aria-required="true"
+                aria-invalid={!!form.formState.errors.legalAccepted}
+                className="mt-0.5"
+              />
+              <Label htmlFor="legalAccepted" className="text-[11px] font-normal leading-relaxed text-muted-foreground">
+                {t('legalAcceptance')}{' '}
+                <Link href="/terminos" target="_blank" className="text-foreground/70 underline hover:text-foreground">
+                  {t('termsOfService')}
+                </Link>,{' '}
+                <Link href="/acuerdo-tratamiento-datos" target="_blank" className="text-foreground/70 underline hover:text-foreground">
+                  {t('dataProcessingAgreement')}
+                </Link>{' '}
+                {t('andRead')}{' '}
+                <Link href="/privacidad" target="_blank" className="text-foreground/70 underline hover:text-foreground">
+                  {t('privacyPolicy')}
+                </Link>.
+              </Label>
+            </div>
+            {form.formState.errors.legalAccepted && (
+              <p role="alert" className="text-xs text-destructive">{form.formState.errors.legalAccepted.message}</p>
+            )}
+          </div>
         )}
 
         {/* Boton submit */}

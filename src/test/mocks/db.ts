@@ -15,6 +15,7 @@ export const mockDb = {
   club: {
     findUnique: vi.fn(),
     findFirst: vi.fn(),
+    create: vi.fn(),
     update: vi.fn(),
   },
   court: {
@@ -25,6 +26,11 @@ export const mockDb = {
     count: vi.fn(),
     findMany: vi.fn(),
     findUnique: vi.fn(),
+    create: vi.fn(),
+  },
+  legalAcceptance: {
+    create: vi.fn(),
+    findFirst: vi.fn(),
   },
   notification: {
     create: vi.fn(),

@@ -120,6 +120,9 @@ export default function Pricing() {
                   <p className="mt-2 text-xs font-medium text-primary">
                     {t('trialIncluded')}
                   </p>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    {t('taxesExcluded')}
+                  </p>
 
                   <ul className="mt-6 flex-1 space-y-3">
                     {features.map((feature) => (

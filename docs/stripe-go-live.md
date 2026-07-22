@@ -99,13 +99,17 @@ En destination charges, Stripe carga las disputas a la plataforma. Referencia:
 permite continuar una integracion v1 si no necesita las funciones de Accounts v2:
 [guia de migracion gradual](https://docs.stripe.com/connect/accounts-v2/migrate-integration).
 
-## 6. Stripe Tax (pendiente)
+## 6. Stripe Tax y datos fiscales (codigo preparado; alta externa pendiente)
 
-- [ ] Mantener Stripe Tax desactivado hasta recibir criterio fiscal.
-- [ ] Determinar nexus/registro, tratamiento de IVA del SaaS y de la comision de
-  plataforma, y quien es merchant of record en cada flujo.
-- [ ] Cuando proceda: activar Tax, definir `tax_behavior` de los prices, recopilar la
-  direccion fiscal necesaria, probar facturas/abonos y actualizar textos legales.
+- [x] Checkout SaaS recopila domicilio, razon social y NIF/VAT ID y actualiza el Customer.
+- [x] `STRIPE_TAX_ENABLED` controla `automatic_tax` sin cambios de codigo.
+- [x] Textos legales, precios sin IVA y aceptacion versionada implementados.
+- [ ] Completar identidad fiscal, registro(s) de IVA y configuracion de facturas en
+  Stripe TEST siguiendo `docs/legal-y-facturacion-go-live.md`.
+- [ ] Asignar `txcd_10103001` a los tres productos y `tax_behavior=exclusive` a sus prices.
+- [ ] Validar facturas y abonos en TEST; solo despues repetir en LIVE y activar
+  `STRIPE_TAX_ENABLED=true` en Production.
+- [ ] Mantener separada la obligacion fiscal del SaaS de la de los clubes en Connect.
 
 ## Runbook operativo
 

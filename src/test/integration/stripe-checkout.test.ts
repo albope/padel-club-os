@@ -6,6 +6,7 @@ import { crearRequest } from "@/test/helpers/api-route"
 const mockRequireAuth = vi.fn()
 const mockCheckoutCreate = vi.fn()
 const mockCustomerCreate = vi.fn()
+const mockStripeTaxEnabled = vi.fn()
 
 vi.mock("@/lib/db", () => ({ db: mockDb }))
 vi.mock("@/lib/api-auth", () => ({
@@ -26,6 +27,9 @@ vi.mock("@/lib/stripe", () => ({
 vi.mock("@/lib/logger", () => ({
   logger: { info: vi.fn(), error: vi.fn(), warn: vi.fn() },
 }))
+vi.mock("@/lib/legal", () => ({
+  isStripeTaxEnabled: () => mockStripeTaxEnabled(),
+}))
 
 import { POST } from "@/app/api/stripe/checkout/route"
 
@@ -45,7 +49,7 @@ async function crearCheckout(overrides: Record<string, unknown>) {
     ...overrides,
   }))
 
-  return POST(crearRequest({ body: { planKey: "starter" } }))
+  return POST(crearRequest({ body: { planKey: "starter", legalAccepted: true } }))
 }
 
 describe("Checkout de suscripcion Stripe", () => {
@@ -55,6 +59,8 @@ describe("Checkout de suscripcion Stripe", () => {
     vi.setSystemTime(new Date("2026-07-22T12:00:00.000Z"))
     mockRequireAuth.mockResolvedValue(crearSesionAdminMock({ email: "admin@test.demo" }))
     mockCheckoutCreate.mockResolvedValue({ url: "https://checkout.stripe.com/test" })
+    mockStripeTaxEnabled.mockReturnValue(false)
+    mockDb.legalAcceptance.create.mockResolvedValue({ id: "legal-1" })
     process.env.NEXTAUTH_URL = "http://localhost:3000"
   })
 
@@ -73,6 +79,34 @@ describe("Checkout de suscripcion Stripe", () => {
       trial_end: Math.floor(trialEndsAt.getTime() / 1000),
     })
     expect(parametrosCheckout().subscription_data).not.toHaveProperty("trial_period_days")
+  })
+
+  it("recoge datos fiscales y deja Stripe Tax controlado por configuracion", async () => {
+    mockStripeTaxEnabled.mockReturnValue(true)
+
+    const response = await crearCheckout({})
+
+    expect(response.status).toBe(200)
+    expect(mockCheckoutCreate).toHaveBeenCalledWith(expect.objectContaining({
+      billing_address_collection: "required",
+      customer_update: { address: "auto", name: "auto" },
+      tax_id_collection: { enabled: true, required: "if_supported" },
+      automatic_tax: { enabled: true },
+    }))
+    expect(mockDb.legalAcceptance.create).toHaveBeenCalledWith({
+      data: expect.objectContaining({
+        termsVersion: "2026-07-22",
+        dpaVersion: "2026-07-22",
+        clubId: "club-1",
+      }),
+    })
+  })
+
+  it("rechaza iniciar la contratacion sin aceptacion expresa", async () => {
+    const response = await POST(crearRequest({ body: { planKey: "starter", legalAccepted: false } }))
+
+    expect(response.status).toBe(400)
+    expect(mockCheckoutCreate).not.toHaveBeenCalled()
   })
 
   it("cobra inmediatamente si el trial de la app ya caduco", async () => {

@@ -10,14 +10,14 @@ export default function CookieBanner() {
   const t = useTranslations('cookies')
   const { decidido, aceptar } = useConsentimiento()
 
-  function handleAccept(tipo: 'all' | 'essential') {
-    aceptar(tipo)
+  function handleAccept() {
+    aceptar('essential')
 
     // Log de consentimiento en DB (fire-and-forget)
     fetch('/api/consent', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ tipo }),
+      body: JSON.stringify({ tipo: 'essential' }),
     }).catch(() => {
       // Silenciar: el consentimiento ya se guardo en localStorage
     })
@@ -38,18 +38,8 @@ export default function CookieBanner() {
           </p>
         </div>
         <div className="flex shrink-0 gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => handleAccept('essential')}
-          >
+          <Button size="sm" onClick={handleAccept}>
             {t('onlyEssential')}
-          </Button>
-          <Button
-            size="sm"
-            onClick={() => handleAccept('all')}
-          >
-            {t('acceptAll')}
           </Button>
         </div>
       </div>

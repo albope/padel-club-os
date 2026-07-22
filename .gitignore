@@ -53,6 +53,11 @@ public/workbox-*.js.map
 # credenciales de prueba
 TEST-CREDENTIALS.md
 
+# playwright
+/test-results/
+/playwright-report/
+/playwright/.cache/
+
 # claude code
 .claude/
 contexto-actual.md

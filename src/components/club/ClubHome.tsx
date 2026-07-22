@@ -2,6 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useParams } from 'next/navigation';
 import { useTranslations, useLocale } from 'next-intl';
 import {
@@ -46,14 +47,15 @@ export default function ClubHome({ club, openMatches, competitions, news }: Club
     <div className="space-y-8">
       {/* Hero */}
       {club.bannerUrl ? (
-        <div
-          className="relative rounded-2xl overflow-hidden h-56 sm:h-72 flex items-end shadow-xl"
-          style={{
-            backgroundImage: `url(${club.bannerUrl})`,
-            backgroundSize: 'cover',
-            backgroundPosition: 'center',
-          }}
-        >
+        <div className="relative rounded-2xl overflow-hidden h-56 sm:h-72 flex items-end shadow-xl">
+          <Image
+            src={club.bannerUrl}
+            alt=""
+            fill
+            priority
+            sizes="(max-width: 1280px) 100vw, 1280px"
+            className="object-cover"
+          />
           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-black/10" />
           <div
             className="absolute inset-0 opacity-20"

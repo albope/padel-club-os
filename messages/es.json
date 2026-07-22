@@ -367,7 +367,7 @@
   },
   "cookies": {
     "message": "Utilizamos cookies esenciales para el funcionamiento del sitio y cookies funcionales para recordar tus preferencias.",
-    "learnMore": "Más información",
+    "learnMore": "Más información sobre cookies",
     "acceptAll": "Aceptar todas",
     "onlyEssential": "Solo esenciales"
   },
@@ -844,6 +844,7 @@
     "pricing": {
       "title": "Precios claros. Sin sorpresas.",
       "subtitle": "Mientras otros te hacen llamar a ventas para saber cuánto cuesta, nosotros te lo decimos aquí mismo.",
+      "billingToggle": "Alternar facturación mensual o anual",
       "monthly": "Mensual",
       "annual": "Anual",
       "saveMonths": "Ahorra 2 meses",

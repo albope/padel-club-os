@@ -367,7 +367,7 @@
   },
   "cookies": {
     "message": "We use essential cookies for site functionality and functional cookies to remember your preferences.",
-    "learnMore": "Learn more",
+    "learnMore": "Learn more about cookies",
     "acceptAll": "Accept all",
     "onlyEssential": "Essential only"
   },
@@ -844,6 +844,7 @@
     "pricing": {
       "title": "Clear pricing. No surprises.",
       "subtitle": "While others make you call sales to find out the price, we tell you right here.",
+      "billingToggle": "Toggle monthly or annual billing",
       "monthly": "Monthly",
       "annual": "Annual",
       "saveMonths": "Save 2 months",

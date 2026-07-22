@@ -87,7 +87,7 @@ export default async function Footer() {
           {/* Columnas de links */}
           {columnas.map((col) => (
             <div key={col.titulo}>
-              <h4 className="text-sm font-semibold">{col.titulo}</h4>
+              <p className="text-sm font-semibold">{col.titulo}</p>
               <ul className="mt-4 space-y-2.5">
                 {col.links.map((link) => (
                   <li key={link.label}>

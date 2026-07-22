@@ -20,9 +20,9 @@ export default async function SocialProofBar() {
               <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10">
                 <b.icono className="h-6 w-6 text-primary" />
               </div>
-              <h3 className="text-lg font-semibold tracking-tight text-foreground">
+              <p className="text-lg font-semibold tracking-tight text-foreground">
                 {t(b.titleKey)}
-              </h3>
+              </p>
               <p className="text-sm leading-relaxed text-muted-foreground">
                 {t(b.descKey)}
               </p>

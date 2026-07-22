@@ -55,6 +55,7 @@ export default function Pricing() {
             )}
             role="switch"
             aria-checked={anual}
+            aria-label={t('billingToggle')}
           >
             <span
               className={cn(

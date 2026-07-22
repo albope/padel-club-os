@@ -1308,6 +1308,9 @@
     "time": "Time",
     "error": "Error processing request"
   },
+  "repeatBooking": {
+    "button": "Repeat booking"
+  },
   "reschedule": {
     "title": "Reschedule booking",
     "button": "Reschedule",

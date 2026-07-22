@@ -6,7 +6,7 @@ import { useSession, signOut } from 'next-auth/react';
 import {
   User, Mail, Phone, Calendar, MapPin, Loader2,
   LogOut, Save, History, X, ShieldCheck, Download, Trash2, Bell, BellOff,
-  CalendarClock,
+  CalendarClock, RotateCcw,
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -34,6 +34,7 @@ import {
 import { toast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { calcularPrecioTotal, type BandaPrecio } from '@/lib/pricing-client';
+import { proximaFechaMismoDiaSemana } from '@/lib/fechas';
 import { useLocale, useTranslations } from 'next-intl';
 import BotonCompartir from '@/components/club/BotonCompartir';
 import { ValoracionesWidget } from '@/components/social/ValoracionesWidget';
@@ -77,6 +78,7 @@ export default function PlayerProfilePage() {
   const tShare = useTranslations('share');
   const tw = useTranslations('waitlist');
   const tReschedule = useTranslations('reschedule');
+  const tRepeat = useTranslations('repeatBooking');
 
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [bookings, setBookings] = useState<Booking[]>([]);
@@ -518,6 +520,21 @@ export default function PlayerProfilePage() {
                       </p>
                     </div>
                     <div className="flex items-center gap-2">
+                      {isPast && !isCancelled && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-8 px-2 text-muted-foreground hover:text-primary"
+                          onClick={() => {
+                            const fecha = proximaFechaMismoDiaSemana(new Date(booking.startTime));
+                            router.push(`/club/${slug}/reservar?fecha=${fecha}`);
+                          }}
+                          aria-label={tRepeat('button')}
+                          title={tRepeat('button')}
+                        >
+                          <RotateCcw className="h-4 w-4" />
+                        </Button>
+                      )}
                       {canCancel && (
                         <BotonCompartir
                           datos={{

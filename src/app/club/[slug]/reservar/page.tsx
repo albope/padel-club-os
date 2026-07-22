@@ -5,11 +5,25 @@ import { useParams } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { Loader2 } from 'lucide-react';
 import GridReservas from '@/components/club/GridReservas';
+import { esFechaISOValida, formatearFechaLocal } from '@/lib/fechas';
 
 interface Court {
   id: string;
   name: string;
   type: string;
+}
+
+// Lee ?fecha=YYYY-MM-DD de la URL; invalida o fuera de rango -> null (el grid usa hoy)
+function fechaDesdeQuery(maxAdvanceBooking: number): string | null {
+  const param = new URLSearchParams(window.location.search).get('fecha');
+  if (!param || !esFechaISOValida(param)) return null;
+
+  const hoy = formatearFechaLocal(new Date());
+  const limite = new Date();
+  limite.setDate(limite.getDate() + maxAdvanceBooking);
+  if (param < hoy || param > formatearFechaLocal(limite)) return null;
+
+  return param;
 }
 
 export default function PlayerBookingPage() {
@@ -19,6 +33,7 @@ export default function PlayerBookingPage() {
 
   const [clubInfo, setClubInfo] = useState<any>(null);
   const [courts, setCourts] = useState<Court[]>([]);
+  const [fechaInicial, setFechaInicial] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -29,7 +44,11 @@ export default function PlayerBookingPage() {
           fetch(`/api/club/${slug}`),
           fetch(`/api/club/${slug}/courts`),
         ]);
-        if (clubRes.ok) setClubInfo(await clubRes.json());
+        if (clubRes.ok) {
+          const info = await clubRes.json();
+          setClubInfo(info);
+          setFechaInicial(fechaDesdeQuery(info.maxAdvanceBooking ?? 7));
+        }
         if (courtsRes.ok) setCourts(await courtsRes.json());
       } catch {
         // Error silencioso, el grid mostrara estado vacio
@@ -79,6 +98,7 @@ export default function PlayerBookingPage() {
         pistas={courts}
         sesionUserId={session?.user?.id ?? null}
         slug={slug}
+        fechaInicial={fechaInicial}
       />
     </div>
   );

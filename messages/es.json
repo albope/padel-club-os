@@ -1308,6 +1308,9 @@
     "time": "Hora",
     "error": "Error al procesar la solicitud"
   },
+  "repeatBooking": {
+    "button": "Repetir reserva"
+  },
   "reschedule": {
     "title": "Cambiar horario",
     "button": "Cambiar horario",

@@ -44,6 +44,7 @@ interface GridReservasProps {
   pistas: Pista[];
   sesionUserId: string | null;
   slug: string;
+  fechaInicial?: string | null;
 }
 
 // Genera franjas de 30 minutos entre apertura y cierre
@@ -73,7 +74,7 @@ function indiceFila(hora: string, aperturaMinutos: number): number {
   return Math.floor((horaAMinutos(hora) - aperturaMinutos) / 30);
 }
 
-export default function GridReservas({ club, pistas, sesionUserId, slug }: GridReservasProps) {
+export default function GridReservas({ club, pistas, sesionUserId, slug, fechaInicial }: GridReservasProps) {
   const router = useRouter();
   const t = useTranslations('booking');
   const tw = useTranslations('waitlist');
@@ -85,6 +86,7 @@ export default function GridReservas({ club, pistas, sesionUserId, slug }: GridR
   const aperturaMinutos = horaAMinutos(openingTime);
 
   const [fecha, setFecha] = useState(() => {
+    if (fechaInicial) return fechaInicial;
     const hoy = new Date();
     return hoy.toISOString().split('T')[0];
   });

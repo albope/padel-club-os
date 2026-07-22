@@ -334,7 +334,7 @@ El plan completo de 5 fases esta en: `C:\Users\alber\.claude\plans\jaunty-tumbli
 - [x] Pagina 404 personalizada: not-found.tsx (SVG padel, orbes animados, gradiente azul/cyan)
 - [x] i18n: secciones cookies, auth en es.json y en.json
 
-**Siguiente: D2, E1, gestion de trials sin SQL**
+**Siguiente: D2, E1, email auto-respuesta a leads**
 
 ## Estado - Post-roadmap (marzo-julio 2026)
 
@@ -351,6 +351,9 @@ Sesiones posteriores al roadmap original (ver git log para detalle):
 - [x] Seed club demo: scripts/seed-demo-club.ts (parametrizable, guardas para produccion, --reset/--delete/--confirm)
 - [x] Blog de plataforma restringido a SUPER_ADMIN (antes cualquier CLUB_ADMIN podia editarlo)
 - [x] Panel de leads: /dashboard/leads (solo SUPER_ADMIN, permisos leads:read/update, API /api/leads)
+- [x] SUPER_ADMIN exento del enforcement de suscripcion (middleware y requireAuth)
+- [x] Backoffice de plataforma: /dashboard/clubs (solo SUPER_ADMIN, permisos platform:read/manage) — lista de clubes con estado, extender trial, cambiar plan/estado, marcar demo
+- [x] Generador de demos: src/lib/demo-club.ts (crearClubDemo/borrarClubDemo, fechas ancladas a Europe/Madrid, campo Club.esDemo) + API /api/platform/demo-clubs (maxDuration 60) + UI con credenciales de un solo uso; scripts/seed-demo-club.ts es wrapper CLI de la misma lib
 
 ## Notas
 

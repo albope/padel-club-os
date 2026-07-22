@@ -49,6 +49,9 @@ model Club {
   // Modo de pago de reservas: "online" | "presential" | "both"
   bookingPaymentMode      String?  @default("presential")
 
+  // Club demo generado desde el backoffice (borrable, sin datos reales)
+  esDemo                  Boolean  @default(false)
+
   // Relationships
   admins        User[]
   courts        Court[]

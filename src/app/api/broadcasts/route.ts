@@ -74,7 +74,7 @@ export async function POST(req: Request) {
     // Obtener info del club para emails
     const club = await db.club.findUnique({
       where: { id: auth.session.user.clubId },
-      select: { name: true, slug: true },
+      select: { name: true, slug: true, email: true },
     })
 
     if (!club) {
@@ -101,6 +101,7 @@ export async function POST(req: Request) {
       clubId: auth.session.user.clubId,
       clubNombre: club.name,
       clubSlug: club.slug,
+      clubEmail: club.email,
       titulo,
       mensaje,
       canales,

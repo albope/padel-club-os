@@ -31,6 +31,7 @@ export async function enviarBroadcast(params: {
   clubId: string
   clubNombre: string
   clubSlug: string
+  clubEmail?: string | null
   titulo: string
   mensaje: string
   canales: string
@@ -72,6 +73,7 @@ export async function enviarBroadcast(params: {
             mensaje: params.mensaje,
             clubNombre: params.clubNombre,
             clubSlug: params.clubSlug,
+            replyTo: params.clubEmail,
           }).catch(() => {}) // fire-and-forget por email individual
         }
       })

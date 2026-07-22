@@ -663,6 +663,7 @@ interface EnviarEmailBroadcastParams {
   mensaje: string
   clubNombre: string
   clubSlug: string
+  replyTo?: string | null
 }
 
 export async function enviarEmailBroadcast({
@@ -672,6 +673,7 @@ export async function enviarEmailBroadcast({
   mensaje,
   clubNombre,
   clubSlug,
+  replyTo,
 }: EnviarEmailBroadcastParams) {
   const resend = getResend()
   const clubUrl = `${EMAIL_BRAND.siteUrl}/club/${escaparHtml(clubSlug)}`
@@ -693,6 +695,7 @@ export async function enviarEmailBroadcast({
   await resend.emails.send({
     from: EMAIL_FROM,
     to: email,
+    ...(replyTo ? { replyTo } : {}),
     subject: `${titulo} - ${clubNombre}`,
     html: plantillaEmail({
       titulo: escaparHtml(titulo),

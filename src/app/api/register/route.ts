@@ -5,11 +5,15 @@ import { enviarEmailBienvenidaAdmin } from "@/lib/email";
 import { logger } from "@/lib/logger";
 import { NextResponse } from "next/server";
 import * as z from "zod";
+import { LEGAL_VERSIONS } from "@/lib/legal-versions";
 
 const RegistroAdminSchema = z.object({
   email: z.string().email("Email no valido.").max(255),
   password: z.string().min(8, "La contrasena debe tener al menos 8 caracteres.").max(128),
   name: z.string().min(2, "El nombre debe tener al menos 2 caracteres.").max(100),
+  legalAccepted: z.literal(true, {
+    errorMap: () => ({ message: "Debes aceptar las condiciones del servicio y el acuerdo de tratamiento de datos." }),
+  }),
 });
 
 const limiter = crearRateLimiter({ maxRequests: 5, windowMs: 60 * 60 * 1000, prefix: "rl:register" });
@@ -87,6 +91,20 @@ export async function POST(req: Request) {
           password: hashedPassword,
           clubId: club.id,
           role: "CLUB_ADMIN",
+        },
+      });
+
+      await prisma.legalAcceptance.create({
+        data: {
+          audience: "CLUB",
+          termsVersion: LEGAL_VERSIONS.terminos,
+          dpaVersion: LEGAL_VERSIONS.dpa,
+          privacyVersion: LEGAL_VERSIONS.privacidad,
+          acceptedByEmail: email,
+          acceptedByName: name,
+          clubName,
+          userId: user.id,
+          clubId: club.id,
         },
       });
 

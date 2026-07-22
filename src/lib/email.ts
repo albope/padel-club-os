@@ -1,4 +1,5 @@
 import { Resend } from "resend"
+import { LEGAL_VERSIONS } from "@/lib/legal-versions"
 
 // Cliente Resend singleton con lazy initialization
 // Evita errores en build cuando RESEND_API_KEY no esta definida
@@ -368,7 +369,14 @@ export async function enviarEmailBienvenidaAdmin({
       { etiqueta: "Club", valor: clubSeguro },
       { etiqueta: "Prueba gratuita", valor: `14 d&iacute;as (hasta el ${fechaTrial})` },
       { etiqueta: "Portal", valor: `${EMAIL_BRAND.siteUrl}/club/${escaparHtml(clubSlug)}` },
+      { etiqueta: "Condiciones aceptadas", valor: `SaaS ${LEGAL_VERSIONS.terminos} / DPA ${LEGAL_VERSIONS.dpa}` },
     ])}
+    <p style="${estiloParrafo}">
+      Puedes conservar una copia de las
+      <a href="${EMAIL_BRAND.siteUrl}/terminos">condiciones SaaS</a> y del
+      <a href="${EMAIL_BRAND.siteUrl}/acuerdo-tratamiento-datos">acuerdo de tratamiento de datos</a>
+      aceptados al crear la cuenta.
+    </p>
     <p style="${estiloParrafo}">
       <strong>Primeros pasos:</strong>
     </p>

@@ -107,8 +107,12 @@
     "good": "Good",
     "strong": "Strong",
     "termsPrefix": "By signing up you agree to our",
-    "termsOfService": "Terms of service",
+    "termsOfService": "SaaS service terms",
     "and": "and",
+    "andRead": "and acknowledge the",
+    "legalAcceptance": "I confirm that I act for a club and accept the",
+    "dataProcessingAgreement": "Data Processing Agreement",
+    "legalRequired": "You must accept the service terms and Data Processing Agreement.",
     "privacyPolicy": "Privacy policy",
     "creatingAccount": "Creating account...",
     "loggingIn": "Signing in...",
@@ -366,10 +370,10 @@
     "noNew": "No new notifications"
   },
   "cookies": {
-    "message": "We use essential cookies for site functionality and functional cookies to remember your preferences.",
+    "message": "We use cookies and local storage required for site functionality and your preferences.",
     "learnMore": "Learn more about cookies",
     "acceptAll": "Accept all",
-    "onlyEssential": "Essential only"
+    "onlyEssential": "Got it"
   },
   "rgpd": {
     "title": "My data and privacy",
@@ -850,6 +854,7 @@
       "saveMonths": "Save 2 months",
       "popular": "Most popular",
       "trialIncluded": "14-day free trial included",
+      "taxesExcluded": "VAT not included",
       "perMonth": "/month",
       "billedAnnually": "Billed annually ({amount}EUR/year)",
       "startTrial": "Request demo",
@@ -958,9 +963,12 @@
       "about": "About us",
       "blog": "Blog",
       "contact": "Contact",
+      "legalNotice": "Legal notice",
       "privacy": "Privacy",
-      "terms": "Terms of use",
+      "terms": "SaaS terms",
+      "dpa": "GDPR agreement (DPA)",
       "cookies": "Cookies",
+      "securePayment": "Secure payment",
       "tagline": "The management platform for padel clubs in Spain. Modern, accessible and hassle-free.",
       "copyright": "Padel Club OS. All rights reserved.",
       "madeIn": "Made in Spain"

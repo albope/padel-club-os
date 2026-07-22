@@ -5,10 +5,15 @@ import { db } from "@/lib/db"
 import { logger } from "@/lib/logger"
 import { validarBody } from "@/lib/validation"
 import * as z from "zod"
+import { isStripeTaxEnabled } from "@/lib/legal"
+import { LEGAL_VERSIONS } from "@/lib/legal-versions"
 
 const CheckoutSchema = z.object({
   planKey: z.enum(["starter", "pro", "enterprise"] as const, {
     errorMap: () => ({ message: "Plan no valido." }),
+  }),
+  legalAccepted: z.literal(true, {
+    errorMap: () => ({ message: "Debes aceptar las condiciones del servicio y el acuerdo de tratamiento de datos." }),
   }),
 })
 
@@ -43,6 +48,7 @@ export async function POST(req: Request) {
       const customer = await stripe.customers.create({
         email: auth.session.user.email ?? undefined,
         name: club.name,
+        preferred_locales: ["es"],
         metadata: {
           clubId: club.id,
           clubName: club.name,
@@ -66,10 +72,30 @@ export async function POST(req: Request) {
 
     // Crear sesion de Checkout
     const baseUrl = process.env.NEXTAUTH_URL || "http://localhost:3000"
+
+    // Registrar la version contractual antes de generar un enlace de pago externo.
+    await db.legalAcceptance.create({
+      data: {
+        audience: "CLUB",
+        termsVersion: LEGAL_VERSIONS.terminos,
+        dpaVersion: LEGAL_VERSIONS.dpa,
+        privacyVersion: LEGAL_VERSIONS.privacidad,
+        acceptedByEmail: auth.session.user.email || "email-no-disponible",
+        acceptedByName: auth.session.user.name || null,
+        clubName: club.name,
+        userId: auth.session.user.id,
+        clubId: club.id,
+      },
+    })
+
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
       mode: "subscription",
       line_items: [{ price: plan.monthly, quantity: 1 }],
+      billing_address_collection: "required",
+      customer_update: { address: "auto", name: "auto" },
+      tax_id_collection: { enabled: true, required: "if_supported" },
+      automatic_tax: { enabled: isStripeTaxEnabled() },
       success_url: `${baseUrl}/dashboard/facturacion?success=true`,
       cancel_url: `${baseUrl}/dashboard/facturacion?cancelled=true`,
       subscription_data: {

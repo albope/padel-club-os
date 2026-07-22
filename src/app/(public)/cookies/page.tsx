@@ -1,178 +1,89 @@
-import { Metadata } from "next"
-import Link from "next/link"
-import { ArrowLeft } from "lucide-react"
+import type { Metadata } from "next"
+import { LegalPage } from "@/components/legal/LegalPage"
+import { getLegalProvider } from "@/lib/legal"
+import { LEGAL_LAST_UPDATED, LEGAL_VERSIONS } from "@/lib/legal-versions"
 
 export const metadata: Metadata = {
-  title: "Politica de Cookies",
-  description: "Politica de cookies de Padel Club OS. Informacion sobre el uso de cookies en nuestra plataforma.",
+  title: "Política de cookies",
+  description: "Cookies y tecnologías de almacenamiento utilizadas por Padel Club OS.",
   alternates: { canonical: "/cookies" },
 }
 
 export default function CookiesPage() {
+  const provider = getLegalProvider()
+
   return (
-    <div className="container max-w-3xl py-16">
-      <Link
-        href="/"
-        className="mb-8 inline-flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
-      >
-        <ArrowLeft className="h-4 w-4" />
-        Volver al inicio
-      </Link>
+    <LegalPage
+      title="Política de cookies"
+      version={LEGAL_VERSIONS.cookies}
+      updatedAt={LEGAL_LAST_UPDATED}
+      description="Información sobre cookies, almacenamiento local y tecnologías equivalentes utilizadas en el sitio y la aplicación."
+    >
+      <section>
+        <h2>1. Responsable</h2>
+        <p className="mt-3">
+          El responsable de las tecnologías propias de Padel Club OS es {provider.legalName || "el titular identificado en el Aviso legal"}.
+          Puedes escribir a <a href={`mailto:${provider.email}`}>{provider.email}</a>.
+        </p>
+      </section>
 
-      <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">
-        Politica de Cookies
-      </h1>
-      <p className="mt-2 text-sm text-muted-foreground">
-        Ultima actualizacion: 21 de febrero de 2026
-      </p>
+      <section>
+        <h2>2. Qué son estas tecnologías</h2>
+        <p className="mt-3">
+          Las cookies son pequeños archivos que el navegador guarda para mantener una sesión o recordar preferencias.
+          También usamos almacenamiento local del navegador y un service worker para funciones equivalentes, como
+          recordar el idioma, conservar la elección informativa sobre cookies y permitir funciones de la aplicación web progresiva.
+        </p>
+      </section>
 
-      <div className="mt-10 space-y-8 text-muted-foreground leading-relaxed">
-        <section>
-          <h2 className="text-xl font-semibold text-foreground">1. Que son las cookies</h2>
-          <p className="mt-3">
-            Las cookies son pequenos archivos de texto que se almacenan en tu dispositivo (ordenador,
-            tablet o movil) cuando visitas un sitio web. Las cookies permiten que el sitio reconozca
-            tu dispositivo y recuerde informacion sobre tu visita, como tus preferencias o tu estado
-            de sesion.
-          </p>
-        </section>
+      <section>
+        <h2>3. Tecnologías utilizadas actualmente</h2>
+        <div className="mt-4 overflow-x-auto">
+          <table className="w-full min-w-[680px] border-collapse text-left text-sm">
+            <thead><tr className="border-b"><th className="p-3">Nombre o categoría</th><th className="p-3">Proveedor</th><th className="p-3">Finalidad</th><th className="p-3">Duración orientativa</th></tr></thead>
+            <tbody>
+              <tr className="border-b"><td className="p-3"><code>next-auth.session-token</code> o variante segura</td><td className="p-3">Padel Club OS</td><td className="p-3">Mantener la sesión autenticada y proteger áreas privadas</td><td className="p-3">Sesión o hasta 30 días, según la opción de acceso</td></tr>
+              <tr className="border-b"><td className="p-3">Cookies auxiliares de autenticación</td><td className="p-3">Padel Club OS</td><td className="p-3">Seguridad CSRF, retorno tras iniciar sesión y control del flujo de acceso</td><td className="p-3">Normalmente, sesión o pocos minutos</td></tr>
+              <tr className="border-b"><td className="p-3"><code>NEXT_LOCALE</code></td><td className="p-3">Padel Club OS</td><td className="p-3">Recordar el idioma elegido</td><td className="p-3">Hasta que se sustituye o elimina</td></tr>
+              <tr className="border-b"><td className="p-3"><code>padel-cookie-consent</code> (localStorage)</td><td className="p-3">Padel Club OS</td><td className="p-3">Recordar que se mostró la información sobre cookies</td><td className="p-3">Hasta que se borra el almacenamiento del sitio</td></tr>
+              <tr><td className="p-3">Caché del service worker</td><td className="p-3">Padel Club OS</td><td className="p-3">Carga, actualización y funcionamiento de la PWA</td><td className="p-3">Hasta actualización o borrado de datos del sitio</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p className="mt-3">
+          Estas tecnologías son necesarias para prestar las funciones solicitadas o recordar una preferencia y no se
+          utilizan para publicidad comportamental. El registro de que se mostró el aviso puede incluir fecha, tipo de
+          elección, agente de usuario e IP anonimizada con fines de trazabilidad.
+        </p>
+      </section>
 
-        <section>
-          <h2 className="text-xl font-semibold text-foreground">2. Cookies que utilizamos</h2>
-          <p className="mt-3">
-            En Padel Club OS utilizamos los siguientes tipos de cookies:
-          </p>
+      <section>
+        <h2>4. Servicios de terceros</h2>
+        <p className="mt-3">
+          Al acceder a la página de pago o al portal de facturación, el navegador pasa a un dominio de Stripe, que
+          puede usar sus propias tecnologías necesarias para procesar pagos, prevenir fraude y cumplir obligaciones.
+          Consulta la <a href="https://stripe.com/es/privacy" target="_blank" rel="noopener noreferrer">información de privacidad de Stripe</a>.
+          La monitorización técnica de errores puede recibir información del navegador, pero no se utiliza para crear perfiles publicitarios.
+        </p>
+      </section>
 
-          <div className="mt-4 overflow-hidden rounded-lg border">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b bg-muted/50">
-                  <th scope="col" className="px-4 py-3 text-left font-semibold text-foreground">Cookie</th>
-                  <th scope="col" className="px-4 py-3 text-left font-semibold text-foreground">Tipo</th>
-                  <th scope="col" className="px-4 py-3 text-left font-semibold text-foreground">Duracion</th>
-                  <th scope="col" className="px-4 py-3 text-left font-semibold text-foreground">Finalidad</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y">
-                <tr>
-                  <td className="px-4 py-3 font-mono text-xs text-foreground">next-auth.session-token</td>
-                  <td className="px-4 py-3">Esencial</td>
-                  <td className="px-4 py-3">Sesion</td>
-                  <td className="px-4 py-3">Mantener tu sesion iniciada de forma segura.</td>
-                </tr>
-                <tr>
-                  <td className="px-4 py-3 font-mono text-xs text-foreground">next-auth.csrf-token</td>
-                  <td className="px-4 py-3">Esencial</td>
-                  <td className="px-4 py-3">Sesion</td>
-                  <td className="px-4 py-3">Proteccion contra ataques CSRF (falsificacion de solicitudes).</td>
-                </tr>
-                <tr>
-                  <td className="px-4 py-3 font-mono text-xs text-foreground">next-auth.callback-url</td>
-                  <td className="px-4 py-3">Esencial</td>
-                  <td className="px-4 py-3">Sesion</td>
-                  <td className="px-4 py-3">Redirigirte a la pagina correcta tras iniciar sesion.</td>
-                </tr>
-                <tr>
-                  <td className="px-4 py-3 font-mono text-xs text-foreground">theme</td>
-                  <td className="px-4 py-3">Funcional</td>
-                  <td className="px-4 py-3">1 ano</td>
-                  <td className="px-4 py-3">Recordar tu preferencia de tema (claro/oscuro).</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </section>
+      <section>
+        <h2>5. Cómo gestionarlas</h2>
+        <p className="mt-3">
+          Puedes borrar o bloquear cookies desde la configuración del navegador y eliminar los datos almacenados para
+          este sitio. Bloquear las tecnologías necesarias puede impedir iniciar sesión, conservar preferencias o usar
+          correctamente la aplicación. Si en el futuro incorporamos cookies analíticas o publicitarias, se bloquearán
+          hasta obtener la elección correspondiente y se actualizará esta política.
+        </p>
+      </section>
 
-        <section>
-          <h2 className="text-xl font-semibold text-foreground">3. Tipos de cookies por finalidad</h2>
-
-          <h3 className="mt-4 text-lg font-medium text-foreground">Cookies esenciales</h3>
-          <p className="mt-2">
-            Son estrictamente necesarias para el funcionamiento de la Plataforma. Sin ellas, no
-            podrias iniciar sesion ni utilizar las funcionalidades basicas. No requieren tu
-            consentimiento ya que son imprescindibles para el servicio.
-          </p>
-
-          <h3 className="mt-4 text-lg font-medium text-foreground">Cookies funcionales</h3>
-          <p className="mt-2">
-            Permiten recordar tus preferencias (como el tema visual) para ofrecerte una experiencia
-            personalizada. No son imprescindibles, pero mejoran tu experiencia de uso.
-          </p>
-
-          <h3 className="mt-4 text-lg font-medium text-foreground">Cookies analiticas</h3>
-          <p className="mt-2">
-            Actualmente no utilizamos cookies analiticas de terceros. Si en el futuro incorporamos
-            herramientas de analisis, actualizaremos esta politica y solicitaremos tu consentimiento
-            previo.
-          </p>
-        </section>
-
-        <section>
-          <h2 className="text-xl font-semibold text-foreground">4. Cookies de terceros</h2>
-          <p className="mt-3">
-            Cuando utilizas funcionalidades de pago, Stripe puede establecer sus propias cookies para
-            procesar la transaccion de forma segura y prevenir el fraude. Estas cookies estan sujetas
-            a la{" "}
-            <a href="https://stripe.com/es/privacy" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
-              politica de privacidad de Stripe
-            </a>.
-          </p>
-        </section>
-
-        <section>
-          <h2 className="text-xl font-semibold text-foreground">5. Como gestionar las cookies</h2>
-          <p className="mt-3">
-            Puedes gestionar las cookies a traves de la configuracion de tu navegador:
-          </p>
-          <ul className="mt-3 list-disc space-y-2 pl-6">
-            <li>
-              <strong className="text-foreground">Chrome:</strong> Configuracion &gt; Privacidad y
-              seguridad &gt; Cookies y otros datos de sitios.
-            </li>
-            <li>
-              <strong className="text-foreground">Firefox:</strong> Configuracion &gt; Privacidad y
-              seguridad &gt; Cookies y datos del sitio.
-            </li>
-            <li>
-              <strong className="text-foreground">Safari:</strong> Preferencias &gt; Privacidad &gt;
-              Gestionar datos de sitios web.
-            </li>
-            <li>
-              <strong className="text-foreground">Edge:</strong> Configuracion &gt; Cookies y
-              permisos del sitio &gt; Cookies y datos almacenados.
-            </li>
-          </ul>
-          <p className="mt-3">
-            Ten en cuenta que bloquear las cookies esenciales puede impedir el correcto funcionamiento
-            de la Plataforma, incluyendo la imposibilidad de iniciar sesion.
-          </p>
-        </section>
-
-        <section>
-          <h2 className="text-xl font-semibold text-foreground">6. Actualizaciones de esta politica</h2>
-          <p className="mt-3">
-            Podemos actualizar esta politica de cookies para reflejar cambios en las cookies que
-            utilizamos o por motivos legales. Te recomendamos revisar esta pagina periodicamente.
-            Cualquier cambio significativo sera notificado a traves de la Plataforma.
-          </p>
-        </section>
-
-        <section>
-          <h2 className="text-xl font-semibold text-foreground">7. Mas informacion</h2>
-          <p className="mt-3">
-            Para mas informacion sobre como tratamos tus datos personales, consulta nuestra{" "}
-            <Link href="/privacidad" className="text-primary hover:underline">
-              Politica de Privacidad
-            </Link>.
-          </p>
-          <p className="mt-3">
-            Si tienes preguntas sobre nuestra politica de cookies, contactanos en{" "}
-            <a href="mailto:contacto@padelclubos.com" className="text-primary hover:underline">
-              contacto@padelclubos.com
-            </a>.
-          </p>
-        </section>
-      </div>
-    </div>
+      <section>
+        <h2>6. Más información</h2>
+        <p className="mt-3">
+          El tratamiento de datos asociado se explica en la <a href="/privacidad">Política de privacidad</a>. Para
+          consultas sobre estas tecnologías, contacta en <a href={`mailto:${provider.email}`}>{provider.email}</a>.
+        </p>
+      </section>
+    </LegalPage>
   )
 }

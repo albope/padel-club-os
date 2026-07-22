@@ -26,9 +26,12 @@ export default async function Footer() {
     {
       titulo: t('legal'),
       links: [
+        { label: t('legalNotice'), href: "/aviso-legal" },
         { label: t('privacy'), href: "/privacidad" },
         { label: t('terms'), href: "/terminos" },
+        { label: t('dpa'), href: "/acuerdo-tratamiento-datos" },
         { label: t('cookies'), href: "/cookies" },
+        { label: t('securePayment'), href: "/pago-seguro" },
       ],
     },
   ]

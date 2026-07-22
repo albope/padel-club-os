@@ -4,6 +4,7 @@ import { enviarEmailRecordatorioReserva } from "@/lib/email"
 import { liberarSlotYNotificar } from "@/lib/waitlist"
 import { logger } from "@/lib/logger"
 import { registrarAuditoria } from "@/lib/audit"
+import { pingHeartbeat } from "@/lib/heartbeat"
 import { NextResponse } from "next/server"
 
 // Tiempo de antelacion para enviar recordatorio (1 hora)
@@ -181,6 +182,9 @@ export async function POST(req: Request) {
     if (canceladas > 0) {
       logger.info("BOOKING_AUTO_CANCEL", `Canceladas ${canceladas} reservas sin pago completado`)
     }
+
+    // Señalar ejecucion exitosa al monitor de heartbeats (no-op sin la env var)
+    await pingHeartbeat(process.env.HEARTBEAT_URL_REMINDERS)
 
     return NextResponse.json({
       procesadas: reservas.length,

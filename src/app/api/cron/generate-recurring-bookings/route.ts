@@ -6,6 +6,7 @@ import { verificarBloqueo } from "@/lib/court-blocks"
 import { logger } from "@/lib/logger"
 import { registrarAuditoria } from "@/lib/audit"
 import { partesEnZonaClub, instanteDesdeZonaClub } from "@/lib/timezone"
+import { pingHeartbeat } from "@/lib/heartbeat"
 import { NextResponse } from "next/server"
 
 // Generar reservas hasta 7 dias en el futuro
@@ -205,6 +206,9 @@ export async function POST(req: Request) {
     }
 
     logger.info("RECURRING_BOOKINGS_CRON", `Procesadas: ${plantillas.length}, Generadas: ${generadas}, Conflictos: ${conflictos}, Bloqueados: ${bloqueados}, Omitidas: ${omitidas}, Errores: ${errores}`)
+
+    // Señalar ejecucion exitosa al monitor de heartbeats (no-op sin la env var)
+    await pingHeartbeat(process.env.HEARTBEAT_URL_RECURRING)
 
     return NextResponse.json({
       procesadas: plantillas.length,

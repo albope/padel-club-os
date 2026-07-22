@@ -334,7 +334,7 @@ El plan completo de 5 fases esta en: `C:\Users\alber\.claude\plans\jaunty-tumbli
 - [x] Pagina 404 personalizada: not-found.tsx (SVG padel, orbes animados, gradiente azul/cyan)
 - [x] i18n: secciones cookies, auth en es.json y en.json
 
-**Siguiente: D2, E1, email auto-respuesta a leads**
+**Siguiente: D2 (E2E Playwright), E1 (WhatsApp sharing), validar Stripe Connect end-to-end, npm audit**
 
 ## Estado - Post-roadmap (marzo-julio 2026)
 
@@ -354,6 +354,9 @@ Sesiones posteriores al roadmap original (ver git log para detalle):
 - [x] SUPER_ADMIN exento del enforcement de suscripcion (middleware y requireAuth)
 - [x] Backoffice de plataforma: /dashboard/clubs (solo SUPER_ADMIN, permisos platform:read/manage) — lista de clubes con estado, extender trial, cambiar plan/estado, marcar demo
 - [x] Generador de demos: src/lib/demo-club.ts (crearClubDemo/borrarClubDemo, fechas ancladas a Europe/Madrid, campo Club.esDemo) + API /api/platform/demo-clubs (maxDuration 60) + UI con credenciales de un solo uso; scripts/seed-demo-club.ts es wrapper CLI de la misma lib
+- [x] Fix timezone (SEV: fuga de ingresos): src/lib/timezone.ts (hora de pared Europe/Madrid) usado por pricing.ts, cron de recurrentes, analiticas y availability. En Vercel (UTC) las reservas de 17:00-18:59 se tarificaban con banda de manana. Regla: NUNCA getHours()/getDay() en codigo servidor sobre instantes de reserva
+- [x] Auto-respuesta por email al solicitante de demo (enviarEmailConfirmacionSolicitudDemo, fire-and-forget en /api/demo)
+- [x] Docs: separacion DB dev/prod en README (branch dev de Neon) — pendiente que el owner cree la branch y actualice su .env local
 
 ## Notas
 

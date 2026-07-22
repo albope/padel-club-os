@@ -106,6 +106,29 @@ La fuente buena es `.env.example`. Como minimo necesitaras:
 - `DATABASE_URL`
 - `AUTH_SECRET`
 
+### Base de datos de desarrollo (IMPORTANTE)
+
+El `DATABASE_URL` del `.env` local debe apuntar a una base de datos de
+DESARROLLO, nunca a la de produccion. Con Neon la forma recomendada es una
+branch de la base principal:
+
+1. Neon Console → proyecto → **Branches** → **Create branch** (nombre: `dev`,
+   partiendo de `main`). La branch nace con una copia de los datos y es
+   independiente: lo que toques ahi no afecta a produccion.
+2. Copia el connection string de la branch `dev` al `DATABASE_URL` de tu `.env`.
+3. La URL de produccion vive SOLO en las variables de entorno de Vercel.
+
+Para scripts puntuales contra produccion (seeds de demos, etc.), pasa la URL
+explicitamente en el comando y usa las guardas de los scripts (`--confirm`):
+
+```powershell
+$env:DATABASE_URL = "<url-produccion>"; npx tsx scripts/seed-demo-club.ts --confirm
+```
+
+Nota operativa: para crear demos comerciales no hace falta nada de esto — usa
+el generador de `/dashboard/clubs` (SUPER_ADMIN), que corre en produccion con
+sus propias guardas.
+
 Segun lo que quieras probar tambien entran:
 
 - Stripe
@@ -121,11 +144,13 @@ Segun lo que quieras probar tambien entran:
 | `npm run dev` | desarrollo |
 | `npm run build` | build de produccion |
 | `npm run start` | arrancar build |
-| `npm run lint` | lint actual del proyecto |
+| `npm run lint` | lint (eslint, --max-warnings 0) |
+| `npm run typecheck` | tsc --noEmit |
 | `npm test` | tests con Vitest |
 | `npm run test:watch` | Vitest en watch |
 
-Nota: el repo aun no tiene `typecheck` separado ni workflow de CI estable.
+CI (GitHub Actions): lint + typecheck + test + build en cada push/PR a master.
+Vercel despliega automaticamente los push a master.
 
 ## Documentacion del repo
 

@@ -63,9 +63,9 @@ export async function POST(req: Request) {
       cancel_url: `${baseUrl}/dashboard/facturacion?cancelled=true`,
       subscription_data: {
         trial_period_days: 14,
-        metadata: { clubId: club.id },
+        metadata: { clubId: club.id, planKey },
       },
-      metadata: { clubId: club.id },
+      metadata: { clubId: club.id, planKey },
     })
 
     return NextResponse.json({ url: session.url })

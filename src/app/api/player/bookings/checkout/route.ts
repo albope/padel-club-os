@@ -169,7 +169,9 @@ export async function POST(req: Request) {
         },
         success_url: `${baseUrl}/club/${club.slug}/reservar?pago=exito&bookingId=${booking.id}`,
         cancel_url: `${baseUrl}/club/${club.slug}/reservar?pago=cancelado`,
-        expires_at: Math.floor(Date.now() / 1000) + 900, // 15 minutos
+        // Stripe exige un minimo tecnico de 30 minutos. El cron conserva el
+        // plazo de negocio de 15 minutos y expira la sesion manualmente.
+        expires_at: Math.floor(Date.now() / 1000) + 1800,
       })
     } catch (stripeError) {
       // Limpiar lock si Stripe falla

@@ -331,6 +331,7 @@ export async function DELETE(req: Request) {
       try {
         await stripe.refunds.create({
           payment_intent: payment.stripePaymentId,
+          reverse_transfer: true, // recuperar del club el importe transferido
           refund_application_fee: false, // la plataforma absorbe la comision perdida
         })
         // Sincronizar estados: Payment + Booking.paymentStatus + BookingPayments

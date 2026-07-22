@@ -54,7 +54,10 @@ const FacturacionPage = async () => {
         }))}
       />
 
-      <PricingPlans currentTier={club.subscriptionTier} />
+      <PricingPlans
+        currentTier={club.subscriptionTier}
+        subscriptionStatus={club.subscriptionStatus}
+      />
 
       <StripeConnectCard subscriptionTier={club.subscriptionTier} />
     </div>

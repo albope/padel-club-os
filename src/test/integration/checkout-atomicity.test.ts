@@ -265,7 +265,9 @@ describe("Checkout atomicity y concurrencia", () => {
   // --- Persist sessionId ---
 
   it("persiste sessionId y expiresAt tras crear session exitosa", async () => {
+    const antes = Date.now()
     await POST(crearRequest({ body: { bookingId: "booking-1" } }))
+    const despues = Date.now()
 
     const updateCalls = mockDb.booking.update.mock.calls
     const lastCall = updateCalls[updateCalls.length - 1]
@@ -278,7 +280,10 @@ describe("Checkout atomicity y concurrencia", () => {
         }),
       })
     )
-    expect(lastCall[0].data.checkoutSessionExpiresAt).toBeInstanceOf(Date)
+    const expiresAt = lastCall[0].data.checkoutSessionExpiresAt as Date
+    expect(expiresAt).toBeInstanceOf(Date)
+    expect(expiresAt.getTime()).toBeGreaterThanOrEqual(antes + 900_000)
+    expect(expiresAt.getTime()).toBeLessThanOrEqual(despues + 900_000)
   })
 
   // --- Aislamiento por club ---

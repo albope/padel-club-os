@@ -396,6 +396,7 @@ describe("Flujo de reserva de jugador - DELETE (Cancelacion)", () => {
     expect(mockStripeRefunds.create).toHaveBeenCalledWith(
       expect.objectContaining({
         payment_intent: "pi_test_123",
+        reverse_transfer: true,
         refund_application_fee: false,
       })
     )

@@ -68,7 +68,9 @@ describe("Checkout de Stripe para reservas", () => {
   })
 
   it("crea Checkout Session exitosamente con precio, fee 5% y transfer_data", async () => {
+    const antes = Math.floor(Date.now() / 1000)
     const response = await POST(crearRequest({ body: { bookingId: "booking-1" } }))
+    const despues = Math.floor(Date.now() / 1000)
     const data = await extraerJson(response) as { url: string }
 
     expect(response.status).toBe(200)
@@ -80,8 +82,13 @@ describe("Checkout de Stripe para reservas", () => {
           application_fee_amount: 200, // 5% de 4000 centimos
           transfer_data: { destination: "acct_test_123" },
         }),
+        expires_at: expect.any(Number),
       })
     )
+
+    const params = mockStripeCheckout.create.mock.calls[0][0] as { expires_at: number }
+    expect(params.expires_at).toBeGreaterThanOrEqual(antes + 1800)
+    expect(params.expires_at).toBeLessThanOrEqual(despues + 1800)
   })
 
   it("rechaza body invalido sin bookingId", async () => {

@@ -7,6 +7,35 @@ import { asegurarBookingPayments, aplicarRefundBooking } from "@/lib/payment-syn
 import { logger } from "@/lib/logger"
 import type Stripe from "stripe"
 
+async function sincronizarSuscripcion(
+  subscription: Stripe.Subscription,
+  fallbackClubId?: string
+) {
+  let clubId = subscription.metadata?.clubId || fallbackClubId
+
+  if (!clubId) {
+    const club = await db.club.findFirst({
+      where: { stripeSubscriptionId: subscription.id },
+      select: { id: true },
+    })
+    clubId = club?.id
+  }
+
+  if (!clubId) return
+
+  const priceId = subscription.items.data[0]?.price?.id
+  const planKey = priceId ? getPlanKeyFromPriceId(priceId) : null
+
+  await db.club.update({
+    where: { id: clubId },
+    data: {
+      stripeSubscriptionId: subscription.id,
+      subscriptionStatus: subscription.status,
+      ...(planKey && { subscriptionTier: planKey }),
+    },
+  })
+}
+
 export async function POST(req: Request) {
   const body = await req.text()
   const signature = req.headers.get("stripe-signature")
@@ -41,13 +70,13 @@ export async function POST(req: Request) {
 
         // Pago de suscripcion SaaS
         if (session.mode === "subscription" && clubId) {
-          await db.club.update({
-            where: { id: clubId },
-            data: {
-              stripeSubscriptionId: session.subscription as string,
-              subscriptionStatus: "active",
-            },
-          })
+          const subscription = typeof session.subscription === "string"
+            ? await stripe.subscriptions.retrieve(session.subscription)
+            : session.subscription
+
+          if (subscription) {
+            await sincronizarSuscripcion(subscription, clubId)
+          }
         }
 
         // Pago de reserva via Stripe Connect
@@ -119,6 +148,8 @@ export async function POST(req: Request) {
             if (session.payment_intent) {
               stripe.refunds.create({
                 payment_intent: session.payment_intent as string,
+                reverse_transfer: true,
+                refund_application_fee: false,
               }).catch((err) => {
                 logger.error("STRIPE_WEBHOOK_REFUND", "Error emitiendo refund para booking cancelada", { bookingId }, err)
               })
@@ -160,40 +191,10 @@ export async function POST(req: Request) {
         break
       }
 
+      case "customer.subscription.created":
       case "customer.subscription.updated": {
         const subscription = event.data.object as Stripe.Subscription
-        const clubId = subscription.metadata?.clubId
-
-        if (!clubId) {
-          // Buscar club por stripeSubscriptionId
-          const club = await db.club.findFirst({
-            where: { stripeSubscriptionId: subscription.id },
-          })
-          if (!club) break
-
-          const priceId = subscription.items.data[0]?.price?.id
-          const planKey = priceId ? getPlanKeyFromPriceId(priceId) : null
-
-          await db.club.update({
-            where: { id: club.id },
-            data: {
-              subscriptionStatus: subscription.status,
-              ...(planKey && { subscriptionTier: planKey }),
-            },
-          })
-          break
-        }
-
-        const priceId = subscription.items.data[0]?.price?.id
-        const planKey = priceId ? getPlanKeyFromPriceId(priceId) : null
-
-        await db.club.update({
-          where: { id: clubId },
-          data: {
-            subscriptionStatus: subscription.status,
-            ...(planKey && { subscriptionTier: planKey }),
-          },
-        })
+        await sincronizarSuscripcion(subscription)
         break
       }
 

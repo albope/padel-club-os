@@ -256,6 +256,7 @@ export async function PATCH(
           const { stripe: stripeClient } = await import("@/lib/stripe")
           await stripeClient.refunds.create({
             payment_intent: payment.stripePaymentId,
+            reverse_transfer: true,
             refund_application_fee: false,
           })
           // Sincronizar Payment + Booking.paymentStatus atomicamente

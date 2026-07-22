@@ -118,7 +118,11 @@ describe("Webhook - auto-refund si booking fue cancelada", () => {
     expect(response.status).toBe(200)
     // Debe emitir refund
     expect(mockStripeRefunds.create).toHaveBeenCalledWith(
-      expect.objectContaining({ payment_intent: "pi_to_refund" })
+      expect.objectContaining({
+        payment_intent: "pi_to_refund",
+        reverse_transfer: true,
+        refund_application_fee: false,
+      })
     )
     // No debe crear Payment ni enviar notificacion
     expect(mockDb.payment.create).not.toHaveBeenCalled()

@@ -10,6 +10,7 @@ import { cn } from "@/lib/utils"
 
 interface PricingPlansProps {
   currentTier: string
+  subscriptionStatus: string | null
 }
 
 const plans = [
@@ -58,11 +59,11 @@ const plans = [
   },
 ]
 
-export default function PricingPlans({ currentTier }: PricingPlansProps) {
+export default function PricingPlans({ currentTier, subscriptionStatus }: PricingPlansProps) {
   const [loading, setLoading] = React.useState<string | null>(null)
 
   const handleSelectPlan = async (planKey: string) => {
-    if (planKey === currentTier) return
+    if (planKey === currentTier && subscriptionStatus !== "canceled") return
 
     setLoading(planKey)
     try {
@@ -95,7 +96,7 @@ export default function PricingPlans({ currentTier }: PricingPlansProps) {
 
       <div className="grid gap-6 md:grid-cols-3">
         {plans.map((plan) => {
-          const isCurrent = plan.key === currentTier
+          const isCurrent = plan.key === currentTier && subscriptionStatus !== "canceled"
           return (
             <Card
               key={plan.key}

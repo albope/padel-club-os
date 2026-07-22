@@ -8,12 +8,16 @@ const mockConstructWebhookEvent = vi.fn()
 const mockGetPlanKeyFromPriceId = vi.fn()
 const mockCrearNotificacion = vi.fn().mockResolvedValue(undefined)
 const mockEnviarEmailConfirmacion = vi.fn().mockResolvedValue(undefined)
+const mockRetrieveSubscription = vi.fn()
 
 vi.mock("@/lib/db", () => ({ db: mockDb }))
 vi.mock("@/lib/stripe", () => ({
   constructWebhookEvent: (...args: unknown[]) => mockConstructWebhookEvent(...args),
   getPlanKeyFromPriceId: (...args: unknown[]) => mockGetPlanKeyFromPriceId(...args),
-  stripe: { refunds: { create: vi.fn().mockResolvedValue({}) } },
+  stripe: {
+    subscriptions: { retrieve: (...args: unknown[]) => mockRetrieveSubscription(...args) },
+    refunds: { create: vi.fn().mockResolvedValue({}) },
+  },
 }))
 vi.mock("@/lib/notifications", () => ({
   crearNotificacion: (...args: unknown[]) => mockCrearNotificacion(...args),
@@ -76,6 +80,13 @@ describe("Stripe Webhook Handler", () => {
       metadata: { clubId: "club-1" },
       subscription: "sub_test",
     }))
+    mockRetrieveSubscription.mockResolvedValue({
+      id: "sub_test",
+      status: "trialing",
+      metadata: { clubId: "club-1" },
+      items: { data: [{ price: { id: "price_starter" } }] },
+    })
+    mockGetPlanKeyFromPriceId.mockReturnValue("starter")
 
     const response = await POST(crearWebhookRequest())
     expect(response.status).toBe(200)
@@ -84,7 +95,8 @@ describe("Stripe Webhook Handler", () => {
         where: { id: "club-1" },
         data: expect.objectContaining({
           stripeSubscriptionId: "sub_test",
-          subscriptionStatus: "active",
+          subscriptionStatus: "trialing",
+          subscriptionTier: "starter",
         }),
       })
     )
@@ -169,6 +181,29 @@ describe("Stripe Webhook Handler", () => {
   })
 
   // --- customer.subscription.updated ---
+
+  it("customer.subscription.created sincroniza estado, ID y plan", async () => {
+    mockConstructWebhookEvent.mockReturnValue(crearEvento("customer.subscription.created", {
+      id: "sub_created",
+      metadata: { clubId: "club-1" },
+      status: "trialing",
+      items: { data: [{ price: { id: "price_starter" } }] },
+    }))
+    mockGetPlanKeyFromPriceId.mockReturnValue("starter")
+
+    await POST(crearWebhookRequest())
+
+    expect(mockDb.club.update).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { id: "club-1" },
+        data: expect.objectContaining({
+          stripeSubscriptionId: "sub_created",
+          subscriptionStatus: "trialing",
+          subscriptionTier: "starter",
+        }),
+      })
+    )
+  })
 
   it("customer.subscription.updated con clubId en metadata", async () => {
     mockConstructWebhookEvent.mockReturnValue(crearEvento("customer.subscription.updated", {

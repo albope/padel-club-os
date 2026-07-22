@@ -5,6 +5,7 @@ import { isSubscriptionActive } from "@/lib/subscription"
 import { verificarBloqueo } from "@/lib/court-blocks"
 import { logger } from "@/lib/logger"
 import { registrarAuditoria } from "@/lib/audit"
+import { partesEnZonaClub, instanteDesdeZonaClub } from "@/lib/timezone"
 import { NextResponse } from "next/server"
 
 // Generar reservas hasta 7 dias en el futuro
@@ -30,7 +31,9 @@ export async function POST(req: Request) {
     }
 
     const ahora = new Date()
-    const hoy = new Date(ahora.getFullYear(), ahora.getMonth(), ahora.getDate())
+    // "Hoy" segun el calendario del club (Europe/Madrid), no el del servidor (UTC)
+    const hoyClub = partesEnZonaClub(ahora)
+    const hoy = instanteDesdeZonaClub(hoyClub.year, hoyClub.month, hoyClub.day, 0, 0)
     const limiteFuturo = new Date(hoy.getTime() + LOOKAHEAD_DAYS * 24 * 60 * 60 * 1000)
 
     // Buscar todas las reservas recurrentes activas dentro del rango de fechas
@@ -67,23 +70,36 @@ export async function POST(req: Request) {
         continue
       }
 
-      // Calcular fechas objetivo dentro del lookahead
-      const fechasObjetivo = calcularFechasObjetivo(
-        plantilla.dayOfWeek,
-        hoy,
-        limiteFuturo,
-        new Date(plantilla.startsAt),
-        new Date(plantilla.endsAt)
-      )
+      // Recorrer los dias del lookahead segun el calendario del club
+      for (let dia = 0; dia <= LOOKAHEAD_DAYS; dia++) {
+        // Dia de la semana del calendario del club (Date.UTC normaliza day+dia)
+        const diaSemanaCandidato = new Date(
+          Date.UTC(hoyClub.year, hoyClub.month - 1, hoyClub.day + dia)
+        ).getUTCDay()
+        if (diaSemanaCandidato !== plantilla.dayOfWeek) continue
 
-      for (const fecha of fechasObjetivo) {
+        // Rango de vigencia de la plantilla (comparado por dia completo)
+        const inicioDia = instanteDesdeZonaClub(hoyClub.year, hoyClub.month, hoyClub.day + dia, 0, 0)
+        if (inicioDia > new Date(plantilla.endsAt)) continue
+        const finDia = new Date(inicioDia.getTime() + 24 * 60 * 60 * 1000)
+        if (finDia <= new Date(plantilla.startsAt)) continue
+
         try {
-          // Construir startTime y endTime para esta fecha
-          const startTime = new Date(fecha)
-          startTime.setHours(plantilla.startHour, plantilla.startMinute, 0, 0)
-
-          const endTime = new Date(fecha)
-          endTime.setHours(plantilla.endHour, plantilla.endMinute, 0, 0)
+          // Construir startTime y endTime en hora de pared del club
+          const startTime = instanteDesdeZonaClub(
+            hoyClub.year,
+            hoyClub.month,
+            hoyClub.day + dia,
+            plantilla.startHour,
+            plantilla.startMinute
+          )
+          const endTime = instanteDesdeZonaClub(
+            hoyClub.year,
+            hoyClub.month,
+            hoyClub.day + dia,
+            plantilla.endHour,
+            plantilla.endMinute
+          )
 
           // No generar reservas en el pasado
           if (startTime <= ahora) continue
@@ -181,7 +197,7 @@ export async function POST(req: Request) {
           logger.error("RECURRING_BOOKINGS_CRON", "Error generando reserva individual", {
             plantillaId: plantilla.id,
             clubId: plantilla.clubId,
-            fecha: fecha.toISOString(),
+            fecha: inicioDia.toISOString(),
           }, error as Error)
           errores++
         }
@@ -202,36 +218,6 @@ export async function POST(req: Request) {
     logger.error("RECURRING_BOOKINGS_CRON", "Error en cron de reservas recurrentes", {}, error as Error)
     return NextResponse.json({ error: "Error interno" }, { status: 500 })
   }
-}
-
-/**
- * Calcula las fechas dentro del rango [hoy, limiteFuturo] que coinciden
- * con el dayOfWeek y estan dentro de [startsAt, endsAt].
- */
-function calcularFechasObjetivo(
-  dayOfWeek: number,
-  hoy: Date,
-  limiteFuturo: Date,
-  startsAt: Date,
-  endsAt: Date
-): Date[] {
-  const fechas: Date[] = []
-  const inicio = new Date(Math.max(hoy.getTime(), startsAt.getTime()))
-  const fin = new Date(Math.min(limiteFuturo.getTime(), endsAt.getTime()))
-
-  const cursor = new Date(inicio)
-  // Avanzar al primer dia que coincida con dayOfWeek
-  while (cursor.getDay() !== dayOfWeek && cursor <= fin) {
-    cursor.setDate(cursor.getDate() + 1)
-  }
-
-  // Recoger todas las fechas que coinciden
-  while (cursor <= fin) {
-    fechas.push(new Date(cursor))
-    cursor.setDate(cursor.getDate() + 7)
-  }
-
-  return fechas
 }
 
 /** Formatea fecha a string legible en espanol */

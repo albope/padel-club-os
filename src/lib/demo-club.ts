@@ -12,6 +12,7 @@
 import { UserRole, OpenMatchStatus, type PrismaClient, type Prisma } from "@prisma/client"
 import { hash } from "bcrypt"
 import { randomBytes } from "node:crypto"
+import { partesEnZonaClub, instanteDesdeZonaClub } from "./timezone"
 
 // --- Configuracion y resultado ---
 
@@ -54,28 +55,6 @@ export function slugifyClub(nombre: string): string {
 
 export function passwordAleatoria(): string {
   return randomBytes(9).toString("base64url")
-}
-
-// --- Fechas ancladas a Europe/Madrid ---
-
-const DTF_MADRID = new Intl.DateTimeFormat("en-US", {
-  timeZone: "Europe/Madrid",
-  year: "numeric",
-  month: "2-digit",
-  day: "2-digit",
-  hour: "2-digit",
-  minute: "2-digit",
-  second: "2-digit",
-  hour12: false,
-})
-
-function partesMadrid(d: Date): { year: number; month: number; day: number; hour: number; minute: number } {
-  const map: Record<string, number> = {}
-  for (const p of DTF_MADRID.formatToParts(d)) {
-    if (p.type !== "literal") map[p.type] = parseInt(p.value, 10)
-  }
-  if (map.hour === 24) map.hour = 0
-  return { year: map.year, month: map.month, day: map.day, hour: map.hour, minute: map.minute }
 }
 
 // --- Precios (por hora y pista, misma convencion que src/lib/pricing.ts) ---
@@ -153,22 +132,18 @@ export async function crearClubDemo(
   const existente = await prisma.club.findUnique({ where: { slug }, select: { id: true } })
   if (existente) throw new Error("SLUG_EXISTE")
 
-  // Base de calendario: "hoy" segun Madrid
+  // Base de calendario: "hoy" segun la zona del club
   const ahora = new Date()
-  const base = partesMadrid(ahora)
+  const base = partesEnZonaClub(ahora)
 
-  /** Dia de la semana (0=domingo) de hoy+dias, segun calendario de Madrid */
+  /** Dia de la semana (0=domingo) de hoy+dias, segun calendario del club */
   function diaSemana(diasDesdeHoy: number): number {
     return new Date(Date.UTC(base.year, base.month - 1, base.day + diasDesdeHoy)).getUTCDay()
   }
 
-  /** Instante UTC cuya hora de pared en Madrid es hora:minuto de hoy+dias */
+  /** Instante UTC cuya hora de pared en la zona del club es hora:minuto de hoy+dias */
   function fecha(diasDesdeHoy: number, hora: number, minuto = 0): Date {
-    const guess = Date.UTC(base.year, base.month - 1, base.day + diasDesdeHoy, hora, minuto)
-    const p = partesMadrid(new Date(guess))
-    const mostradoComoUTC = Date.UTC(p.year, p.month - 1, p.day, p.hour, p.minute)
-    const offset = mostradoComoUTC - guess // diferencia Madrid-UTC (1h CET / 2h CEST)
-    return new Date(guess - offset)
+    return instanteDesdeZonaClub(base.year, base.month, base.day + diasDesdeHoy, hora, minuto)
   }
 
   function finSlot(inicio: Date): Date {

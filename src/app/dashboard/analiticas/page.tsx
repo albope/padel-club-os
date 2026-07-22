@@ -6,6 +6,7 @@ import { redirect } from 'next/navigation'
 import { Calendar, Users, Fence, TrendingUp } from 'lucide-react'
 import AnaliticasClient from '@/components/analiticas/AnaliticasClient'
 import { getLocale } from 'next-intl/server'
+import { diaSemanaEnZonaClub, partesEnZonaClub } from '@/lib/timezone'
 
 // Calcular datos de tendencia de reservas (ultimos 30 dias)
 async function getBookingTrends(clubId: string, localeCode: string) {
@@ -105,8 +106,9 @@ async function getPeakHours(clubId: string) {
   const conteo = new Map<string, number>()
 
   for (const b of bookings) {
-    const dia = dias[b.startTime.getDay()]
-    const hora = b.startTime.getHours()
+    // Hora de pared del club (el servidor corre en UTC)
+    const dia = dias[diaSemanaEnZonaClub(b.startTime)]
+    const hora = partesEnZonaClub(b.startTime).hour
     const key = `${dia}-${hora}`
     conteo.set(key, (conteo.get(key) || 0) + 1)
   }

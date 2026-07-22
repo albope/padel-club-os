@@ -31,10 +31,11 @@ export async function GET(
       )
     }
 
-    // Determinar dia de la semana
+    // Determinar dia de la semana ("YYYY-MM-DD" se parsea como UTC:
+    // getUTCDay da el dia del calendario sin depender de la zona del servidor)
     let dayOfWeek: number | undefined
     if (date) {
-      dayOfWeek = new Date(date).getDay()
+      dayOfWeek = new Date(date).getUTCDay()
     }
 
     const where: Record<string, unknown> = {

@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { logger } from "@/lib/logger";
+import { inicioDiaEnZonaClub } from "@/lib/timezone";
 
 // GET: Obtener disponibilidad de todas las pistas de un club para una fecha
 // Publica (sin auth) - devuelve bloques ocupados anonimizados
@@ -42,8 +43,9 @@ export async function GET(
       );
     }
 
-    const fechaInicio = new Date(`${date}T00:00:00`);
-    const fechaFin = new Date(`${date}T23:59:59`);
+    // Limites del dia en hora de pared del club (el servidor corre en UTC)
+    const fechaInicio = inicioDiaEnZonaClub(date);
+    const fechaFin = new Date(fechaInicio.getTime() + 24 * 60 * 60 * 1000 - 1000);
 
     // Query paralela: reservas + partidas abiertas + bloqueos + pistas del dia
     const [reservas, partidasAbiertas, bloqueosDia, pistas] = await Promise.all([

@@ -1,4 +1,5 @@
 import { db } from "@/lib/db"
+import { diaSemanaEnZonaClub, horaDecimalEnZonaClub } from "@/lib/timezone"
 
 /**
  * Calcula el precio de una reserva basado en CourtPricing.
@@ -6,6 +7,10 @@ import { db } from "@/lib/db"
  * por horas, soportando reservas que cruzan multiples franjas.
  * CourtPricing.price se interpreta como precio por hora.
  * Si no hay reglas configuradas, devuelve 0 (gratis / sin precio definido).
+ *
+ * Las bandas (dayOfWeek/startHour/endHour) estan definidas en hora de pared
+ * del club (Europe/Madrid): la hora del instante se convierte a esa zona,
+ * independientemente de la zona del servidor (Vercel corre en UTC).
  */
 export async function calcularPrecioReserva(
   courtId: string,
@@ -13,9 +18,9 @@ export async function calcularPrecioReserva(
   startTime: Date,
   endTime: Date
 ): Promise<number> {
-  const dayOfWeek = startTime.getDay() // 0=Domingo, 6=Sabado
-  const startDecimal = startTime.getHours() + startTime.getMinutes() / 60
-  const endDecimal = endTime.getHours() + endTime.getMinutes() / 60
+  const dayOfWeek = diaSemanaEnZonaClub(startTime) // 0=Domingo, 6=Sabado
+  const startDecimal = horaDecimalEnZonaClub(startTime)
+  const endDecimal = horaDecimalEnZonaClub(endTime)
 
   // Obtener todas las bandas de precio del dia para esta pista
   const bandas = await db.courtPricing.findMany({

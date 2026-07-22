@@ -4,10 +4,34 @@ import { mockDb } from "@/test/mocks/db"
 vi.mock("@/lib/db", () => ({ db: mockDb }))
 
 import { calcularPrecioReserva, obtenerPreciosPista } from "./pricing"
+// Las fechas de los tests se construyen en hora de pared del club (Europe/Madrid)
+// para que sean deterministas en cualquier zona del runner (CI corre en UTC)
+import { instanteDesdeZonaClub } from "./timezone"
 
 describe("calcularPrecioReserva", () => {
   beforeEach(() => {
     vi.clearAllMocks()
+  })
+
+  it("REGRESION: usa la hora del club aunque el servidor corra en UTC", async () => {
+    mockDb.courtPricing.findMany.mockResolvedValue([
+      { startHour: 9, endHour: 17, price: 10 },
+      { startHour: 17, endHour: 22, price: 14 },
+    ])
+
+    // 16:00Z de un lunes de julio = 18:00 en Madrid (CEST): banda de tarde.
+    // Con getHours() en un servidor UTC se tarificaba (mal) la banda de manana.
+    const startTime = new Date("2026-07-20T16:00:00Z")
+    const endTime = new Date("2026-07-20T17:30:00Z")
+
+    const precio = await calcularPrecioReserva("court-1", "club-1", startTime, endTime)
+    expect(precio).toBe(21) // 1.5h x 14 (tarde), no 1.5h x 10 (manana)
+
+    expect(mockDb.courtPricing.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: expect.objectContaining({ dayOfWeek: 1 }), // lunes en Madrid
+      })
+    )
   })
 
   it("retorna el precio proporcional si hay regla configurada", async () => {
@@ -16,8 +40,8 @@ describe("calcularPrecioReserva", () => {
     ])
 
     // Lunes 15 enero 2024, 10:00-11:30 (1.5h × 25 = 37.50)
-    const startTime = new Date(2024, 0, 15, 10, 0)
-    const endTime = new Date(2024, 0, 15, 11, 30)
+    const startTime = instanteDesdeZonaClub(2024, 1, 15, 10, 0)
+    const endTime = instanteDesdeZonaClub(2024, 1, 15, 11, 30)
 
     const precio = await calcularPrecioReserva("court-1", "club-1", startTime, endTime)
     expect(precio).toBe(37.5)
@@ -26,8 +50,8 @@ describe("calcularPrecioReserva", () => {
   it("retorna 0 si no hay regla de precio configurada", async () => {
     mockDb.courtPricing.findMany.mockResolvedValue([])
 
-    const startTime = new Date(2024, 0, 15, 10, 0)
-    const endTime = new Date(2024, 0, 15, 11, 30)
+    const startTime = instanteDesdeZonaClub(2024, 1, 15, 10, 0)
+    const endTime = instanteDesdeZonaClub(2024, 1, 15, 11, 30)
 
     const precio = await calcularPrecioReserva("court-1", "club-1", startTime, endTime)
     expect(precio).toBe(0)
@@ -37,8 +61,8 @@ describe("calcularPrecioReserva", () => {
     mockDb.courtPricing.findMany.mockResolvedValue([])
 
     // Miercoles = getDay() 3
-    const startTime = new Date(2024, 0, 17, 14, 0)
-    const endTime = new Date(2024, 0, 17, 15, 30)
+    const startTime = instanteDesdeZonaClub(2024, 1, 17, 14, 0)
+    const endTime = instanteDesdeZonaClub(2024, 1, 17, 15, 30)
 
     await calcularPrecioReserva("court-1", "club-1", startTime, endTime)
 
@@ -62,8 +86,8 @@ describe("calcularPrecioReserva", () => {
     ])
 
     // Domingo 14 enero 2024, 9:00-10:30 (1.5h × 30 = 45)
-    const startTime = new Date(2024, 0, 14, 9, 0)
-    const endTime = new Date(2024, 0, 14, 10, 30)
+    const startTime = instanteDesdeZonaClub(2024, 1, 14, 9, 0)
+    const endTime = instanteDesdeZonaClub(2024, 1, 14, 10, 30)
 
     const precio = await calcularPrecioReserva("court-1", "club-1", startTime, endTime)
     expect(precio).toBe(45.0)
@@ -82,8 +106,8 @@ describe("calcularPrecioReserva", () => {
       { startHour: 10, endHour: 14, price: 20 },
     ])
 
-    const startTime = new Date(2024, 0, 15, 10, 0)
-    const endTime = new Date(2024, 0, 15, 11, 30) // 1.5h × 20 = 30
+    const startTime = instanteDesdeZonaClub(2024, 1, 15, 10, 0)
+    const endTime = instanteDesdeZonaClub(2024, 1, 15, 11, 30) // 1.5h × 20 = 30
 
     expect(await calcularPrecioReserva("c", "cl", startTime, endTime)).toBe(30.0)
   })
@@ -93,8 +117,8 @@ describe("calcularPrecioReserva", () => {
       { startHour: 10, endHour: 14, price: 20 },
     ])
 
-    const startTime = new Date(2024, 0, 15, 10, 0)
-    const endTime = new Date(2024, 0, 15, 11, 0) // 1h × 20 = 20
+    const startTime = instanteDesdeZonaClub(2024, 1, 15, 10, 0)
+    const endTime = instanteDesdeZonaClub(2024, 1, 15, 11, 0) // 1h × 20 = 20
 
     expect(await calcularPrecioReserva("c", "cl", startTime, endTime)).toBe(20.0)
   })
@@ -104,8 +128,8 @@ describe("calcularPrecioReserva", () => {
       { startHour: 10, endHour: 14, price: 20 },
     ])
 
-    const startTime = new Date(2024, 0, 15, 10, 0)
-    const endTime = new Date(2024, 0, 15, 12, 0) // 2h × 20 = 40
+    const startTime = instanteDesdeZonaClub(2024, 1, 15, 10, 0)
+    const endTime = instanteDesdeZonaClub(2024, 1, 15, 12, 0) // 2h × 20 = 40
 
     expect(await calcularPrecioReserva("c", "cl", startTime, endTime)).toBe(40.0)
   })
@@ -117,8 +141,8 @@ describe("calcularPrecioReserva", () => {
     ])
 
     // 19:00-20:30: 1h×10 + 0.5h×15 = 17.50
-    const startTime = new Date(2024, 0, 15, 19, 0)
-    const endTime = new Date(2024, 0, 15, 20, 30)
+    const startTime = instanteDesdeZonaClub(2024, 1, 15, 19, 0)
+    const endTime = instanteDesdeZonaClub(2024, 1, 15, 20, 30)
 
     expect(await calcularPrecioReserva("c", "cl", startTime, endTime)).toBe(17.5)
   })
@@ -130,8 +154,8 @@ describe("calcularPrecioReserva", () => {
     ])
 
     // 10:30-12:00: 0.5h×20 + 1h×30 = 40
-    const startTime = new Date(2024, 0, 15, 10, 30)
-    const endTime = new Date(2024, 0, 15, 12, 0)
+    const startTime = instanteDesdeZonaClub(2024, 1, 15, 10, 30)
+    const endTime = instanteDesdeZonaClub(2024, 1, 15, 12, 0)
 
     expect(await calcularPrecioReserva("c", "cl", startTime, endTime)).toBe(40.0)
   })
@@ -144,8 +168,8 @@ describe("calcularPrecioReserva", () => {
     ])
 
     // 18:30-20:30: 0.5h×8 + 1.5h×12 = 4+18 = 22
-    const startTime = new Date(2024, 0, 15, 18, 30)
-    const endTime = new Date(2024, 0, 15, 20, 30)
+    const startTime = instanteDesdeZonaClub(2024, 1, 15, 18, 30)
+    const endTime = instanteDesdeZonaClub(2024, 1, 15, 20, 30)
 
     expect(await calcularPrecioReserva("c", "cl", startTime, endTime)).toBe(22.0)
   })
@@ -153,8 +177,8 @@ describe("calcularPrecioReserva", () => {
   it("retorna 0 si no hay bandas configuradas", async () => {
     mockDb.courtPricing.findMany.mockResolvedValue([])
 
-    const startTime = new Date(2024, 0, 15, 10, 0)
-    const endTime = new Date(2024, 0, 15, 11, 30)
+    const startTime = instanteDesdeZonaClub(2024, 1, 15, 10, 0)
+    const endTime = instanteDesdeZonaClub(2024, 1, 15, 11, 30)
 
     expect(await calcularPrecioReserva("c", "cl", startTime, endTime)).toBe(0)
   })
@@ -165,8 +189,8 @@ describe("calcularPrecioReserva", () => {
     ])
 
     // 10:00-11:30: solo 1h cubierta × 20 = 20 (los 30 min sin banda = gratis)
-    const startTime = new Date(2024, 0, 15, 10, 0)
-    const endTime = new Date(2024, 0, 15, 11, 30)
+    const startTime = instanteDesdeZonaClub(2024, 1, 15, 10, 0)
+    const endTime = instanteDesdeZonaClub(2024, 1, 15, 11, 30)
 
     expect(await calcularPrecioReserva("c", "cl", startTime, endTime)).toBe(20.0)
   })

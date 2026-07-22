@@ -859,7 +859,7 @@
         "desc": "Para clubes pequeños que empiezan a digitalizarse.",
         "feature1": "Hasta 4 pistas",
         "feature2": "Gestión de reservas",
-        "feature3": "Hasta 100 socios",
+        "feature3": "Hasta 50 socios",
         "feature4": "Portal de jugadores",
         "feature5": "Soporte por email"
       },
@@ -868,7 +868,7 @@
         "price": "49",
         "priceAnnual": "42",
         "desc": "Para clubes en crecimiento que necesitan más.",
-        "feature1": "Hasta 10 pistas",
+        "feature1": "Pistas ilimitadas y hasta 500 socios",
         "feature2": "Todo de Starter",
         "feature3": "Competiciones y ligas",
         "feature4": "Pagos con Stripe",
@@ -883,8 +883,8 @@
         "feature1": "Pistas ilimitadas",
         "feature2": "Todo de Pro",
         "feature3": "Socios ilimitados",
-        "feature4": "Multi-sede",
-        "feature5": "API personalizada",
+        "feature4": "Administradores ilimitados",
+        "feature5": "Clases fijas ilimitadas",
         "feature6": "Onboarding dedicado"
       },
       "comparison": {

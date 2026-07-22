@@ -859,7 +859,7 @@
         "desc": "For small clubs starting to go digital.",
         "feature1": "Up to 4 courts",
         "feature2": "Booking management",
-        "feature3": "Up to 100 members",
+        "feature3": "Up to 50 members",
         "feature4": "Player portal",
         "feature5": "Email support"
       },
@@ -868,7 +868,7 @@
         "price": "49",
         "priceAnnual": "42",
         "desc": "For growing clubs that need more.",
-        "feature1": "Up to 10 courts",
+        "feature1": "Unlimited courts, up to 500 members",
         "feature2": "Everything in Starter",
         "feature3": "Competitions and leagues",
         "feature4": "Stripe payments",
@@ -883,8 +883,8 @@
         "feature1": "Unlimited courts",
         "feature2": "Everything in Pro",
         "feature3": "Unlimited members",
-        "feature4": "Multi-venue",
-        "feature5": "Custom API",
+        "feature4": "Unlimited admins",
+        "feature5": "Unlimited fixed classes",
         "feature6": "Dedicated onboarding"
       },
       "comparison": {

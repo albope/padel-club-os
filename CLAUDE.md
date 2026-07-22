@@ -334,7 +334,7 @@ El plan completo de 5 fases esta en: `C:\Users\alber\.claude\plans\jaunty-tumbli
 - [x] Pagina 404 personalizada: not-found.tsx (SVG padel, orbes animados, gradiente azul/cyan)
 - [x] i18n: secciones cookies, auth en es.json y en.json
 
-**Siguiente: D2 (E2E Playwright), E1 (WhatsApp sharing), validar Stripe Connect end-to-end, npm audit**
+**Siguiente: D2 (E2E Playwright), validar Stripe Connect end-to-end**
 
 ## Estado - Post-roadmap (marzo-julio 2026)
 
@@ -357,6 +357,7 @@ Sesiones posteriores al roadmap original (ver git log para detalle):
 - [x] Fix timezone (SEV: fuga de ingresos): src/lib/timezone.ts (hora de pared Europe/Madrid) usado por pricing.ts, cron de recurrentes, analiticas y availability. En Vercel (UTC) las reservas de 17:00-18:59 se tarificaban con banda de manana. Regla: NUNCA getHours()/getDay() en codigo servidor sobre instantes de reserva
 - [x] Auto-respuesta por email al solicitante de demo (enviarEmailConfirmacionSolicitudDemo, fire-and-forget en /api/demo)
 - [x] Docs: separacion DB dev/prod en README (branch dev de Neon) — pendiente que el owner cree la branch y actualice su .env local
+- [x] Operacion en produccion (Bloque 2): src/lib/heartbeat.ts (pingHeartbeat fire-and-forget, no-op sin env var) llamado al final exitoso de ambos crons (HEARTBEAT_URL_REMINDERS/RECURRING via healthchecks.io); /api/health con Cache-Control no-store; docs/operacion.md (runbook: caida de prod + rollback Vercel, restore PITR Neon + reset rama dev, crons manuales via curl, alertas Sentry, guias UptimeRobot/healthchecks.io, cold start Neon, analisis Hobby vs Pro — pasar a Pro al facturar el primer club). Altas en servicios externos pendientes del owner (checklist en docs/operacion.md)
 
 ## Notas
 
@@ -624,12 +625,10 @@ Sprint 1: A1, A2 [DONE] → Sprint 2: A3, A5 [DONE] → Sprint 3: A4, B1 [DONE] 
 
 Analisis competitivo realizado contra: Playtomic (87% clubs Espana, B2B2C), TPC Matchpoint (1450 clubs, apps nativas), Doinsport (1000+ clubs Francia, POS completo).
 
-**Sesion E1 - WhatsApp sharing** `[ ]` (Esfuerzo: S)
-- Boton "Compartir" en reservas confirmadas y partidas abiertas
-- Web Share API (`navigator.share()`) con fallback a clipboard
-- Datos: nombre pista, fecha, hora, enlace al portal del club
-- Sin cambios de backend — solo UI en ConfirmacionReserva, perfil/historial, tarjeta partida abierta
-- Competidores con esto: TPC Matchpoint, Playtomic
+**Sesion E1 - WhatsApp sharing** `[x]` (implementado en el commit de waitlist/reagendado, checkbox estaba desactualizado)
+- [x] BotonCompartir.tsx: Web Share API con AbortError silencioso y fallback a clipboard (+ copia manual si falla)
+- [x] Integrado en ConfirmacionReserva, perfil/historial y partidas abiertas
+- [x] i18n namespace share
 
 **Sesion E2 - Lista de espera en reservas** `[x]` (Esfuerzo: S)
 - [x] Modelo BookingWaitlist (courtId, userId, clubId, startTime, endTime, status active|notified|fulfilled|expired, notifiedAt)

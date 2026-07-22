@@ -13,8 +13,10 @@ de pago y el owner este dado de alta para facturar.
   con lo que ve el cliente en Checkout.
 - [ ] Decidir si el cambio de plan se prorratea inmediatamente. En TEST se valido
   `always_invoice`; no copiar esa decision a LIVE sin confirmacion de producto.
-- [ ] Decidir si un club cancelado puede obtener otros 14 dias de prueba al volver
-  a contratar. Actualmente cada Checkout nuevo envia `trial_period_days=14`.
+- [x] Trial unico por club: Checkout hereda `Club.trialEndsAt` mediante `trial_end`
+  solo si quedan mas de 48 horas y nunca hubo suscripcion. Con el trial agotado,
+  menos de 48 horas restantes o una suscripcion anterior/cancelada, cobra de inmediato.
+  Validado en Stripe TEST para alta, trial caducado y recontratacion cancelada.
 - [ ] Mantener Preview/Development de Vercel con claves `sk_test` y prices de TEST.
   Nunca mezclar IDs `price_...` entre modos.
 
@@ -33,6 +35,8 @@ de pago y el owner este dado de alta para facturar.
 
 Stripe mantiene desactivado el cambio de plan por defecto; debe configurarse
 expresamente. Referencia: [configurar Customer Portal](https://docs.stripe.com/customer-management/configure-portal).
+El minimo de 48 horas para `trial_end` procede de la
+[API de Checkout Sessions](https://docs.stripe.com/api/checkout/sessions/create#checkout_session_create-subscription_data-trial_end).
 
 ## 3. Webhook de produccion
 

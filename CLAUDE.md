@@ -661,8 +661,8 @@ Analisis competitivo realizado contra: Playtomic (87% clubs Espana, B2B2C), TPC 
 - [x] Connect Express TEST: onboarding completo, `charges_enabled` + `payouts_enabled` + `details_submitted`
 - [x] Reserva online real: destination charge de 30 EUR, application fee 5 %, transfer, webhook y estados DB
 - [x] Impago real: cron cancela a los 15 minutos y expira Checkout; refund real revierte transfer y sincroniza todos los estados
-- [x] Fixes: plan/status real de suscripcion, recontratacion tras cancelar, `expires_at` tecnico de 30 min y `reverse_transfer=true`
-- [x] Regresion integrada: lint + typecheck + 540 tests + build + 2 Playwright E2E, todo con `TZ=UTC`
+- [x] Fixes: plan/status real, recontratacion, trial unico derivado de `trialEndsAt`, `expires_at` tecnico de 30 min y `reverse_transfer=true`
+- [x] Regresion integrada: lint + typecheck + 545 tests + build + 2 Playwright E2E, todo con `TZ=UTC`
 - [x] Checklist y runbook LIVE: `docs/stripe-go-live.md`; LIVE/Connect LIVE siguen pendientes hasta el primer cliente
-- [ ] Decision de producto pendiente: permitir o impedir un nuevo trial de 14 dias al recontratar tras cancelar
+- [x] Decision de producto: trial una sola vez por club; caducado, <48 h o suscripcion previa/cancelada cobra inmediatamente
 

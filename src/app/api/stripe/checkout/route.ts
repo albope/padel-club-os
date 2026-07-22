@@ -12,6 +12,8 @@ const CheckoutSchema = z.object({
   }),
 })
 
+const MINIMO_TRIAL_STRIPE_MS = 48 * 60 * 60 * 1000
+
 export async function POST(req: Request) {
   try {
     const auth = await requireAuth("billing:update")
@@ -53,6 +55,15 @@ export async function POST(req: Request) {
       })
     }
 
+    // El trial se concede una sola vez por club. Si aun no hubo suscripcion,
+    // Stripe hereda exactamente el tiempo restante del trial creado al registrar.
+    const puedeHeredarTrial = Boolean(
+      club.trialEndsAt
+      && club.trialEndsAt.getTime() > Date.now() + MINIMO_TRIAL_STRIPE_MS
+      && !club.stripeSubscriptionId
+      && club.subscriptionStatus !== "canceled"
+    )
+
     // Crear sesion de Checkout
     const baseUrl = process.env.NEXTAUTH_URL || "http://localhost:3000"
     const session = await stripe.checkout.sessions.create({
@@ -62,8 +73,10 @@ export async function POST(req: Request) {
       success_url: `${baseUrl}/dashboard/facturacion?success=true`,
       cancel_url: `${baseUrl}/dashboard/facturacion?cancelled=true`,
       subscription_data: {
-        trial_period_days: 14,
         metadata: { clubId: club.id, planKey },
+        ...(puedeHeredarTrial && club.trialEndsAt
+          ? { trial_end: Math.floor(club.trialEndsAt.getTime() / 1000) }
+          : {}),
       },
       metadata: { clubId: club.id, planKey },
     })

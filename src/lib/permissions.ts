@@ -56,6 +56,9 @@ export type Permission =
   // Leads / solicitudes de demo (plataforma)
   | "leads:read"
   | "leads:update"
+  // Backoffice de plataforma: clubes, trials y demos
+  | "platform:read"
+  | "platform:manage"
   // Perfil propio
   | "profile:read"
   | "profile:update"
@@ -112,6 +115,7 @@ const rolePermissions: Record<UserRole, Permission[]> = {
     "analytics:read",
     "blog:read", "blog:create", "blog:update", "blog:delete",
     "leads:read", "leads:update",
+    "platform:read", "platform:manage",
     "profile:read", "profile:update", "profile:export", "profile:delete",
     "notifications:read", "notifications:update",
     "broadcast:create", "broadcast:read",

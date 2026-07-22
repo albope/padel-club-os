@@ -18,6 +18,7 @@ import {
   ScrollText,
   UserCog,
   Inbox,
+  Building2,
   type LucideIcon,
 } from 'lucide-react';
 import type { Permission } from '@/lib/permissions';
@@ -44,6 +45,7 @@ export const navItems: NavItem[] = [
   { nameKey: 'nav.comunicacion', href: '/dashboard/comunicacion', icon: Megaphone },
   { nameKey: 'nav.blog', href: '/dashboard/blog', icon: FileText, requiredPermission: 'blog:read' },
   { nameKey: 'nav.leads', href: '/dashboard/leads', icon: Inbox, requiredPermission: 'leads:read' },
+  { nameKey: 'nav.clubs', href: '/dashboard/clubs', icon: Building2, requiredPermission: 'platform:read' },
   { nameKey: 'nav.analiticas', href: '/dashboard/analiticas', icon: BarChart3 },
   { nameKey: 'nav.migracion', href: '/dashboard/migracion', icon: DatabaseZap },
   { nameKey: 'nav.actividad', href: '/dashboard/audit-log', icon: ScrollText, requiredPermission: 'audit:read' },

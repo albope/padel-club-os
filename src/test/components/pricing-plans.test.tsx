@@ -24,13 +24,15 @@ describe("PricingPlans", () => {
     render(<PricingPlans currentTier="pro" subscriptionStatus="canceled" />)
 
     const boton = botonDelPlan("Pro")
-    expect(boton).toBeEnabled()
+    expect(boton).toBeDisabled()
     expect(boton).toHaveTextContent("Elegir plan")
 
+    await userEvent.click(screen.getByRole("checkbox"))
+    expect(boton).toBeEnabled()
     await userEvent.click(boton)
     expect(fetchMock).toHaveBeenCalledWith(
       "/api/stripe/checkout",
-      expect.objectContaining({ body: JSON.stringify({ planKey: "pro" }) })
+      expect.objectContaining({ body: JSON.stringify({ planKey: "pro", legalAccepted: true }) })
     )
   })
 

@@ -107,8 +107,12 @@
     "good": "Buena",
     "strong": "Fuerte",
     "termsPrefix": "Al registrarte aceptas nuestros",
-    "termsOfService": "Términos de servicio",
+    "termsOfService": "Condiciones del servicio SaaS",
     "and": "y",
+    "andRead": "y declaro haber leído la",
+    "legalAcceptance": "Confirmo que actúo en nombre de un club y acepto las",
+    "dataProcessingAgreement": "Acuerdo de tratamiento de datos",
+    "legalRequired": "Debes aceptar las condiciones y el acuerdo de tratamiento de datos.",
     "privacyPolicy": "Política de privacidad",
     "creatingAccount": "Creando cuenta...",
     "loggingIn": "Entrando...",
@@ -366,10 +370,10 @@
     "noNew": "Sin notificaciones nuevas"
   },
   "cookies": {
-    "message": "Utilizamos cookies esenciales para el funcionamiento del sitio y cookies funcionales para recordar tus preferencias.",
+    "message": "Utilizamos cookies y almacenamiento local necesarios para el funcionamiento del sitio y tus preferencias.",
     "learnMore": "Más información sobre cookies",
     "acceptAll": "Aceptar todas",
-    "onlyEssential": "Solo esenciales"
+    "onlyEssential": "Entendido"
   },
   "rgpd": {
     "title": "Mis datos y privacidad",
@@ -850,6 +854,7 @@
       "saveMonths": "Ahorra 2 meses",
       "popular": "Más popular",
       "trialIncluded": "14 días gratis incluidos",
+      "taxesExcluded": "IVA no incluido",
       "perMonth": "/mes",
       "billedAnnually": "Facturado anualmente ({amount}EUR/año)",
       "startTrial": "Solicitar demo",
@@ -958,9 +963,12 @@
       "about": "Sobre nosotros",
       "blog": "Blog",
       "contact": "Contacto",
+      "legalNotice": "Aviso legal",
       "privacy": "Privacidad",
-      "terms": "Términos de uso",
+      "terms": "Condiciones SaaS",
+      "dpa": "Acuerdo RGPD (DPA)",
       "cookies": "Cookies",
+      "securePayment": "Pago seguro",
       "tagline": "La plataforma de gestión para clubes de pádel en España. Moderna, accesible y sin complicaciones.",
       "copyright": "Padel Club OS. Todos los derechos reservados.",
       "madeIn": "Hecho en España"

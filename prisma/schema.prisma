@@ -20,7 +20,7 @@ model Club {
   logoUrl          String?
   openingTime      String?   @default("09:00")
   closingTime      String?   @default("23:00")
-  subscriptionTier String    @default("essential")
+  subscriptionTier String    @default("starter")
   stripeCustomerId String?   @unique
 
   // Configuracion del portal publico

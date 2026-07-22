@@ -24,8 +24,18 @@ const PISTA_JUGADOR = "Pista Anexa"
 // El grid admin muestra slots por hora en punta (09:00-22:00). Elegimos el
 // primer slot con al menos 2h de margen para que nunca sea pasado. La misma
 // hora en punta existe como franja en el grid del jugador (pasos de 30 min).
+// La hora se calcula en Europe/Madrid: el runner de CI corre en UTC pero la
+// app muestra y valida horas de pared del club.
 function slotFuturo(): string {
-  const hora = Math.max(9, Math.min(20, new Date().getHours() + 2))
+  const horaMadrid = parseInt(
+    new Intl.DateTimeFormat("en-US", {
+      timeZone: "Europe/Madrid",
+      hour: "2-digit",
+      hour12: false,
+    }).format(new Date()),
+    10
+  )
+  const hora = Math.max(9, Math.min(20, (horaMadrid === 24 ? 0 : horaMadrid) + 2))
   return `${String(hora).padStart(2, "0")}:00`
 }
 const slot = slotFuturo()
@@ -84,22 +94,18 @@ test.describe.serial("Flujo critico: alta de club, configuracion y reservas", ()
       .getByRole("button", { name: `Crear reserva a las ${slot} en ${PISTA_ADMIN}` })
       .click()
 
-    // Modal de nueva reserva: elegir pista, asignar un invitado y confirmar
-    await expect(page.getByRole("heading", { name: "Nueva Reserva" })).toBeVisible()
-    await page.locator("#courtId").click()
-    await page.getByRole("option", { name: PISTA_ADMIN }).click()
-    await page.locator("#user-search").fill("Invitado E2E")
-    // Enter añade el invitado y (si el formulario esta completo) envia la
-    // reserva cerrando el modal. Esperamos el cierre; si no se cierra solo,
-    // confirmamos manualmente.
-    await page.locator("#user-search").press("Enter")
+    // Modal de nueva reserva: la pista del slot clicado viene preseleccionada
     const tituloModal = page.getByRole("heading", { name: "Nueva Reserva" })
-    try {
-      await tituloModal.waitFor({ state: "hidden", timeout: 5_000 })
-    } catch {
-      await page.getByRole("button", { name: "Confirmar Reserva" }).click()
-      await tituloModal.waitFor({ state: "hidden", timeout: 15_000 })
-    }
+    await expect(tituloModal).toBeVisible()
+    await expect(page.locator("#courtId")).toContainText(PISTA_ADMIN)
+
+    // Asignar un invitado: Enter fija el nombre pero NO envia el formulario
+    await page.locator("#user-search").fill("Invitado E2E")
+    await page.locator("#user-search").press("Enter")
+    await expect(tituloModal).toBeVisible()
+
+    await page.getByRole("button", { name: "Confirmar Reserva" }).click()
+    await tituloModal.waitFor({ state: "hidden", timeout: 15_000 })
 
     // La reserva aparece en el grid
     await expect(

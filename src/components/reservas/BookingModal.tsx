@@ -47,11 +47,13 @@ interface BookingModalProps {
   isOpen: boolean;
   onClose: () => void;
   selectedInfo: Date | BookingWithDetails | null;
+  /** Pista del slot clicado en el grid (solo modo creacion) */
+  preselectedCourtId?: string | null;
   courts: Court[];
   users: User[];
 }
 
-const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, selectedInfo, courts, users }) => {
+const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, selectedInfo, preselectedCourtId, courts, users }) => {
   const router = useRouter();
   const t = useTranslations('booking');
   const tc = useTranslations('common');
@@ -95,7 +97,7 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, selectedIn
         ? redondearA30Min(new Date(bookingData!.endTime))
         : calcularHoraFin(startTime);
       form.reset({
-        courtId: isEditMode ? bookingData!.courtId : '',
+        courtId: isEditMode ? bookingData!.courtId : preselectedCourtId || '',
         userId: isEditMode ? bookingData!.userId || '' : '',
         guestName: isEditMode ? bookingData!.guestName || '' : '',
         startDate: initialDate.toISOString().split('T')[0],
@@ -105,7 +107,7 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, selectedIn
       });
       setSearchTerm(isEditMode ? bookingData!.user?.name || bookingData!.guestName || '' : '');
     }
-  }, [selectedInfo, isEditMode, bookingData, form]);
+  }, [selectedInfo, isEditMode, bookingData, preselectedCourtId, form]);
 
   const handleFormSubmit = async (data: BookingFormValues) => {
     setIsLoading(true);
@@ -264,6 +266,14 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, selectedIn
                   }}
                   onFocus={() => setShowUserList(true)}
                   onBlur={() => setTimeout(() => setShowUserList(false), 200)}
+                  onKeyDown={(e) => {
+                    // Enter fija el texto como invitado y cierra la lista,
+                    // sin enviar el formulario completo
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      setShowUserList(false);
+                    }
+                  }}
                   placeholder={t('searchMember')}
                   autoComplete="off"
                   aria-required="true"

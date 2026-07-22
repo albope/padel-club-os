@@ -22,6 +22,7 @@ const ReservasContainer: React.FC<ReservasContainerProps> = ({ initialBookings, 
   const [courtBlocks, setCourtBlocks] = useState<CourtBlockForGrid[]>(initialCourtBlocks);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedInfo, setSelectedInfo] = useState<Date | BookingWithDetails | null>(null);
+  const [preselectedCourtId, setPreselectedCourtId] = useState<string | null>(null);
 
   const pendingCount = useMemo(() =>
     initialBookings.filter(b => b.paymentStatus === 'pending' && !b.cancelledAt).length,
@@ -79,17 +80,20 @@ const ReservasContainer: React.FC<ReservasContainerProps> = ({ initialBookings, 
 
   const handleSlotClick = (date: Date, courtId: string) => {
     setSelectedInfo(date);
+    setPreselectedCourtId(courtId);
     setIsModalOpen(true);
   };
 
   const handleBookingClick = (booking: BookingWithDetails) => {
     setSelectedInfo(booking);
+    setPreselectedCourtId(null);
     setIsModalOpen(true);
   };
 
   const closeModal = () => {
     setIsModalOpen(false);
     setSelectedInfo(null);
+    setPreselectedCourtId(null);
   };
 
   return (
@@ -175,6 +179,7 @@ const ReservasContainer: React.FC<ReservasContainerProps> = ({ initialBookings, 
         isOpen={isModalOpen}
         onClose={closeModal}
         selectedInfo={selectedInfo}
+        preselectedCourtId={preselectedCourtId}
         courts={courts}
         users={users}
       />

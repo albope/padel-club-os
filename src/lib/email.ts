@@ -999,6 +999,60 @@ export async function enviarEmailSolicitudDemo({
   })
 }
 
+interface EnviarEmailConfirmacionSolicitudDemoParams {
+  nombre: string
+  email: string
+  clubNombre: string
+}
+
+/**
+ * Auto-respuesta al solicitante de una demo: confirma la recepcion y
+ * marca expectativas de tiempo de respuesta.
+ */
+export async function enviarEmailConfirmacionSolicitudDemo({
+  nombre,
+  email,
+  clubNombre,
+}: EnviarEmailConfirmacionSolicitudDemoParams) {
+  const resend = getResend()
+  const primerNombre = nombre.trim().split(/\s+/)[0] || nombre
+
+  const contenido = `
+    <p style="${estiloParrafo}">
+      Hola ${escaparHtml(primerNombre)},
+    </p>
+    <p style="${estiloParrafo}">
+      Hemos recibido tu solicitud de demo para <strong>${escaparHtml(clubNombre)}</strong>.
+      Te contactaremos en menos de 24 horas laborables para preparar una demo
+      adaptada a tu club.
+    </p>
+    <p style="${estiloParrafo}">
+      Mientras tanto, puedes echar un vistazo a lo que Padel Club OS hace por
+      clubes como el tuyo: reservas online 24/7, control de cobros, socios que
+      se autogestionan y partidas abiertas para llenar pistas.
+    </p>
+    <p style="${estiloParrafoSecundario}">
+      Si tienes cualquier duda, responde directamente a este email.
+    </p>
+  `
+
+  await resend.emails.send({
+    from: EMAIL_FROM,
+    to: email,
+    replyTo: process.env.CONTACT_EMAIL || "contacto@padelclubos.com",
+    subject: `Hemos recibido tu solicitud de demo - ${clubNombre}`,
+    html: plantillaEmail({
+      titulo: "Solicitud recibida",
+      preheader: `Te contactaremos en menos de 24h laborables, ${primerNombre}`,
+      contenido,
+      boton: {
+        texto: "Descubre Padel Club OS",
+        url: EMAIL_BRAND.siteUrl,
+      },
+    }),
+  })
+}
+
 // =============================================================================
 // INVITACION DE EQUIPO (ADMIN/STAFF)
 // =============================================================================

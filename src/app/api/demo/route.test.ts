@@ -13,6 +13,7 @@ vi.mock("@/lib/db", () => ({
 
 vi.mock("@/lib/email", () => ({
   enviarEmailSolicitudDemo: vi.fn().mockResolvedValue(undefined),
+  enviarEmailConfirmacionSolicitudDemo: vi.fn().mockResolvedValue(undefined),
 }))
 
 vi.mock("@/lib/logger", () => ({
@@ -89,6 +90,17 @@ describe("POST /api/demo", () => {
   it("devuelve 400 con softwareActual invalido", async () => {
     const res = await POST(crearRequest({ ...bodyValido, softwareActual: "invalido" }))
     expect(res.status).toBe(400)
+  })
+
+  it("envia auto-respuesta al solicitante", async () => {
+    const res = await POST(crearRequest(bodyValido))
+    expect(res.status).toBe(201)
+    const { enviarEmailConfirmacionSolicitudDemo } = await import("@/lib/email")
+    expect(enviarEmailConfirmacionSolicitudDemo).toHaveBeenCalledWith({
+      nombre: "Juan Garcia",
+      email: "juan@club.com",
+      clubNombre: "Club Padel Sevilla",
+    })
   })
 
   it("normaliza source valida correctamente", async () => {

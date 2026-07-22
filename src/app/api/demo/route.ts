@@ -1,5 +1,5 @@
 import { db } from "@/lib/db"
-import { enviarEmailSolicitudDemo } from "@/lib/email"
+import { enviarEmailSolicitudDemo, enviarEmailConfirmacionSolicitudDemo } from "@/lib/email"
 import { logger } from "@/lib/logger"
 import { crearRateLimiter, obtenerIP } from "@/lib/rate-limit"
 import { NextResponse } from "next/server"
@@ -100,6 +100,11 @@ export async function POST(req: Request) {
     } catch (emailError) {
       logger.error("DEMO_EMAIL", "Error al enviar email de solicitud de demo", { ruta: "/api/demo" }, emailError)
     }
+
+    // Auto-respuesta al solicitante (fire-and-forget, no bloquea la respuesta)
+    enviarEmailConfirmacionSolicitudDemo({ nombre, email, clubNombre }).catch((emailError) => {
+      logger.error("DEMO_EMAIL", "Error al enviar auto-respuesta de demo", { ruta: "/api/demo" }, emailError)
+    })
 
     return NextResponse.json(
       { message: "Solicitud de demo enviada correctamente." },

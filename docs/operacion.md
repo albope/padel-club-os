@@ -22,7 +22,7 @@ Una sola vez, ~40 minutos en total. Los puntos son independientes: hazlos en cua
 
 - [x] **1. UptimeRobot** (~10 min): crear cuenta gratuita + monitor de `/api/health` cada 5 min con alerta por email → sección 1 — ✅ hecho 23/07/2026
 - [x] **2. healthchecks.io** (~15 min): crear cuenta gratuita + 2 checks, copiar las ping URLs a las env vars de Vercel y redeploy → sección 2 — ✅ hecho 23/07/2026, verificado invocando ambos crons manualmente (pings recibidos)
-- [ ] **3. Alertas de Sentry** (~10 min): crear 2 alert rules (nuevo error en prod, spike de eventos) → sección 6
+- [ ] **3. Alertas de Sentry** (~10 min): crear 2 alert rules (nuevo error en prod, spike de eventos) → sección 6 — ⏸️ pospuesto conscientemente (23/07/2026); la captura de errores sigue activa, pero sin email proactivo: revisar el dashboard de Sentry de vez en cuando hasta crear las reglas
 - [x] **4. Neon** (~5 min): verificar la ventana de restauración del plan actual → sección 4 — ✅ verificado 23/07/2026: **1 día**
 - [ ] **5. Cuando se facture al primer club**: pasar Vercel a plan Pro → sección 8
 

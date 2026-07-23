@@ -1,6 +1,7 @@
 'use client'
 
 import React from 'react'
+import { temaMarcadorActivo } from '@/lib/feature-flags'
 import {
   ResponsiveContainer,
   BarChart,
@@ -24,6 +25,12 @@ interface CourtUtilizationProps {
 }
 
 function getBarColor(value: number): string {
+  // «Marcador»: semaforo con los tokens de estado (se adaptan a claro/oscuro)
+  if (temaMarcadorActivo()) {
+    if (value >= 70) return 'hsl(var(--status-success-fg))'
+    if (value >= 40) return 'hsl(var(--status-warning-fg))'
+    return 'hsl(var(--status-error-fg))'
+  }
   if (value >= 70) return '#22c55e' // green-500
   if (value >= 40) return '#eab308' // yellow-500
   return '#ef4444' // red-500

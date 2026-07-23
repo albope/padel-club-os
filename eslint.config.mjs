@@ -10,7 +10,8 @@ const compat = new FlatCompat({
 });
 
 const eslintConfig = [
-  { ignores: [".next/**"] },
+  // design_handoff_*: prototipos de referencia, no codigo
+  { ignores: [".next/**", "design_handoff_identidad_marcador/**", "design_handoff_fase2/**"] },
   ...compat.extends("next/core-web-vitals"),
 ];
 

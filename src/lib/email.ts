@@ -1,5 +1,6 @@
 import { Resend } from "resend"
 import { LEGAL_VERSIONS } from "@/lib/legal-versions"
+import { temaMarcadorActivo } from "@/lib/feature-flags"
 
 // Cliente Resend singleton con lazy initialization
 // Evita errores en build cuando RESEND_API_KEY no esta definida
@@ -22,24 +23,52 @@ function getResend(): Resend {
 
 const EMAIL_FROM = "Padel Club OS <no-reply@padelclubos.com>"
 
-const EMAIL_BRAND = {
-  nombre: "Padel Club OS",
-  colorPrimario: "#3b82f6",
-  colorSecundario: "#06b6d4",
-  colorBotonHover: "#2563eb",
-  colorTexto: "#1a1a1a",
-  colorTextoSecundario: "#6b7280",
-  colorTextoTerciario: "#94a3b8",
-  colorFondo: "#f8fafc",
-  colorFondoContenido: "#ffffff",
-  colorBorde: "#e2e8f0",
-  colorBordeDetalle: "#3b82f6",
-  siteUrl: process.env.NEXT_PUBLIC_APP_URL || "https://padelclubos.com",
-  anio: new Date().getFullYear(),
-} as const
+// Identidad «Marcador» activa: header/boton planos + modulo marcador
+const ES_MARCADOR = temaMarcadorActivo()
 
-// Logo SVG inline (pista de padel) — replica de logo-icon.tsx para emails
-const LOGO_SVG_EMAIL = `<div style="width:36px;height:36px;min-width:36px;border-radius:10px;background:linear-gradient(135deg,hsl(217,91%,52%) 0%,hsl(197,85%,48%) 100%);display:inline-block;vertical-align:middle;text-align:center;line-height:36px;">
+// Identidad «Marcador»: verde pista + papel/tinta; legacy: azul degradado
+const EMAIL_BRAND = temaMarcadorActivo()
+  ? ({
+      nombre: "Padel Club OS",
+      colorPrimario: "#157A54",
+      colorSecundario: "#0E5C3F",
+      colorBotonHover: "#0E5C3F",
+      colorTexto: "#1C1A17",
+      colorTextoSecundario: "#5C564C",
+      colorTextoTerciario: "#8A8377",
+      colorFondo: "#F6F3ED",
+      colorFondoContenido: "#FFFFFF",
+      colorBorde: "#E7E2D8",
+      colorBordeDetalle: "#157A54",
+      siteUrl: process.env.NEXT_PUBLIC_APP_URL || "https://padelclubos.com",
+      anio: new Date().getFullYear(),
+    } as const)
+  : ({
+      nombre: "Padel Club OS",
+      colorPrimario: "#3b82f6",
+      colorSecundario: "#06b6d4",
+      colorBotonHover: "#2563eb",
+      colorTexto: "#1a1a1a",
+      colorTextoSecundario: "#6b7280",
+      colorTextoTerciario: "#94a3b8",
+      colorFondo: "#f8fafc",
+      colorFondoContenido: "#ffffff",
+      colorBorde: "#e2e8f0",
+      colorBordeDetalle: "#3b82f6",
+      siteUrl: process.env.NEXT_PUBLIC_APP_URL || "https://padelclubos.com",
+      anio: new Date().getFullYear(),
+    } as const)
+
+// Logo SVG inline para emails: isotipo «Marcador» sobre header papel (stroke
+// tinta + chip verde) con el flag activo; pista de padel legacy con el flag apagado
+const LOGO_SVG_EMAIL = ES_MARCADOR
+  ? `<div style="width:36px;height:36px;min-width:36px;display:inline-block;vertical-align:middle;text-align:center;line-height:36px;">
+  <svg width="30" height="30" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" style="vertical-align:middle;margin-top:3px;">
+    <rect x="4" y="10" width="40" height="28" rx="7" stroke="#1C1A17" stroke-width="3" fill="none"/>
+    <rect x="10" y="16" width="13" height="16" rx="3" fill="#157A54"/>
+  </svg>
+</div>`
+  : `<div style="width:36px;height:36px;min-width:36px;border-radius:10px;background:linear-gradient(135deg,hsl(217,91%,52%) 0%,hsl(197,85%,48%) 100%);display:inline-block;vertical-align:middle;text-align:center;line-height:36px;">
   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="vertical-align:middle;margin-top:9px;">
     <rect x="4" y="2" width="16" height="20" rx="1.5" stroke="white" stroke-width="1.5" opacity="0.95"/>
     <line x1="4" y1="12" x2="20" y2="12" stroke="white" stroke-width="1.5" opacity="0.95"/>
@@ -82,6 +111,69 @@ function cajaDetalle(detalles: { etiqueta: string; valor: string }[]): string {
         ${filas}
       </table>
     </div>`
+}
+
+/**
+ * «Modulo marcador» (identidad «Marcador»): tarjeta de celdas (pista · fecha ·
+ * hora) con borde 2px tinta y fila de total. Gesto propietario de la marca.
+ * Construido en tablas anidadas; degrada a tabla simple (Outlook ignora el
+ * border-radius y muestra las celdas cuadradas, sin perder informacion).
+ */
+function moduloMarcador(
+  celdas: { etiqueta: string; valor: string; sub?: string }[],
+  total?: { etiqueta: string; valor: string }
+): string {
+  const ancho = Math.floor(100 / celdas.length)
+  const celdasHtml = celdas
+    .map(
+      (c, i) => `
+        <td width="${ancho}%" style="padding:16px;vertical-align:top;${
+          i < celdas.length - 1 ? `border-right:1px solid ${EMAIL_BRAND.colorBorde};` : ""
+        }">
+          <div style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:${EMAIL_BRAND.colorTextoTerciario};margin-bottom:4px;">${c.etiqueta}</div>
+          <div style="font-size:22px;font-weight:700;color:${EMAIL_BRAND.colorTexto};font-variant-numeric:tabular-nums;">${c.valor}</div>
+          ${c.sub ? `<div style="font-size:12px;color:${EMAIL_BRAND.colorTextoSecundario};">${c.sub}</div>` : ""}
+        </td>`
+    )
+    .join("")
+
+  const totalHtml = total
+    ? `
+      <tr>
+        <td colspan="${celdas.length}" style="padding:12px 16px;background-color:${EMAIL_BRAND.colorFondo};border-top:1px solid ${EMAIL_BRAND.colorBorde};">
+          <table width="100%" cellpadding="0" cellspacing="0" role="presentation">
+            <tr>
+              <td style="font-size:13px;color:${EMAIL_BRAND.colorTextoSecundario};">${total.etiqueta}</td>
+              <td align="right" style="font-size:16px;font-weight:700;color:${EMAIL_BRAND.colorTexto};font-variant-numeric:tabular-nums;">${total.valor}</td>
+            </tr>
+          </table>
+        </td>
+      </tr>`
+    : ""
+
+  return `
+    <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="border:2px solid ${EMAIL_BRAND.colorTexto};border-radius:10px;border-collapse:separate;margin:20px 0;">
+      <tr>${celdasHtml}</tr>
+      ${totalHtml}
+    </table>`
+}
+
+/** Fecha corta «24 jul» en Europe/Madrid */
+function formatearFechaCorta(fecha: Date): string {
+  return fecha.toLocaleDateString("es-ES", {
+    day: "numeric",
+    month: "short",
+    timeZone: "Europe/Madrid",
+  })
+}
+
+/** Dia de la semana «jueves» (capitalizado) en Europe/Madrid */
+function formatearDiaSemana(fecha: Date): string {
+  const dia = fecha.toLocaleDateString("es-ES", {
+    weekday: "long",
+    timeZone: "Europe/Madrid",
+  })
+  return dia.charAt(0).toUpperCase() + dia.slice(1)
 }
 
 /** Formatear fecha en espanol */
@@ -144,7 +236,7 @@ function plantillaEmail({ titulo, preheader, contenido, boton, pieDePagina }: Pl
 
   const botonHtml = boton
     ? `<div style="text-align:center;margin:28px 0 8px;">
-        <a href="${boton.url}" style="display:inline-block;background:linear-gradient(135deg,${EMAIL_BRAND.colorPrimario},${EMAIL_BRAND.colorBotonHover});color:#ffffff;padding:14px 36px;border-radius:8px;text-decoration:none;font-weight:600;font-size:15px;line-height:1;">
+        <a href="${boton.url}" style="display:inline-block;background:${ES_MARCADOR ? EMAIL_BRAND.colorPrimario : `linear-gradient(135deg,${EMAIL_BRAND.colorPrimario},${EMAIL_BRAND.colorBotonHover})`};color:#ffffff;padding:14px 36px;border-radius:${ES_MARCADOR ? "6px" : "8px"};text-decoration:none;font-weight:${ES_MARCADOR ? "700" : "600"};font-size:15px;line-height:1;">
           ${boton.texto}
         </a>
       </div>`
@@ -173,14 +265,14 @@ function plantillaEmail({ titulo, preheader, contenido, boton, pieDePagina }: Pl
 
           <!-- HEADER -->
           <tr>
-            <td style="background:linear-gradient(135deg,${EMAIL_BRAND.colorPrimario} 0%,${EMAIL_BRAND.colorSecundario} 100%);padding:20px 32px;">
+            <td style="${ES_MARCADOR ? `background-color:${EMAIL_BRAND.colorFondoContenido};padding:24px 32px;border-bottom:1px solid ${EMAIL_BRAND.colorBorde};` : `background:linear-gradient(135deg,${EMAIL_BRAND.colorPrimario} 0%,${EMAIL_BRAND.colorSecundario} 100%);padding:20px 32px;`}">
               <table cellpadding="0" cellspacing="0" role="presentation">
                 <tr>
                   <td style="vertical-align:middle;padding-right:12px;">
                     ${LOGO_SVG_EMAIL}
                   </td>
                   <td style="vertical-align:middle;">
-                    <span style="color:#ffffff;font-size:18px;font-weight:700;letter-spacing:-0.3px;">${EMAIL_BRAND.nombre}</span>
+                    ${ES_MARCADOR ? `<span style="color:${EMAIL_BRAND.colorTexto};font-size:18px;font-weight:700;letter-spacing:-0.3px;">Padel Club <span style="color:${EMAIL_BRAND.colorPrimario};">OS</span></span>` : `<span style="color:#ffffff;font-size:18px;font-weight:700;letter-spacing:-0.3px;">${EMAIL_BRAND.nombre}</span>`}
                   </td>
                 </tr>
               </table>
@@ -500,6 +592,37 @@ export async function enviarEmailConfirmacionReserva({
   const duracion = calcularDuracionMin(fechaHoraInicio, fechaHoraFin)
   const reservasUrl = `${EMAIL_BRAND.siteUrl}/club/${escaparHtml(clubSlug)}/reservar`
 
+  const etiquetaTotal =
+    estadoPago === "paid"
+      ? "Total pagado"
+      : estadoPago === "exempt"
+        ? "Pago presencial"
+        : estadoPago === "refunded"
+          ? "Reembolsado"
+          : "Total (pendiente de pago)"
+
+  // Modulo marcador (identidad «Marcador»); ficha con borde izquierdo en legacy
+  const detalleHtml = ES_MARCADOR
+    ? moduloMarcador(
+        [
+          { etiqueta: "Pista", valor: pistaSegura },
+          {
+            etiqueta: "Fecha",
+            valor: formatearFechaCorta(fechaHoraInicio),
+            sub: formatearDiaSemana(fechaHoraInicio),
+          },
+          { etiqueta: "Hora", valor: horaInicio, sub: `${duracion} min` },
+        ],
+        { etiqueta: etiquetaTotal, valor: `${precioTotal.toFixed(2)} &euro;` }
+      )
+    : cajaDetalle([
+        { etiqueta: "Pista", valor: pistaSegura },
+        { etiqueta: "Fecha", valor: fecha.charAt(0).toUpperCase() + fecha.slice(1) },
+        { etiqueta: "Horario", valor: `${horaInicio} - ${horaFin} (${duracion} min)` },
+        { etiqueta: "Precio", valor: `${precioTotal.toFixed(2)} &euro;` },
+        { etiqueta: "Pago", valor: traducirEstadoPago(estadoPago) },
+      ])
+
   const contenido = `
     <p style="${estiloParrafo}">
       Hola ${nombreSeguro},
@@ -507,13 +630,7 @@ export async function enviarEmailConfirmacionReserva({
     <p style="${estiloParrafo}">
       Tu reserva en <strong>${clubSeguro}</strong> ha sido confirmada.
     </p>
-    ${cajaDetalle([
-      { etiqueta: "Pista", valor: pistaSegura },
-      { etiqueta: "Fecha", valor: fecha.charAt(0).toUpperCase() + fecha.slice(1) },
-      { etiqueta: "Horario", valor: `${horaInicio} - ${horaFin} (${duracion} min)` },
-      { etiqueta: "Precio", valor: `${precioTotal.toFixed(2)} &euro;` },
-      { etiqueta: "Pago", valor: traducirEstadoPago(estadoPago) },
-    ])}
+    ${detalleHtml}
     <p style="${estiloParrafoSecundario}">
       &iexcl;Nos vemos en la pista!
     </p>

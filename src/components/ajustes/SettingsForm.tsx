@@ -14,6 +14,8 @@ import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { toast } from '@/hooks/use-toast';
+import { temaMarcadorActivo } from '@/lib/feature-flags';
+import { PreviewTenant } from '@/components/ajustes/PreviewTenant';
 import Image from 'next/image';
 
 const SettingsSchema = z.object({
@@ -240,6 +242,14 @@ const SettingsForm: React.FC<SettingsFormProps> = ({ club }) => {
               </p>
             </div>
           </div>
+
+          {/* «Marcador»: preview en vivo + check de contraste (frame 3d) */}
+          {temaMarcadorActivo() && (
+            <PreviewTenant
+              color={form.watch('primaryColor') || '#4f46e5'}
+              nombreClub={form.watch('name') || club.name}
+            />
+          )}
 
           <Separator />
 

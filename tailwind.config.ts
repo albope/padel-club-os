@@ -19,6 +19,7 @@ const config: Config = {
       fontFamily: {
         sans: ["var(--font-inter)", "system-ui", "sans-serif"],
         display: ["var(--font-sora)", "var(--font-inter)", "system-ui", "sans-serif"],
+        mono: ["var(--font-mono)", "ui-monospace", "SFMono-Regular", "monospace"],
       },
       colors: {
         border: "hsl(var(--border))",
@@ -29,6 +30,7 @@ const config: Config = {
         primary: {
           DEFAULT: "hsl(var(--primary))",
           foreground: "hsl(var(--primary-foreground))",
+          hover: "hsl(var(--primary-hover))",
         },
         secondary: {
           DEFAULT: "hsl(var(--secondary))",
@@ -63,6 +65,41 @@ const config: Config = {
           "accent-foreground": "hsl(var(--sidebar-accent-foreground))",
           border: "hsl(var(--sidebar-border))",
           ring: "hsl(var(--sidebar-ring))",
+        },
+        // Identidad «Marcador»: definidos solo bajo .theme-marcador (globals.css)
+        "surface-raised": "hsl(var(--surface-raised))",
+        "border-strong": "hsl(var(--border-strong))",
+        info: {
+          DEFAULT: "hsl(var(--status-info-fg))",
+          bg: "hsl(var(--status-info-bg))",
+          border: "hsl(var(--status-info-border))",
+          foreground: "hsl(var(--status-info-foreground))",
+        },
+        success: {
+          DEFAULT: "hsl(var(--status-success-fg))",
+          bg: "hsl(var(--status-success-bg))",
+          border: "hsl(var(--status-success-border))",
+          foreground: "hsl(var(--status-success-foreground))",
+        },
+        warning: {
+          DEFAULT: "hsl(var(--status-warning-fg))",
+          bg: "hsl(var(--status-warning-bg))",
+          border: "hsl(var(--status-warning-border))",
+          foreground: "hsl(var(--status-warning-foreground))",
+        },
+        error: {
+          DEFAULT: "hsl(var(--status-error-fg))",
+          bg: "hsl(var(--status-error-bg))",
+          border: "hsl(var(--status-error-border))",
+          foreground: "hsl(var(--status-error-foreground))",
+        },
+        dataviz: {
+          "1": "hsl(var(--dataviz-1))",
+          "2": "hsl(var(--dataviz-2))",
+          "3": "hsl(var(--dataviz-3))",
+          "4": "hsl(var(--dataviz-4))",
+          "5": "hsl(var(--dataviz-5))",
+          "6": "hsl(var(--dataviz-6))",
         },
       },
       borderWidth: {

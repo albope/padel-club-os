@@ -9,6 +9,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
 import { toast } from '@/hooks/use-toast';
 import { calcularPrecioTotal, type BandaPrecio } from '@/lib/pricing-client';
+import { temaMarcadorActivo } from '@/lib/feature-flags';
 import ConfirmacionReserva from './ConfirmacionReserva';
 
 interface Pista {
@@ -107,6 +108,21 @@ export default function GridReservas({ club, pistas, sesionUserId, slug, fechaIn
   const hoy = useMemo(() => new Date().toISOString().split('T')[0], []);
   const franjas = useMemo(() => generarFranjas(openingTime, closingTime), [openingTime, closingTime]);
   const totalFilas = franjas.length;
+  const temaMarcador = temaMarcadorActivo();
+
+  // <<Marcador>> 2b: chips de dia (proximos 7 dias)
+  const proximosDias = useMemo(() => {
+    if (!temaMarcador) return [];
+    return Array.from({ length: 7 }, (_, i) => {
+      const d = new Date(`${hoy}T12:00:00`);
+      d.setDate(d.getDate() + i);
+      return {
+        iso: d.toISOString().split('T')[0],
+        diaSemana: d.toLocaleDateString(localeCode, { weekday: 'short' }).replace('.', ''),
+        diaMes: d.getDate(),
+      };
+    });
+  }, [temaMarcador, hoy, localeCode]);
 
   // Cargar disponibilidad y precios cuando cambia la fecha
   const cargarDatos = useCallback(async () => {
@@ -323,26 +339,52 @@ export default function GridReservas({ club, pistas, sesionUserId, slug, fechaIn
         </Button>
       </div>
 
+      {/* <<Marcador>> 2b: chips de dia */}
+      {temaMarcador && (
+        <div className="flex gap-2 overflow-x-auto pb-1" role="group" aria-label={t('date')}>
+          {proximosDias.map((dia) => {
+            const seleccionado = fecha === dia.iso;
+            return (
+              <button
+                type="button"
+                key={dia.iso}
+                onClick={() => setFecha(dia.iso)}
+                aria-pressed={seleccionado}
+                className={cn(
+                  'flex flex-col items-center justify-center min-w-[52px] h-14 rounded-[10px] border text-xs transition-colors shrink-0',
+                  seleccionado
+                    ? 'bg-foreground text-background border-foreground font-semibold'
+                    : 'bg-card border-border hover:border-border-strong text-foreground'
+                )}
+              >
+                <span className="text-[10px] uppercase tracking-[0.06em] opacity-70">{dia.diaSemana}</span>
+                <span className="text-sm font-semibold tabular-nums">{dia.diaMes}</span>
+              </button>
+            );
+          })}
+        </div>
+      )}
+
       {/* Leyenda */}
       <div className="flex gap-3 sm:gap-4 text-xs flex-wrap">
         <div className="flex items-center gap-1.5">
-          <div className="w-3 h-3 rounded-sm bg-background border border-border" />
+          <div className={cn('w-3 h-3 rounded-sm', temaMarcador ? 'border border-dashed border-border-strong bg-card' : 'bg-background border border-border')} />
           <span className="text-muted-foreground">{t('available')}</span>
         </div>
         <div className="flex items-center gap-1.5">
-          <div className="w-3 h-3 rounded-sm bg-red-100 border border-red-200" />
+          <div className={cn('w-3 h-3 rounded-sm', temaMarcador ? 'celda-ocupada border border-border' : 'bg-red-100 border border-red-200')} />
           <span className="text-muted-foreground">{t('occupied')}</span>
         </div>
         <div className="flex items-center gap-1.5">
-          <div className="w-3 h-3 rounded-sm bg-blue-100 border border-blue-200" />
+          <div className={cn('w-3 h-3 rounded-sm', temaMarcador ? 'bg-foreground border border-foreground' : 'bg-blue-100 border border-blue-200')} />
           <span className="text-muted-foreground">{t('yourBooking')}</span>
         </div>
         <div className="flex items-center gap-1.5">
-          <div className="w-3 h-3 rounded-sm bg-green-100 border border-green-200" />
+          <div className={cn('w-3 h-3 rounded-sm', temaMarcador ? 'bg-primary/5 border-[1.5px] border-primary' : 'bg-green-100 border border-green-200')} />
           <span className="text-muted-foreground">{t('openMatch')}</span>
         </div>
         <div className="flex items-center gap-1.5">
-          <div className="w-3 h-3 rounded-sm bg-gray-200 border border-gray-300" />
+          <div className={cn('w-3 h-3 rounded-sm', temaMarcador ? 'bg-secondary border border-border' : 'bg-gray-200 border border-gray-300')} />
           <span className="text-muted-foreground">{t('blocked')}</span>
         </div>
       </div>
@@ -365,7 +407,7 @@ export default function GridReservas({ club, pistas, sesionUserId, slug, fechaIn
             className="grid"
             style={{
               gridTemplateColumns: `60px repeat(${pistas.length}, minmax(100px, 1fr))`,
-              gridTemplateRows: `auto repeat(${totalFilas}, 2rem)`,
+              gridTemplateRows: `auto repeat(${totalFilas}, ${temaMarcador ? '2.75rem' : '2rem'})`,
               minWidth: `${60 + pistas.length * 100}px`,
             }}
           >
@@ -429,7 +471,12 @@ export default function GridReservas({ club, pistas, sesionUserId, slug, fechaIn
                             type="button"
                             key={celdaKey}
                             style={gridStyle}
-                            className="w-full text-left mx-0.5 my-px rounded-sm flex flex-col items-center justify-center text-[10px] font-medium overflow-hidden select-none bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 border border-green-200 dark:border-green-800 cursor-pointer hover:bg-green-200 dark:hover:bg-green-900/50"
+                            className={cn(
+                              'w-full text-left mx-0.5 my-px flex flex-col items-center justify-center text-[10px] font-medium overflow-hidden select-none cursor-pointer',
+                              temaMarcador
+                                ? 'rounded-[6px] bg-primary/5 text-primary border-[1.5px] border-primary hover:bg-primary/10'
+                                : 'rounded-sm bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 border border-green-200 dark:border-green-800 hover:bg-green-200 dark:hover:bg-green-900/50'
+                            )}
                             onClick={() => handlePartidaAbierta(bloque.openMatchId!)}
                             aria-label={`Ver partida abierta de ${horaInicioStr} a ${horaFinStr}, ${bloque.plazasLibres} plazas libres`}
                           >
@@ -462,7 +509,12 @@ export default function GridReservas({ club, pistas, sesionUserId, slug, fechaIn
                           <div
                             key={celdaKey}
                             style={gridStyle}
-                            className="mx-0.5 my-px rounded-sm flex flex-col items-center justify-center text-[10px] font-medium overflow-hidden select-none bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400 border border-gray-300 dark:border-gray-600"
+                            className={cn(
+                              'mx-0.5 my-px flex flex-col items-center justify-center text-[10px] font-medium overflow-hidden select-none',
+                              temaMarcador
+                                ? 'rounded-[6px] bg-secondary text-muted-foreground border border-border'
+                                : 'rounded-sm bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400 border border-gray-300 dark:border-gray-600'
+                            )}
                             title={bloque.note || motivoTexto}
                           >
                             <span className="flex items-center gap-0.5 leading-tight">
@@ -483,9 +535,14 @@ export default function GridReservas({ club, pistas, sesionUserId, slug, fechaIn
                           key={celdaKey}
                           style={gridStyle}
                           className={cn(
-                            'mx-0.5 my-px rounded-sm flex flex-col items-center justify-center text-[10px] font-medium overflow-hidden select-none relative',
-                            propia && 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800',
-                            !propia && 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 border border-red-200 dark:border-red-800',
+                            'mx-0.5 my-px flex flex-col items-center justify-center text-[10px] font-medium overflow-hidden select-none relative',
+                            temaMarcador ? 'rounded-[6px]' : 'rounded-sm',
+                            propia && (temaMarcador
+                              ? 'bg-foreground text-background border border-foreground'
+                              : 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800'),
+                            !propia && (temaMarcador
+                              ? 'celda-ocupada text-muted-foreground border border-border'
+                              : 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 border border-red-200 dark:border-red-800'),
                           )}
                         >
                           <span className="font-semibold leading-tight">
@@ -499,9 +556,13 @@ export default function GridReservas({ club, pistas, sesionUserId, slug, fechaIn
                               type="button"
                               className={cn(
                                 'absolute bottom-0.5 right-0.5 p-0.5 rounded-sm transition-colors',
-                                enWaitlist
-                                  ? 'text-amber-600 dark:text-amber-400 hover:bg-amber-200/50 dark:hover:bg-amber-800/30'
-                                  : 'text-red-400 dark:text-red-500 hover:bg-red-200/50 dark:hover:bg-red-800/30',
+                                temaMarcador
+                                  ? (enWaitlist
+                                      ? 'text-warning-foreground hover:bg-warning-bg'
+                                      : 'text-muted-foreground hover:bg-secondary')
+                                  : (enWaitlist
+                                      ? 'text-amber-600 dark:text-amber-400 hover:bg-amber-200/50 dark:hover:bg-amber-800/30'
+                                      : 'text-red-400 dark:text-red-500 hover:bg-red-200/50 dark:hover:bg-red-800/30'),
                               )}
                               onClick={(e) => {
                                 e.stopPropagation();
@@ -552,8 +613,12 @@ export default function GridReservas({ club, pistas, sesionUserId, slug, fechaIn
                           key={celdaKey}
                           style={gridStyle}
                           className={cn(
-                            'w-full text-left border-r border-b border-border/20 transition-colors cursor-pointer hover:bg-primary/5 active:bg-primary/10',
-                            esHoraEnPunto && 'border-t border-t-border/40',
+                            temaMarcador
+                              ? 'w-full m-0.5 rounded-[6px] border border-dashed border-border-strong flex items-center justify-center transition-colors cursor-pointer hover:border-primary hover:bg-primary/5 active:bg-primary/10'
+                              : cn(
+                                  'w-full text-left border-r border-b border-border/20 transition-colors cursor-pointer hover:bg-primary/5 active:bg-primary/10',
+                                  esHoraEnPunto && 'border-t border-t-border/40',
+                                ),
                           )}
                           onClick={() => handleClickSlot(pista, franja, filaIdx)}
                           aria-label={`Reservar ${pista.name} a las ${franja}${precioTotal ? `, ${precioTotal}€` : ''}`}

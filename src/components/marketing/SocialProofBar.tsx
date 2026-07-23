@@ -1,34 +1,37 @@
-import { Clock, CreditCard, Smartphone, Zap } from "lucide-react"
 import { getTranslations } from "next-intl/server"
 
 const beneficioKeys = [
-  { icono: Clock, titleKey: "item1Title", descKey: "item1Desc" },
-  { icono: Smartphone, titleKey: "item2Title", descKey: "item2Desc" },
-  { icono: CreditCard, titleKey: "item3Title", descKey: "item3Desc" },
-  { icono: Zap, titleKey: "item4Title", descKey: "item4Desc" },
+  { titleKey: "item1Title", descKey: "item1Desc" },
+  { titleKey: "item2Title", descKey: "item2Desc" },
+  { titleKey: "item3Title", descKey: "item3Desc" },
+  { titleKey: "item4Title", descKey: "item4Desc" },
 ] as const
 
+/** Mini-marcador: rect verde con chip, gesto de marca reutilizado del mock */
+function MiniMarcador() {
+  return (
+    <div className="relative h-6 w-[34px] rounded-[var(--radius-control)] border-2 border-primary" aria-hidden="true">
+      <div className="absolute bottom-1 left-1 top-1 w-2 rounded-[2px] bg-primary" />
+    </div>
+  )
+}
+
 export default async function SocialProofBar() {
-  const t = await getTranslations('marketing.socialProof')
+  const t = await getTranslations("marketing.socialProof")
 
   return (
-    <section className="border-b border-t bg-background py-12 md:py-16">
-      <div className="container">
-        <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 md:grid-cols-4 md:gap-10">
-          {beneficioKeys.map((b) => (
-            <div key={b.titleKey} className="flex flex-col items-center gap-3 text-center">
-              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10">
-                <b.icono className="h-6 w-6 text-primary" />
-              </div>
-              <p className="text-lg font-semibold tracking-tight text-foreground">
-                {t(b.titleKey)}
-              </p>
-              <p className="text-sm leading-relaxed text-muted-foreground">
-                {t(b.descKey)}
-              </p>
-            </div>
-          ))}
-        </div>
+    <section className="container pb-16 md:pb-24">
+      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+        {beneficioKeys.map((b) => (
+          <div
+            key={b.titleKey}
+            className="grid content-start gap-2 rounded-[var(--radius-module)] border border-border bg-surface-raised p-5"
+          >
+            <MiniMarcador />
+            <h3 className="mt-1 font-display text-[15px] font-bold">{t(b.titleKey)}</h3>
+            <p className="text-[13px] leading-relaxed text-muted-foreground">{t(b.descKey)}</p>
+          </div>
+        ))}
       </div>
     </section>
   )

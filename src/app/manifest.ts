@@ -7,8 +7,8 @@ export default function manifest(): MetadataRoute.Manifest {
     description: 'La solucion definitiva para la gestion de tu club de padel.',
     start_url: '/',
     display: 'standalone',
-    background_color: '#ffffff',
-    theme_color: '#3b82f6',
+    background_color: '#F6F3ED',
+    theme_color: '#157A54',
     orientation: 'portrait-primary',
     categories: ['sports', 'business'],
     icons: [

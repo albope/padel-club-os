@@ -3,8 +3,10 @@
 import React, { useState, useEffect } from 'react';
 import { useLocale } from 'next-intl';
 import { Court, CourtBlockReason } from '@prisma/client';
-import { PlusCircle, Clock, ChevronDown, Users, BarChart3, Maximize, Minimize, Lock } from 'lucide-react';
+import { PlusCircle, Clock, ChevronDown, Users, BarChart3, Maximize, Minimize, Lock, Check } from 'lucide-react';
 import { BookingWithDetails } from './CalendarView';
+import { temaMarcadorActivo } from '@/lib/feature-flags';
+import { cn } from '@/lib/utils';
 
 export interface CourtBlockForGrid {
   id: string;
@@ -46,6 +48,7 @@ const generateTimeSlots = (startHour: number, endHour: number, interval: number)
 const CourtGridView: React.FC<CourtGridViewProps> = ({ courts, bookings, courtBlocks, selectedDate, onSlotClick, onBookingClick }) => {
   const locale = useLocale();
   const localeCode = locale === 'es' ? 'es-ES' : 'en-GB';
+  const temaMarcador = temaMarcadorActivo();
   const timeSlots = generateTimeSlots(9, 23, 90);
   const [expandedCourts, setExpandedCourts] = useState<Record<string, boolean>>({});
 
@@ -132,7 +135,15 @@ const CourtGridView: React.FC<CourtGridViewProps> = ({ courts, bookings, courtBl
 
                     if (bloqueo) {
                       return (
-                        <div key={slot} className="w-full bg-gray-200 dark:bg-gray-700 rounded-lg p-3 text-gray-500 dark:text-gray-400 space-y-1">
+                        <div
+                          key={slot}
+                          className={cn(
+                            'w-full rounded-lg p-3 space-y-1',
+                            temaMarcador
+                              ? 'bg-secondary text-muted-foreground border border-border border-l-[3px] border-l-border-strong'
+                              : 'bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400'
+                          )}
+                        >
                           <div className="flex items-center gap-2 font-semibold text-sm">
                             <Lock className="h-4 w-4" /> {MOTIVO_BLOQUEO[bloqueo.reason]}
                           </div>
@@ -160,19 +171,55 @@ const CourtGridView: React.FC<CourtGridViewProps> = ({ courts, bookings, courtBl
                             }
 
                             return (
-                                <button type="button" key={slot} onClick={() => onBookingClick(booking)} className="w-full text-left bg-green-600 rounded-lg p-3 text-white cursor-pointer hover:bg-green-500 transition-colors space-y-1" aria-label={`Ver partida abierta a las ${timeRange}`}>
-                                    <div className="flex items-center gap-2 font-semibold text-sm">
+                                <button
+                                  type="button"
+                                  key={slot}
+                                  onClick={() => onBookingClick(booking)}
+                                  className={cn(
+                                    'w-full text-left rounded-lg p-3 cursor-pointer transition-colors space-y-1',
+                                    temaMarcador
+                                      ? 'bg-primary/5 text-foreground border border-border border-l-[3px] border-l-primary hover:bg-primary/10'
+                                      : 'bg-green-600 text-white hover:bg-green-500'
+                                  )}
+                                  aria-label={`Ver partida abierta a las ${timeRange}`}
+                                >
+                                    <div className={cn('flex items-center gap-2 font-semibold text-sm', temaMarcador && 'text-primary')}>
                                         <Users className="h-4 w-4" /> Partida Abierta
                                     </div>
-                                    <p className="text-xs text-green-200">{timeRange}</p>
+                                    <p className={cn('text-xs', temaMarcador ? 'text-muted-foreground tabular-nums' : 'text-green-200')}>{timeRange}</p>
                                     {levelText && (
-                                        <p className="flex items-center gap-1 text-xs text-green-200"><BarChart3 className="h-3 w-3" /> Nivel: {levelText}</p>
+                                        <p className={cn('flex items-center gap-1 text-xs', temaMarcador ? 'text-muted-foreground' : 'text-green-200')}><BarChart3 className="h-3 w-3" /> Nivel: {levelText}</p>
                                     )}
                                 </button>
                             );
                         }
 
                         const displayName = booking.guestName || booking.user?.name || 'Reservado';
+                        if (temaMarcador) {
+                          const pendiente = booking.paymentStatus === 'pending';
+                          return (
+                            <button
+                              type="button"
+                              key={slot}
+                              onClick={() => onBookingClick(booking)}
+                              className={cn(
+                                'w-full text-left rounded-lg p-3 cursor-pointer transition-colors border border-border border-l-[3px]',
+                                pendiente
+                                  ? 'trama-warning border-l-warning hover:brightness-[0.98]'
+                                  : 'bg-card border-l-success hover:bg-accent'
+                              )}
+                              aria-label={`Ver reserva de ${displayName} a las ${timeRange}`}
+                            >
+                              <p className="font-semibold text-sm truncate flex items-center gap-1.5">
+                                {pendiente
+                                  ? <Clock className="h-3.5 w-3.5 shrink-0 text-warning-foreground" />
+                                  : <Check className="h-3.5 w-3.5 shrink-0 text-success-foreground" />}
+                                {displayName}
+                              </p>
+                              <p className="text-xs text-muted-foreground tabular-nums">{timeRange}</p>
+                            </button>
+                          );
+                        }
                         return (
                         <button type="button" key={slot} onClick={() => onBookingClick(booking)} className="w-full text-left bg-primary rounded-lg p-3 text-primary-foreground cursor-pointer hover:bg-primary/90 transition-colors" aria-label={`Ver reserva de ${displayName} a las ${timeRange}`}>
                             <p className="font-semibold text-sm truncate">{displayName}</p>
@@ -181,7 +228,18 @@ const CourtGridView: React.FC<CourtGridViewProps> = ({ courts, bookings, courtBl
                         );
                     } else {
                         return (
-                        <button type="button" key={slot} onClick={() => onSlotClick(slotDate, court.id)} className="w-full text-left bg-muted/50 rounded-lg p-3 text-muted-foreground flex items-center justify-between cursor-pointer hover:bg-muted transition-colors" aria-label={`Crear reserva a las ${slot} en ${court.name}`}>
+                        <button
+                          type="button"
+                          key={slot}
+                          onClick={() => onSlotClick(slotDate, court.id)}
+                          className={cn(
+                            'w-full text-left rounded-lg p-3 text-muted-foreground flex items-center justify-between cursor-pointer transition-colors',
+                            temaMarcador
+                              ? 'bg-transparent border border-dashed border-border-strong hover:border-primary hover:bg-primary/5'
+                              : 'bg-muted/50 hover:bg-muted'
+                          )}
+                          aria-label={`Crear reserva a las ${slot} en ${court.name}`}
+                        >
                             <div className="flex items-center"><Clock className="h-4 w-4 mr-2" /><span className="text-sm">{slot}</span></div>
                             <PlusCircle className="h-5 w-5 opacity-50" />
                         </button>

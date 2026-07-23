@@ -9,6 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { toast } from '@/hooks/use-toast';
 import Image from 'next/image';
+import { urlAvatar } from '@/lib/avatar';
 
 type SocioWithStats = User & {
   _count: {
@@ -62,7 +63,7 @@ const SocioDetailModal: React.FC<SocioDetailModalProps> = ({ isOpen, onClose, so
         <DialogHeader>
           <div className="flex items-center gap-4">
             <Image
-              src={socio.image || `https://ui-avatars.com/api/?name=${encodeURIComponent(socio.name || 'S')}&background=random&color=fff`}
+              src={socio.image || urlAvatar(socio.name || 'S')}
               alt={socio.name || 'Foto de socio'}
               width={64}
               height={64}

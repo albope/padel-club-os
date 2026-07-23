@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { mobileQuickNavItems } from '@/lib/nav-items';
+import { temaMarcadorActivo } from '@/lib/feature-flags';
 import { cn } from '@/lib/utils';
 
 export function MobileNavBar() {
@@ -16,7 +17,16 @@ export function MobileNavBar() {
   };
 
   return (
-    <nav aria-label="Navegacion movil" className="fixed bottom-0 left-0 right-0 z-50 border-t bg-background md:hidden">
+    <nav
+      aria-label="Navegacion movil"
+      className={cn(
+        'fixed bottom-0 left-0 right-0 z-50 border-t md:hidden',
+        // «Marcador»: superficie elevada + safe area (64px + inset)
+        temaMarcadorActivo()
+          ? 'bg-surface-raised pb-[env(safe-area-inset-bottom)]'
+          : 'bg-background'
+      )}
+    >
       <div className="flex items-center justify-around h-16">
         {mobileQuickNavItems.map((item) => (
           <Link

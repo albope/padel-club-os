@@ -1,4 +1,5 @@
 import { cn } from '@/lib/utils';
+import { temaMarcadorActivo } from '@/lib/feature-flags';
 
 const tamanos = {
   sm: { contenedor: 'w-7 h-7', svg: 14 },
@@ -9,10 +10,31 @@ const tamanos = {
 interface LogoIconProps {
   tamano?: 'sm' | 'md' | 'lg';
   className?: string;
+  /** Solo tema «Marcador»: clase Tailwind fill-* para el chip del isotipo */
+  claseRelleno?: string;
 }
 
-export function LogoIcon({ tamano = 'md', className }: LogoIconProps) {
+export function LogoIcon({ tamano = 'md', className, claseRelleno }: LogoIconProps) {
   const config = tamanos[tamano];
+
+  if (temaMarcadorActivo()) {
+    // Isotipo «Marcador»: geometria pura (assets/isotipo-*.svg del handoff).
+    // El trazo hereda currentColor; el chip usa el verde marca (nunca tenant).
+    return (
+      <span
+        className={cn(
+          config.contenedor,
+          'flex items-center justify-center flex-shrink-0',
+          className
+        )}
+      >
+        <svg viewBox="0 0 48 48" fill="none" aria-hidden="true" className="w-full h-full">
+          <rect x="4" y="10" width="40" height="28" rx="7" stroke="currentColor" strokeWidth="3" />
+          <rect x="10" y="16" width="13" height="16" rx="3" className={cn('fill-primary', claseRelleno)} />
+        </svg>
+      </span>
+    );
+  }
 
   return (
     <div

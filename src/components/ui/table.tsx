@@ -1,5 +1,10 @@
 import * as React from "react"
+import { temaMarcadorActivo } from "@/lib/feature-flags"
 import { cn } from "@/lib/utils"
+
+// «Marcador»: densidad operativa — fila 40px, cabecera 11px uppercase 0.08em.
+// Las cifras tabulares llegan solas via `.theme-marcador table` en globals.css.
+const esMarcador = temaMarcadorActivo()
 
 const Table = React.forwardRef<
   HTMLTableElement,
@@ -73,7 +78,9 @@ const TableHead = React.forwardRef<
     ref={ref}
     scope={scope}
     className={cn(
-      "h-12 px-4 text-left align-middle font-medium text-muted-foreground [&:has([role=checkbox])]:pr-0",
+      esMarcador
+        ? "h-10 px-3 text-left align-middle text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground [&:has([role=checkbox])]:pr-0"
+        : "h-12 px-4 text-left align-middle font-medium text-muted-foreground [&:has([role=checkbox])]:pr-0",
       className
     )}
     {...props}
@@ -87,7 +94,12 @@ const TableCell = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <td
     ref={ref}
-    className={cn("p-4 align-middle [&:has([role=checkbox])]:pr-0", className)}
+    className={cn(
+      esMarcador
+        ? "px-3 py-2.5 align-middle [&:has([role=checkbox])]:pr-0"
+        : "p-4 align-middle [&:has([role=checkbox])]:pr-0",
+      className
+    )}
     {...props}
   />
 ))

@@ -1,6 +1,4 @@
-import { ChevronDown } from "lucide-react"
 import { getTranslations } from "next-intl/server"
-import AnimateOnScroll from "@/components/marketing/AnimateOnScroll"
 
 const preguntaKeys = [
   { qKey: "q1", aKey: "a1" },
@@ -12,38 +10,32 @@ const preguntaKeys = [
 ] as const
 
 export default async function FAQ() {
-  const t = await getTranslations('marketing.faq')
+  const t = await getTranslations("marketing.faq")
 
   return (
-    <section className="border-t bg-muted/30 py-20 md:py-28">
-      <div className="container">
-        <AnimateOnScroll animation="fade-up" className="mx-auto max-w-2xl text-center">
-          <h2 className="font-display text-3xl font-bold tracking-tight md:text-4xl lg:text-5xl">
-            {t('title')}
-          </h2>
-          <p className="mt-4 text-lg text-muted-foreground">
-            {t('subtitle')}
-          </p>
-        </AnimateOnScroll>
-
-        <AnimateOnScroll animation="fade-up" delay={100} className="mx-auto mt-12 max-w-3xl">
-          <div className="divide-y rounded-2xl border bg-card">
-            {preguntaKeys.map((item) => (
-              <details
-                key={item.qKey}
-                className="group"
-              >
-                <summary className="flex cursor-pointer items-center justify-between gap-4 px-6 py-5 text-left font-medium transition-colors hover:text-primary [&::-webkit-details-marker]:hidden">
-                  {t(item.qKey)}
-                  <ChevronDown className="h-5 w-5 flex-shrink-0 text-muted-foreground transition-transform duration-200 group-open:rotate-180" />
-                </summary>
-                <div className="px-6 pb-5 text-sm text-muted-foreground leading-relaxed">
-                  {t(item.aKey)}
-                </div>
-              </details>
-            ))}
+    <section className="border-y border-border bg-secondary">
+      <div className="container grid items-start gap-12 py-20 md:py-24 lg:grid-cols-[0.8fr_1.4fr] lg:gap-14">
+        <div className="grid gap-3">
+          <div className="text-xs font-bold uppercase tracking-[0.14em] text-primary">
+            {t("eyebrow")}
           </div>
-        </AnimateOnScroll>
+          <h2 className="font-display text-[28px] leading-tight tracking-tight md:text-[34px]" style={{ fontWeight: 750 }}>
+            {t("title")}
+          </h2>
+          <p className="text-[15px] text-muted-foreground">{t("subtitle")}</p>
+        </div>
+
+        <div className="grid gap-3.5">
+          {preguntaKeys.map((item) => (
+            <div
+              key={item.qKey}
+              className="grid gap-2 rounded-[var(--radius-module)] border border-border bg-surface-raised px-6 py-5"
+            >
+              <h3 className="font-display text-[15.5px] font-bold">{t(item.qKey)}</h3>
+              <p className="text-[13.5px] leading-relaxed text-muted-foreground">{t(item.aKey)}</p>
+            </div>
+          ))}
+        </div>
       </div>
     </section>
   )

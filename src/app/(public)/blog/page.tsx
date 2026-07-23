@@ -1,10 +1,9 @@
 import { Metadata } from "next"
 import Link from "next/link"
-import Image from "next/image"
-import { ArrowLeft, FileText } from "lucide-react"
-import { Badge } from "@/components/ui/badge"
+import { FileText } from "lucide-react"
 import { db } from "@/lib/db"
 import { getLocale } from "next-intl/server"
+import { PlaceholderFoto, claseCategoria, chipCategoriaBase } from "@/components/marketing/PlaceholderFoto"
 
 export const revalidate = 86400 // 24h
 
@@ -42,7 +41,7 @@ function formatearFecha(fecha: Date, localeCode: string) {
 
 export default async function BlogPage() {
   const locale = await getLocale()
-  const localeCode = locale === 'es' ? 'es-ES' : 'en-GB'
+  const localeCode = locale === "es" ? "es-ES" : "en-GB"
   const posts = await db.blogPost.findMany({
     where: { published: true },
     orderBy: { createdAt: "desc" },
@@ -52,160 +51,123 @@ export default async function BlogPage() {
 
   return (
     <>
-      {/* Header */}
-      <section className="relative overflow-hidden">
-        <div className="absolute inset-0 -z-10 bg-[radial-gradient(ellipse_60%_50%_at_50%_-20%,hsl(var(--primary)/0.12),transparent)]" />
-        <div className="container flex flex-col items-center gap-6 pb-16 pt-24 text-center md:pt-32">
-          <Link
-            href="/"
-            className="inline-flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            Volver al inicio
-          </Link>
-
-          <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">Blog</h1>
-          <p className="max-w-2xl text-lg text-muted-foreground">
-            Ideas, consejos y novedades para la gestion moderna de clubes de padel.
-          </p>
-        </div>
+      {/* Cabecera */}
+      <section className="container grid gap-3.5 pb-10 pt-16 md:pt-20">
+        <Link
+          href="/"
+          className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-muted-foreground transition-colors hover:text-foreground"
+        >
+          <span className="font-mono" aria-hidden="true">
+            &#9666;
+          </span>{" "}
+          Volver al inicio
+        </Link>
+        <h1 className="font-display text-4xl tracking-tight sm:text-5xl lg:text-[52px]" style={{ fontWeight: 800 }}>
+          Blog
+        </h1>
+        <p className="max-w-[560px] text-base text-muted-foreground">
+          Ideas, consejos y novedades para la gestion moderna de clubes de padel.
+        </p>
       </section>
 
-      {/* Articulos */}
-      <section className="py-24">
-        <div className="container mx-auto max-w-5xl">
-          {!postDestacado ? (
-            <div className="text-center py-16">
-              <FileText className="mx-auto h-12 w-12 text-muted-foreground" />
-              <h2 className="mt-4 text-xl font-semibold">Proximamente</h2>
-              <p className="mt-2 text-muted-foreground">
-                Estamos preparando articulos sobre gestion de clubes de padel.
-              </p>
-            </div>
-          ) : (
-            <>
-              {/* Post destacado */}
-              <Link href={`/blog/${postDestacado.slug}`}>
-                <div className="group relative overflow-hidden rounded-xl border bg-card transition-shadow hover:shadow-md">
-                  <div className="grid md:grid-cols-5">
-                    <div className="flex items-center justify-center bg-muted/50 p-12 md:col-span-3 md:p-16">
-                      {postDestacado.imageUrl ? (
-                        <div className="relative w-full h-full min-h-[200px]">
-                          <Image
-                            src={postDestacado.imageUrl}
-                            alt={postDestacado.title}
-                            fill
-                            className="object-cover rounded-lg"
-                            sizes="(max-width: 768px) 100vw, 60vw"
-                            priority
-                          />
-                        </div>
-                      ) : (
-                        <div className="text-center">
-                          <FileText className="mx-auto h-12 w-12 text-muted-foreground/30" />
-                        </div>
-                      )}
-                    </div>
-
-                    <div className="flex flex-col justify-center p-6 md:col-span-2 md:p-8">
-                      <Badge variant="secondary" className="w-fit text-xs">
-                        {postDestacado.category}
-                      </Badge>
-                      <h2 className="mt-3 text-xl font-bold tracking-tight sm:text-2xl group-hover:text-primary transition-colors">
-                        {postDestacado.title}
-                      </h2>
-                      <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
-                        {postDestacado.excerpt}
-                      </p>
-                      <div className="mt-6 flex items-center gap-3">
-                        <div
-                          className="flex h-8 w-8 items-center justify-center rounded-full text-xs font-bold text-white"
-                          style={{
-                            background:
-                              "linear-gradient(135deg, hsl(217,91%,52%) 0%, hsl(197,85%,48%) 100%)",
-                          }}
-                        >
-                          {obtenerIniciales(postDestacado.authorName)}
-                        </div>
-                        <div className="text-sm">
-                          <span className="font-medium">{postDestacado.authorName}</span>
-                          <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                            <span>{formatearFecha(postDestacado.createdAt, localeCode)}</span>
-                            {postDestacado.readTime && (
-                              <>
-                                <span>&middot;</span>
-                                <span>{postDestacado.readTime} lectura</span>
-                              </>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
+      {!postDestacado ? (
+        <section className="container pb-24">
+          <div className="grid justify-items-center gap-3 rounded-[var(--radius-surface)] border border-border bg-surface-raised py-20 text-center">
+            <FileText className="h-12 w-12 text-muted-foreground/40" />
+            <h2 className="font-display text-xl font-bold">Proximamente</h2>
+            <p className="text-muted-foreground">
+              Estamos preparando articulos sobre gestion de clubes de padel.
+            </p>
+          </div>
+        </section>
+      ) : (
+        <>
+          {/* Destacado (isla oscura) */}
+          <section className="container pb-10">
+            <div className="dark">
+              <Link
+                href={`/blog/${postDestacado.slug}`}
+                className="theme-marcador grid overflow-hidden rounded-[var(--radius-surface)] bg-card text-foreground md:grid-cols-[1.2fr_1fr]"
+              >
+                <div className="grid content-center gap-4 p-8 md:p-11">
+                  <span className={`${chipCategoriaBase} border-transparent bg-primary-hover text-primary-foreground`}>
+                    {postDestacado.category}
+                  </span>
+                  <h2 className="font-display text-2xl leading-tight tracking-tight text-balance md:text-[32px]" style={{ fontWeight: 750 }}>
+                    {postDestacado.title}
+                  </h2>
+                  <p className="text-[15px] leading-relaxed text-muted-foreground">
+                    {postDestacado.excerpt}
+                  </p>
+                  <div className="mt-1 flex flex-wrap items-center gap-2.5 text-[13px] text-muted-foreground">
+                    <span className="grid h-7 w-7 place-items-center rounded-full bg-primary text-[10.5px] font-bold text-primary-foreground">
+                      {obtenerIniciales(postDestacado.authorName)}
+                    </span>
+                    <span className="text-foreground">{postDestacado.authorName}</span>
+                    <span>&middot;</span>
+                    <span>{formatearFecha(postDestacado.createdAt, localeCode)}</span>
+                    {postDestacado.readTime && (
+                      <>
+                        <span>&middot;</span>
+                        <span className="[font-variant-numeric:tabular-nums]">
+                          {postDestacado.readTime} lectura
+                        </span>
+                      </>
+                    )}
                   </div>
                 </div>
+                <PlaceholderFoto
+                  variant="oscuro"
+                  label="FOTO · portada del artículo"
+                  className="min-h-[240px] md:min-h-[320px]"
+                />
               </Link>
+            </div>
+          </section>
 
-              {/* Grid de articulos */}
-              {restoArticulos.length > 0 && (
-                <div className="mt-12 grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
-                  {restoArticulos.map((articulo) => (
-                    <Link key={articulo.id} href={`/blog/${articulo.slug}`}>
-                      <div className="group relative overflow-hidden rounded-xl border bg-card transition-shadow hover:shadow-md h-full">
-                        <div className="relative aspect-[16/9] bg-muted/50">
-                          {articulo.imageUrl ? (
-                            <Image
-                              src={articulo.imageUrl}
-                              alt={articulo.title}
-                              fill
-                              className="object-cover"
-                              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                            />
-                          ) : (
-                            <div className="flex h-full items-center justify-center">
-                              <FileText className="h-8 w-8 text-muted-foreground/20" />
-                            </div>
-                          )}
-                        </div>
-
-                        <div className="p-5">
-                          <Badge variant="secondary" className="text-xs">
-                            {articulo.category}
-                          </Badge>
-                          <h3 className="mt-3 text-lg font-semibold tracking-tight group-hover:text-primary transition-colors">
-                            {articulo.title}
-                          </h3>
-                          <p className="mt-2 line-clamp-2 text-sm text-muted-foreground">
-                            {articulo.excerpt}
-                          </p>
-
-                          <div className="mt-4 flex items-center gap-3 text-xs text-muted-foreground">
-                            <div
-                              className="flex h-6 w-6 items-center justify-center rounded-full text-[10px] font-bold text-white bg-primary"
-                            >
-                              {obtenerIniciales(articulo.authorName)}
-                            </div>
-                            <span className="font-medium text-foreground">
-                              {articulo.authorName}
-                            </span>
+          {/* Grid del resto */}
+          {restoArticulos.length > 0 && (
+            <section className="container pb-24">
+              <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                {restoArticulos.map((articulo) => (
+                  <Link
+                    key={articulo.id}
+                    href={`/blog/${articulo.slug}`}
+                    className="group grid content-start overflow-hidden rounded-[var(--radius-surface)] border border-border bg-surface-raised text-foreground transition-shadow hover:shadow-[0_8px_24px_-12px_hsl(36_8%_10%/0.25)]"
+                  >
+                    <PlaceholderFoto className="h-[150px]" />
+                    <div className="grid content-start gap-2.5 p-6">
+                      <span className={`${chipCategoriaBase} ${claseCategoria(articulo.category)}`}>
+                        {articulo.category}
+                      </span>
+                      <h3 className="font-display text-lg font-bold leading-snug tracking-tight text-balance">
+                        {articulo.title}
+                      </h3>
+                      <p className="line-clamp-2 text-[13.5px] leading-relaxed text-muted-foreground">
+                        {articulo.excerpt}
+                      </p>
+                      <div className="flex flex-wrap items-center gap-2 pt-1 text-xs text-muted-foreground">
+                        <span className="grid h-6 w-6 place-items-center rounded-full bg-primary text-[9.5px] font-bold text-primary-foreground">
+                          {obtenerIniciales(articulo.authorName)}
+                        </span>
+                        <span className="font-medium text-foreground">{articulo.authorName}</span>
+                        <span>&middot;</span>
+                        <span>{formatearFecha(articulo.createdAt, localeCode)}</span>
+                        {articulo.readTime && (
+                          <>
                             <span>&middot;</span>
-                            <span>{formatearFecha(articulo.createdAt, localeCode)}</span>
-                            {articulo.readTime && (
-                              <>
-                                <span>&middot;</span>
-                                <span>{articulo.readTime}</span>
-                              </>
-                            )}
-                          </div>
-                        </div>
+                            <span className="[font-variant-numeric:tabular-nums]">{articulo.readTime}</span>
+                          </>
+                        )}
                       </div>
-                    </Link>
-                  ))}
-                </div>
-              )}
-            </>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            </section>
           )}
-        </div>
-      </section>
+        </>
+      )}
     </>
   )
 }

@@ -3,12 +3,14 @@
 import React, { useState, useMemo } from 'react';
 import { User } from '@prisma/client';
 import { useTranslations } from 'next-intl';
-import { Pencil, Search, ChevronLeft, ChevronRight, Users } from 'lucide-react';
+import { Pencil, Search, ChevronLeft, ChevronRight, Users, UserX } from 'lucide-react';
+import { temaMarcadorActivo } from '@/lib/feature-flags';
 import Link from 'next/link';
 import SocioDetailModal from './SocioDetailModal';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
+import { urlAvatar } from '@/lib/avatar';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { cn } from '@/lib/utils';
@@ -137,7 +139,7 @@ const SociosClient: React.FC<SociosClientProps> = ({ initialSocios }) => {
                       aria-label={t('viewDetails', { name: socio.name || '' })}
                     >
                       <Image
-                        src={socio.image || `https://ui-avatars.com/api/?name=${encodeURIComponent(socio.name || 'S')}&background=random&color=fff`}
+                        src={socio.image || urlAvatar(socio.name || 'S')}
                         alt={socio.name || t('memberPhoto')}
                         width={40}
                         height={40}
@@ -146,9 +148,17 @@ const SociosClient: React.FC<SociosClientProps> = ({ initialSocios }) => {
                       <div className="flex items-center gap-2">
                         <p className="font-semibold text-foreground">{socio.name}</p>
                         {!socio.isActive && (
+                          // «Marcador» 3c: estado con icono + texto, neutro (no es un error)
+                          temaMarcadorActivo() ? (
+                            <Badge variant="secondary">
+                              <UserX aria-hidden="true" />
+                              {t('inactiveBadge')}
+                            </Badge>
+                          ) : (
                           <Badge variant="secondary" className="bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400">
                             {t('inactiveBadge')}
                           </Badge>
+                          )
                         )}
                       </div>
                     </button>

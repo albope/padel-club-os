@@ -65,6 +65,207 @@
   }
 }
 
+/* ─── Identidad «Marcador» (flag NEXT_PUBLIC_TEMA_MARCADOR) ─────────────────
+   Tokens del handoff design_handoff_identidad_marcador (tokens.padelclubos.json).
+   Mismos NOMBRES de variables shadcn, solo cambian valores + se añaden nuevas.
+   Se aplica con la clase .theme-marcador en <body> (ver src/app/layout.tsx). */
+
+@layer base {
+  .theme-marcador {
+    /* Superficies papel / tinta */
+    --background: 40 26% 95%;        /* #F6F3ED papel */
+    --foreground: 36 8% 10%;         /* #1C1A17 tinta */
+    --card: 40 30% 97%;              /* #FDFCFA surface */
+    --card-foreground: 36 8% 10%;
+    --popover: 0 0% 100%;            /* #FFFFFF surface raised */
+    --popover-foreground: 36 8% 10%;
+    --surface-raised: 0 0% 100%;
+    /* Marca / acción: verde pista */
+    --primary: 158 70% 28%;          /* #157A54 */
+    --primary-foreground: 40 30% 96%;
+    --primary-hover: 158 74% 21%;    /* #0E5C3F */
+    --secondary: 40 22% 92%;         /* #EFECE6 sand-100 */
+    --secondary-foreground: 42 12% 21%; /* #3C382F ink-700 */
+    --muted: 40 22% 92%;
+    --muted-foreground: 38 10% 33%;  /* #5C564C ink-500 */
+    --accent: 40 22% 92%;
+    --accent-foreground: 36 8% 10%;
+    --destructive: 8 59% 44%;        /* #B3402E */
+    --destructive-foreground: 40 30% 96%;
+    --border: 38 18% 83%;            /* #DDD7CC */
+    --border-strong: 40 16% 75%;     /* #C9C2B4 sand-400: controles/inputs */
+    --input: 38 18% 83%;
+    --ring: 158 70% 28%;
+    /* Radios: 6 controles / 10 módulos / 14 superficies móviles */
+    --radius: 0.625rem;
+    --radius-control: 6px;
+    --radius-module: 10px;
+    --radius-surface: 14px;
+    /* Sidebar admin: tinta */
+    --sidebar-background: 36 8% 10%;         /* #1C1A17 */
+    --sidebar-foreground: 40 10% 60%;        /* #A39C8E ink-300 */
+    --sidebar-primary: 157 55% 41%;          /* #2FA075 */
+    --sidebar-primary-foreground: 42 32% 92%; /* #F1EDE4 */
+    --sidebar-accent: 148 23% 16%;           /* rgba(47,160,117,.18) sobre tinta */
+    --sidebar-accent-foreground: 42 32% 92%;
+    --sidebar-border: 36 6% 17%;             /* rgba(246,243,237,.08) sobre tinta */
+    --sidebar-ring: 157 55% 41%;
+    /* Semánticos de estado (el azul deja de ser marca: solo informativo) */
+    --status-info-fg: 218 61% 47%;      /* #2E63C0 */
+    --status-info-bg: 217 64% 95%;      /* #E8EFFA */
+    --status-info-border: 215 63% 86%;  /* #C6D8F2 */
+    --status-success-fg: 116 43% 38%;   /* #3D8B37 */
+    --status-success-bg: 107 39% 93%;   /* #E9F4E6 */
+    --status-success-border: 111 38% 83%; /* #C8E4C3 */
+    --status-warning-fg: 37 74% 45%;    /* #C7871E */
+    --status-warning-bg: 40 79% 93%;    /* #FBF1DD */
+    --status-warning-border: 40 68% 81%; /* #EFD9AC */
+    --status-error-fg: 8 59% 44%;       /* #B3402E */
+    --status-error-bg: 11 64% 94%;      /* #F9E8E4 */
+    --status-error-border: 11 59% 85%;  /* #EFC9C0 */
+    /* Texto sobre bg tintado (badges): oscurecido para AA (Brand Kit) */
+    --status-info-foreground: 218 62% 37%;    /* #24509B */
+    --status-success-foreground: 115 44% 29%; /* #2E6A29 */
+    --status-warning-foreground: 39 82% 32%;  /* #96660F */
+    --status-error-foreground: 9 61% 35%;     /* #8F3323 */
+    --info: var(--status-info-fg);
+    --success: var(--status-success-fg);
+    --warning: var(--status-warning-fg);
+    --error: var(--status-error-fg);
+    /* DataViz (pendiente/estimado siempre con trama además de color) */
+    --dataviz-1: 158 70% 28%;  /* #157A54 */
+    --dataviz-2: 218 61% 47%;  /* #2E63C0 */
+    --dataviz-3: 37 74% 45%;   /* #C7871E */
+    --dataviz-4: 279 33% 44%;  /* #7B4B94 */
+    --dataviz-5: 187 39% 47%;  /* #4A9DA8 */
+    --dataviz-6: 38 8% 50%;    /* #8A8377 */
+    /* Motion */
+    --motion-press: 120ms;
+    --motion-overlay: 220ms;
+    --motion-view: 180ms;
+    --motion-celebrate: 400ms;
+    --ease-overlay: cubic-bezier(0.32, 0.72, 0, 1);
+  }
+
+  /* La superficie publica (Fase 6) es light-only: .marketing-marcador queda
+     excluida del bloque dark, asi conserva los valores claros de .theme-marcador
+     aunque el visitante tenga el SO en oscuro. Las islas oscuras del marketing
+     (footer, «¿Suena familiar?», destacado del blog) se consiguen anidando un
+     `.dark` con un `.theme-marcador` interno, que si entra en este bloque. */
+  .dark .theme-marcador:not(.marketing-marcador) {
+    /* Oscuro en 3 capas: bg / surface / raised */
+    --background: 36 14% 7%;         /* #14120F */
+    --foreground: 42 32% 92%;        /* #F1EDE4 */
+    --card: 34 13% 10%;              /* #1E1B17 */
+    --card-foreground: 42 32% 92%;
+    --popover: 30 11% 14%;           /* #282420 raised */
+    --popover-foreground: 42 32% 92%;
+    --surface-raised: 30 11% 14%;
+    --primary: 157 55% 41%;          /* #2FA075 */
+    --primary-foreground: 156 53% 9%; /* #0B241A */
+    --primary-hover: 154 38% 59%;    /* #6FBF9C */
+    --secondary: 30 11% 14%;
+    --secondary-foreground: 42 32% 92%;
+    --muted: 30 11% 14%;
+    --muted-foreground: 40 10% 60%;  /* #A39C8E */
+    --accent: 30 11% 14%;
+    --accent-foreground: 42 32% 92%;
+    --destructive: 9 62% 68%;        /* #E08A7A */
+    --destructive-foreground: 36 14% 7%;
+    --border: 37 13% 19%;            /* #37322A */
+    --border-strong: 34 10% 27%;     /* controles en oscuro */
+    --input: 37 13% 19%;
+    --ring: 157 55% 41%;
+    /* Sidebar admin oscuro */
+    --sidebar-background: 30 14% 5%;         /* #100E0C */
+    --sidebar-foreground: 40 10% 60%;
+    --sidebar-primary: 157 55% 41%;
+    --sidebar-primary-foreground: 156 53% 9%;
+    --sidebar-accent: 150 29% 12%;           /* rgba(47,160,117,.18) sobre #100E0C */
+    --sidebar-accent-foreground: 42 32% 92%;
+    --sidebar-border: 37 13% 19%;
+    --sidebar-ring: 157 55% 41%;
+    /* Estado oscuro: fg del kit; bg 14% y borde 35% fundidos sobre surface */
+    --status-info-fg: 218 70% 70%;      /* #7FA6E8 */
+    --status-info-bg: 225 8% 19%;
+    --status-info-border: 218 20% 31%;
+    --status-success-fg: 113 38% 61%;   /* #7FC276 */
+    --status-success-bg: 86 16% 17%;
+    --status-success-border: 103 21% 28%;
+    --status-warning-fg: 37 72% 63%;    /* #E5B05C */
+    --status-warning-bg: 36 27% 18%;
+    --status-warning-border: 36 36% 29%;
+    --status-error-fg: 9 62% 68%;       /* #E08A7A */
+    --status-error-bg: 18 21% 18%;
+    --status-error-border: 12 26% 31%;
+    /* En oscuro los fg claros ya cumplen AA sobre el bg tintado */
+    --status-info-foreground: 218 70% 70%;
+    --status-success-foreground: 113 38% 61%;
+    --status-warning-foreground: 37 72% 63%;
+    --status-error-foreground: 9 62% 68%;
+  }
+
+  /* Ámbito de tenant (portal del club): el motor tenant-theme.ts inyecta los
+     pares -claro/-oscuro inline y aquí se elige el juego según el tema.
+     --club-primary se deriva para que las clases legacy (.club-nav-item,
+     .club-bottom-pill) tomen el color ya ajustado a contraste. */
+  .theme-marcador .ambito-tenant,
+  .theme-marcador.ambito-tenant {
+    --tenant-primary: var(--tenant-primary-claro);
+    --tenant-on-primary: var(--tenant-on-primary-claro);
+    --tenant-hover: var(--tenant-hover-claro);
+    --tenant-pressed: var(--tenant-pressed-claro);
+    --tenant-tint-50: var(--tenant-tint-50-claro);
+    --club-primary: var(--tenant-primary);
+  }
+
+  .dark .theme-marcador .ambito-tenant,
+  .dark .theme-marcador.ambito-tenant {
+    --tenant-primary: var(--tenant-primary-oscuro);
+    --tenant-on-primary: var(--tenant-on-primary-oscuro);
+    --tenant-hover: var(--tenant-hover-oscuro);
+    --tenant-pressed: var(--tenant-pressed-oscuro);
+    --tenant-tint-50: var(--tenant-tint-50-oscuro);
+  }
+
+  /* Archivo se usa expandida (wdth 112) en display/KPIs */
+  .theme-marcador .font-display {
+    font-stretch: 112%;
+  }
+
+  /* Cifras tabulares obligatorias en tablas (KPIs/precios/horas via clase) */
+  .theme-marcador table {
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Tramas: el estado nunca se comunica solo con color (AA / daltonismo) */
+  .theme-marcador .celda-ocupada {
+    background-color: hsl(var(--card));
+    background-image: repeating-linear-gradient(
+      45deg,
+      hsl(var(--muted)) 0 4px,
+      transparent 4px 8px
+    );
+  }
+
+  .theme-marcador .trama-warning {
+    background-image: repeating-linear-gradient(
+      45deg,
+      hsl(var(--status-warning-border)) 0 4px,
+      hsl(var(--status-warning-bg)) 4px 8px
+    );
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .theme-marcador {
+    --motion-press: 80ms;
+    --motion-overlay: 80ms;
+    --motion-view: 80ms;
+    --motion-celebrate: 80ms;
+  }
+}
+
 @layer base {
   * {
     @apply border-border;
@@ -74,6 +275,82 @@
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
+}
+
+/* ─── Identidad «Marcador»: CTA de tenant (fuera de @layer para ganar a las
+   utilidades bg-primary del Button; solo superficie permitida del jugador) ── */
+
+.theme-marcador .btn-tenant {
+  background-color: var(--tenant-primary);
+  color: var(--tenant-on-primary);
+}
+
+.theme-marcador .btn-tenant:hover:not(:disabled) {
+  background-color: var(--tenant-hover);
+}
+
+.theme-marcador .btn-tenant:active:not(:disabled) {
+  background-color: var(--tenant-pressed);
+}
+
+/* ─── Identidad «Marcador»: neutralización del tema legacy (fase 5) ─────────
+   Prohibidos por el design system: animación continua, shimmer, orbes,
+   gradientes decorativos y glassmorphism. Bajo el flag se apagan aquí sin
+   tocar los componentes; las clases se eliminarán del todo al retirar el
+   flag y el tema antiguo tras el gate visual. */
+
+.theme-marcador .auth-orb,
+.theme-marcador .landing-orb {
+  display: none;
+}
+
+.theme-marcador .auth-gradient-bg {
+  animation: none;
+  background: hsl(var(--background));
+}
+
+.theme-marcador .auth-dot-pattern,
+.theme-marcador .landing-dot-pattern {
+  background-image: none;
+}
+
+.theme-marcador .landing-gradient-text {
+  animation: none;
+  background: none;
+  -webkit-text-fill-color: currentColor;
+  color: hsl(var(--primary));
+}
+
+.theme-marcador .landing-cta-pulse,
+.theme-marcador .landing-logo-scroll,
+.theme-marcador .notfound-bounce {
+  animation: none;
+}
+
+.theme-marcador .auth-solid-btn:hover:not(:disabled) {
+  background-color: hsl(var(--primary-hover));
+  box-shadow: none;
+}
+
+.theme-marcador .auth-solid-btn:active:not(:disabled) {
+  box-shadow: none;
+}
+
+.theme-marcador .auth-input-glow:focus-within {
+  box-shadow: 0 0 0 3px hsl(var(--ring) / 0.15);
+}
+
+.theme-marcador .auth-card-surface,
+.dark .theme-marcador .auth-card-surface {
+  background: hsl(var(--card));
+  border-color: hsl(var(--border));
+  box-shadow: 0 1px 2px hsl(36 14% 7% / 0.05), 0 8px 24px hsl(36 14% 7% / 0.06);
+}
+
+.theme-marcador .club-section-dark,
+.dark .theme-marcador .club-section-dark {
+  background: hsl(var(--sidebar-background));
+  color: hsl(var(--sidebar-primary-foreground));
 }
 
 /* ─── Auth pages: animaciones premium ───────────────────────────────────── */

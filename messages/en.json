@@ -43,7 +43,13 @@
     "signIn": "Sign in",
     "openMenu": "Open menu",
     "mainNav": "Main navigation",
-    "mobileNav": "Mobile navigation"
+    "mobileNav": "Mobile navigation",
+    "grupoOperacion": "Operations",
+    "grupoComunidad": "Community",
+    "grupoContenido": "Content",
+    "grupoNegocio": "Business",
+    "grupoPlataforma": "Platform",
+    "grupoSistema": "System"
   },
   "search": {
     "label": "Search",
@@ -787,7 +793,11 @@
       "thisWeek": "+8 this week",
       "occupancy": "Occupancy",
       "historicMax": "All-time high",
-      "court": "Court {number}"
+      "court": "Court {number}",
+      "cellReserved": "Booked",
+      "cellOpen": "Open",
+      "cellClass": "Class",
+      "cellFree": "Free"
     },
     "socialProof": {
       "item1Title": "Set up in 5 min",
@@ -816,6 +826,7 @@
       "cta": "Solve these problems today"
     },
     "features": {
+      "eyebrow": "Features",
       "title": "Everything your club needs. Nothing it doesn't.",
       "subtitle": "8 essential tools for your club's daily management. No unnecessary modules, no extra complexity.",
       "bookingsTitle": "24/7 bookings without WhatsApp",
@@ -836,6 +847,7 @@
       "rolesDesc": "Admins, staff and members with differentiated access. Each person sees only what they need."
     },
     "howItWorks": {
+      "eyebrow": "How it works",
       "title": "Set up your club in 5 minutes",
       "subtitle": "No complicated installations. No training needed. If you know how to use WhatsApp, you know how to use Padel Club OS.",
       "step1Title": "Create your account",
@@ -846,6 +858,7 @@
       "step3Desc": "Share the link with your members. They book from their phone; you relax."
     },
     "pricing": {
+      "eyebrow": "Pricing",
       "title": "Clear pricing. No surprises.",
       "subtitle": "While others make you call sales to find out the price, we tell you right here.",
       "billingToggle": "Toggle monthly or annual billing",
@@ -931,6 +944,7 @@
       "item3After": "A single platform for bookings, members, competitions and analytics. Everything connected, everything in order."
     },
     "faq": {
+      "eyebrow": "FAQ",
       "title": "Frequently asked questions",
       "subtitle": "Everything you need to know before getting started.",
       "q1": "How long does it take to set up my club?",

@@ -43,7 +43,13 @@
     "signIn": "Iniciar Sesión",
     "openMenu": "Abrir menú",
     "mainNav": "Navegación principal",
-    "mobileNav": "Navegación móvil"
+    "mobileNav": "Navegación móvil",
+    "grupoOperacion": "Operación",
+    "grupoComunidad": "Comunidad",
+    "grupoContenido": "Contenido",
+    "grupoNegocio": "Negocio",
+    "grupoPlataforma": "Plataforma",
+    "grupoSistema": "Sistema"
   },
   "search": {
     "label": "Buscar",
@@ -787,7 +793,11 @@
       "thisWeek": "+8 esta semana",
       "occupancy": "Ocupación",
       "historicMax": "Máximo histórico",
-      "court": "Pista {number}"
+      "court": "Pista {number}",
+      "cellReserved": "Reservada",
+      "cellOpen": "Abierta",
+      "cellClass": "Clase",
+      "cellFree": "Libre"
     },
     "socialProof": {
       "item1Title": "Configura en 5 min",
@@ -816,6 +826,7 @@
       "cta": "Resuelve estos problemas hoy"
     },
     "features": {
+      "eyebrow": "Funcionalidades",
       "title": "Todo lo que tu club necesita. Nada que no necesite.",
       "subtitle": "8 herramientas esenciales para la gestión diaria de tu club. Sin módulos innecesarios, sin complejidad de más.",
       "bookingsTitle": "Reservas 24/7 sin WhatsApp",
@@ -836,6 +847,7 @@
       "rolesDesc": "Admins, staff y socios con accesos diferenciados. Cada persona ve solo lo que necesita."
     },
     "howItWorks": {
+      "eyebrow": "Cómo funciona",
       "title": "Configura tu club en 5 minutos",
       "subtitle": "Sin instalaciones complicadas. Sin formación necesaria. Si sabes usar WhatsApp, sabes usar Padel Club OS.",
       "step1Title": "Crea tu cuenta",
@@ -846,6 +858,7 @@
       "step3Desc": "Comparte el link con tus socios. Ellos reservan desde el móvil; tu descansas."
     },
     "pricing": {
+      "eyebrow": "Precios",
       "title": "Precios claros. Sin sorpresas.",
       "subtitle": "Mientras otros te hacen llamar a ventas para saber cuánto cuesta, nosotros te lo decimos aquí mismo.",
       "billingToggle": "Alternar facturación mensual o anual",
@@ -931,6 +944,7 @@
       "item3After": "Una sola plataforma para reservas, socios, competiciones y analíticas. Todo conectado, todo en orden."
     },
     "faq": {
+      "eyebrow": "FAQ",
       "title": "Preguntas frecuentes",
       "subtitle": "Todo lo que necesitas saber antes de empezar.",
       "q1": "Cuánto tarda configurar mi club?",

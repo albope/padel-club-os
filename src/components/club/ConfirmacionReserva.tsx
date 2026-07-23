@@ -16,6 +16,8 @@ import {
 import { Separator } from '@/components/ui/separator';
 import { ToastAction } from '@/components/ui/toast';
 import { toast } from '@/hooks/use-toast';
+import { cn } from '@/lib/utils';
+import { temaMarcadorActivo } from '@/lib/feature-flags';
 import BotonCompartir, { compartir } from '@/components/club/BotonCompartir';
 
 interface ConfirmacionReservaProps {
@@ -55,6 +57,9 @@ export default function ConfirmacionReserva({
   const localeCode = locale === 'en' ? 'en-GB' : 'es-ES';
   const [isBooking, setIsBooking] = useState(false);
   const [reservaExitosa, setReservaExitosa] = useState(false);
+
+  // «Marcador»: la CTA primaria del jugador es superficie de tenant (h-12 tactil)
+  const claseCtaTenant = temaMarcadorActivo() ? 'btn-tenant h-12' : undefined;
 
   // Datos derivados (calculados antes del early return para usarlos en el useEffect)
   const startTime = pista ? new Date(`${fecha}T${horaInicio}:00`) : null;
@@ -292,7 +297,7 @@ export default function ConfirmacionReserva({
               <Separator />
               <div className="flex items-center justify-between">
                 <span className="text-sm text-muted-foreground">{t('price')}</span>
-                <span className="text-lg font-bold">{precio.toFixed(2)}€</span>
+                <span className="text-lg font-bold tabular-nums">{precio.toFixed(2)}€</span>
               </div>
               <p className="text-xs text-muted-foreground text-right">
                 {t('perPlayer')}: {(precio / 4).toFixed(2)}€ (4 jug.) · {(precio / 2).toFixed(2)}€ (2 jug.)
@@ -304,14 +309,14 @@ export default function ConfirmacionReserva({
 
           {!session?.user ? (
             <Button
-              className="w-full"
+              className={cn('w-full', claseCtaTenant)}
               onClick={() => router.push(`/club/${slug}/login`)}
             >
               {t('loginToBook')}
             </Button>
           ) : modoSoloOnline ? (
             <Button
-              className="w-full"
+              className={cn('w-full', claseCtaTenant)}
               onClick={() => handleReservar(false)}
               disabled={isBooking}
             >
@@ -330,7 +335,7 @@ export default function ConfirmacionReserva({
           ) : modoBoth ? (
             <div className="space-y-2">
               <Button
-                className="w-full"
+                className={cn('w-full', claseCtaTenant)}
                 onClick={() => handleReservar(false)}
                 disabled={isBooking}
               >
@@ -358,7 +363,7 @@ export default function ConfirmacionReserva({
             </div>
           ) : (
             <Button
-              className="w-full"
+              className={cn('w-full', claseCtaTenant)}
               onClick={() => handleReservar()}
               disabled={isBooking}
             >

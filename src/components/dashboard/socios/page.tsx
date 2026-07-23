@@ -6,6 +6,7 @@ import { redirect } from 'next/navigation';
 import { Users, PlusCircle, Mail, Phone } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { urlAvatar } from '@/lib/avatar';
 
 const SociosPage = async () => {
   const session = await getServerSession(authOptions);
@@ -41,7 +42,7 @@ const SociosPage = async () => {
                 <li key={user.id} className="flex items-center justify-between py-4">
                   <div className="flex items-center gap-4">
                     <Image
-                      src={user.image || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name || 'S')}&background=random&color=fff`}
+                      src={user.image || urlAvatar(user.name || 'S')}
                       alt="Avatar"
                       width={40}
                       height={40}

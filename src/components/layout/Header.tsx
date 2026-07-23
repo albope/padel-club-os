@@ -21,16 +21,33 @@ import { MobileSidebar } from '@/components/layout/MobileSidebar';
 import { Breadcrumbs } from '@/components/layout/Breadcrumbs';
 import { NotificationBell } from '@/components/layout/NotificationBell';
 import { GlobalSearch } from '@/components/layout/GlobalSearch';
+import { temaMarcadorActivo } from '@/lib/feature-flags';
+import { cn } from '@/lib/utils';
 import Image from 'next/image';
+import { urlAvatar } from '@/lib/avatar';
 
 const Header = () => {
   const { data: session, status } = useSession();
   const t = useTranslations('nav');
   const user = session?.user;
+  const temaMarcador = temaMarcadorActivo();
 
   return (
-    <header className="sticky top-0 z-40 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="flex h-16 items-center justify-between px-4 sm:px-6">
+    <header
+      className={cn(
+        'sticky top-0 z-40 border-b',
+        // «Marcador»: header 56px solido, sin glassmorphism
+        temaMarcador
+          ? 'bg-background'
+          : 'bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60'
+      )}
+    >
+      <div
+        className={cn(
+          'flex items-center justify-between px-4 sm:px-6',
+          temaMarcador ? 'h-14' : 'h-16'
+        )}
+      >
         <div className="flex items-center gap-2">
           <MobileSidebar />
           <Breadcrumbs />
@@ -53,7 +70,7 @@ const Header = () => {
                 <Button variant="ghost" className="relative h-11 w-11 rounded-full p-0 overflow-hidden">
                   <Image
                     className="h-full w-full rounded-full object-cover"
-                    src={user.image || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name || 'U')}&background=6366f1&color=fff`}
+                    src={user.image || urlAvatar(user.name || 'U', '6366f1')}
                     alt={user.name || 'Avatar de usuario'}
                     width={44}
                     height={44}

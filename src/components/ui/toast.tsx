@@ -4,6 +4,7 @@ import * as React from "react"
 import * as ToastPrimitives from "@radix-ui/react-toast"
 import { cva, type VariantProps } from "class-variance-authority"
 import { X } from "lucide-react"
+import { temaMarcadorActivo } from "@/lib/feature-flags"
 import { cn } from "@/lib/utils"
 
 const ToastProvider = ToastPrimitives.Provider
@@ -28,11 +29,15 @@ const toastVariants = cva(
   {
     variants: {
       variant: {
-        default: "border bg-background text-foreground",
+        default: temaMarcadorActivo()
+          ? "border bg-surface-raised text-foreground"
+          : "border bg-background text-foreground",
         destructive:
           "destructive group border-destructive bg-destructive text-destructive-foreground",
-        success:
-          "border-green-200 bg-green-50 text-green-900 dark:border-green-800 dark:bg-green-950 dark:text-green-100",
+        // «Marcador»: exito con tokens de estado en vez de paleta cruda
+        success: temaMarcadorActivo()
+          ? "border-success-border bg-success-bg text-success-foreground"
+          : "border-green-200 bg-green-50 text-green-900 dark:border-green-800 dark:bg-green-950 dark:text-green-100",
       },
     },
     defaultVariants: {

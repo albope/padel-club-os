@@ -13,6 +13,7 @@ import {
   Legend,
 } from 'recharts'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { temaMarcadorActivo } from '@/lib/feature-flags'
 
 interface DatoIngresoDiario {
   fecha: string
@@ -79,16 +80,32 @@ export default function IngresosSemana({ data }: IngresosSemanaProps) {
                   value === 'cobrado' ? t('collected') : t('pending')
                 }
               />
+              {temaMarcadorActivo() && (
+                /* «Marcador»: lo pendiente/estimado siempre con trama ademas de color */
+                <defs>
+                  <pattern
+                    id="tramaPendiente"
+                    patternUnits="userSpaceOnUse"
+                    width="8"
+                    height="8"
+                    patternTransform="rotate(45)"
+                  >
+                    <rect width="8" height="8" fill="hsl(var(--status-warning-bg))" />
+                    <rect width="4" height="8" fill="hsl(var(--status-warning-border))" />
+                  </pattern>
+                </defs>
+              )}
               <Bar
                 dataKey="cobrado"
                 stackId="ingresos"
-                fill="#22c55e"
+                fill={temaMarcadorActivo() ? 'hsl(var(--primary))' : '#22c55e'}
                 radius={[0, 0, 0, 0]}
               />
               <Bar
                 dataKey="pendiente"
                 stackId="ingresos"
-                fill="#f59e0b"
+                fill={temaMarcadorActivo() ? 'url(#tramaPendiente)' : '#f59e0b'}
+                stroke={temaMarcadorActivo() ? 'hsl(var(--status-warning-fg))' : undefined}
                 radius={[4, 4, 0, 0]}
               />
             </BarChart>

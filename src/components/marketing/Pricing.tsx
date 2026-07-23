@@ -2,12 +2,8 @@
 
 import { useState } from "react"
 import Link from "next/link"
-import { Check, ArrowRight, X } from "lucide-react"
 import { useTranslations } from "next-intl"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
-import AnimateOnScroll from "@/components/marketing/AnimateOnScroll"
 
 type PlanKey = "starter" | "pro" | "enterprise"
 
@@ -27,165 +23,171 @@ const comparativaKeys = [
 
 export default function Pricing() {
   const [anual, setAnual] = useState(false)
-  const t = useTranslations('marketing.pricing')
+  const t = useTranslations("marketing.pricing")
 
   return (
-    <section id="precios" className="border-t py-20 md:py-28">
-      <div className="container">
-        {/* Header */}
-        <AnimateOnScroll animation="fade-up" className="mx-auto max-w-2xl text-center">
-          <h2 className="font-display text-3xl font-bold tracking-tight md:text-4xl lg:text-5xl">
-            {t('title')}
-          </h2>
-          <p className="mt-4 text-lg text-muted-foreground">
-            {t('subtitle')}
-          </p>
-        </AnimateOnScroll>
+    <section id="precios" className="container grid gap-11 py-20 md:py-24">
+      {/* Header */}
+      <div className="grid justify-items-center gap-3 text-center">
+        <div className="text-xs font-bold uppercase tracking-[0.14em] text-primary">
+          {t("eyebrow")}
+        </div>
+        <h2 className="font-display text-3xl tracking-tight md:text-4xl" style={{ fontWeight: 750 }}>
+          {t("title")}
+        </h2>
+        <p className="max-w-[560px] text-[15px] leading-relaxed text-muted-foreground">
+          {t("subtitle")}
+        </p>
 
         {/* Toggle mensual/anual */}
-        <AnimateOnScroll animation="fade-up" delay={100} className="mt-8 flex items-center justify-center gap-3">
-          <span className={cn("text-sm font-medium", !anual ? "text-foreground" : "text-muted-foreground")}>
-            {t('monthly')}
-          </span>
-          <button
-            onClick={() => setAnual(!anual)}
-            className={cn(
-              "relative inline-flex h-7 w-12 items-center rounded-full transition-colors",
-              anual ? "bg-primary" : "bg-muted"
-            )}
-            role="switch"
-            aria-checked={anual}
-            aria-label={t('billingToggle')}
+        <div className="mt-2 flex items-center gap-3">
+          <div
+            className="inline-flex rounded-full border border-border bg-surface-raised p-[3px]"
+            role="group"
+            aria-label={t("billingToggle")}
           >
-            <span
+            <button
+              type="button"
+              onClick={() => setAnual(false)}
+              aria-pressed={!anual}
               className={cn(
-                "inline-block h-5 w-5 transform rounded-full bg-white shadow transition-transform",
-                anual ? "translate-x-6" : "translate-x-1"
+                "rounded-full px-[18px] py-1.5 text-[13px] transition-colors",
+                !anual ? "bg-foreground font-bold text-background" : "font-semibold text-muted-foreground"
               )}
-            />
-          </button>
-          <span className={cn("text-sm font-medium", anual ? "text-foreground" : "text-muted-foreground")}>
-            {t('annual')}
-          </span>
-          {anual && (
-            <Badge variant="secondary" className="bg-emerald-100 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-400">
-              {t('saveMonths')}
-            </Badge>
-          )}
-        </AnimateOnScroll>
-
-        {/* Pricing cards */}
-        <div className="mt-10 grid gap-6 md:mt-12 lg:grid-cols-3 lg:gap-8">
-          {planKeys.map((plan, i) => {
-            const precioMensual = Number(t(`${plan.key}.price`))
-            const precioAnual = Number(t(`${plan.key}.priceAnnual`))
-            const features = Array.from({ length: plan.featureCount }, (_, j) =>
-              t(`${plan.key}.feature${j + 1}`)
-            )
-
-            return (
-              <AnimateOnScroll
-                key={plan.key}
-                animation="scale-in"
-                delay={i * 100}
-              >
-                <div
-                  className={cn(
-                    "relative flex flex-col rounded-2xl border p-6 md:p-8",
-                    plan.destacado
-                      ? "border-primary bg-card shadow-xl shadow-primary/10 ring-1 ring-primary lg:scale-105"
-                      : "bg-card"
-                  )}
-                >
-                  {plan.destacado && (
-                    <Badge className="absolute -top-3 left-1/2 -translate-x-1/2">
-                      {t('popular')}
-                    </Badge>
-                  )}
-
-                  <h3 className="font-display text-xl font-semibold">{t(`${plan.key}.name`)}</h3>
-                  <p className="mt-1 text-sm text-muted-foreground">{t(`${plan.key}.desc`)}</p>
-
-                  <div className="mt-6 flex items-baseline gap-1">
-                    <span className="text-4xl font-bold tracking-tight">
-                      {anual ? precioAnual : precioMensual}&euro;
-                    </span>
-                    <span className="text-sm text-muted-foreground">{t('perMonth')}</span>
-                  </div>
-                  {anual && (
-                    <p className="mt-1 text-xs text-muted-foreground">
-                      {t('billedAnnually', { amount: precioAnual * 12 })}
-                    </p>
-                  )}
-                  <p className="mt-2 text-xs font-medium text-primary">
-                    {t('trialIncluded')}
-                  </p>
-                  <p className="mt-1 text-xs text-muted-foreground">
-                    {t('taxesExcluded')}
-                  </p>
-
-                  <ul className="mt-6 flex-1 space-y-3">
-                    {features.map((feature) => (
-                      <li key={feature} className="flex items-start gap-2 text-sm">
-                        <Check className="mt-0.5 h-4 w-4 flex-shrink-0 text-primary" />
-                        {feature}
-                      </li>
-                    ))}
-                  </ul>
-
-                  <Button
-                    className="mt-8 gap-2"
-                    variant={plan.destacado ? "default" : "outline"}
-                    size="lg"
-                    asChild
-                  >
-                    <Link href="/demo?source=pricing">
-                      {t('startTrial')}
-                      <ArrowRight className="h-4 w-4" />
-                    </Link>
-                  </Button>
-                </div>
-              </AnimateOnScroll>
-            )
-          })}
-        </div>
-
-        {/* Tabla comparativa */}
-        <AnimateOnScroll animation="fade-up" delay={200} className="mx-auto mt-16 max-w-3xl md:mt-20">
-          <h3 className="text-center font-display text-xl font-semibold md:text-2xl">
-            {t('comparison.title')}
-          </h3>
-          <div className="mt-8 overflow-hidden rounded-2xl border">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b bg-muted/50">
-                  <th scope="col" className="px-4 py-3 text-left font-medium text-muted-foreground md:px-6">{t('comparison.aspect')}</th>
-                  <th scope="col" className="px-4 py-3 text-left font-medium text-red-600 dark:text-red-400 md:px-6">{t('comparison.traditional')}</th>
-                  <th scope="col" className="px-4 py-3 text-left font-medium text-primary md:px-6">{t('comparison.us')}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {comparativaKeys.map((row, i) => (
-                  <tr key={row.aspectKey} className={i < comparativaKeys.length - 1 ? "border-b" : ""}>
-                    <td className="px-4 py-3 font-medium md:px-6">{t(`comparison.${row.aspectKey}`)}</td>
-                    <td className="px-4 py-3 text-muted-foreground md:px-6">
-                      <span className="inline-flex items-center gap-1.5">
-                        <X className="h-3.5 w-3.5 text-red-500" />
-                        {t(`comparison.${row.tradKey}`)}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3 md:px-6">
-                      <span className="inline-flex items-center gap-1.5">
-                        <Check className="h-3.5 w-3.5 text-primary" />
-                        {t(`comparison.${row.usKey}`)}
-                      </span>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+            >
+              {t("monthly")}
+            </button>
+            <button
+              type="button"
+              onClick={() => setAnual(true)}
+              aria-pressed={anual}
+              className={cn(
+                "rounded-full px-[18px] py-1.5 text-[13px] transition-colors",
+                anual ? "bg-foreground font-bold text-background" : "font-semibold text-muted-foreground"
+              )}
+            >
+              {t("annual")}
+            </button>
           </div>
-        </AnimateOnScroll>
+          {anual && (
+            <span className="rounded-full border border-success-border bg-success-bg px-3 py-1 text-[11px] font-bold text-success-foreground">
+              {t("saveMonths")}
+            </span>
+          )}
+        </div>
+      </div>
+
+      {/* Pricing cards */}
+      <div className="grid items-stretch gap-6 lg:grid-cols-3">
+        {planKeys.map((plan) => {
+          const precioMensual = Number(t(`${plan.key}.price`))
+          const precioAnual = Number(t(`${plan.key}.priceAnnual`))
+          const features = Array.from({ length: plan.featureCount }, (_, j) =>
+            t(`${plan.key}.feature${j + 1}`)
+          )
+          const destacado = plan.destacado
+
+          return (
+            <div
+              key={plan.key}
+              className={cn(
+                "relative grid content-start gap-[18px] rounded-[var(--radius-surface)] border p-8",
+                destacado
+                  ? "border-foreground bg-foreground text-background"
+                  : "border-border bg-surface-raised text-foreground"
+              )}
+            >
+              {destacado && (
+                <span className="absolute -top-[11px] left-8 whitespace-nowrap rounded-full bg-primary px-3 py-1 text-[10.5px] font-bold uppercase tracking-[0.1em] text-primary-foreground">
+                  {t("popular")}
+                </span>
+              )}
+
+              <div className="grid gap-1">
+                <h3 className="font-display text-xl" style={{ fontWeight: 750 }}>
+                  {t(`${plan.key}.name`)}
+                </h3>
+                <p className={cn("text-[13px]", destacado ? "text-sidebar-foreground" : "text-muted-foreground")}>
+                  {t(`${plan.key}.desc`)}
+                </p>
+              </div>
+
+              <div className="grid gap-1 [font-variant-numeric:tabular-nums]">
+                <div className="flex items-baseline gap-1.5">
+                  <span className="font-display text-[42px] tracking-tight" style={{ fontWeight: 800 }}>
+                    {anual ? precioAnual : precioMensual}&euro;
+                  </span>
+                  <span className={cn("text-[13px]", destacado ? "text-sidebar-foreground" : "text-muted-foreground")}>
+                    {t("perMonth")}
+                  </span>
+                </div>
+                {anual ? (
+                  <span className={cn("text-xs", destacado ? "text-sidebar-foreground" : "text-muted-foreground")}>
+                    {t("billedAnnually", { amount: precioAnual * 12 })}
+                  </span>
+                ) : (
+                  <span className={cn("text-xs", destacado ? "text-sidebar-foreground" : "text-muted-foreground")}>
+                    {t("trialIncluded")} &middot; {t("taxesExcluded")}
+                  </span>
+                )}
+              </div>
+
+              <div className="grid gap-2.5">
+                {features.map((feature) => (
+                  <div key={feature} className="flex items-baseline gap-2.5 text-[13.5px] leading-snug">
+                    <span
+                      className={cn(
+                        "relative top-px h-2.5 w-3.5 flex-shrink-0 rounded-[3px] border-[1.5px]",
+                        destacado ? "border-sidebar-primary bg-sidebar-primary/25" : "border-primary bg-primary/15"
+                      )}
+                      aria-hidden="true"
+                    />
+                    <span>{feature}</span>
+                  </div>
+                ))}
+              </div>
+
+              <Link
+                href="/demo?source=pricing"
+                className={cn(
+                  "mt-1.5 block rounded-[var(--radius-control)] py-3 text-center text-sm font-bold transition-colors",
+                  destacado
+                    ? "bg-primary text-primary-foreground hover:bg-primary-hover"
+                    : "bg-secondary text-foreground hover:bg-border"
+                )}
+              >
+                {t("startTrial")}
+              </Link>
+            </div>
+          )
+        })}
+      </div>
+
+      {/* Tabla comparativa */}
+      <div className="overflow-hidden rounded-[var(--radius-surface)] border border-border bg-surface-raised">
+        <div className="border-b border-border px-7 py-5">
+          <h3 className="font-display text-[19px]" style={{ fontWeight: 750 }}>
+            {t("comparison.title")}
+          </h3>
+        </div>
+        <table className="w-full text-left text-[13.5px]">
+          <thead>
+            <tr className="border-b border-border bg-background text-[10.5px] uppercase tracking-[0.12em] text-muted-foreground/80">
+              <th scope="col" className="px-7 py-3 font-bold">{t("comparison.aspect")}</th>
+              <th scope="col" className="px-7 py-3 font-bold">{t("comparison.traditional")}</th>
+              <th scope="col" className="px-7 py-3 font-bold">{t("comparison.us")}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {comparativaKeys.map((row, i) => (
+              <tr key={row.aspectKey} className={i < comparativaKeys.length - 1 ? "border-b border-secondary" : ""}>
+                <td className="px-7 py-3.5 font-bold">{t(`comparison.${row.aspectKey}`)}</td>
+                <td className="px-7 py-3.5 text-muted-foreground">{t(`comparison.${row.tradKey}`)}</td>
+                <td className="px-7 py-3.5 font-semibold text-primary">{t(`comparison.${row.usKey}`)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
     </section>
   )

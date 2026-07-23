@@ -2,12 +2,10 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { Menu, X } from "lucide-react"
 import { useTranslations } from "next-intl"
-import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
-import { LogoIcon } from "@/components/ui/logo-icon"
 import { LanguageSelector } from "@/components/layout/LanguageSelector"
 
 const navLinkKeys = [
@@ -18,111 +16,91 @@ const navLinkKeys = [
   { href: "/contacto", key: "contact" },
 ] as const
 
+/** Isotipo «Marcador»: geometria pura, stroke = currentColor, chip = verde marca */
+function Isotipo() {
+  return (
+    <svg viewBox="0 0 48 48" width="26" height="26" aria-hidden="true">
+      <rect x="4" y="10" width="40" height="28" rx="7" fill="none" stroke="currentColor" strokeWidth="3" />
+      <rect x="10" y="16" width="13" height="16" rx="3" className="fill-primary" />
+    </svg>
+  )
+}
+
 export default function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false)
-  const [scrolled, setScrolled] = useState(false)
   const pathname = usePathname()
-  const isLanding = pathname === "/"
-  const t = useTranslations('marketing.navbar')
-
-  useEffect(() => {
-    const handleScroll = () => setScrolled(window.scrollY > 80)
-    handleScroll()
-    window.addEventListener("scroll", handleScroll, { passive: true })
-    return () => window.removeEventListener("scroll", handleScroll)
-  }, [])
-
-  const isTransparent = isLanding && !scrolled && !mobileOpen
+  const t = useTranslations("marketing.navbar")
 
   return (
-    <header
-      className={cn(
-        "fixed top-0 z-50 w-full transition-all duration-300",
-        isTransparent
-          ? "border-transparent bg-transparent"
-          : "border-b bg-background/95 backdrop-blur-xl shadow-sm"
-      )}
-    >
-      <nav aria-label="Navegacion principal" className="container flex h-16 items-center justify-between">
-        <Link href="/" className="flex items-center gap-2">
-          <LogoIcon tamano="md" />
-          <span
-            className={cn(
-              "text-lg font-bold transition-colors duration-300",
-              isTransparent ? "text-white" : "text-foreground"
-            )}
-          >
-            Padel Club OS
+    <header className="sticky top-0 z-50 w-full border-b border-border bg-background/90 backdrop-blur-md">
+      <nav
+        aria-label="Navegacion principal"
+        className="container flex h-16 items-center justify-between"
+      >
+        <Link href="/" className="flex items-center gap-2.5 text-foreground">
+          <Isotipo />
+          <span className="font-display text-[17px] tracking-tight" style={{ fontWeight: 750 }}>
+            Padel Club <span className="text-primary">OS</span>
           </span>
         </Link>
 
-        {/* Desktop */}
-        <div className="hidden items-center gap-8 md:flex">
-          {navLinkKeys.map((link) =>
-            link.href.startsWith("/") ? (
+        {/* Desktop links */}
+        <div className="hidden items-center gap-7 md:flex">
+          {navLinkKeys.map((link) => {
+            const activo =
+              link.href.startsWith("/") && pathname.startsWith(link.href)
+            const clase = cn(
+              "text-sm font-semibold transition-colors",
+              activo
+                ? "text-foreground"
+                : "text-secondary-foreground hover:text-foreground"
+            )
+            return link.href.startsWith("/") ? (
               <Link
                 key={link.href}
                 href={link.href}
-                className={cn(
-                  "text-sm font-medium transition-colors",
-                  isTransparent
-                    ? "text-white/70 hover:text-white"
-                    : "text-muted-foreground hover:text-foreground"
-                )}
+                aria-current={activo ? "page" : undefined}
+                className={cn(clase, activo && "border-b-2 border-primary pb-0.5")}
               >
                 {t(link.key)}
               </Link>
             ) : (
-              <a
-                key={link.href}
-                href={link.href}
-                className={cn(
-                  "text-sm font-medium transition-colors",
-                  isTransparent
-                    ? "text-white/70 hover:text-white"
-                    : "text-muted-foreground hover:text-foreground"
-                )}
-              >
+              <a key={link.href} href={link.href} className={clase}>
                 {t(link.key)}
               </a>
             )
-          )}
+          })}
         </div>
 
-        <div className="hidden items-center gap-3 md:flex">
-          <LanguageSelector className={cn(isTransparent && "text-white/80 hover:bg-white/10 hover:text-white")} />
-          <Button
-            variant="ghost"
-            className={cn(
-              isTransparent && "text-white/80 hover:bg-white/10 hover:text-white"
-            )}
-            asChild
+        {/* Desktop actions */}
+        <div className="hidden items-center gap-3.5 md:flex">
+          <LanguageSelector />
+          <Link
+            href="/login"
+            className="text-sm font-semibold text-foreground transition-colors hover:text-primary"
           >
-            <Link href="/login">{t('login')}</Link>
-          </Button>
-          <Button
-            className={cn(
-              isTransparent &&
-                "bg-white text-slate-900 hover:bg-white/90"
-            )}
-            asChild
+            {t("login")}
+          </Link>
+          <Link
+            href="/demo?source=navbar"
+            className="rounded-[var(--radius-control)] bg-primary px-5 py-2.5 text-sm font-bold text-primary-foreground transition-colors hover:bg-primary-hover"
           >
-            <Link href="/demo?source=navbar">{t('tryFree')}</Link>
-          </Button>
+            {t("tryFree")}
+          </Link>
         </div>
 
         {/* Mobile toggle */}
         <button
-          className="md:hidden p-2"
+          className="flex h-11 w-11 items-center justify-center md:hidden"
           onClick={() => setMobileOpen(!mobileOpen)}
-          aria-label={mobileOpen ? t('closeMenu') : t('openMenu')}
+          aria-label={mobileOpen ? t("closeMenu") : t("openMenu")}
           aria-expanded={mobileOpen}
           aria-controls="mobile-menu"
         >
           {mobileOpen ? (
-            <X className={cn("h-6 w-6", isTransparent ? "text-white" : "text-foreground")} />
+            <X className="h-6 w-6 text-foreground" />
           ) : (
-            <Menu className={cn("h-6 w-6", isTransparent ? "text-white" : "text-foreground")} />
+            <Menu className="h-6 w-6 text-foreground" />
           )}
         </button>
       </nav>
@@ -132,28 +110,17 @@ export default function Navbar() {
         id="mobile-menu"
         aria-hidden={!mobileOpen}
         className={cn(
-          "overflow-hidden md:hidden transition-all duration-200",
-          mobileOpen
-            ? "max-h-80 border-t"
-            : "max-h-0",
-          !isTransparent && mobileOpen && "border-t"
+          "overflow-hidden bg-background transition-all duration-200 md:hidden",
+          mobileOpen ? "max-h-96 border-t border-border" : "max-h-0"
         )}
       >
-        <div className={cn(
-          "container flex flex-col gap-4 py-4",
-          isTransparent ? "bg-slate-900/95 backdrop-blur-xl" : "bg-background"
-        )}>
+        <div className="container flex flex-col gap-4 py-4">
           {navLinkKeys.map((link) =>
             link.href.startsWith("/") ? (
               <Link
                 key={link.href}
                 href={link.href}
-                className={cn(
-                  "text-sm font-medium transition-colors",
-                  isTransparent
-                    ? "text-white/80 hover:text-white"
-                    : "text-muted-foreground hover:text-foreground"
-                )}
+                className="text-sm font-semibold text-secondary-foreground transition-colors hover:text-foreground"
                 onClick={() => setMobileOpen(false)}
               >
                 {t(link.key)}
@@ -162,12 +129,7 @@ export default function Navbar() {
               <a
                 key={link.href}
                 href={link.href}
-                className={cn(
-                  "text-sm font-medium transition-colors",
-                  isTransparent
-                    ? "text-white/80 hover:text-white"
-                    : "text-muted-foreground hover:text-foreground"
-                )}
+                className="text-sm font-semibold text-secondary-foreground transition-colors hover:text-foreground"
                 onClick={() => setMobileOpen(false)}
               >
                 {t(link.key)}
@@ -175,12 +137,20 @@ export default function Navbar() {
             )
           )}
           <div className="flex flex-col gap-2 pt-2">
-            <Button variant="outline" asChild>
-              <Link href="/login">{t('login')}</Link>
-            </Button>
-            <Button asChild>
-              <Link href="/demo?source=navbar">{t('tryFree')}</Link>
-            </Button>
+            <Link
+              href="/login"
+              className="rounded-[var(--radius-control)] border border-border px-4 py-2.5 text-center text-sm font-semibold text-foreground"
+              onClick={() => setMobileOpen(false)}
+            >
+              {t("login")}
+            </Link>
+            <Link
+              href="/demo?source=navbar"
+              className="rounded-[var(--radius-control)] bg-primary px-4 py-2.5 text-center text-sm font-bold text-primary-foreground"
+              onClick={() => setMobileOpen(false)}
+            >
+              {t("tryFree")}
+            </Link>
           </div>
         </div>
       </div>

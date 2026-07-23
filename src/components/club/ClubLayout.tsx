@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useSession } from 'next-auth/react';
@@ -27,6 +27,8 @@ import {
 import { useScrollDirection } from '@/hooks/use-scroll-direction';
 import { SkipToContent } from '@/components/layout/SkipToContent';
 import { LanguageSelector } from '@/components/layout/LanguageSelector';
+import { temaMarcadorActivo } from '@/lib/feature-flags';
+import { generarTemaTenant, varsTenant } from '@/lib/tenant-theme';
 import Image from 'next/image';
 
 interface ClubInfo {
@@ -76,39 +78,82 @@ export default function ClubLayout({ club, children }: ClubLayoutProps) {
   const mainMobileItems = navItems.slice(0, MAX_MOBILE_ITEMS);
   const overflowItems = navItems.slice(MAX_MOBILE_ITEMS);
 
+  // Con el motor de tenant activo, los acentos usan las vars ajustadas a
+  // contraste; en legacy se mantiene el hex crudo del club.
+  const colorPrimario = temaMarcadorActivo() ? 'var(--tenant-primary)' : color;
+  const colorSobrePrimario = temaMarcadorActivo() ? 'var(--tenant-on-primary)' : undefined;
+  const fondoTinte = temaMarcadorActivo() ? 'var(--tenant-tint-50)' : `${color}20`;
+
   const isActive = (href: string) => {
     if (href === basePath) return pathname === basePath;
     return pathname.startsWith(href);
   };
 
   const isPlayerOfClub = session?.user?.clubId === club.id;
+  const temaMarcador = temaMarcadorActivo();
+
+  // «Marcador»: motor de tenant — escala OKLCH accesible en vez del hex crudo
+  const temaTenant = useMemo(
+    () => (temaMarcador ? generarTemaTenant(club.primaryColor) : null),
+    [temaMarcador, club.primaryColor]
+  );
+
+  const estiloTenant = temaTenant
+    ? ({
+        ...varsTenant(temaTenant),
+        '--club-primary-shadow': `${temaTenant.claro.primary}66`,
+      } as React.CSSProperties)
+    : ({
+        '--club-primary': color,
+        '--club-primary-shadow': `${color}66`,
+      } as React.CSSProperties);
+
+  // Los overlays de Radix (Sheet/Dialog) se montan en un portal bajo <body>,
+  // fuera del wrapper: replicamos las vars y la clase de ámbito en el body
+  // para que la CTA de tenant también funcione dentro de ellos.
+  useEffect(() => {
+    if (!temaTenant) return;
+    const body = document.body;
+    const vars = varsTenant(temaTenant);
+    body.classList.add('ambito-tenant');
+    for (const [nombre, valor] of Object.entries(vars)) {
+      body.style.setProperty(nombre, valor);
+    }
+    return () => {
+      body.classList.remove('ambito-tenant');
+      for (const nombre of Object.keys(vars)) {
+        body.style.removeProperty(nombre);
+      }
+    };
+  }, [temaTenant]);
 
   return (
     <div
-      className="min-h-screen bg-background"
-      style={{
-        '--club-primary': color,
-        '--club-primary-shadow': `${color}66`,
-      } as React.CSSProperties}
+      className={cn('min-h-screen bg-background', temaMarcador && 'ambito-tenant')}
+      style={estiloTenant}
     >
       <SkipToContent />
       {/* Header */}
       <header
         className={cn(
           'sticky top-0 z-50',
-          'bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60',
-          'border-b border-border/60',
+          // «Marcador»: header solido sin glassmorphism ni linea gradiente
+          temaMarcador
+            ? 'bg-background border-b border-border'
+            : 'bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b border-border/60',
           'club-header-transition',
           scrollDir === 'down' && 'club-header-hidden md:[transform:none]',
         )}
       >
-        {/* Linea de acento gradient superior */}
-        <div
-          className="absolute top-0 inset-x-0 h-px pointer-events-none"
-          style={{
-            background: `linear-gradient(90deg, transparent 0%, ${color}60 30%, ${color}90 50%, ${color}60 70%, transparent 100%)`,
-          }}
-        />
+        {!temaMarcador && (
+          /* Linea de acento gradient superior */
+          <div
+            className="absolute top-0 inset-x-0 h-px pointer-events-none"
+            style={{
+              background: `linear-gradient(90deg, transparent 0%, ${color}60 30%, ${color}90 50%, ${color}60 70%, transparent 100%)`,
+            }}
+          />
+        )}
 
         <div className="mx-auto max-w-5xl flex items-center justify-between h-14 px-4">
           {/* Logo + nombre */}
@@ -119,15 +164,25 @@ export default function ClubLayout({ club, children }: ClubLayoutProps) {
                 alt={club.name}
                 width={36}
                 height={36}
-                className="h-9 w-9 rounded-full object-cover ring-2 ring-offset-2 ring-offset-background"
-                style={{ borderColor: color, boxShadow: `0 0 0 2px ${color}` }}
+                className={cn(
+                  'h-9 w-9 object-cover',
+                  temaMarcador
+                    ? 'rounded-[10px]'
+                    : 'rounded-full ring-2 ring-offset-2 ring-offset-background'
+                )}
+                style={temaMarcador ? undefined : { borderColor: color, boxShadow: `0 0 0 2px ${color}` }}
               />
             ) : (
               <div
-                className="h-9 w-9 rounded-full flex items-center justify-center text-white font-bold text-sm shadow-md"
-                style={{
-                  background: `linear-gradient(135deg, ${color}, ${color}dd)`,
-                }}
+                className={cn(
+                  'h-9 w-9 flex items-center justify-center text-white font-bold text-sm',
+                  temaMarcador ? 'rounded-[10px] font-display' : 'rounded-full shadow-md'
+                )}
+                style={
+                  temaMarcador
+                    ? { backgroundColor: colorPrimario, color: colorSobrePrimario }
+                    : { background: `linear-gradient(135deg, ${color}, ${color}dd)` }
+                }
               >
                 {club.name.charAt(0).toUpperCase()}
               </div>
@@ -203,7 +258,7 @@ export default function ClubLayout({ club, children }: ClubLayoutProps) {
               >
                 <div
                   className="h-6 w-6 rounded-full flex items-center justify-center text-white text-xs font-semibold shrink-0"
-                  style={{ backgroundColor: color }}
+                  style={{ backgroundColor: colorPrimario, color: colorSobrePrimario }}
                 >
                   {session?.user?.name?.charAt(0).toUpperCase() ?? 'U'}
                 </div>
@@ -213,7 +268,7 @@ export default function ClubLayout({ club, children }: ClubLayoutProps) {
               <Link
                 href={`${basePath}/login`}
                 className="club-cta-btn inline-flex items-center gap-1.5 h-8 px-4 rounded-full text-sm font-semibold text-white"
-                style={{ backgroundColor: color }}
+                style={{ backgroundColor: colorPrimario, color: colorSobrePrimario }}
               >
                 <LogIn className="h-3.5 w-3.5" />
                 <span>{t('access')}</span>
@@ -228,8 +283,26 @@ export default function ClubLayout({ club, children }: ClubLayoutProps) {
         {children}
       </main>
 
+      {/* Co-branding «Powered by»: pie del portal, monocromo 60% */}
+      {temaMarcador && (
+        <footer className="mx-auto max-w-5xl px-4 pt-4 pb-6">
+          <p className="text-center text-xs text-muted-foreground/60">
+            Powered by PadelClub OS
+          </p>
+        </footer>
+      )}
+
       {/* Mobile bottom nav */}
-      <nav aria-label={t('clubMobileNav')} className="md:hidden fixed bottom-0 inset-x-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-t border-border/60">
+      <nav
+        aria-label={t('clubMobileNav')}
+        className={cn(
+          'md:hidden fixed bottom-0 inset-x-0 z-50',
+          // «Marcador»: superficie elevada solida + safe area (64px + inset)
+          temaMarcador
+            ? 'bg-surface-raised border-t border-border pb-[env(safe-area-inset-bottom)]'
+            : 'bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-t border-border/60'
+        )}
+      >
         <div className="flex items-stretch h-16">
           {/* Items principales */}
           {mainMobileItems.map((item) => {
@@ -246,7 +319,7 @@ export default function ClubLayout({ club, children }: ClubLayoutProps) {
                   'transition-colors duration-200',
                   active ? 'text-foreground' : 'text-muted-foreground',
                 )}
-                style={active ? { color } : undefined}
+                style={active ? { color: colorPrimario } : undefined}
               >
                 <span className="club-bottom-pill" />
                 <item.icon className={cn('h-5 w-5 transition-transform duration-200', active && 'scale-110')} />
@@ -266,12 +339,12 @@ export default function ClubLayout({ club, children }: ClubLayoutProps) {
                 'transition-colors duration-200',
                 pathname.includes('/perfil') ? 'text-foreground' : 'text-muted-foreground',
               )}
-              style={pathname.includes('/perfil') ? { color } : undefined}
+              style={pathname.includes('/perfil') ? { color: colorPrimario } : undefined}
             >
               <span className="club-bottom-pill" />
               <div
                 className="h-5 w-5 rounded-full flex items-center justify-center text-white text-[9px] font-bold"
-                style={{ backgroundColor: color }}
+                style={{ backgroundColor: colorPrimario, color: colorSobrePrimario }}
               >
                 {session?.user?.name?.charAt(0).toUpperCase() ?? 'U'}
               </div>
@@ -320,12 +393,12 @@ export default function ClubLayout({ club, children }: ClubLayoutProps) {
                             ? 'bg-muted font-medium'
                             : 'text-muted-foreground hover:bg-muted/60 hover:text-foreground',
                         )}
-                        style={active ? { color } : undefined}
+                        style={active ? { color: colorPrimario } : undefined}
                       >
                         <div
                           className="h-9 w-9 rounded-lg flex items-center justify-center shrink-0"
                           style={active
-                            ? { backgroundColor: `${color}20`, color }
+                            ? { backgroundColor: fondoTinte, color: colorPrimario }
                             : undefined
                           }
                         >

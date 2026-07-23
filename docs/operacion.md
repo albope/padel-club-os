@@ -20,10 +20,10 @@ Objetivo: enterarse de los problemas antes que los clientes y saber qué hacer e
 
 Una sola vez, ~40 minutos en total. Los puntos son independientes: hazlos en cualquier orden.
 
-- [ ] **1. UptimeRobot** (~10 min): crear cuenta gratuita + monitor de `/api/health` cada 5 min con alerta por email → sección 1
-- [ ] **2. healthchecks.io** (~15 min): crear cuenta gratuita + 2 checks, copiar las ping URLs a las env vars de Vercel y redeploy → sección 2
+- [x] **1. UptimeRobot** (~10 min): crear cuenta gratuita + monitor de `/api/health` cada 5 min con alerta por email → sección 1 — ✅ hecho 23/07/2026
+- [x] **2. healthchecks.io** (~15 min): crear cuenta gratuita + 2 checks, copiar las ping URLs a las env vars de Vercel y redeploy → sección 2 — ✅ hecho 23/07/2026, verificado invocando ambos crons manualmente (pings recibidos)
 - [ ] **3. Alertas de Sentry** (~10 min): crear 2 alert rules (nuevo error en prod, spike de eventos) → sección 6
-- [ ] **4. Neon** (~5 min): verificar la ventana de restauración (retención de historial) del plan actual y apuntarla en este doc → sección 4
+- [x] **4. Neon** (~5 min): verificar la ventana de restauración del plan actual → sección 4 — ✅ verificado 23/07/2026: **1 día**
 - [ ] **5. Cuando se facture al primer club**: pasar Vercel a plan Pro → sección 8
 
 ---
@@ -107,16 +107,16 @@ Si la causa es un deploy malo, no intentes arreglar hacia delante bajo presión:
 
 Neon guarda el historial de cambios (WAL) y permite restaurar cualquier rama a un punto en el tiempo (PITR) **dentro de la ventana de retención del plan**.
 
-⚠️ **Requiere tu cuenta — verificar una vez** (checklist punto 4):
-- [ ] Neon console → proyecto → **Settings → Storage** (o "History retention"): apunta aquí la ventana exacta → Retención actual: `______`
-- En el plan Free suele ser de horas hasta 1 día; los planes de pago llegan a 7-30 días. Si la ventana es de pocas horas, un borrado accidental descubierto al día siguiente **no** sería recuperable: valora subir de plan cuando haya datos de clientes reales.
+✅ **Verificado (23/07/2026)** — Retención actual: **1 día** (plan Free). Se consulta en: Neon console → selector **BRANCH** = `main` → **Backup & Restore** → "Restore from history ... **1 day history window**".
+- Implicación: un borrado o corrupción accidental debe detectarse en **menos de 24 h** para ser recuperable por PITR. Con clientes reales de pago, valora el plan Launch (~19 US$/mes, ventana de 7 días) — junto con desactivar el autosuspend, es el segundo motivo para ese upgrade.
+- El plan Free incluye **snapshots manuales** gratis (Backup & Restore → **Create snapshot**): crea uno justo antes de cualquier migración de schema o script masivo sobre producción — es un punto de restauración que no caduca a las 24 h. Los snapshots programados requieren plan de pago ("Upgrade for schedules").
 
 ### Restaurar datos de producción a un punto en el tiempo
 
-1. Neon console → **Branches** → selecciona la rama de producción (`main`/`production`, host `ep-flat-field-*`).
-2. **Restore** (o "Instant restore") → elige fecha/hora **anterior** al incidente (dentro de la ventana de retención).
-3. Neon ofrece dos caminos; el seguro es **crear una rama nueva desde ese punto** (no restaurar en el sitio):
-   - Branches → **Create branch** → "From: production" → "At: point in time" → nombre `rescate-YYYYMMDD`.
+1. Neon console → selector **BRANCH** (menú lateral) = `main` (producción, host `ep-flat-field-*`) → **Backup & Restore**.
+2. En "Restore from history": elige en **Point in time** una fecha/hora **anterior** al incidente (ojo: el selector está en Europe/Madrid, no UTC).
+3. Pulsa primero **Preview data** para inspeccionar cómo estaban los datos en ese instante SIN tocar nada. Para recuperar, el camino seguro es **crear una rama nueva desde ese punto** (no restaurar en el sitio):
+   - **Branches** → **Create branch** → "From: main" → "At: point in time" → nombre `rescate-YYYYMMDD`.
 4. **Validar** la rama de rescate: SQL Editor sobre esa rama (o `psql` con su connection string) → comprueba que los datos perdidos están.
 5. Recuperar:
    - **Pérdida acotada** (unas filas/tabla): copia solo lo necesario de la rama de rescate a producción (`INSERT ... SELECT` vía `pg_dump -t tabla` de la rama de rescate + restore en prod).

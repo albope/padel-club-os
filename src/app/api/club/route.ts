@@ -2,7 +2,6 @@ import { db } from "@/lib/db";
 import { requireAuth, isAuthError } from "@/lib/api-auth";
 import { NextResponse } from "next/server";
 import { validarBody } from "@/lib/validation";
-import { canUseOnlinePayments, getSubscriptionInfo } from "@/lib/subscription";
 import { logger } from "@/lib/logger";
 import { registrarAuditoria } from "@/lib/audit";
 import * as z from "zod";
@@ -26,7 +25,9 @@ const ClubUpdateSchema = z.object({
   cancellationHours: z.number().int().min(0).max(48).optional().nullable(),
   enableOpenMatches: z.boolean().optional(),
   enablePlayerBooking: z.boolean().optional(),
-  bookingPaymentMode: z.enum(["online", "presential", "both"], { errorMap: () => ({ message: "Modo de pago no valido." }) }).optional(),
+  bookingPaymentMode: z.literal("presential", {
+    errorMap: () => ({ message: "Las reservas solo admiten pago presencial." }),
+  }).optional(),
   bookingDuration: z.number().int().refine(v => [60, 90, 120].includes(v), "Duracion debe ser 60, 90 o 120 minutos.").optional().nullable(),
   timezone: z.string().max(80).refine(esZonaHorariaValida, "Zona horaria no valida.").optional(),
   registrationMode: z.enum(["OPEN", "APPROVAL", "INVITE_ONLY", "CLOSED"]).optional(),
@@ -115,28 +116,6 @@ export async function PATCH(req: Request) {
             error: `Configura al menos una tarifa para ${sinTarifa.name} antes de publicar reservas.`,
           },
           { status: 409 },
-        )
-      }
-    }
-
-    // Validar que el club puede usar pagos online antes de permitir el cambio
-    if (bookingPaymentMode && bookingPaymentMode !== "presential") {
-      const club = await db.club.findUnique({
-        where: { id: auth.session.user.clubId },
-        select: { stripeConnectOnboarded: true },
-      })
-      if (!club?.stripeConnectOnboarded) {
-        return NextResponse.json(
-          { error: "Debes conectar tu cuenta de Stripe antes de habilitar pagos online." },
-          { status: 400 }
-        )
-      }
-
-      const subInfo = await getSubscriptionInfo(auth.session.user.clubId)
-      if (!canUseOnlinePayments(subInfo.tier)) {
-        return NextResponse.json(
-          { error: "Los pagos online estan disponibles en los planes Pro y Enterprise." },
-          { status: 403 }
         )
       }
     }

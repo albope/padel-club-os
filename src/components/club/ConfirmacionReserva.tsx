@@ -1,10 +1,10 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import React, { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { useTranslations, useLocale } from 'next-intl';
-import { CalendarDays, Clock, MapPin, Loader2, CheckCircle2, CreditCard, Share2 } from 'lucide-react';
+import { CalendarDays, CalendarPlus, Clock, MapPin, Loader2, CheckCircle2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Sheet,
@@ -14,11 +14,10 @@ import {
   SheetDescription,
 } from '@/components/ui/sheet';
 import { Separator } from '@/components/ui/separator';
-import { ToastAction } from '@/components/ui/toast';
 import { toast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { temaMarcadorActivo } from '@/lib/feature-flags';
-import BotonCompartir, { compartir } from '@/components/club/BotonCompartir';
+import BotonCompartir from '@/components/club/BotonCompartir';
 
 interface ConfirmacionReservaProps {
   open: boolean;
@@ -30,8 +29,6 @@ interface ConfirmacionReservaProps {
   precio: number | null;
   slug: string;
   onReservaConfirmada: () => void;
-  bookingPaymentMode: string;
-  stripeConnectOnboarded: boolean;
 }
 
 export default function ConfirmacionReserva({
@@ -44,14 +41,10 @@ export default function ConfirmacionReserva({
   precio,
   slug,
   onReservaConfirmada,
-  bookingPaymentMode,
-  stripeConnectOnboarded,
 }: ConfirmacionReservaProps) {
   const router = useRouter();
-  const searchParams = useSearchParams();
   const { data: session } = useSession();
   const t = useTranslations('booking');
-  const tStripe = useTranslations('stripeConnect');
   const tShare = useTranslations('share');
   const locale = useLocale();
   const localeCode = locale === 'en' ? 'en-GB' : 'es-ES';
@@ -88,59 +81,24 @@ export default function ConfirmacionReserva({
     url: typeof window !== 'undefined' ? `${window.location.origin}/club/${slug}/reservar` : '',
   } : null;
 
-  const callbacksCompartir = {
-    onCopiado: () => {
-      toast({
-        title: tShare('copiedTitle'),
-        description: tShare('copiedDescription'),
-        variant: 'success' as const,
-      });
-    },
-    onError: (url: string) => {
-      toast({
-        title: tShare('errorTitle'),
-        description: tShare('errorDescription', { url }),
-        variant: 'destructive' as const,
-      });
-    },
-  };
-
-  // Mostrar toast segun resultado del pago (query params de retorno de Stripe)
-  useEffect(() => {
-    const pago = searchParams.get('pago');
-    if (pago === 'exito') {
-      toast({
-        title: tStripe('paymentConfirmed'),
-        description: tStripe('paymentConfirmedDesc'),
-        variant: "success",
-        action: datosCompartir ? (
-          <ToastAction altText={tShare('share')} onClick={() => compartir(datosCompartir, callbacksCompartir)}>
-            <Share2 className="h-3.5 w-3.5 mr-1" />
-            {tShare('share')}
-          </ToastAction>
-        ) : undefined,
-      });
-      onReservaConfirmada();
-      // Limpiar query params
-      router.replace(`/club/${slug}/reservar`, { scroll: false });
-    } else if (pago === 'cancelado') {
-      toast({
-        title: tStripe('paymentCancelled'),
-        description: tStripe('paymentCancelledDesc'),
-      });
-      router.replace(`/club/${slug}/reservar`, { scroll: false });
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchParams, slug, router, onReservaConfirmada]);
+  const googleCalendarUrl = pista && startTime && endTime
+    ? `https://calendar.google.com/calendar/render?${new URLSearchParams({
+        action: 'TEMPLATE',
+        text: `${tShare('bookingTitle')} · ${pista.name}`,
+        dates: `${startTime.toISOString().replace(/[-:]|\.\d{3}/g, '')}/${endTime.toISOString().replace(/[-:]|\.\d{3}/g, '')}`,
+        details: tShare('bookingText', {
+          court: pista.name,
+          date: fechaFormateada,
+          startTime: horaInicio,
+          endTime: horaFin,
+        }),
+        location: pista.name,
+      }).toString()}`
+    : null;
 
   if (!pista || !startTime || !endTime) return null;
 
-  // Determinar modo de pago
-  const modoOnline = bookingPaymentMode !== 'presential' && stripeConnectOnboarded;
-  const modoBoth = bookingPaymentMode === 'both' && stripeConnectOnboarded;
-  const modoSoloOnline = bookingPaymentMode === 'online' && stripeConnectOnboarded;
-
-  const handleReservar = async (payAtClub?: boolean) => {
+  const handleReservar = async () => {
     if (!session?.user) {
       router.push(`/club/${slug}/login`);
       return;
@@ -155,38 +113,11 @@ export default function ConfirmacionReserva({
           courtId: pista.id,
           startTime: startTime.toISOString(),
           endTime: endTime.toISOString(),
-          payAtClub: payAtClub ?? false,
         }),
       });
 
       if (res.ok) {
-        const data = await res.json();
-
-        // Si requiere pago online, redirigir a Stripe Checkout
-        if (data.requiresPayment && !payAtClub) {
-          const checkoutRes = await fetch('/api/player/bookings/checkout', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ bookingId: data.id }),
-          });
-
-          if (checkoutRes.ok) {
-            const { url } = await checkoutRes.json();
-            window.location.href = url;
-            return; // No cerrar el sheet, se redirige
-          } else {
-            toast({
-              title: tStripe('paymentError'),
-              description: tStripe('paymentErrorDesc'),
-              variant: "destructive",
-            });
-            onOpenChange(false);
-            onReservaConfirmada();
-            return;
-          }
-        }
-
-        // Flujo presencial o pago en club — mostrar estado de exito con opcion de compartir
+        // La reserva queda confirmada y se cobra presencialmente en el club.
         setReservaExitosa(true);
         onReservaConfirmada();
       } else {
@@ -251,6 +182,14 @@ export default function ConfirmacionReserva({
                   mostrarTexto
                 />
               )}
+              {googleCalendarUrl && (
+                <Button asChild variant="outline" className="w-full">
+                  <a href={googleCalendarUrl} target="_blank" rel="noreferrer">
+                    <CalendarPlus className="mr-2 h-4 w-4" />
+                    {tShare('addToCalendar')}
+                  </a>
+                </Button>
+              )}
               <Button
                 variant="ghost"
                 className="w-full"
@@ -314,53 +253,6 @@ export default function ConfirmacionReserva({
             >
               {t('loginToBook')}
             </Button>
-          ) : modoSoloOnline ? (
-            <Button
-              className={cn('w-full', claseCtaTenant)}
-              onClick={() => handleReservar(false)}
-              disabled={isBooking}
-            >
-              {isBooking ? (
-                <>
-                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                  {t('processing')}
-                </>
-              ) : (
-                <>
-                  <CreditCard className="h-4 w-4 mr-2" />
-                  {tStripe('payAndBook')}{precio !== null && precio > 0 ? ` (${precio.toFixed(2)}€)` : ''}
-                </>
-              )}
-            </Button>
-          ) : modoBoth ? (
-            <div className="space-y-2">
-              <Button
-                className={cn('w-full', claseCtaTenant)}
-                onClick={() => handleReservar(false)}
-                disabled={isBooking}
-              >
-                {isBooking ? (
-                  <>
-                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                    {t('processing')}
-                  </>
-                ) : (
-                  <>
-                    <CreditCard className="h-4 w-4 mr-2" />
-                    {tStripe('payNow')}{precio !== null && precio > 0 ? ` (${precio.toFixed(2)}€)` : ''}
-                  </>
-                )}
-              </Button>
-              <Button
-                variant="outline"
-                className="w-full"
-                onClick={() => handleReservar(true)}
-                disabled={isBooking}
-              >
-                <CheckCircle2 className="h-4 w-4 mr-2" />
-                {tStripe('payAtClub')}
-              </Button>
-            </div>
           ) : (
             <Button
               className={cn('w-full', claseCtaTenant)}

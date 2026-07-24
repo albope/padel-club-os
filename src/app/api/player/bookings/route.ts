@@ -19,7 +19,6 @@ const PlayerBookingCreateSchema = z.object({
   courtId: z.string().min(1, "El ID de pista es requerido."),
   startTime: z.string().min(1, "La hora de inicio es requerida."),
   endTime: z.string().min(1, "La hora de fin es requerida."),
-  payAtClub: z.boolean().optional(),
 })
 
 // GET: Obtener reservas del jugador autenticado
@@ -55,7 +54,7 @@ export async function POST(req: Request) {
     const body = await req.json();
     const result = validarBody(PlayerBookingCreateSchema, body);
     if (!result.success) return result.response;
-    const { courtId, startTime, endTime, payAtClub } = result.data;
+    const { courtId, startTime, endTime } = result.data;
 
     // Verificar configuracion del club
     const club = await db.club.findUnique({
@@ -66,8 +65,6 @@ export async function POST(req: Request) {
         cancellationHours: true,
         openingTime: true,
         closingTime: true,
-        bookingPaymentMode: true,
-        stripeConnectOnboarded: true,
         slug: true,
         name: true,
         timezone: true,
@@ -146,17 +143,9 @@ export async function POST(req: Request) {
       )
     }
 
-    // Determinar metodo y estado de pago segun configuracion del club
-    let paymentMethod: string
-    if (club.bookingPaymentMode === "presential" || !club.stripeConnectOnboarded) {
-      paymentMethod = "presential"
-    } else if (club.bookingPaymentMode === "both" && payAtClub) {
-      paymentMethod = "presential"
-    } else {
-      paymentMethod = "online"
-    }
+    // Las reservas se confirman siempre con cobro presencial en el club.
+    const paymentMethod = "presential"
     const paymentStatus = "pending"
-    const requiresPayment = paymentMethod === "online"
 
     const numPlayers = 4 // padel estandar: 2 vs 2
 
@@ -216,31 +205,27 @@ export async function POST(req: Request) {
       url: "/reservar",
     })
 
-    // Email de confirmacion: solo enviar ahora si NO requiere pago online
-    // Para pagos online, el email se envia desde el webhook tras confirmar el pago
-    if (!requiresPayment) {
-      const datosEmailConfirmacion = await db.user.findUnique({
-        where: { id: auth.session.user.id },
-        select: { email: true, name: true, club: { select: { name: true, slug: true } } },
+    const datosEmailConfirmacion = await db.user.findUnique({
+      where: { id: auth.session.user.id },
+      select: { email: true, name: true, club: { select: { name: true, slug: true } } },
+    })
+    if (datosEmailConfirmacion?.email) {
+      await enviarEmailConfirmacionReserva({
+        email: datosEmailConfirmacion.email,
+        nombre: datosEmailConfirmacion.name || "Jugador",
+        pistaNombre: court.name,
+        fechaHoraInicio: newStartTime,
+        fechaHoraFin: newEndTime,
+        precioTotal: totalPrice,
+        estadoPago: booking.paymentStatus || "pending",
+        clubNombre: club.name || "",
+        clubSlug: club.slug || "",
+      }).catch((emailError) => {
+        logger.error("BOOKING_CONFIRMATION_EMAIL", "No se pudo enviar la confirmacion", { bookingId: booking.id }, emailError)
       })
-      if (datosEmailConfirmacion?.email) {
-        await enviarEmailConfirmacionReserva({
-          email: datosEmailConfirmacion.email,
-          nombre: datosEmailConfirmacion.name || "Jugador",
-          pistaNombre: court.name,
-          fechaHoraInicio: newStartTime,
-          fechaHoraFin: newEndTime,
-          precioTotal: totalPrice,
-          estadoPago: booking.paymentStatus || "pending",
-          clubNombre: club.name || "",
-          clubSlug: club.slug || "",
-        }).catch((emailError) => {
-          logger.error("BOOKING_CONFIRMATION_EMAIL", "No se pudo enviar la confirmacion", { bookingId: booking.id }, emailError)
-        })
-      }
     }
 
-    return NextResponse.json({ ...booking, requiresPayment }, { status: 201 });
+    return NextResponse.json({ ...booking, requiresPayment: false }, { status: 201 });
   } catch (error) {
     const domainError = respuestaErrorReserva(error)
     if (domainError) {

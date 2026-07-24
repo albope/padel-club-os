@@ -27,8 +27,6 @@ export async function GET(req: Request, props: { params: Promise<{ slug: string 
         maxAdvanceBooking: true,
         enableOpenMatches: true,
         enablePlayerBooking: true,
-        bookingPaymentMode: true,
-        stripeConnectOnboarded: true,
       },
     });
 

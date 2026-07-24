@@ -77,11 +77,12 @@ model Club {
   subscriptionStatus   String?   @default("trialing")
   trialEndsAt          DateTime?
 
-  // Stripe Connect - Pagos de reservas (preparado para fase D)
+  // Stripe Connect se conserva solo para compatibilidad con datos historicos.
+  // Las nuevas reservas se cobran presencialmente en el club.
   stripeConnectAccountId String?
   stripeConnectOnboarded Boolean @default(false)
 
-  // Modo de pago de reservas: "online" | "presential" | "both"
+  // El unico modo admitido para nuevas reservas es "presential".
   bookingPaymentMode String? @default("presential")
 
   // Club demo generado desde el backoffice (borrable, sin datos reales)
@@ -884,4 +885,15 @@ model LegalAcceptance {
 
   @@index([clubId, acceptedAt])
   @@index([userId, acceptedAt])
+}
+
+// Rate limiting compartido entre instancias serverless sin depender de un
+// proveedor Redis externo. Cada clave representa un contador de ventana fija.
+model RateLimitBucket {
+  key       String   @id @db.VarChar(191)
+  count     Int
+  resetAt   DateTime
+  updatedAt DateTime @updatedAt
+
+  @@index([resetAt])
 }

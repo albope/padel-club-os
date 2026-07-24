@@ -5,7 +5,6 @@ import { getServerSession } from "next-auth"
 import { redirect } from "next/navigation"
 import BillingOverview from "@/components/facturacion/BillingOverview"
 import PricingPlans from "@/components/facturacion/PricingPlans"
-import StripeConnectCard from "@/components/facturacion/StripeConnectCard"
 
 const FacturacionPage = async () => {
   const session = await getServerSession(authOptions)
@@ -59,7 +58,6 @@ const FacturacionPage = async () => {
         subscriptionStatus={club.subscriptionStatus}
       />
 
-      <StripeConnectCard subscriptionTier={club.subscriptionTier} />
     </div>
   )
 }

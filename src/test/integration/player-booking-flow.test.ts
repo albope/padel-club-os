@@ -163,7 +163,7 @@ describe("Flujo de reserva de jugador - POST (Creacion)", () => {
     )
   })
 
-  it("modo online + stripeConnectOnboarded: paymentStatus pending, requiresPayment true", async () => {
+  it("ignora configuracion online historica y fuerza pago presencial", async () => {
     mockDb.club.findUnique.mockResolvedValue(crearClubMock({
       bookingPaymentMode: "online",
       stripeConnectOnboarded: true,
@@ -179,15 +179,18 @@ describe("Flujo de reserva de jugador - POST (Creacion)", () => {
 
     const data = await extraerJson(response) as { requiresPayment: boolean }
     expect(response.status).toBe(201)
-    expect(data.requiresPayment).toBe(true)
+    expect(data.requiresPayment).toBe(false)
     expect(mockDb.booking.create).toHaveBeenCalledWith(
       expect.objectContaining({
-        data: expect.objectContaining({ paymentStatus: "pending" }),
+        data: expect.objectContaining({
+          paymentMethod: "presential",
+          paymentStatus: "pending",
+        }),
       })
     )
   })
 
-  it("modo both + payAtClub=true: paymentStatus pending, requiresPayment false", async () => {
+  it("ignora payAtClub y configuracion both historica sin habilitar checkout", async () => {
     mockDb.club.findUnique.mockResolvedValue(crearClubMock({
       bookingPaymentMode: "both",
       stripeConnectOnboarded: true,
@@ -283,8 +286,7 @@ describe("Flujo de reserva de jugador - POST (Creacion)", () => {
     )
   })
 
-  it("envia email solo si no requiere pago online", async () => {
-    // presential = no requiere pago → envia email
+  it("envia email de confirmacion al crear cualquier reserva nueva", async () => {
     mockDb.club.findUnique.mockResolvedValue(crearClubMock({ bookingPaymentMode: "presential" }))
 
     await POST(crearRequest({

@@ -42,7 +42,7 @@ const plans = [
       "3 administradores",
       "Competiciones y ligas",
       "Partidas abiertas",
-      "Pagos online",
+      "Control de cobros en el club",
       "Analiticas avanzadas",
     ],
   },

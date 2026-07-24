@@ -36,7 +36,6 @@ const SettingsSchema = z.object({
   bookingDuration: z.coerce.number().int().optional(),
   enableOpenMatches: z.boolean().optional(),
   enablePlayerBooking: z.boolean().optional(),
-  bookingPaymentMode: z.enum(["presential", "online", "both"]).optional(),
   timezone: z.string(),
   registrationMode: z.enum(["OPEN", "APPROVAL", "INVITE_ONLY", "CLOSED"]),
   isPublished: z.boolean(),
@@ -73,7 +72,6 @@ const SettingsForm: React.FC<SettingsFormProps> = ({ club }) => {
       bookingDuration: club.bookingDuration ?? 90,
       enableOpenMatches: club.enableOpenMatches ?? true,
       enablePlayerBooking: club.enablePlayerBooking ?? true,
-      bookingPaymentMode: (club.bookingPaymentMode as "presential" | "online" | "both") ?? "presential",
       timezone: club.timezone || "Europe/Madrid",
       registrationMode: club.registrationMode,
       isPublished: club.isPublished,
@@ -547,29 +545,12 @@ const SettingsForm: React.FC<SettingsFormProps> = ({ club }) => {
 
           <Separator />
 
-          <div className="space-y-2">
-            <Label htmlFor="bookingPaymentMode">Modo de pago de reservas</Label>
-            <select
-              id="bookingPaymentMode"
-              {...form.register('bookingPaymentMode')}
-              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-            >
-              <option value="presential">Solo presencial (pago en club)</option>
-              <option value="online" disabled={!club.stripeConnectOnboarded}>
-                Solo online (Stripe){!club.stripeConnectOnboarded ? ' - Requiere conectar Stripe' : ''}
-              </option>
-              <option value="both" disabled={!club.stripeConnectOnboarded}>
-                Ambos (jugador elige){!club.stripeConnectOnboarded ? ' - Requiere conectar Stripe' : ''}
-              </option>
-            </select>
+          <div className="space-y-1">
+            <Label>Cobro de reservas</Label>
+            <p className="text-sm font-medium">Pago presencial en el club</p>
             <p className="text-xs text-muted-foreground">
-              Como cobran las reservas a los jugadores.
+              La plataforma registra el importe y el estado, pero no cobra al jugador.
             </p>
-            {!club.stripeConnectOnboarded && (
-              <p className="text-xs text-warning-foreground">
-                Para habilitar pagos online, conecta tu cuenta de Stripe en la seccion de Facturacion.
-              </p>
-            )}
           </div>
         </CardContent>
       </Card>

@@ -118,12 +118,12 @@ export default function TerminosPage() {
       </section>
 
       <section>
-        <h2>9. Pagos de reservas y relación con jugadores</h2>
+        <h2>9. Cobros de reservas y relación con jugadores</h2>
         <p className="mt-3">
-          Cuando el Cliente activa Stripe Connect, el Cliente continúa siendo quien ofrece la pista o actividad al
-          jugador, fija el precio, emite la factura o justificante que corresponda y define la política de cancelación.
-          Padel Club OS facilita la tecnología de cobro y puede percibir una comisión, pero no sustituye al club como
-          prestador del servicio deportivo. El Cliente atenderá reclamaciones, devoluciones y obligaciones fiscales de sus ventas.
+          Las reservas se cobran directamente en el club. El Cliente ofrece la pista o actividad al jugador, fija el
+          precio, decide los medios de pago aceptados, emite la factura o justificante que corresponda y define la
+          política de cancelación. Padel Club OS permite registrar el estado del cobro, pero no recibe ni intermedia
+          esos fondos. El Cliente atenderá reclamaciones, devoluciones y obligaciones fiscales de sus ventas.
         </p>
       </section>
 

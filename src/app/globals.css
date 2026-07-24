@@ -103,7 +103,7 @@
   }
 }
 
-/* ─── Identidad «Marcador» (flag NEXT_PUBLIC_TEMA_MARCADOR) ─────────────────
+/* ─── Identidad «Marcador» ──────────────────────────────────────────────────
    Tokens del handoff design_handoff_identidad_marcador (tokens.padelclubos.json).
    Mismos NOMBRES de variables shadcn, solo cambian valores + se añaden nuevas.
    Se aplica con la clase .theme-marcador en <body> (ver src/app/layout.tsx). */

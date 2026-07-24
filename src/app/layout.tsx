@@ -1,18 +1,11 @@
 import type { Metadata, Viewport } from "next";
-import { Archivo, Instrument_Sans, Inter, Sora } from "next/font/google";
+import { Archivo, Instrument_Sans } from "next/font/google";
 import { NextIntlClientProvider } from "next-intl";
 import { getLocale, getMessages } from "next-intl/server";
 import "./globals.css";
 import Providers from "@/components/providers";
-import { CLASE_TEMA_MARCADOR, temaMarcadorActivo } from "@/lib/feature-flags";
+import { CLASE_TEMA_MARCADOR } from "@/lib/feature-flags";
 import { SITE_URL, SITE_NAME, SITE_DESCRIPTION, SITE_LOCALE } from "@/lib/seo";
-
-const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
-const sora = Sora({
-  subsets: ["latin"],
-  variable: "--font-sora",
-  weight: ["400", "600", "700", "800"],
-});
 
 // Identidad «Marcador»: Instrument Sans (UI) y Archivo (display, eje wdth)
 // reutilizan las variables --font-inter/--font-sora para no tocar Tailwind.
@@ -60,7 +53,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: temaMarcadorActivo() ? "#157A54" : "#3b82f6",
+  themeColor: "#157A54",
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
@@ -74,10 +67,7 @@ export default async function RootLayout({
   const locale = await getLocale();
   const messages = await getMessages();
 
-  const temaMarcador = temaMarcadorActivo();
-  const clasesBody = temaMarcador
-    ? `${instrumentSans.variable} ${archivo.variable} font-sans ${CLASE_TEMA_MARCADOR}`
-    : `${inter.variable} ${sora.variable} font-sans`;
+  const clasesBody = `${instrumentSans.variable} ${archivo.variable} font-sans ${CLASE_TEMA_MARCADOR}`;
 
   return (
     <html lang={locale} suppressHydrationWarning>

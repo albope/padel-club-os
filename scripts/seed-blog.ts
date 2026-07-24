@@ -34,17 +34,17 @@ Cuando no hay reglas claras, los jugadores cancelan a última hora o simplemente
 
 Define unas horas mínimas de antelación para cancelar (24h es lo más común), comunícalo claramente y automatiza el proceso. Si un jugador cancela fuera de plazo, la pista debería liberarse automáticamente para que otros puedan reservarla.
 
-4. No cobrar online o no exigir pago por adelantado
+4. No tener un procedimiento claro de cobro
 
-El "ya pago cuando llegue" es cómodo para el jugador pero un dolor de cabeza para el club. Las reservas sin compromiso económico se cancelan con mucha más facilidad.
+Cobrar en el club simplifica la experiencia del jugador y evita comisiones, pero requiere que recepción sepa qué reservas están pendientes y registre el cobro de forma consistente.
 
-Integrar pagos online (o al menos requerir tarjeta como garantía) reduce drásticamente los no-shows y mejora el flujo de caja del club.
+Define una política de cancelación visible, confirma cada reserva automáticamente y utiliza un estado de cobro claro para que cualquier miembro del equipo pueda gestionarla al llegar el jugador.
 
 5. Depender de una sola persona para todo
 
 Si toda la gestión de reservas depende de una persona (el encargado, el dueño, un voluntario), el club tiene un punto único de fallo. Si esa persona enferma, se va de vacaciones o simplemente tiene un mal día, las reservas se resienten.
 
-La solución es sistematizar. Un software que centralice reservas, pagos y comunicaciones permite que cualquier miembro del equipo (o ningún miembro, si está bien automatizado) pueda mantener el club funcionando.
+La solución es sistematizar. Un software que centralice reservas, control de cobros y comunicaciones permite que cualquier miembro del equipo pueda mantener el club funcionando.
 
 La buena noticia es que todos estos errores tienen solución, y no requiere una inversión enorme. Lo importante es dar el primer paso hacia la digitalización y dejar atrás los métodos que ya no funcionan.`,
   },

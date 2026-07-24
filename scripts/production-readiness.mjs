@@ -23,8 +23,6 @@ const required = [
   'HEARTBEAT_URL_REMINDERS',
   'HEARTBEAT_URL_RECURRING',
   'HEARTBEAT_URL_REFUNDS',
-  'UPSTASH_REDIS_REST_URL',
-  'UPSTASH_REDIS_REST_TOKEN',
   'SENTRY_DSN',
   'NEXT_PUBLIC_SENTRY_DSN',
   'LEGAL_ENTITY_TYPE',
@@ -34,7 +32,6 @@ const required = [
   'LEGAL_EMAIL',
   'STRIPE_TAX_ENABLED',
   'TAX_HANDLING_CONFIRMED',
-  'NEXT_PUBLIC_TEMA_MARCADOR',
 ]
 
 const errors = []
@@ -66,7 +63,6 @@ function requireEmail(key) {
 for (const key of [
   'NEXTAUTH_URL',
   'NEXT_PUBLIC_APP_URL',
-  'UPSTASH_REDIS_REST_URL',
   'SENTRY_DSN',
   'NEXT_PUBLIC_SENTRY_DSN',
   'HEARTBEAT_URL_REMINDERS',
@@ -76,8 +72,18 @@ for (const key of [
   requireHttps(key)
 }
 
-if (process.env.RATE_LIMIT_BACKEND !== 'upstash') {
-  errors.push('RATE_LIMIT_BACKEND debe ser upstash en produccion')
+const rateLimitBackend = process.env.RATE_LIMIT_BACKEND?.trim() || 'database'
+if (!['database', 'upstash'].includes(rateLimitBackend)) {
+  errors.push('RATE_LIMIT_BACKEND debe ser database o upstash en produccion')
+}
+if (rateLimitBackend === 'upstash') {
+  for (const key of ['UPSTASH_REDIS_REST_URL', 'UPSTASH_REDIS_REST_TOKEN']) {
+    if (!process.env[key]?.trim()) errors.push(`Falta variable: ${key}`)
+  }
+  requireHttps('UPSTASH_REDIS_REST_URL')
+  if ((process.env.UPSTASH_REDIS_REST_TOKEN || '').length < 20) {
+    errors.push('UPSTASH_REDIS_REST_TOKEN parece incompleto')
+  }
 }
 if (!['individual', 'company'].includes(process.env.LEGAL_ENTITY_TYPE || '')) {
   errors.push('LEGAL_ENTITY_TYPE debe ser individual o company')
@@ -111,9 +117,6 @@ requireEmail('LEGAL_EMAIL')
 if (process.env.VAPID_SUBJECT && !/^(mailto:|https:\/\/)/.test(process.env.VAPID_SUBJECT)) {
   errors.push('VAPID_SUBJECT debe empezar por mailto: o https://')
 }
-if ((process.env.UPSTASH_REDIS_REST_TOKEN || '').length < 20) {
-  errors.push('UPSTASH_REDIS_REST_TOKEN parece incompleto')
-}
 if ((process.env.LEGAL_TAX_ID || '').trim().length < 6) {
   errors.push('LEGAL_TAX_ID parece incompleto')
 }
@@ -127,7 +130,6 @@ for (const key of ['LEGAL_NAME', 'LEGAL_TAX_ID', 'LEGAL_ADDRESS', 'LEGAL_EMAIL',
 
 requireBoolean('STRIPE_TAX_ENABLED')
 requireBoolean('TAX_HANDLING_CONFIRMED')
-requireBoolean('NEXT_PUBLIC_TEMA_MARCADOR')
 if (process.env.TAX_HANDLING_CONFIRMED !== 'true') {
   errors.push(
     'TAX_HANDLING_CONFIRMED debe ser true tras confirmar el alta, la facturacion y los impuestos aplicables',

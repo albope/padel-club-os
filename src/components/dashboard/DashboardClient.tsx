@@ -1,12 +1,12 @@
 'use client';
 
 import React, { useState } from 'react';
+import dynamic from 'next/dynamic';
 import { User } from 'next-auth';
 import { Booking, Court, type User as PrismaUser } from '@prisma/client';
 import { useTranslations, useLocale } from 'next-intl';
 import BookingModal from '@/components/reservas/BookingModal';
 import AgendaDelDia from '@/components/dashboard/AgendaDelDia';
-import IngresosSemana from '@/components/dashboard/IngresosSemana';
 import { PlusCircle, Calendar, Users, BarChart, Euro, Clock, ArrowRight, ChevronLeft, ChevronRight, Info, Megaphone, TrendingUp, AlertCircle } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -15,6 +15,11 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import BroadcastDialog from '@/components/dashboard/BroadcastDialog';
 import OnboardingChecklist from '@/components/onboarding/OnboardingChecklist';
 import EmptyState from '@/components/onboarding/EmptyState';
+
+const IngresosSemana = dynamic(() => import('@/components/dashboard/IngresosSemana'), {
+  ssr: false,
+  loading: () => <div className="h-[360px] animate-pulse rounded-xl bg-muted" aria-label="Cargando ingresos" />,
+});
 
 const StatCard = ({ title, value, icon: Icon, tooltipText }: { title: string, value: string, icon: React.ElementType, tooltipText?: string }) => {
   return (

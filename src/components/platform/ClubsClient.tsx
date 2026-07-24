@@ -59,6 +59,7 @@ import {
   ExternalLink,
   Loader2,
   MoreHorizontal,
+  RefreshCw,
   Sparkles,
   Trash2,
 } from 'lucide-react'
@@ -160,8 +161,9 @@ export default function ClubsClient({ initialClubs }: ClubsClientProps) {
     open: boolean
     title: string
     description: string
+    actionLabel: string
     action: () => Promise<void>
-  }>({ open: false, title: '', description: '', action: async () => {} })
+  }>({ open: false, title: '', description: '', actionLabel: '', action: async () => {} })
 
   const filtrados = useMemo(() => {
     const q = busqueda.trim().toLowerCase()
@@ -208,6 +210,7 @@ export default function ClubsClient({ initialClubs }: ClubsClientProps) {
       open: true,
       title: 'Eliminar club demo',
       description: `¿Seguro que quieres eliminar "${club.name}" (${club.slug}) y todos sus datos y usuarios demo? Esta acción no se puede deshacer.`,
+      actionLabel: 'Eliminar',
       action: async () => {
         setLoadingId(club.id)
         try {
@@ -224,6 +227,53 @@ export default function ClubsClient({ initialClubs }: ClubsClientProps) {
           toast({
             title: 'Error',
             description: e instanceof Error ? e.message : 'Error al eliminar el club demo.',
+            variant: 'destructive',
+          })
+        } finally {
+          setLoadingId(null)
+        }
+      },
+    })
+  }
+
+  const restaurarDemo = (club: ClubItem) => {
+    setConfirmDialog({
+      open: true,
+      title: 'Restaurar club demo',
+      description: `Se borrarán los cambios realizados en "${club.name}" y se generarán datos y credenciales nuevas. Guarda las nuevas credenciales al terminar.`,
+      actionLabel: 'Restaurar',
+      action: async () => {
+        setLoadingId(club.id)
+        try {
+          const response = await fetch(`/api/platform/demo-clubs/${club.id}`, {
+            method: 'POST',
+          })
+          const data = await response.json().catch(() => null)
+          if (!response.ok) throw new Error(data?.error || 'Error al restaurar')
+          setClubs((prev) => [
+            ...prev.filter((item) => item.id !== club.id),
+            {
+              id: data.clubId,
+              name: data.clubName,
+              slug: data.slug,
+              subscriptionTier: 'pro',
+              subscriptionStatus: 'active',
+              trialEndsAt: null,
+              esDemo: true,
+              stripeSubscriptionId: null,
+              _count: {
+                courts: data.contadores.pistas,
+                members: data.contadores.socios,
+                bookings: data.contadores.reservas,
+              },
+            },
+          ].sort((a, b) => a.name.localeCompare(b.name)))
+          setResultadoDemo(data)
+          setDemoDialogOpen(true)
+        } catch (error) {
+          toast({
+            title: 'Error',
+            description: error instanceof Error ? error.message : 'Error al restaurar la demo.',
             variant: 'destructive',
           })
         } finally {
@@ -448,13 +498,19 @@ export default function ClubsClient({ initialClubs }: ClubsClientProps) {
                           {club.esDemo ? 'Quitar marca de demo' : 'Marcar como demo'}
                         </DropdownMenuItem>
                         {club.esDemo && (
-                          <DropdownMenuItem
-                            className="text-destructive focus:text-destructive"
-                            onClick={() => eliminarDemo(club)}
-                          >
-                            <Trash2 className="mr-2 h-4 w-4" aria-hidden="true" />
-                            Eliminar club demo
-                          </DropdownMenuItem>
+                          <>
+                            <DropdownMenuItem onClick={() => restaurarDemo(club)}>
+                              <RefreshCw className="mr-2 h-4 w-4" aria-hidden="true" />
+                              Restaurar datos demo
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              className="text-destructive focus:text-destructive"
+                              onClick={() => eliminarDemo(club)}
+                            >
+                              <Trash2 className="mr-2 h-4 w-4" aria-hidden="true" />
+                              Eliminar club demo
+                            </DropdownMenuItem>
+                          </>
                         )}
                       </DropdownMenuContent>
                     </DropdownMenu>
@@ -622,10 +678,12 @@ export default function ClubsClient({ initialClubs }: ClubsClientProps) {
           <AlertDialogFooter>
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
             <AlertDialogAction
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              className={confirmDialog.actionLabel === 'Eliminar'
+                ? 'bg-destructive text-destructive-foreground hover:bg-destructive/90'
+                : undefined}
               onClick={() => confirmDialog.action()}
             >
-              Eliminar
+              {confirmDialog.actionLabel}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

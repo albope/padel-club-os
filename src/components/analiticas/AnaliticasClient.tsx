@@ -1,12 +1,14 @@
 'use client'
 
 import React from 'react'
+import dynamic from 'next/dynamic'
 import { Calendar, Users, Fence, TrendingUp } from 'lucide-react'
 import StatsCards from './StatsCards'
-import BookingTrends from './BookingTrends'
-import MemberGrowth from './MemberGrowth'
-import CourtUtilization from './CourtUtilization'
 import PeakHours from './PeakHours'
+
+const BookingTrends = dynamic(() => import('./BookingTrends'), { ssr: false })
+const MemberGrowth = dynamic(() => import('./MemberGrowth'), { ssr: false })
+const CourtUtilization = dynamic(() => import('./CourtUtilization'), { ssr: false })
 
 const iconMap = {
   Calendar,

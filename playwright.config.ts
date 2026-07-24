@@ -23,7 +23,11 @@ export default defineConfig({
     timezoneId: "Europe/Madrid",
     navigationTimeout: 60_000,
   },
-  projects: [{ name: "chromium", use: { ...devices["Desktop Chrome"] } }],
+  projects: [
+    { name: "chromium", use: { ...devices["Desktop Chrome"] } },
+    { name: "webkit", use: { ...devices["Desktop Safari"] } },
+    { name: "mobile", use: { ...devices["Pixel 7"] } },
+  ],
   webServer: {
     command: enCI ? "npm run build && npm run start" : "npm run dev",
     url: "http://localhost:3000",
@@ -34,7 +38,7 @@ export default defineConfig({
     env: {
       RATE_LIMIT_BACKEND: "memory",
       // Excepcion deliberada y confinada al servidor efimero de Playwright.
-      // Produccion sigue fallando de forma cerrada si no hay Upstash.
+      // Produccion usa PostgreSQL o Upstash y falla de forma cerrada ante errores.
       RATE_LIMIT_ALLOW_MEMORY: "true",
       NEXTAUTH_URL: "http://localhost:3000",
       NEXT_PUBLIC_APP_URL: "http://localhost:3000",

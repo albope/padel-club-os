@@ -7,7 +7,7 @@ que `npm run production:preflight`, la migración y `/api/ready` estén en verde
 
 | Servicio | Uso | Condición de lanzamiento |
 |---|---|---|
-| Vercel Pro | Hosting, funciones y tres crons | Obligatorio: el cron de reembolsos corre cada 10 minutos y el de recordatorios cada 15 |
+| Vercel Hobby | Hosting, funciones y tres crons diarios | Válido para demo y arranque limitado; revisar manualmente impagos y reembolsos urgentes |
 | Neon PostgreSQL | Datos multi-tenant | Producción separada de desarrollo, snapshot previo a migrar |
 | Stripe Live | Suscripciones y cobros | Productos, prices, webhook y tratamiento fiscal verificados |
 | Resend | Emails transaccionales | Dominio verificado y remitente probado |
@@ -17,9 +17,11 @@ que `npm run production:preflight`, la migración y `/api/ready` estén en verde
 | healthchecks.io | Ausencia de ejecuciones cron | Un check independiente por cron |
 | Monitor externo | Uptime y base de datos | GET de `/api/health` cada 5 minutos |
 
-El plan Hobby de Vercel no sirve para este despliegue: limita cada cron a una
-ejecución diaria y su uso es personal/no comercial. `vercel.json` necesita
-intervalos de 10 y 15 minutos.
+El plan Hobby de Vercel limita cada cron a una ejecución diaria y no garantiza
+el minuto exacto dentro de la hora programada. `vercel.json` usa ese máximo para
+permitir el despliegue inicial. Hasta activar Pro o un scheduler externo, los
+recordatorios, la liberación automática de reservas impagadas y los reintentos
+de reembolso pueden demorarse hasta 24 horas.
 
 ## Puesta en marcha inicial
 
@@ -33,7 +35,8 @@ intervalos de 10 y 15 minutos.
   reserva en modo test antes de copiar las claves live.
 - [ ] Configurar los tres heartbeats y alertas de Sentry.
 - [ ] Verificar dominio de Resend, VAPID, Blob y Upstash.
-- [ ] Contratar Vercel Pro y fijar alertas/límite de gasto.
+- [ ] Contratar Vercel Pro antes de depender de automatizaciones frecuentes y
+  fijar alertas/límite de gasto.
 - [ ] Crear snapshot de Neon y ejecutar un simulacro de restauración en una
   rama aislada.
 - [ ] Ejecutar el procedimiento de despliegue de la sección siguiente.
@@ -77,19 +80,21 @@ intervalos de 10 y 15 minutos.
 | Ruta | Frecuencia UTC | Objetivo | Heartbeat |
 |---|---:|---|---|
 | `/api/cron/generate-recurring-bookings` | Diario 06:00 | Generar reservas fijas con 7 días de antelación | `HEARTBEAT_URL_RECURRING` |
-| `/api/cron/booking-reminders` | Cada 15 min | Recordar la próxima hora y cancelar checkout impagado tras 15 min | `HEARTBEAT_URL_REMINDERS` |
-| `/api/cron/process-refunds` | Cada 10 min | Reconciliar y reintentar reembolsos durables | `HEARTBEAT_URL_REFUNDS` |
+| `/api/cron/booking-reminders` | Diario 07:00 | Procesar recordatorios pendientes y cancelar checkouts impagados | `HEARTBEAT_URL_REMINDERS` |
+| `/api/cron/process-refunds` | Diario 08:00 | Reconciliar y reintentar reembolsos durables | `HEARTBEAT_URL_REFUNDS` |
 
 Los endpoints aceptan GET de Vercel Cron y POST manual, siempre protegidos por
 `CRON_SECRET`. Los recordatorios se reclaman de forma atómica para no duplicar
 avisos; la cancelación por impago vuelve a comprobar el estado justo antes de
-escribir. Los reembolsos usan una clave de idempotencia estable.
+escribir. Los reembolsos usan una clave de idempotencia estable. En Hobby, una
+operación urgente debe ejecutarse manualmente en lugar de esperar al siguiente
+cron diario.
 
 Alertas sugeridas:
 
 - recurrentes: periodo 24 h, gracia 2 h;
-- recordatorios: periodo 15 min, gracia 15 min;
-- reembolsos: periodo 10 min, gracia 10 min.
+- recordatorios: periodo 24 h, gracia 2 h;
+- reembolsos: periodo 24 h, gracia 2 h.
 
 Una respuesta 500 no envía heartbeat. Una respuesta 401 indica secreto ausente
 o distinto. Revisar Sentry y logs de Vercel antes de reintentar.

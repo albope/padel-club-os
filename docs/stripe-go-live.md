@@ -160,7 +160,9 @@ charges](https://docs.stripe.com/connect/destination-charges#issue-refunds).
 **Reserva online**
 
 1. Checkout dispone de 15 minutos. El cron `booking-reminders` cancela reservas
-   `online + pending` antiguas, expira la Checkout Session y libera el slot.
+   `online + pending` antiguas, expira la Checkout Session y libera el slot. En
+   Vercel Hobby se ejecuta una vez al día, por lo que una reserva impagada puede
+   retener el slot hasta 24 horas; ejecutar el endpoint manualmente si urge.
 2. Revisar que el cron de Vercel responde 2xx y que `canceladasPorPago` aumenta.
 3. Si el cron fallo, invocarlo una vez con `Authorization: Bearer $CRON_SECRET` y
    comprobar en Stripe que la sesion quedo `expired` y en DB la reserva `cancelled`.

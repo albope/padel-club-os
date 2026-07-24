@@ -76,31 +76,36 @@ test.describe.serial("Flujo critico: alta de club, configuracion y reservas", ()
 
     // --- Wizard de configuracion inicial ---
     await page.goto("/dashboard/configuracion-inicial")
-    await expect(page.getByText("Informacion del club")).toBeVisible({ timeout: 20_000 })
+    // Acotar al contenido principal evita que el HTML de streaming de Next
+    // duplique temporalmente los nodos dentro de su contenedor oculto.
+    const wizard = page.locator("#contenido-principal")
+    await expect(
+      wizard.getByRole("heading", { name: "Informacion del club", exact: true }),
+    ).toBeVisible({ timeout: 20_000 })
 
     // Paso 1: informacion basica
-    await page.locator("#phone").fill("600 123 123")
-    await page.getByRole("button", { name: "Siguiente" }).click()
+    await wizard.locator("#phone").fill("600 123 123")
+    await wizard.getByRole("button", { name: "Siguiente" }).click()
 
     // Paso 2: crear dos pistas (el input se vacia tras crear cada una)
-    await expect(page.getByText("Pistas de tu club")).toBeVisible({ timeout: 30_000 })
-    await page.locator("#courtName").fill(PISTA_ADMIN)
-    await page.getByRole("button", { name: "Añadir pista" }).click()
-    await expect(page.locator("#courtName")).toHaveValue("", { timeout: 15_000 })
-    await page.locator("#courtName").fill(PISTA_JUGADOR)
-    await page.getByRole("button", { name: "Añadir pista" }).click()
-    await expect(page.locator("#courtName")).toHaveValue("", { timeout: 15_000 })
-    await page.getByRole("button", { name: "Siguiente" }).click()
+    await expect(wizard.getByText("Pistas de tu club")).toBeVisible({ timeout: 30_000 })
+    await wizard.locator("#courtName").fill(PISTA_ADMIN)
+    await wizard.getByRole("button", { name: "Añadir pista" }).click()
+    await expect(wizard.locator("#courtName")).toHaveValue("", { timeout: 15_000 })
+    await wizard.locator("#courtName").fill(PISTA_JUGADOR)
+    await wizard.getByRole("button", { name: "Añadir pista" }).click()
+    await expect(wizard.locator("#courtName")).toHaveValue("", { timeout: 15_000 })
+    await wizard.getByRole("button", { name: "Siguiente" }).click()
 
     // Paso 3: precio uniforme
-    await expect(page.getByText("Precios basicos")).toBeVisible()
-    await page.locator("#price").fill("20")
-    await page.getByRole("button", { name: "Finalizar configuracion" }).click()
+    await expect(wizard.getByText("Precios basicos")).toBeVisible()
+    await wizard.locator("#price").fill("20")
+    await wizard.getByRole("button", { name: "Finalizar configuracion" }).click()
 
     // Paso 4: club listo
-    await expect(page.getByText("Tu club esta listo")).toBeVisible({ timeout: 20_000 })
-    await expect(page.getByText(clubSlug)).toBeVisible()
-    await page.getByRole("button", { name: "Ir al dashboard" }).click()
+    await expect(wizard.getByText("Tu club esta listo")).toBeVisible({ timeout: 20_000 })
+    await expect(wizard.getByText(clubSlug)).toBeVisible()
+    await wizard.getByRole("button", { name: "Ir al dashboard" }).click()
     await page.waitForURL("**/dashboard", { timeout: 30_000 })
 
     // --- Crear una reserva desde el grid de reservas ---

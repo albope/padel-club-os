@@ -53,7 +53,9 @@ crítico terminan en verde. Un lanzamiento comercial exige además:
 - [x] Proteger creación concurrente de reservas/partidas.
 - [x] Corregir filtros de club en disponibilidad y solapes.
 - [x] Hacer atómicos los recordatorios y la cancelación por checkout impagado.
-- [x] Ejecutar recordatorios cada 15 minutos en producción.
+- [x] Ejecutar recordatorios diariamente en Vercel Hobby.
+- [ ] Recuperar la frecuencia de 15 minutos al activar Pro o un scheduler
+  externo.
 
 ## Bloque 5 — Pagos y suscripciones
 
@@ -61,7 +63,9 @@ crítico terminan en verde. Un lanzamiento comercial exige además:
 - [x] Hacer idempotente el webhook de Stripe y persistir sus eventos.
 - [x] Crear cola durable de reembolsos con reintentos y reconciliación.
 - [x] Usar clave estable de idempotencia para no reembolsar dos veces.
-- [x] Añadir cron de reembolsos cada 10 minutos y señal de salud.
+- [x] Añadir cron diario de reembolsos y señal de salud para Vercel Hobby.
+- [ ] Recuperar la frecuencia de 10 minutos al activar Pro o un scheduler
+  externo.
 - [x] Bloquear funciones por límites de plan y contar membresías reales.
 - [x] Cubrir pagos, cancelaciones, webhook y reembolsos con tests.
 
@@ -121,7 +125,8 @@ Estos puntos no se pueden completar desde el repositorio ni deben inventarse:
   prueba controlada.
 - [ ] Resend: dominio/remitente verificado.
 - [ ] Vercel Blob, VAPID, Upstash y Sentry configurados con claves reales.
-- [ ] Vercel Pro activo por frecuencia de crons y uso comercial.
+- [ ] Vercel Pro activo antes de depender de crons frecuentes para la operación
+  comercial.
 - [ ] Tres checks de healthchecks.io, alertas Sentry y monitor de uptime activos.
 - [ ] Snapshot/restore drill de Neon completado y ventana PITR aceptada.
 - [ ] Variables y DNS de producción verificados; migración y despliegue del

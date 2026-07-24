@@ -74,6 +74,32 @@ describe("crearRateLimiter (fallback local)", () => {
   })
 })
 
+describe("crearRateLimiter (seguridad en produccion)", () => {
+  afterEach(() => {
+    vi.unstubAllEnvs()
+  })
+
+  it("falla de forma cerrada con memoria en produccion", async () => {
+    vi.stubEnv("NODE_ENV", "production")
+    vi.stubEnv("RATE_LIMIT_BACKEND", "memory")
+    vi.stubEnv("RATE_LIMIT_ALLOW_MEMORY", "")
+
+    const limiter = crearRateLimiter({ maxRequests: 3, windowMs: 60000, prefix: "rl:test-prod" })
+
+    expect(await limiter.verificar("1.1.1.1")).toBe(false)
+  })
+
+  it("permite memoria solo con la excepcion explicita del runner E2E", async () => {
+    vi.stubEnv("NODE_ENV", "production")
+    vi.stubEnv("RATE_LIMIT_BACKEND", "memory")
+    vi.stubEnv("RATE_LIMIT_ALLOW_MEMORY", "true")
+
+    const limiter = crearRateLimiter({ maxRequests: 3, windowMs: 60000, prefix: "rl:test-e2e" })
+
+    expect(await limiter.verificar("1.1.1.1")).toBe(true)
+  })
+})
+
 describe("formatearVentanaUpstash", () => {
   it("convierte horas", () => {
     expect(_formatearVentanaUpstash(3600000)).toBe("1 h")

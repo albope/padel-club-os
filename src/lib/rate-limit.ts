@@ -91,7 +91,11 @@ export function crearRateLimiter(config: RateLimitConfig): RateLimiter {
     }
   }
 
-  if (process.env.NODE_ENV === "production") {
+  const memoriaPermitidaEnPruebas =
+    process.env.RATE_LIMIT_BACKEND === "memory"
+    && process.env.RATE_LIMIT_ALLOW_MEMORY === "true"
+
+  if (process.env.NODE_ENV === "production" && !memoriaPermitidaEnPruebas) {
     // No registrar en la importacion: Next carga los modulos durante el build.
     // El fallo se informa una sola vez al recibir una peticion real.
     let logged = false

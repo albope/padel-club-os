@@ -33,6 +33,9 @@ export default defineConfig({
     // agoten los limites compartidos (Upstash) entre ejecuciones
     env: {
       RATE_LIMIT_BACKEND: "memory",
+      // Excepcion deliberada y confinada al servidor efimero de Playwright.
+      // Produccion sigue fallando de forma cerrada si no hay Upstash.
+      RATE_LIMIT_ALLOW_MEMORY: "true",
       NEXTAUTH_URL: "http://localhost:3000",
       NEXT_PUBLIC_APP_URL: "http://localhost:3000",
     },

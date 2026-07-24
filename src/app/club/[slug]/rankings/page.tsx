@@ -5,7 +5,8 @@ import Leaderboard from "@/components/club/Leaderboard";
 
 export const revalidate = 1800 // 30min
 
-export default async function ClubRankingsPage({ params }: { params: { slug: string } }) {
+export default async function ClubRankingsPage(props: { params: Promise<{ slug: string }> }) {
+  const params = await props.params;
   const club = await db.club.findUnique({
     where: { slug: params.slug },
     select: { id: true },

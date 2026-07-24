@@ -1,7 +1,7 @@
 import { getServerSession } from "next-auth"
 import { NextResponse } from "next/server"
 import { authOptions } from "./auth"
-import { Permission, hasPermission, ADMIN_ROLES } from "./permissions"
+import { Permission, hasPermission } from "./permissions"
 import { UserRole } from "@prisma/client"
 import { isSubscriptionActive } from "./subscription"
 
@@ -15,13 +15,34 @@ interface AuthResult {
       email?: string | null
       subscriptionStatus?: string | null
       trialEndsAt?: string | null
+      actorId?: string | null
+      actorName?: string | null
+      impersonationId?: string | null
+      impersonationReadOnly?: boolean
     }
   }
 }
 
 interface RequireAuthOptions {
-  /** Si true, verifica que la suscripcion este activa (solo aplica a roles admin) */
+  /** Fuerza la comprobacion incluso para permisos de lectura. */
   requireSubscription?: boolean
+  /** Solo para operaciones de soporte expresamente auditadas. */
+  allowImpersonationWrite?: boolean
+}
+
+const SUBSCRIPTION_EXEMPT_PERMISSIONS = new Set<Permission>([
+  "billing:read",
+  "billing:update",
+  "profile:read",
+  "profile:export",
+  "profile:delete",
+  "platform:read",
+  "platform:manage",
+])
+
+function esPermisoDeEscritura(permission?: Permission): boolean {
+  if (!permission) return false
+  return !permission.endsWith(":read") && permission !== "profile:export"
 }
 
 /**
@@ -50,6 +71,17 @@ export async function requireAuth(
     )
   }
 
+  if (session.user.authInvalid) {
+    return NextResponse.json(
+      {
+        error: "Sesion invalidada",
+        code: "SESSION_INVALIDATED",
+        message: "Tu sesion ha cambiado o ha sido revocada. Inicia sesion de nuevo.",
+      },
+      { status: 401 },
+    )
+  }
+
   if (!session.user.clubId) {
     return NextResponse.json(
       { error: "Usuario sin club asignado" },
@@ -64,12 +96,38 @@ export async function requireAuth(
     )
   }
 
-  // Verificar suscripcion activa si se solicita (solo para roles admin;
-  // SUPER_ADMIN es el dueño de la plataforma y queda exento del paywall)
+  const escritura = esPermisoDeEscritura(permission)
+
   if (
-    options?.requireSubscription &&
-    session.user.role !== UserRole.SUPER_ADMIN &&
-    ADMIN_ROLES.includes(session.user.role as UserRole)
+    session.user.impersonationId
+    && session.user.impersonationReadOnly
+    && escritura
+    && !options?.allowImpersonationWrite
+  ) {
+    return NextResponse.json(
+      {
+        error: "Impersonacion en modo solo lectura",
+        code: "IMPERSONATION_READ_ONLY",
+      },
+      { status: 403 },
+    )
+  }
+
+  // Toda mutacion de negocio exige suscripcion activa, tambien para jugadores.
+  // Facturacion, exportacion/borrado de datos y soporte de plataforma quedan
+  // disponibles para poder recuperar o cerrar una cuenta.
+  const verificarSuscripcion = (
+    options?.requireSubscription
+    || (
+      escritura
+      && permission
+      && !SUBSCRIPTION_EXEMPT_PERMISSIONS.has(permission)
+    )
+  )
+
+  if (
+    verificarSuscripcion
+    && session.user.role !== UserRole.SUPER_ADMIN
   ) {
     const status = session.user.subscriptionStatus ?? "trialing"
     const trialEndsAt = session.user.trialEndsAt ? new Date(session.user.trialEndsAt) : null
@@ -93,6 +151,9 @@ export async function requireAuth(
       Sentry.setUser({ id: session.user.id })
       Sentry.setTag("clubId", session.user.clubId)
       Sentry.setTag("role", session.user.role as string)
+      if (session.user.actorId) {
+        Sentry.setTag("impersonatedBy", session.user.actorId)
+      }
     })
     .catch(() => {})
 
@@ -106,6 +167,10 @@ export async function requireAuth(
         email: session.user.email,
         subscriptionStatus: session.user.subscriptionStatus,
         trialEndsAt: session.user.trialEndsAt,
+        actorId: session.user.actorId,
+        actorName: session.user.actorName,
+        impersonationId: session.user.impersonationId,
+        impersonationReadOnly: session.user.impersonationReadOnly,
       },
     },
   }

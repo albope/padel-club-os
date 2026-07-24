@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest"
 import { mockDb } from "@/test/mocks/db"
-import { crearClubMock, crearPagoMock, crearReservaMock, crearUsuarioMock } from "@/test/factories"
+import { crearClubMock, crearPagoMock, crearReservaMock } from "@/test/factories"
 import { extraerJson } from "@/test/helpers/api-route"
 
 // --- Mocks ---
@@ -27,6 +27,7 @@ vi.mock("@/lib/email", () => ({
 }))
 vi.mock("@/lib/payment-sync", () => ({
   asegurarBookingPayments: vi.fn().mockResolvedValue(4),
+  aplicarRefundBooking: vi.fn().mockResolvedValue(true),
 }))
 vi.mock("@/lib/logger", () => ({
   logger: { info: vi.fn(), error: vi.fn(), warn: vi.fn() },
@@ -309,9 +310,9 @@ describe("Stripe Webhook Handler", () => {
 
     await POST(crearWebhookRequest())
 
-    expect(mockDb.payment.create).toHaveBeenCalledWith(
+    expect(mockDb.payment.upsert).toHaveBeenCalledWith(
       expect.objectContaining({
-        data: expect.objectContaining({
+        create: expect.objectContaining({
           amount: 49,
           type: "subscription",
           stripePaymentId: "inv_test",
@@ -330,7 +331,7 @@ describe("Stripe Webhook Handler", () => {
 
     const response = await POST(crearWebhookRequest())
     expect(response.status).toBe(200)
-    expect(mockDb.payment.create).not.toHaveBeenCalled()
+    expect(mockDb.payment.upsert).not.toHaveBeenCalled()
   })
 
   // --- invoice.payment_failed ---
@@ -387,9 +388,9 @@ describe("Stripe Webhook Handler", () => {
       id: "sub_trial",
     }))
     mockDb.club.findFirst.mockResolvedValue(crearClubMock())
-    mockDb.user.findMany.mockResolvedValue([
-      crearUsuarioMock({ id: "admin-1", role: "SUPER_ADMIN" }),
-      crearUsuarioMock({ id: "admin-2", role: "CLUB_ADMIN" }),
+    mockDb.clubMembership.findMany.mockResolvedValue([
+      { userId: "admin-1" },
+      { userId: "admin-2" },
     ])
 
     await POST(crearWebhookRequest())

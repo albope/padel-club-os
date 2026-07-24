@@ -1,6 +1,7 @@
 import "server-only"
 
 export interface LegalProvider {
+  entityType: "individual" | "company" | null
   tradeName: string
   legalName: string | null
   taxId: string | null
@@ -17,6 +18,10 @@ function optionalEnv(name: string): string | null {
 }
 
 export function getLegalProvider(): LegalProvider {
+  const rawEntityType = optionalEnv("LEGAL_ENTITY_TYPE")
+  const entityType = rawEntityType === "individual" || rawEntityType === "company"
+    ? rawEntityType
+    : null
   const legalName = optionalEnv("LEGAL_NAME")
   const taxId = optionalEnv("LEGAL_TAX_ID")
   const address = optionalEnv("LEGAL_ADDRESS")
@@ -25,12 +30,14 @@ export function getLegalProvider(): LegalProvider {
   const website = process.env.NEXT_PUBLIC_APP_URL?.trim() || "https://padelclubos.com"
 
   const incompleteFields = [
+    !entityType && "tipo de titular",
     !legalName && "nombre o razón social",
     !taxId && "NIF/CIF",
     !address && "domicilio",
   ].filter((field): field is string => Boolean(field))
 
   return {
+    entityType,
     tradeName: "Padel Club OS",
     legalName,
     taxId,

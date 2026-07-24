@@ -44,6 +44,7 @@ describe("POST /api/bookings (Crear reserva admin)", () => {
     vi.clearAllMocks()
     mockRequireAuth.mockResolvedValue(crearSesionAdminMock())
     mockDb.court.findFirst.mockResolvedValue(crearPistaMock())
+    mockDb.clubMembership.findUnique.mockResolvedValue({ status: "ACTIVE" })
     mockDb.booking.findFirst.mockResolvedValue(null) // sin overlap
     mockDb.booking.create.mockResolvedValue(crearReservaMock({ id: "new-admin-booking" }))
   })
@@ -385,6 +386,7 @@ describe("DELETE /api/bookings/[bookingId] (Eliminar admin)", () => {
 describe("PATCH /api/bookings/[bookingId] (Actualizar admin)", () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    mockDb.clubMembership.findUnique.mockResolvedValue({ status: "ACTIVE" })
     mockRequireAuth.mockResolvedValue(crearSesionAdminMock())
     mockDb.court.findFirst.mockResolvedValue(crearPistaMock())
     mockDb.booking.findFirst.mockResolvedValue(null) // sin overlap

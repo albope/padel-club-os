@@ -48,8 +48,8 @@ function usarUpstash(): boolean {
   if (backend === "upstash") {
     const redis = obtenerRedis()
     if (!redis) {
-      logger.warn("RATE_LIMIT", "RATE_LIMIT_BACKEND=upstash pero faltan UPSTASH_REDIS_REST_URL/TOKEN, usando fallback local", {
-        backend: "memory",
+      logger.error("RATE_LIMIT", "RATE_LIMIT_BACKEND=upstash sin credenciales Redis", {
+        backend: "unavailable",
       })
       return false
     }
@@ -63,7 +63,7 @@ function usarUpstash(): boolean {
  *
  * - Con credenciales Upstash: rate limiting compartido entre todas las instancias serverless
  * - Sin credenciales: fallback a Map en memoria (aceptable para dev/tests)
- * - Si Redis falla en runtime: fail-open (permite request) + log warning
+ * - Si Redis falla en produccion: fail-closed; en desarrollo: fail-open
  *
  * @param config.prefix - Prefijo unico obligatorio (ej: "rl:forgot-pw", "rl:chat")
  */
@@ -80,12 +80,31 @@ export function crearRateLimiter(config: RateLimitConfig): RateLimiter {
           const { success } = await limiter.limit(clave)
           return success
         } catch (error) {
-          logger.warn("RATE_LIMIT", "Redis no disponible, fail-open", {
+          const failClosed = process.env.NODE_ENV === "production"
+          logger.warn("RATE_LIMIT", `Redis no disponible, ${failClosed ? "fail-closed" : "fail-open"}`, {
             prefix: config.prefix,
             clave: clave.length > 8 ? clave.substring(0, 8) + "..." : clave,
           }, error)
-          return true
+          return !failClosed
         }
+      },
+    }
+  }
+
+  if (process.env.NODE_ENV === "production") {
+    // No registrar en la importacion: Next carga los modulos durante el build.
+    // El fallo se informa una sola vez al recibir una peticion real.
+    let logged = false
+    return {
+      async verificar(): Promise<boolean> {
+        if (!logged) {
+          logged = true
+          logger.error("RATE_LIMIT", "Rate limiting distribuido no configurado; peticiones protegidas bloqueadas", {
+            prefix: config.prefix,
+            backend: process.env.RATE_LIMIT_BACKEND || "auto",
+          })
+        }
+        return false
       },
     }
   }

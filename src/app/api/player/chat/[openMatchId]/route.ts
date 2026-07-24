@@ -17,10 +17,8 @@ const EnviarMensajeSchema = z.object({
 })
 
 // GET: Obtener mensajes del chat de una partida
-export async function GET(
-  req: Request,
-  { params }: { params: { openMatchId: string } }
-) {
+export async function GET(req: Request, props: { params: Promise<{ openMatchId: string }> }) {
+  const params = await props.params;
   try {
     const auth = await requireAuth("chat:read")
     if (isAuthError(auth)) return auth
@@ -92,10 +90,8 @@ export async function GET(
 }
 
 // POST: Enviar mensaje al chat de una partida
-export async function POST(
-  req: Request,
-  { params }: { params: { openMatchId: string } }
-) {
+export async function POST(req: Request, props: { params: Promise<{ openMatchId: string }> }) {
+  const params = await props.params;
   try {
     const auth = await requireAuth("chat:write")
     if (isAuthError(auth)) return auth

@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@100,400..800;112,500..800&family=Instrument+Sans:wght@400;500;600;700&family=Hanken+Grotesk:wght@400;600;700&family=Space+Grotesk:wght@500;700&family=Bricolage+Grotesque:wght@500;700;800&family=Onest:wght@400;600&display=swap" rel="stylesheet">
+<style>
+body { margin:0; background:#EFECE6; font-family:'Instrument Sans',system-ui,sans-serif; color:#1C1A17; }
+a { color:#157A54; text-decoration:none; } a:hover { color:#0E5C3F; }
+</style>
+</helmet>
+<div style="max-width:1240px;margin:0 auto;padding:56px 40px 96px;display:grid;gap:56px;align-content:start">
+
+  <!-- Cabecera -->
+  <div style="display:grid;gap:12px">
+    <div style="display:flex;align-items:center;gap:10px;font-size:12px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:#8A8377">
+      <span style="width:28px;height:2px;background:#157A54"></span>PadelClub OS · Identidad de producto · Bloques A–B
+    </div>
+    <h1 style="font-family:'Archivo',sans-serif;font-stretch:112%;font-weight:750;font-size:44px;line-height:1.05;letter-spacing:-0.02em;margin:0">Diagnóstico ejecutivo y dirección creativa</h1>
+    <p style="font-size:16px;line-height:1.55;color:#5C564C;max-width:760px;margin:0;text-wrap:pretty">Auditoría del producto real (código en <code>master</code>, recreación fiel en <a href="Estado Actual — Recreación.dc.html">Estado Actual</a>), estrategia de marca y tres territorios visuales evaluados con la matriz ponderada. Todo lo señalado referencia archivos y componentes concretos.</p>
+  </div>
+
+  <!-- A. DIAGNÓSTICO -->
+  <div style="display:grid;gap:28px">
+    <h2 style="font-family:'Archivo',sans-serif;font-stretch:112%;font-weight:700;font-size:13px;letter-spacing:0.16em;text-transform:uppercase;margin:0;color:#157A54">A · Diagnóstico ejecutivo</h2>
+
+    <div style="display:grid;grid-template-columns:380px 1fr;gap:40px;align-items:start">
+      <!-- Puntuaciones -->
+      <div style="background:#fff;border:1px solid #DDD7CC;border-radius:12px;padding:28px;display:grid;gap:18px">
+        <p style="margin:0;font-weight:700;font-size:15px">Puntuación actual (0–10)</p>
+        <sc-for list="{{ scores }}" as="s" hint-placeholder-count="7">
+          <div style="display:grid;gap:5px">
+            <div style="display:flex;justify-content:space-between;font-size:13px"><span style="color:#5C564C">{{ s.label }}</span><span style="font-weight:700;font-variant-numeric:tabular-nums">{{ s.value }}</span></div>
+            <div style="height:6px;border-radius:3px;background:#EFECE6;overflow:hidden"><div style="height:100%;border-radius:3px;background:{{ s.color }};width:{{ s.w }}"></div></div>
+          </div>
+        </sc-for>
+        <p style="margin:4px 0 0;font-size:12px;line-height:1.5;color:#8A8377">Media ponderada de lo auditado: <strong style="color:#1C1A17">4,6 / 10</strong>. Producto funcionalmente sólido con identidad visual prestada.</p>
+      </div>
+      <!-- Hallazgos -->
+      <div style="display:grid;gap:14px">
+        <p style="margin:0;font-weight:700;font-size:15px">Hallazgos observados (con evidencia)</p>
+        <sc-for list="{{ hallazgos }}" as="h" hint-placeholder-count="6">
+          <div style="display:grid;grid-template-columns:22px 1fr;gap:12px;padding:14px 16px;background:#fff;border:1px solid #DDD7CC;border-radius:10px">
+            <span style="font-family:'Archivo',sans-serif;font-weight:700;font-size:13px;color:#157A54;padding-top:1px">{{ h.n }}</span>
+            <div style="font-size:13.5px;line-height:1.5"><strong>{{ h.title }}.</strong> <span style="color:#5C564C">{{ h.body }}</span> <code style="font-size:11.5px;background:#F6F3ED;border:1px solid #E7E2D8;border-radius:4px;padding:1px 5px;color:#6B655A">{{ h.ref }}</code></div>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+
+    <!-- Conservar / evolucionar / retirar -->
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px">
+      <div style="background:#fff;border:1px solid #DDD7CC;border-top:3px solid #157A54;border-radius:10px;padding:22px">
+        <p style="margin:0 0 12px;font-weight:700;font-size:13px;letter-spacing:0.08em;text-transform:uppercase;color:#157A54">Conservar</p>
+        <ul style="margin:0;padding-left:18px;font-size:13.5px;line-height:1.7;color:#3C382F">
+          <li>Arquitectura de variables semánticas HSL (<code>tailwind.config.ts</code>) — base perfecta para tokens nuevos</li>
+          <li>Radix + patrón shadcn como capa de comportamiento accesible</li>
+          <li>Lucide como familia iconográfica única</li>
+          <li>Shell de navegación: sidebar / header / bottom-nav móvil</li>
+          <li>Prácticas a11y existentes: <code>aria-current</code>, skip links, labels</li>
+          <li>Modelo de permisos y navegación filtrada por rol</li>
+        </ul>
+      </div>
+      <div style="background:#fff;border:1px solid #DDD7CC;border-top:3px solid #C7871E;border-radius:10px;padding:22px">
+        <p style="margin:0 0 12px;font-weight:700;font-size:13px;letter-spacing:0.08em;text-transform:uppercase;color:#C7871E">Evolucionar</p>
+        <ul style="margin:0;padding-left:18px;font-size:13.5px;line-height:1.7;color:#3C382F">
+          <li>Paleta completa: neutros con temperatura, modo oscuro diseñado</li>
+          <li>Tipografía: sustituir Inter/Sora, añadir cifras tabulares</li>
+          <li>Sidebar: 18 items planos → grupos por dominio operativo</li>
+          <li>Grid de reservas: estados con patrón+icono+texto, celdas ≥44px táctil</li>
+          <li>Tenant theming: hex crudo → escala tonal generada con <code>on-primary</code></li>
+          <li>KPIs y tablas: jerarquía numérica propia</li>
+          <li>Logo: evolucionar el concepto de pista hacia una marca abstracta</li>
+        </ul>
+      </div>
+      <div style="background:#fff;border:1px solid #DDD7CC;border-top:3px solid #B3402E;border-radius:10px;padding:22px">
+        <p style="margin:0 0 12px;font-weight:700;font-size:13px;letter-spacing:0.08em;text-transform:uppercase;color:#B3402E">Retirar</p>
+        <ul style="margin:0;padding-left:18px;font-size:13.5px;line-height:1.7;color:#3C382F">
+          <li>Orbes con blur, patrones de puntos y gradientes animados (<code>auth-orb</code>, <code>landing-orb</code>, <code>auth-gradient-bg</code>)</li>
+          <li>Glassmorphism de headers (<code>backdrop-blur</code> + fondo 60%)</li>
+          <li>Colores Tailwind crudos en componentes (<code>green-100</code>, <code>red-100</code>…)</li>
+          <li>Iconos en círculos con degradado del color de club</li>
+          <li>Texto shimmer con gradiente (<code>landing-gradient-text</code>)</li>
+          <li>Avatares externos ui-avatars con <code>#6366f1</code> hardcodeado</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- B. ESTRATEGIA -->
+  <div style="display:grid;gap:28px">
+    <h2 style="font-family:'Archivo',sans-serif;font-stretch:112%;font-weight:700;font-size:13px;letter-spacing:0.16em;text-transform:uppercase;margin:0;color:#157A54">B · Estrategia y concepto</h2>
+    <div style="display:grid;grid-template-columns:1.2fr 1fr;gap:40px">
+      <div style="display:grid;gap:16px;align-content:start">
+        <p style="margin:0;font-family:'Archivo',sans-serif;font-stretch:112%;font-weight:700;font-size:24px;line-height:1.25;letter-spacing:-0.01em">«El sistema operativo silencioso del club: la plataforma pone la precisión, el club pone la pasión.»</p>
+        <p style="margin:0;font-size:14.5px;line-height:1.6;color:#5C564C;text-wrap:pretty">PadelClub OS no compite por ser la marca más ruidosa de la pista — compite por ser la más fiable a las 9 de la mañana de un sábado con 8 pistas llenas. La identidad expresa <strong>control, ritmo y pertenencia</strong>: autoridad tecnológica en plataforma, velocidad operativa en admin, y en el portal del jugador se retira a un co-branding discreto para que la marca del club sea la protagonista.</p>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-top:8px">
+          <div style="background:#fff;border:1px solid #DDD7CC;border-radius:10px;padding:16px"><p style="margin:0;font-size:11px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#8A8377">Plataforma</p><p style="margin:6px 0 0;font-size:13px;line-height:1.5">Vigilar la salud del negocio: suscripciones, demos, leads. Densidad alta, trazabilidad, autoridad.</p></div>
+          <div style="background:#fff;border:1px solid #DDD7CC;border-radius:10px;padding:16px"><p style="margin:0;font-size:11px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#8A8377">Admin de club</p><p style="margin:6px 0 0;font-size:13px;line-height:1.5">Cobrar, encajar reservas y resolver imprevistos rápido. Velocidad de lectura y acción, jornadas largas.</p></div>
+          <div style="background:#fff;border:1px solid #DDD7CC;border-radius:10px;padding:16px"><p style="margin:0;font-size:11px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#8A8377">Jugador</p><p style="margin:6px 0 0;font-size:13px;line-height:1.5">Reservar en 3 toques, encontrar partida, competir. Móvil primero, social, con la marca del club delante.</p></div>
+        </div>
+      </div>
+      <div style="background:#1C1A17;color:#F6F3ED;border-radius:12px;padding:26px;display:grid;gap:14px;align-content:start">
+        <p style="margin:0;font-size:11px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:#A39C8E">Principios de diseño</p>
+        <sc-for list="{{ principios }}" as="p" hint-placeholder-count="5">
+          <div style="display:grid;grid-template-columns:20px 1fr;gap:10px;border-top:1px solid rgba(246,243,237,0.12);padding-top:12px">
+            <span style="font-family:'Archivo',sans-serif;font-weight:700;font-size:13px;color:#6FBF9C">{{ p.n }}</span>
+            <p style="margin:0;font-size:13.5px;line-height:1.5"><strong>{{ p.title }}</strong> <span style="color:#C4BDB0">{{ p.body }}</span></p>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+  </div>
+
+  <!-- TERRITORIOS -->
+  <div style="display:grid;gap:28px">
+    <h2 style="font-family:'Archivo',sans-serif;font-stretch:112%;font-weight:700;font-size:13px;letter-spacing:0.16em;text-transform:uppercase;margin:0;color:#157A54">Exploración · Tres territorios visuales</h2>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:24px;align-items:start">
+
+      <!-- T1 CRISTAL -->
+      <div style="background:#fff;border:1px solid #DDD7CC;border-radius:14px;overflow:hidden">
+        <div style="background:#F2F6FB;padding:24px;border-bottom:1px solid #DDE6F0">
+          <p style="margin:0;font-size:11px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:#5B7A9E">Territorio 01</p>
+          <p style="margin:6px 0 2px;font-family:'Hanken Grotesk',sans-serif;font-weight:700;font-size:26px;letter-spacing:-0.01em;color:#0B1626">Cristal</p>
+          <p style="margin:0;font-size:13px;line-height:1.5;color:#44546A">La pared de cristal: transparencia, precisión y líneas finas. Referencia abstracta: la geometría luminosa de una pista indoor vista a través del vidrio.</p>
+        </div>
+        <div style="padding:20px 24px;display:grid;gap:16px">
+          <div style="display:flex;gap:6px">
+            <span style="flex:1;height:40px;border-radius:6px;background:#0B1626"></span><span style="flex:1;height:40px;border-radius:6px;background:#1E5AE8"></span><span style="flex:1;height:40px;border-radius:6px;background:#7FB4E8"></span><span style="flex:1;height:40px;border-radius:6px;background:#EDF2F9;border:1px solid #DDE6F0"></span><span style="flex:1;height:40px;border-radius:6px;background:#F8FAFD;border:1px solid #DDE6F0"></span>
+          </div>
+          <div><p style="margin:0;font-family:'Hanken Grotesk',sans-serif;font-weight:700;font-size:22px;color:#0B1626;letter-spacing:-0.01em">Hanken Grotesk</p><p style="margin:2px 0 0;font-family:'Space Grotesk',monospace;font-size:14px;color:#44546A">Space Grotesk · 08:30 — 22:00</p></div>
+          <!-- mini admin -->
+          <div style="border:1px solid #DDE6F0;border-radius:8px;background:#F8FAFD;padding:12px;display:grid;gap:8px">
+            <div style="display:flex;gap:8px">
+              <div style="flex:1;background:#fff;border:1px solid #DDE6F0;border-radius:6px;padding:10px"><p style="margin:0;font-size:9px;color:#5B7A9E;text-transform:uppercase;letter-spacing:0.08em">Ocupación</p><p style="margin:2px 0 0;font-family:'Space Grotesk';font-weight:700;font-size:18px;color:#0B1626">68%</p></div>
+              <div style="flex:1;background:#fff;border:1px solid #DDE6F0;border-radius:6px;padding:10px"><p style="margin:0;font-size:9px;color:#5B7A9E;text-transform:uppercase;letter-spacing:0.08em">Ingresos</p><p style="margin:2px 0 0;font-family:'Space Grotesk';font-weight:700;font-size:18px;color:#1E5AE8">420 €</p></div>
+            </div>
+            <div style="background:#fff;border:1px solid #DDE6F0;border-radius:6px;height:44px;position:relative;overflow:hidden">
+              <div style="position:absolute;inset:0;background:repeating-linear-gradient(90deg,transparent 0 39px,#DDE6F0 39px 40px)"></div>
+              <div style="position:absolute;top:6px;left:42px;width:76px;bottom:6px;background:#1E5AE822;border:1px solid #1E5AE8;border-radius:4px"></div>
+            </div>
+          </div>
+          <!-- mini player -->
+          <div style="width:150px;border:1px solid #DDE6F0;border-radius:14px;background:#fff;padding:12px;display:grid;gap:8px;justify-self:center">
+            <div style="height:5px;width:44px;border-radius:3px;background:#1E5AE8"></div>
+            <p style="margin:0;font-family:'Hanken Grotesk';font-weight:700;font-size:13px;color:#0B1626">Reserva tu pista</p>
+            <div style="display:flex;gap:4px"><span style="flex:1;height:26px;border-radius:5px;background:#EDF2F9;border:1px solid #DDE6F0"></span><span style="flex:1;height:26px;border-radius:5px;background:#1E5AE8"></span><span style="flex:1;height:26px;border-radius:5px;background:#EDF2F9;border:1px solid #DDE6F0"></span></div>
+          </div>
+          <div style="font-size:12.5px;line-height:1.55;color:#5C564C;border-top:1px solid #EFECE6;padding-top:12px"><strong style="color:#157A54">Fortalezas:</strong> continuidad con el producto actual, máxima claridad, adopción barata.<br><strong style="color:#B3402E">Riesgos:</strong> sigue siendo un azul SaaS — diferenciación baja frente a la categoría; el azul compite con los tenant azules (mayoría).</div>
+        </div>
+      </div>
+
+      <!-- T2 MARCADOR (ganador) -->
+      <div style="background:#fff;border:2px solid #157A54;border-radius:14px;overflow:hidden;box-shadow:0 12px 40px rgba(21,122,84,0.12);position:relative">
+        <span style="position:absolute;top:14px;right:14px;background:#157A54;color:#fff;font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;padding:4px 10px;border-radius:99px">Seleccionado</span>
+        <div style="background:#1C1A17;padding:24px;color:#F6F3ED">
+          <p style="margin:0;font-size:11px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:#A39C8E">Territorio 02</p>
+          <p style="margin:6px 0 2px;font-family:'Archivo',sans-serif;font-stretch:112%;font-weight:750;font-size:26px;letter-spacing:-0.01em">Marcador</p>
+          <p style="margin:0;font-size:13px;line-height:1.5;color:#C4BDB0">El ritmo del partido: el marcador, la franja horaria y el turno como sistema modular. Referencia abstracta: la tipografía de resultados y el compás 30' del club.</p>
+        </div>
+        <div style="padding:20px 24px;display:grid;gap:16px">
+          <div style="display:flex;gap:6px">
+            <span style="flex:1;height:40px;border-radius:6px;background:#1C1A17"></span><span style="flex:1;height:40px;border-radius:6px;background:#157A54"></span><span style="flex:1;height:40px;border-radius:6px;background:#6FBF9C"></span><span style="flex:1;height:40px;border-radius:6px;background:#E7E2D8"></span><span style="flex:1;height:40px;border-radius:6px;background:#F6F3ED;border:1px solid #E7E2D8"></span>
+          </div>
+          <div><p style="margin:0;font-family:'Archivo',sans-serif;font-stretch:112%;font-weight:750;font-size:22px;letter-spacing:-0.01em">Archivo Expanded</p><p style="margin:2px 0 0;font-size:14px;color:#5C564C">Instrument Sans · <span style="font-variant-numeric:tabular-nums">18:30 — 20:00 · 24 €</span></p></div>
+          <div style="border:1px solid #E7E2D8;border-radius:8px;background:#F6F3ED;padding:12px;display:grid;gap:8px">
+            <div style="display:flex;gap:8px">
+              <div style="flex:1;background:#fff;border:1px solid #E7E2D8;border-radius:6px;padding:10px"><p style="margin:0;font-size:9px;color:#8A8377;text-transform:uppercase;letter-spacing:0.08em">Ocupación</p><p style="margin:2px 0 0;font-family:'Archivo';font-stretch:112%;font-weight:700;font-size:18px;font-variant-numeric:tabular-nums">68<span style="font-size:12px;color:#8A8377">%</span></p></div>
+              <div style="flex:1;background:#fff;border:1px solid #E7E2D8;border-radius:6px;padding:10px"><p style="margin:0;font-size:9px;color:#8A8377;text-transform:uppercase;letter-spacing:0.08em">Ingresos</p><p style="margin:2px 0 0;font-family:'Archivo';font-stretch:112%;font-weight:700;font-size:18px;color:#157A54;font-variant-numeric:tabular-nums">420 €</p></div>
+            </div>
+            <div style="display:flex;gap:3px;background:#fff;border:1px solid #E7E2D8;border-radius:6px;padding:6px">
+              <span style="flex:1;height:32px;border-radius:3px;background:#157A54"></span>
+              <span style="flex:1;height:32px;border-radius:3px;background:#157A54"></span>
+              <span style="flex:1;height:32px;border-radius:3px;background:repeating-linear-gradient(45deg,#E7E2D8 0 3px,#F6F3ED 3px 6px)"></span>
+              <span style="flex:1;height:32px;border-radius:3px;background:#6FBF9C"></span>
+              <span style="flex:1;height:32px;border-radius:3px;border:1px dashed #C4BDB0"></span>
+              <span style="flex:1;height:32px;border-radius:3px;border:1px dashed #C4BDB0"></span>
+            </div>
+          </div>
+          <div style="width:150px;border:1px solid #E7E2D8;border-radius:14px;background:#fff;padding:12px;display:grid;gap:8px;justify-self:center">
+            <div style="display:flex;justify-content:space-between;align-items:center"><span style="height:20px;width:20px;border-radius:99px;background:#B3402E"></span><span style="font-size:8px;font-weight:700;letter-spacing:0.08em;color:#8A8377">POWERED BY ▢</span></div>
+            <p style="margin:0;font-family:'Archivo';font-stretch:112%;font-weight:700;font-size:13px">Tu próxima partida</p>
+            <div style="border-radius:8px;background:#1C1A17;color:#F6F3ED;padding:8px"><p style="margin:0;font-size:9px;color:#A39C8E">HOY · PISTA 2</p><p style="margin:2px 0 0;font-family:'Archivo';font-weight:700;font-size:15px;font-variant-numeric:tabular-nums">19:00</p></div>
+            <span style="height:26px;border-radius:6px;background:#B3402E;display:block"></span>
+          </div>
+          <div style="font-size:12.5px;line-height:1.55;color:#5C564C;border-top:1px solid #EFECE6;padding-top:12px"><strong style="color:#157A54">Fortalezas:</strong> gesto propio y repetible (el slot), neutros cálidos que ceden protagonismo al color del club, cifras tabulares nativas para datos densos, verde profundo distintivo sin neón.<br><strong style="color:#B3402E">Riesgos:</strong> exige disciplina tipográfica; el verde debe mantenerse lejos del semántico de éxito (se resuelve por tono y rol).</div>
+        </div>
+      </div>
+
+      <!-- T3 TRAYECTORIA -->
+      <div style="background:#fff;border:1px solid #DDD7CC;border-radius:14px;overflow:hidden">
+        <div style="background:#10131C;padding:24px;color:#F2F3F7">
+          <p style="margin:0;font-size:11px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:#8A90A3">Territorio 03</p>
+          <p style="margin:6px 0 2px;font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:26px;letter-spacing:-0.01em">Trayectoria</p>
+          <p style="margin:0;font-size:13px;line-height:1.5;color:#B4B9C9">La parábola de la bola: diagonales, arcos y aceleración. Referencia abstracta: la física del globo y la volea, energía nocturna de las pistas iluminadas.</p>
+        </div>
+        <div style="padding:20px 24px;display:grid;gap:16px">
+          <div style="display:flex;gap:6px">
+            <span style="flex:1;height:40px;border-radius:6px;background:#10131C"></span><span style="flex:1;height:40px;border-radius:6px;background:#FF5A3C"></span><span style="flex:1;height:40px;border-radius:6px;background:#FFB49F"></span><span style="flex:1;height:40px;border-radius:6px;background:#E9EAF0"></span><span style="flex:1;height:40px;border-radius:6px;background:#F8F8FB;border:1px solid #E9EAF0"></span>
+          </div>
+          <div><p style="margin:0;font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:22px;color:#10131C">Bricolage Grotesque</p><p style="margin:2px 0 0;font-family:'Onest',sans-serif;font-size:14px;color:#565C6E">Onest · 19:00 · Nivel 3.2</p></div>
+          <div style="border:1px solid #E9EAF0;border-radius:8px;background:#F8F8FB;padding:12px;display:grid;gap:8px;position:relative;overflow:hidden">
+            <svg viewBox="0 0 260 40" style="position:absolute;top:0;right:0;width:60%;opacity:0.5"><path d="M0 38 Q 130 -20 260 30" stroke="#FF5A3C" stroke-width="2" fill="none"></path></svg>
+            <div style="display:flex;gap:8px">
+              <div style="flex:1;background:#fff;border:1px solid #E9EAF0;border-radius:6px;padding:10px"><p style="margin:0;font-size:9px;color:#8A90A3;text-transform:uppercase;letter-spacing:0.08em">Ocupación</p><p style="margin:2px 0 0;font-family:'Bricolage Grotesque';font-weight:800;font-size:18px;color:#10131C">68%</p></div>
+              <div style="flex:1;background:#fff;border:1px solid #E9EAF0;border-radius:6px;padding:10px"><p style="margin:0;font-size:9px;color:#8A90A3;text-transform:uppercase;letter-spacing:0.08em">Ingresos</p><p style="margin:2px 0 0;font-family:'Bricolage Grotesque';font-weight:800;font-size:18px;color:#FF5A3C">420 €</p></div>
+            </div>
+          </div>
+          <div style="width:150px;border:1px solid #E9EAF0;border-radius:14px;background:#10131C;color:#fff;padding:12px;display:grid;gap:8px;justify-self:center">
+            <p style="margin:0;font-family:'Bricolage Grotesque';font-weight:800;font-size:13px">Encuentra partida</p>
+            <div style="border-radius:8px;background:linear-gradient(120deg,#FF5A3C,#FF8A3C);height:34px"></div>
+            <div style="display:flex;gap:4px"><span style="flex:1;height:22px;border-radius:5px;background:rgba(255,255,255,0.1)"></span><span style="flex:1;height:22px;border-radius:5px;background:rgba(255,255,255,0.1)"></span></div>
+          </div>
+          <div style="font-size:12.5px;line-height:1.55;color:#5C564C;border-top:1px solid #EFECE6;padding-top:12px"><strong style="color:#157A54">Fortalezas:</strong> energía B2C memorable, atractivo para jugadores jóvenes.<br><strong style="color:#B3402E">Riesgos:</strong> dependiente de moda (gradientes/diagonales), difícil en tablas y calendarios densos, el coral colisiona con el semántico de error y con tenants cálidos.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Matriz -->
+    <div style="background:#fff;border:1px solid #DDD7CC;border-radius:12px;padding:28px;display:grid;gap:18px">
+      <p style="margin:0;font-weight:700;font-size:15px">Matriz ponderada de selección</p>
+      <div style="display:grid;grid-template-columns:2.2fr 0.6fr 1fr 1fr 1fr;gap:0;font-size:13px">
+        <div style="padding:8px 0;border-bottom:2px solid #1C1A17;font-weight:700;color:#8A8377;font-size:11px;text-transform:uppercase;letter-spacing:0.08em">Criterio</div>
+        <div style="padding:8px 0;border-bottom:2px solid #1C1A17;font-weight:700;color:#8A8377;font-size:11px;text-transform:uppercase;letter-spacing:0.08em;text-align:right">Peso</div>
+        <div style="padding:8px 12px;border-bottom:2px solid #1C1A17;font-weight:700;text-align:center">Cristal</div>
+        <div style="padding:8px 12px;border-bottom:2px solid #1C1A17;font-weight:700;text-align:center;color:#157A54">Marcador</div>
+        <div style="padding:8px 12px;border-bottom:2px solid #1C1A17;font-weight:700;text-align:center">Trayectoria</div>
+        <sc-for list="{{ matriz }}" as="m" hint-placeholder-count="7">
+          <div style="padding:9px 0;border-bottom:1px solid #EFECE6">{{ m.criterio }}</div>
+          <div style="padding:9px 0;border-bottom:1px solid #EFECE6;text-align:right;color:#8A8377;font-variant-numeric:tabular-nums">{{ m.peso }}</div>
+          <div style="padding:9px 12px;border-bottom:1px solid #EFECE6;text-align:center;font-variant-numeric:tabular-nums">{{ m.t1 }}</div>
+          <div style="padding:9px 12px;border-bottom:1px solid #EFECE6;text-align:center;font-weight:700;color:#157A54;background:#F0F7F3;font-variant-numeric:tabular-nums">{{ m.t2 }}</div>
+          <div style="padding:9px 12px;border-bottom:1px solid #EFECE6;text-align:center;font-variant-numeric:tabular-nums">{{ m.t3 }}</div>
+        </sc-for>
+        <div style="padding:12px 0;font-weight:700">Total ponderado</div>
+        <div></div>
+        <div style="padding:12px;text-align:center;font-weight:700;font-variant-numeric:tabular-nums">6,90</div>
+        <div style="padding:12px;text-align:center;font-weight:700;color:#fff;background:#157A54;border-radius:0 0 6px 6px;font-size:15px;font-variant-numeric:tabular-nums">8,80</div>
+        <div style="padding:12px;text-align:center;font-weight:700;font-variant-numeric:tabular-nums">6,55</div>
+      </div>
+      <div style="border-top:1px solid #EFECE6;padding-top:16px;display:grid;grid-template-columns:auto 1fr;gap:16px;align-items:start">
+        <span style="background:#157A54;color:#fff;font-size:11px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;padding:5px 12px;border-radius:99px;white-space:nowrap">Dirección ganadora · Marcador</span>
+        <p style="margin:0;font-size:14px;line-height:1.6;color:#3C382F;text-wrap:pretty">Marcador gana porque su gesto propietario — <strong>el slot como unidad visual</strong> — es exactamente el objeto que el producto manipula todo el día: franjas, turnos, reservas, resultados. Eso lo hace repetible en los tres portales sin decorar nada: en plataforma es la fila de estado, en admin es la celda del calendario, en jugador es la tarjeta de reserva. Los neutros cálidos con un verde profundo dan carácter mediterráneo sin neón ni clichés, dejan el color de cada club como único acento emocional del portal B2C, y las cifras tabulares elevan precisamente lo que hoy es más débil: KPIs, precios y calendarios. Es además la dirección más barata de escalar sobre las variables semánticas existentes.</p>
+      </div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  renderVals() {
+    const scores = [
+      ['Identidad de marca', 2.5], ['Coherencia entre portales', 5], ['Claridad y jerarquía', 6],
+      ['Accesibilidad', 5.5], ['Experiencia móvil', 6], ['Datos densos', 5], ['Personalización tenant', 3],
+    ].map(([label, v]) => ({label, value: String(v).replace('.', ','), w: v*10+'%', color: v < 4 ? '#B3402E' : v < 6 ? '#C7871E' : '#157A54'}));
+    const hallazgos = [
+      {n:'01', title:'Identidad prestada', body:'La paleta es la plantilla shadcn/ui intacta con un primario azul genérico hsl(217 91% 50%); sin logo se vuelve indistinguible de cualquier starter.', ref:'src/app/globals.css:12'},
+      {n:'02', title:'Modo oscuro invertido, no diseñado', body:'.dark reutiliza los mismos HSL girados; card = background (sin capa de elevación), bordes = secondary. No hay jerarquía de superficies.', ref:'globals.css:.dark'},
+      {n:'03', title:'Tenant theming frágil', body:'El color del club se aplica como hex crudo a botones, sombras y navs (backgroundColor: color, `${color}66`) sin cálculo de on-primary ni escala tonal: un club amarillo rompe el contraste.', ref:'ClubLayout.tsx:99'},
+      {n:'04', title:'Estado comunicado solo por color', body:'El grid de reservas usa red-100/green-100/blue-100 crudos, texto de 9–10px y celdas de 32px; ilegible con deficiencia cromática y bajo el mínimo táctil.', ref:'GridReservas.tsx:leyenda'},
+      {n:'05', title:'Navegación plana de 18 items', body:'La sidebar lista 18–20 entradas sin agrupar mezclando operación diaria, contenido y plataforma; el escaneo diario paga ese coste.', ref:'src/lib/nav-items.ts'},
+      {n:'06', title:'Deuda visual decorativa', body:'globals.css acumula ~400 líneas de clases puntuales: orbes con blur, gradientes animados, shimmer, glassmorphism y patrones de puntos sin función.', ref:'globals.css:auth-*,landing-*'},
+      {n:'07', title:'Tipografía sin sistema', body:'Sora (display) apenas aparece en admin; jerarquía a base de bold+tamaño; ninguna cifra tabular en KPIs, precios ni calendarios.', ref:'tailwind.config.ts:fontFamily'},
+      {n:'08', title:'Lo que sí funciona', body:'Variables semánticas bien montadas, Radix accesible, Lucide único, aria-current/skip-links presentes, shell de navegación correcto. La base técnica para adoptar tokens nuevos ya existe.', ref:'tailwind.config.ts'},
+    ];
+    const principios = [
+      {n:'01', title:'El slot es el sistema.', body:'La franja de 30 minutos —reservar, cobrar, competir— es la unidad visual propietaria: módulos, celdas y tarjetas comparten su geometría.'},
+      {n:'02', title:'Cifras primero.', body:'Numerales tabulares y jerarquía numérica propia: un KPI, un precio o un marcador se leen antes que cualquier decoración.'},
+      {n:'03', title:'Calma operativa, energía puntual.', body:'Neutros cálidos y densidad profesional; el color aparece solo con intención: estado, acción o marca del club.'},
+      {n:'04', title:'El club delante.', body:'En el portal del jugador la plataforma se retira a un co-branding discreto; el color del club vive en una escala tonal generada y accesible.'},
+      {n:'05', title:'Accesible por construcción.', body:'Contraste AA calculado, nunca solo color (patrón + icono + texto), foco visible y 44px táctiles en móvil.'},
+    ];
+    const matriz = [
+      ['Diferenciación y memorabilidad','20 %',5,9,8],
+      ['Coherencia entre los tres portales','20 %',7,9,6],
+      ['Usabilidad y datos densos','15 %',8,9,6],
+      ['Relevancia deportiva sin clichés','15 %',6,9,7],
+      ['Confianza y calidad percibida','10 %',7,8,6],
+      ['Accesibilidad e inclusión','10 %',8,9,6],
+      ['Viabilidad técnica y escalabilidad','10 %',9,8,6],
+    ].map(([criterio,peso,t1,t2,t3]) => ({criterio,peso,t1,t2,t3}));
+    return { scores, hallazgos, principios, matriz };
+  }
+}
+</script>
+</body>
+</html>

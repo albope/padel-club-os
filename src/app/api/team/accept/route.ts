@@ -7,6 +7,7 @@ import { crearRateLimiter, obtenerIP } from "@/lib/rate-limit"
 import { validarBody } from "@/lib/validation"
 import { logger } from "@/lib/logger"
 import { hash } from "bcrypt"
+import { normalizarEmail } from "@/lib/identity"
 import * as z from "zod"
 
 const limiter = crearRateLimiter({ maxRequests: 5, windowMs: 15 * 60 * 1000, prefix: "rl:team-accept" })
@@ -55,7 +56,7 @@ export async function GET(req: Request) {
 
     // Verificar si el usuario ya existe para determinar si necesita password
     const existingUser = await db.user.findFirst({
-      where: { email: invitation.email, clubId: invitation.clubId },
+      where: { email: normalizarEmail(invitation.email) },
       select: { password: true, mustResetPassword: true, name: true },
     })
 
@@ -114,36 +115,60 @@ export async function POST(req: Request) {
     }
 
     // Buscar si el email ya existe
-    const existingUser = await db.user.findFirst({
-      where: { email: invitation.email },
-      select: { id: true, clubId: true, role: true, password: true, mustResetPassword: true, name: true },
+    const existingUser = await db.user.findUnique({
+      where: { email: normalizarEmail(invitation.email) },
+      select: {
+        id: true,
+        clubId: true,
+        password: true,
+        mustResetPassword: true,
+        name: true,
+        memberships: {
+          where: { clubId },
+          select: { id: true },
+        },
+      },
     })
 
-    // Caso C: email existe en OTRO club
-    if (existingUser && existingUser.clubId !== clubId) {
-      return NextResponse.json(
-        { error: "Este email ya esta registrado en otro club." },
-        { status: 409 }
-      )
-    }
-
-    // Caso A: existe en ESTE club con password activa (PLAYER activo)
-    if (existingUser && existingUser.clubId === clubId && !necesitaPassword(existingUser)) {
+    // La identidad es global: una misma cuenta puede aceptar roles en varios
+    // clubes sin duplicar credenciales.
+    if (existingUser && !necesitaPassword(existingUser)) {
       // Solo upgrade de rol, NO tocar password
       await db.$transaction(async (tx) => {
         await tx.user.update({
           where: { id: existingUser.id },
           data: {
-            role: invitation.role,
+            ...(existingUser.clubId === clubId || !existingUser.clubId
+              ? { role: invitation.role, clubId }
+              : {}),
             emailVerified: new Date(),
             name: name || existingUser.name,
+            isActive: true,
+            sessionVersion: { increment: 1 },
+          },
+        })
+        await tx.clubMembership.upsert({
+          where: { userId_clubId: { userId: existingUser.id, clubId } },
+          update: {
+            role: invitation.role,
+            status: "ACTIVE",
+            approvedAt: new Date(),
+            approvedById: invitation.invitedById,
+          },
+          create: {
+            userId: existingUser.id,
+            clubId,
+            role: invitation.role,
+            status: "ACTIVE",
+            approvedAt: new Date(),
+            approvedById: invitation.invitedById,
           },
         })
         await tx.adminInvitation.delete({ where: { id: invitation.id } })
       })
 
       const rolLabel = invitation.role === "CLUB_ADMIN" ? "Administrador" : "Staff"
-      enviarEmailBienvenidaEquipo({
+      await enviarEmailBienvenidaEquipo({
         email: invitation.email,
         nombre: name || existingUser.name || "",
         clubNombre: invitation.club.name,
@@ -157,8 +182,8 @@ export async function POST(req: Request) {
       })
     }
 
-    // Caso B: existe en ESTE club pero sin password activa
-    if (existingUser && existingUser.clubId === clubId && necesitaPassword(existingUser)) {
+    // Cuenta existente importada o todavia sin credenciales activas.
+    if (existingUser && necesitaPassword(existingUser)) {
       if (!password) {
         return NextResponse.json(
           { error: "Se requiere una contrasena para activar la cuenta." },
@@ -172,18 +197,39 @@ export async function POST(req: Request) {
         await tx.user.update({
           where: { id: existingUser.id },
           data: {
-            role: invitation.role,
+            ...(existingUser.clubId === clubId || !existingUser.clubId
+              ? { role: invitation.role, clubId }
+              : {}),
             password: hashedPassword,
             mustResetPassword: false,
             emailVerified: new Date(),
             name: name || existingUser.name,
+            isActive: true,
+            sessionVersion: { increment: 1 },
+          },
+        })
+        await tx.clubMembership.upsert({
+          where: { userId_clubId: { userId: existingUser.id, clubId } },
+          update: {
+            role: invitation.role,
+            status: "ACTIVE",
+            approvedAt: new Date(),
+            approvedById: invitation.invitedById,
+          },
+          create: {
+            userId: existingUser.id,
+            clubId,
+            role: invitation.role,
+            status: "ACTIVE",
+            approvedAt: new Date(),
+            approvedById: invitation.invitedById,
           },
         })
         await tx.adminInvitation.delete({ where: { id: invitation.id } })
       })
 
       const rolLabel = invitation.role === "CLUB_ADMIN" ? "Administrador" : "Staff"
-      enviarEmailBienvenidaEquipo({
+      await enviarEmailBienvenidaEquipo({
         email: invitation.email,
         nombre: name || existingUser.name || "",
         clubNombre: invitation.club.name,
@@ -208,9 +254,9 @@ export async function POST(req: Request) {
     const hashedPassword = await hash(password, 10)
 
     await db.$transaction(async (tx) => {
-      await tx.user.create({
+      const user = await tx.user.create({
         data: {
-          email: invitation.email,
+          email: normalizarEmail(invitation.email),
           name,
           password: hashedPassword,
           role: invitation.role,
@@ -220,11 +266,21 @@ export async function POST(req: Request) {
           emailVerified: new Date(),
         },
       })
+      await tx.clubMembership.create({
+        data: {
+          userId: user.id,
+          clubId,
+          role: invitation.role,
+          status: "ACTIVE",
+          approvedAt: new Date(),
+          approvedById: invitation.invitedById,
+        },
+      })
       await tx.adminInvitation.delete({ where: { id: invitation.id } })
     })
 
     const rolLabel = invitation.role === "CLUB_ADMIN" ? "Administrador" : "Staff"
-    enviarEmailBienvenidaEquipo({
+    await enviarEmailBienvenidaEquipo({
       email: invitation.email,
       nombre: name,
       clubNombre: invitation.club.name,

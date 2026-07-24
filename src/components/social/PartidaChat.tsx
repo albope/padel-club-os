@@ -15,6 +15,7 @@ import { cn } from '@/lib/utils';
 import { useTranslations } from 'next-intl';
 import { useLocale } from 'next-intl';
 import Image from 'next/image';
+import { DEFAULT_IMAGES } from '@/lib/default-images';
 
 interface ChatMessage {
   id: string;
@@ -187,19 +188,13 @@ export function PartidaChat({ openMatchId, isOpen, onClose, matchInfo }: Partida
                 >
                   {/* Avatar (solo mensajes ajenos) */}
                   {!msg.esPropio && (
-                    msg.authorImage ? (
-                      <Image
-                        src={msg.authorImage}
-                        alt={msg.authorName}
-                        width={28}
-                        height={28}
-                        className="h-7 w-7 rounded-full object-cover shrink-0 mt-0.5"
-                      />
-                    ) : (
-                      <div className="h-7 w-7 rounded-full bg-muted flex items-center justify-center text-[10px] font-semibold shrink-0 mt-0.5">
-                        {msg.authorName.charAt(0)}
-                      </div>
-                    )
+                    <Image
+                      src={msg.authorImage || DEFAULT_IMAGES.player}
+                      alt={msg.authorName}
+                      width={28}
+                      height={28}
+                      className="h-7 w-7 rounded-full object-cover shrink-0 mt-0.5"
+                    />
                   )}
 
                   <div>

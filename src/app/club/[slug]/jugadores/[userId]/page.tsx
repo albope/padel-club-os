@@ -11,14 +11,16 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { EstrellasDisplay } from "@/components/social/EstrellasDisplay";
+import { DEFAULT_IMAGES } from "@/lib/default-images";
 
 export const revalidate = 300;
 
-export default async function PlayerProfilePage({
-  params,
-}: {
-  params: { slug: string; userId: string };
-}) {
+export default async function PlayerProfilePage(
+  props: {
+    params: Promise<{ slug: string; userId: string }>;
+  }
+) {
+  const params = await props.params;
   const t = await getTranslations("social");
   const locale = await getLocale();
   const localeCode = locale === "es" ? "es-ES" : "en-GB";
@@ -129,19 +131,13 @@ export default async function PlayerProfilePage({
 
       {/* Header del perfil */}
       <div className="flex items-center gap-4">
-        {jugador.image ? (
-          <Image
-            src={jugador.image}
-            alt={nombre}
-            width={80}
-            height={80}
-            className="h-20 w-20 rounded-full object-cover"
-          />
-        ) : (
-          <div className="h-20 w-20 rounded-full bg-primary/10 text-primary flex items-center justify-center text-3xl font-bold">
-            {nombre.charAt(0).toUpperCase()}
-          </div>
-        )}
+        <Image
+          src={jugador.image || DEFAULT_IMAGES.player}
+          alt={nombre}
+          width={80}
+          height={80}
+          className="h-20 w-20 rounded-full object-cover"
+        />
         <div>
           <h1 className="text-2xl font-bold">{nombre}</h1>
           <div className="flex items-center gap-2 mt-1 flex-wrap">

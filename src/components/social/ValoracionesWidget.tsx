@@ -18,6 +18,7 @@ import { EstrellasInput } from './EstrellasInput';
 import { useTranslations } from 'next-intl';
 import { useLocale } from 'next-intl';
 import Image from 'next/image';
+import { DEFAULT_IMAGES } from '@/lib/default-images';
 
 interface Companero {
   userId: string;
@@ -151,13 +152,7 @@ export function ValoracionesWidget({ slug }: ValoracionesWidgetProps) {
                     onClick={() => abrirValoracion(partida, c)}
                     className="gap-1.5"
                   >
-                    {c.imagen ? (
-                      <Image src={c.imagen} alt={c.nombre} width={20} height={20} className="h-5 w-5 rounded-full object-cover" />
-                    ) : (
-                      <div className="h-5 w-5 rounded-full bg-primary/10 text-primary flex items-center justify-center text-[10px] font-semibold">
-                        {c.nombre.charAt(0)}
-                      </div>
-                    )}
+                    <Image src={c.imagen || DEFAULT_IMAGES.player} alt={c.nombre} width={20} height={20} className="h-5 w-5 rounded-full object-cover" />
                     {c.nombre}
                     {c.yaValorado && <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />}
                   </Button>

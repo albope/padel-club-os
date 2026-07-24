@@ -1,6 +1,6 @@
 # Legal y facturación: checklist para empezar a cobrar
 
-Actualizado: 22 de julio de 2026.
+Actualizado: 24 de julio de 2026.
 
 Este documento separa lo que ya queda resuelto en la aplicación de las decisiones y
 altas que pertenecen al titular del negocio. Los textos publicados son una base
@@ -26,11 +26,34 @@ identidad de quien factura.
 No existe página de «Envío» porque no se venden bienes físicos. La activación y
 prestación electrónica están reguladas en las condiciones SaaS.
 
-## 2. Bloqueantes antes del primer cobro real
+## 2. Empezar como persona física
+
+El prestador puede identificarse en la aplicación como persona física
+(`LEGAL_ENTITY_TYPE=individual`) y facturar con su nombre y apellidos. Esto no
+equivale a poder cobrar sin altas: no tener sociedad es distinto de no estar dado
+de alta para ejercer la actividad.
+
+- La AEAT indica que el alta en el censo de empresarios y profesionales mediante
+  modelo 036 debe presentarse antes del inicio de la actividad. A estos efectos,
+  el inicio puede producirse al prestar servicios, cobrar/pagar o adquirir bienes
+  y servicios destinados a la actividad.
+- La Seguridad Social incluye en RETA a quien realiza de forma habitual, personal
+  y directa una actividad económica lucrativa. No se documenta aquí ninguna
+  excepción automática por facturar por debajo del SMI.
+- Antes del primer contrato/cobro, confirmar el caso concreto con una asesoría o
+  con las administraciones competentes y conservar la evidencia del alta.
+
+Referencias oficiales:
+
+- https://sede.agenciatributaria.gob.es/Sede/procedimientoini/G322.shtml
+- https://sede.agenciatributaria.gob.es/Sede/ayuda/manuales-videos-folletos/manuales-practicos/folleto-actividades-economicas.html
+- https://www.seg-social.es/wps/portal/wss/internet/Trabajadores/Afiliacion/10548/32825/625?changeLanguage=es
+
+## 3. Bloqueantes antes del primer cobro real
 
 - [ ] El titular está dado de alta para desarrollar la actividad y emitir facturas.
-- [ ] Se ha decidido quién factura: persona autónoma o sociedad. La marca «Padel
-  Club OS» no sustituye el nombre/razón social ni el NIF.
+- [ ] Se ha decidido quién factura: en el arranque descrito, la persona física
+  titular. La marca «Padel Club OS» no sustituye su nombre completo ni su NIF.
 - [ ] Configurar en Vercel Production y Preview, según corresponda:
   - `LEGAL_NAME`
   - `LEGAL_TAX_ID`
@@ -41,17 +64,23 @@ prestación electrónica están reguladas en las condiciones SaaS.
   DPA no muestran el aviso ámbar de datos pendientes.
 - [ ] Revisar que la entidad, domicilio y NIF coinciden exactamente en Stripe, en
   las páginas legales y en el alta fiscal.
-- [ ] Aplicar la migración `20260722190000_add_legal_acceptances` en el entorno de
-  destino antes de desplegar el código que registra aceptaciones.
+- [ ] Aplicar todas las migraciones hasta
+  `20260723030000_durable_refunds` antes de desplegar.
+- [ ] Establecer `TAX_HANDLING_CONFIRMED=true` solo después de confirmar alta,
+  facturación e impuestos con el criterio real que se vaya a usar.
 
 Referencias: el artículo 10 LSSI exige que la identidad y el contacto sean accesibles
 de forma permanente, fácil, directa y gratuita; los artículos 27 y 28 regulan la
 información y confirmación de la contratación electrónica:
 https://www.boe.es/buscar/act.php?id=BOE-A-2002-13758
 
-## 3. Stripe Tax en TEST
+## 4. Stripe Tax en TEST
 
-El código está preparado, pero Tax no debe activarse a ciegas. Primero:
+El código está preparado, pero Tax no debe activarse a ciegas. Stripe Tax es una
+opción técnica, no una condición legal universal ni un sustituto de asesoría. Si
+se mantiene `STRIPE_TAX_ENABLED=false`, debe existir un procedimiento externo
+verificado para calcular impuestos y emitir/conservar facturas. Si se usa Stripe
+Tax:
 
 1. Stripe TEST → Tax → Settings:
    - indicar como origen la dirección fiscal real;
@@ -91,7 +120,7 @@ recogida de identificadores fiscales en Checkout:
 La AEAT enumera el contenido obligatorio de una factura completa:
 https://sede.agenciatributaria.gob.es/Sede/iva/facturacion-registro/facturacion-iva/contenido-facturas.html
 
-## 4. Paso a LIVE
+## 5. Paso a LIVE
 
 - [ ] Repetir en LIVE la configuración validada en TEST; TEST y LIVE tienen
   productos, prices, registros fiscales e invoice settings separados.
@@ -104,7 +133,7 @@ https://sede.agenciatributaria.gob.es/Sede/iva/facturacion-registro/facturacion-
   el medio material de emisión, pero el responsable de la factura sigue siendo el
   empresario o profesional que presta el SaaS.
 
-## 5. Stripe Connect y facturas de reservas
+## 6. Stripe Connect y facturas de reservas
 
 La plataforma no debe emitir como propia la factura del alquiler de pista. En el
 modelo actual de destination charges:
@@ -121,7 +150,7 @@ cancelaciones, impuestos y facturación a jugadores.
 Referencia de Stripe sobre la necesidad de determinar primero qué entidad tiene la
 obligación fiscal en Connect: https://docs.stripe.com/tax/connect
 
-## 6. RGPD operativo que las páginas no resuelven por sí solas
+## 7. RGPD operativo que las páginas no resuelven por sí solas
 
 - [ ] Firmar/aceptar el DPA con cada club; el clickwrap y `LegalAcceptance` aportan
   evidencia, pero una orden de servicio firmada puede usarse para clientes grandes.
@@ -138,7 +167,7 @@ La AEPD exige formalizar la relación responsable-encargado y advierte que no ba
 una remisión genérica al RGPD:
 https://www.aepd.es/preguntas-frecuentes/2-tus-obligaciones-como-responsable-del-tratamiento/8-responsable-y-encargado-del-tratamiento
 
-## 7. Calendario fiscal 2027 que hay que preparar
+## 8. Calendario fiscal 2027 que hay que preparar
 
 Stripe PDF resuelve el documento legible, pero no se debe asumir que por sí solo
 cubre los futuros requisitos españoles de sistemas informáticos de facturación.

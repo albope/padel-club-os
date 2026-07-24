@@ -10,7 +10,7 @@ import { cn } from "@/lib/utils"
 // disabled 45%, press 120ms ease-out, semibold, iconos stroke 1.75.
 const buttonVariants = temaMarcadorActivo()
   ? cva(
-      "inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-semibold transition-[background-color,border-color,color,box-shadow,transform] duration-[120ms] ease-out active:scale-[0.98] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring disabled:pointer-events-none disabled:opacity-[0.45] [&_svg]:[stroke-width:1.75]",
+      "inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-semibold transition-[background-color,border-color,color,box-shadow,transform] duration-100 ease-out active:scale-[0.98] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring disabled:pointer-events-none disabled:opacity-[0.45] [&_svg]:[stroke-width:1.75]",
       {
         variants: {
           variant: {

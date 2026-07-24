@@ -10,12 +10,14 @@ export async function GET() {
 
     const clubId = auth.session.user.clubId
 
-    const socios = await db.user.findMany({
+    const memberships = await db.clubMembership.findMany({
       where: {
         clubId,
         role: "PLAYER",
+        status: { not: "REVOKED" },
       },
-      orderBy: { name: "asc" },
+      include: { user: true },
+      orderBy: { user: { name: "asc" } },
     })
 
     const cabeceras = [
@@ -26,7 +28,7 @@ export async function GET() {
       "Posicion",
     ]
 
-    const filas = socios.map((s) => [
+    const filas = memberships.map(({ user: s }) => [
       s.name || "",
       s.email || "",
       s.phone || "",

@@ -8,6 +8,7 @@ export type Permission =
   | "bookings:create-any"   // crear reserva para cualquier usuario
   | "bookings:update"
   | "bookings:delete"
+  | "bookings:cancel-own"
   | "bookings:import"
   // Pistas
   | "courts:read"
@@ -103,7 +104,7 @@ export type Permission =
 // Permisos por rol
 const rolePermissions: Record<UserRole, Permission[]> = {
   SUPER_ADMIN: [
-    "bookings:read", "bookings:create", "bookings:create-any", "bookings:update", "bookings:delete", "bookings:import",
+    "bookings:read", "bookings:create", "bookings:create-any", "bookings:update", "bookings:delete", "bookings:cancel-own", "bookings:import",
     "courts:read", "courts:create", "courts:update", "courts:delete", "courts:import",
     "users:read", "users:create", "users:update", "users:delete", "users:import",
     "competitions:read", "competitions:create", "competitions:update", "competitions:delete",
@@ -128,7 +129,7 @@ const rolePermissions: Record<UserRole, Permission[]> = {
     "team:read", "team:invite", "team:update", "team:remove",
   ],
   CLUB_ADMIN: [
-    "bookings:read", "bookings:create", "bookings:create-any", "bookings:update", "bookings:delete", "bookings:import",
+    "bookings:read", "bookings:create", "bookings:create-any", "bookings:update", "bookings:delete", "bookings:cancel-own", "bookings:import",
     "courts:read", "courts:create", "courts:update", "courts:delete", "courts:import",
     "users:read", "users:create", "users:update", "users:delete", "users:import",
     "competitions:read", "competitions:create", "competitions:update", "competitions:delete",
@@ -150,7 +151,7 @@ const rolePermissions: Record<UserRole, Permission[]> = {
     "team:read", "team:invite", "team:update", "team:remove",
   ],
   STAFF: [
-    "bookings:read", "bookings:create", "bookings:create-any", "bookings:update", "bookings:delete",
+    "bookings:read", "bookings:create", "bookings:create-any", "bookings:update", "bookings:delete", "bookings:cancel-own",
     "courts:read", "courts:create", "courts:update", "courts:delete",
     "users:read",
     "competitions:read", "competitions:create", "competitions:update", "competitions:delete",
@@ -167,7 +168,7 @@ const rolePermissions: Record<UserRole, Permission[]> = {
     "team:read",
   ],
   PLAYER: [
-    "bookings:read", "bookings:create",
+    "bookings:read", "bookings:create", "bookings:cancel-own",
     "courts:read",
     "competitions:read",
     "open-matches:read", "open-matches:create", "open-matches:join",

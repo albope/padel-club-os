@@ -30,6 +30,9 @@ import { LanguageSelector } from '@/components/layout/LanguageSelector';
 import { temaMarcadorActivo } from '@/lib/feature-flags';
 import { generarTemaTenant, varsTenant } from '@/lib/tenant-theme';
 import Image from 'next/image';
+import { DEFAULT_IMAGES } from '@/lib/default-images';
+import { FeedbackWidget } from '@/components/feedback/FeedbackWidget';
+import { ImpersonationBanner } from '@/components/platform/ImpersonationBanner';
 
 interface ClubInfo {
   id: string;
@@ -132,6 +135,7 @@ export default function ClubLayout({ club, children }: ClubLayoutProps) {
       className={cn('min-h-screen bg-background', temaMarcador && 'ambito-tenant')}
       style={estiloTenant}
     >
+      <ImpersonationBanner />
       <SkipToContent />
       {/* Header */}
       <header
@@ -158,35 +162,19 @@ export default function ClubLayout({ club, children }: ClubLayoutProps) {
         <div className="mx-auto max-w-5xl flex items-center justify-between h-14 px-4">
           {/* Logo + nombre */}
           <Link href={basePath} className="flex items-center gap-2.5 group shrink-0">
-            {club.logoUrl ? (
-              <Image
-                src={club.logoUrl}
-                alt={club.name}
-                width={36}
-                height={36}
-                className={cn(
-                  'h-9 w-9 object-cover',
-                  temaMarcador
-                    ? 'rounded-[10px]'
-                    : 'rounded-full ring-2 ring-offset-2 ring-offset-background'
-                )}
-                style={temaMarcador ? undefined : { borderColor: color, boxShadow: `0 0 0 2px ${color}` }}
-              />
-            ) : (
-              <div
-                className={cn(
-                  'h-9 w-9 flex items-center justify-center text-white font-bold text-sm',
-                  temaMarcador ? 'rounded-[10px] font-display' : 'rounded-full shadow-md'
-                )}
-                style={
-                  temaMarcador
-                    ? { backgroundColor: colorPrimario, color: colorSobrePrimario }
-                    : { background: `linear-gradient(135deg, ${color}, ${color}dd)` }
-                }
-              >
-                {club.name.charAt(0).toUpperCase()}
-              </div>
-            )}
+            <Image
+              src={club.logoUrl || DEFAULT_IMAGES.clubHero}
+              alt={club.logoUrl ? club.name : `Imagen de ${club.name}`}
+              width={36}
+              height={36}
+              className={cn(
+                'h-9 w-9 object-cover',
+                temaMarcador
+                  ? 'rounded-[10px]'
+                  : 'rounded-full ring-2 ring-offset-2 ring-offset-background'
+              )}
+              style={temaMarcador ? undefined : { borderColor: color, boxShadow: `0 0 0 2px ${color}` }}
+            />
             <span className="font-display font-bold text-foreground truncate max-w-[160px] hidden sm:inline tracking-tight">
               {club.name}
             </span>
@@ -418,6 +406,7 @@ export default function ClubLayout({ club, children }: ClubLayoutProps) {
 
       {/* Spacer for mobile bottom nav */}
       <div className="md:hidden h-16" />
+      <FeedbackWidget />
     </div>
   );
 }

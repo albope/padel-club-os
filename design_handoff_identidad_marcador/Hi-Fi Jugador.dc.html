@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="design_doc_mode" content="canvas">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@100,400..800;112,500..800&family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/lucide@0.417.0/dist/umd/lucide.min.js"></script>
+<style>
+body { margin:0; background:#E6E2DA; font-family:'Instrument Sans',system-ui,sans-serif; color:#1C1A17; }
+a { color:#157A54; text-decoration:none; } a:hover { color:#0E5C3F; }
+</style>
+</helmet>
+<section style="padding:48px">
+  <div style="max-width:980px;margin-bottom:32px">
+    <div style="display:flex;align-items:center;gap:10px;font-size:12px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:#8A8377"><span style="width:28px;height:2px;background:#157A54"></span>Bloque E · Hi-fi · Portal del jugador · 390px · tenant «Club Pádel Mediterráneo» (índigo)</div>
+    <h1 style="font-family:'Archivo',sans-serif;font-stretch:112%;font-weight:750;font-size:30px;letter-spacing:-0.02em;margin:8px 0 4px">Portal del jugador — dirección Marcador</h1>
+    <p style="font-size:14px;color:#5C564C;margin:0;line-height:1.55;text-wrap:pretty">El color del club vive solo en la acción primaria, la nav activa y los acentos de identidad; los estados usan patrón + icono + texto; cifras tabulares en horas y precios; co-branding «Powered by» discreto. Ids: <a href="#2a">2a</a>–<a href="#2i">2i</a>.</p>
+  </div>
+  <div style="display:flex;gap:36px;align-items:flex-start;flex-wrap:wrap">
+
+    <!-- 2a HOME -->
+    <div id="2a">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px"><span style="background:#1C1A17;color:#fff;font-size:11px;font-weight:700;padding:3px 8px;border-radius:6px">2a</span><span style="font-size:13px;font-weight:600;color:#3C382F">Home del club</span></div>
+      <div data-screen-label="Home club" style="width:390px;background:#F6F3ED;border:1px solid #C9C2B4;border-radius:24px;overflow:hidden;display:grid;align-content:start;box-shadow:0 12px 40px rgba(28,26,23,0.12)">
+        <header style="display:flex;align-items:center;gap:10px;padding:14px 16px;background:#F6F3ED;border-bottom:1px solid #E7E2D8">
+          <span style="width:34px;height:34px;border-radius:10px;background:#4F46E5;color:#fff;display:grid;place-items:center;font-family:'Archivo';font-weight:750;font-size:15px">C</span>
+          <span style="font-family:'Archivo',sans-serif;font-stretch:112%;font-weight:700;font-size:16px;letter-spacing:-0.01em;flex:1">Club Pádel Mediterráneo</span>
+          <span style="position:relative;width:38px;height:38px;display:grid;place-items:center"><i data-lucide="bell" style="width:20px;height:20px;color:#3C382F"></i><span style="position:absolute;top:6px;right:7px;width:7px;height:7px;border-radius:99px;background:#B3402E;border:1.5px solid #F6F3ED"></span></span>
+        </header>
+        <main style="padding:20px 16px 12px;display:grid;gap:20px">
+          <div>
+            <p style="margin:0;font-size:13px;color:#5C564C">Miércoles 22 de julio</p>
+            <h1 style="margin:2px 0 0;font-family:'Archivo';font-stretch:112%;font-weight:750;font-size:26px;letter-spacing:-0.02em">Hola, Lucía</h1>
+          </div>
+          <!-- Próxima reserva -->
+          <div style="background:#1C1A17;color:#F6F3ED;border-radius:14px;padding:18px;display:grid;gap:12px">
+            <div style="display:flex;align-items:center;justify-content:space-between"><span style="font-size:11px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:#A39C8E">Tu próxima reserva</span><span style="display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:600;background:rgba(111,191,156,0.15);color:#6FBF9C;border-radius:5px;padding:3px 8px"><i data-lucide="check" style="width:11px;height:11px"></i>Pagada</span></div>
+            <div style="display:flex;align-items:baseline;gap:12px">
+              <span style="font-family:'Archivo';font-stretch:112%;font-weight:750;font-size:34px;font-variant-numeric:tabular-nums;letter-spacing:-0.02em">19:00</span>
+              <div><p style="margin:0;font-size:14px;font-weight:600">Hoy · Pista 2 · 90 min</p><p style="margin:0;font-size:12px;color:#A39C8E">con Marta, Jorge y Dani</p></div>
+            </div>
+            <div style="display:flex;gap:4px">
+              <sc-for list="{{ slotsHero }}" as="s" hint-placeholder-count="8"><span style="flex:1;height:8px;border-radius:2px;background:{{ s.bg }};border:{{ s.border }}"></span></sc-for>
+            </div>
+            <div style="display:flex;gap:8px">
+              <button style="flex:1;height:38px;border-radius:9px;border:1px solid rgba(246,243,237,0.25);background:transparent;color:#F6F3ED;font-family:inherit;font-size:13px;font-weight:600">Ver detalles</button>
+              <button style="flex:1;height:38px;border-radius:9px;border:1px solid rgba(246,243,237,0.25);background:transparent;color:#F6F3ED;font-family:inherit;font-size:13px;font-weight:600">Reagendar</button>
+            </div>
+          </div>
+          <!-- CTA + accesos -->
+          <button style="height:52px;border-radius:12px;border:none;background:#4F46E5;color:#fff;font-family:inherit;font-size:16px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:8px;cursor:pointer"><i data-lucide="calendar-plus" style="width:20px;height:20px"></i>Reservar pista</button>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px">
+            <sc-for list="{{ accesos }}" as="a" hint-placeholder-count="3">
+              <div style="background:#fff;border:1px solid #E7E2D8;border-radius:12px;padding:12px;display:grid;gap:6px;justify-items:start">
+                <i data-lucide="{{ a.icon }}" style="width:20px;height:20px;color:#4F46E5"></i>
+                <span style="font-size:12.5px;font-weight:600">{{ a.label }}</span>
+              </div>
+            </sc-for>
+          </div>
+          <!-- Partidas cerca de tu nivel -->
+          <div style="display:grid;gap:10px">
+            <div style="display:flex;align-items:baseline;justify-content:space-between"><h2 style="margin:0;font-family:'Archivo';font-stretch:112%;font-weight:650;font-size:17px">Partidas para ti</h2><span style="font-size:12.5px;font-weight:600;color:#4F46E5">Ver todas</span></div>
+            <sc-for list="{{ partidasMini }}" as="p" hint-placeholder-count="2">
+              <div style="background:#fff;border:1px solid #E7E2D8;border-radius:12px;padding:14px;display:flex;align-items:center;gap:12px">
+                <div style="text-align:center;width:52px"><p style="margin:0;font-family:'Archivo';font-stretch:112%;font-weight:750;font-size:18px;font-variant-numeric:tabular-nums">{{ p.hora }}</p><p style="margin:0;font-size:10.5px;color:#8A8377">{{ p.dia }}</p></div>
+                <div style="flex:1"><p style="margin:0;font-size:13.5px;font-weight:600">{{ p.pista }} · Nivel {{ p.nivel }}</p>
+                  <div style="display:flex;gap:3px;margin-top:5px"><sc-for list="{{ p.plazas }}" as="q" hint-placeholder-count="4"><span style="width:22px;height:10px;border-radius:3px;background:{{ q.bg }};border:{{ q.border }}"></span></sc-for></div>
+                </div>
+                <span style="font-size:12px;font-weight:700;color:#0E5C3F;background:#F0F7F3;border:1px solid #BFE0D0;border-radius:6px;padding:4px 10px;display:inline-flex;align-items:center;gap:4px"><i data-lucide="users" style="width:12px;height:12px"></i>{{ p.libres }} libres</span>
+              </div>
+            </sc-for>
+          </div>
+          <!-- Noticia -->
+          <div style="background:#fff;border:1px solid #E7E2D8;border-radius:12px;overflow:hidden">
+            <div style="height:96px;background:repeating-linear-gradient(-45deg,#E7E2D8 0 10px,#EFECE6 10px 20px);display:grid;place-items:center"><span style="font-family:monospace;font-size:10.5px;color:#6B655A">foto: torneo de verano</span></div>
+            <div style="padding:14px"><p style="margin:0;font-size:14px;font-weight:600;line-height:1.4">Abiertas las inscripciones al Torneo de Verano 2026</p><p style="margin:4px 0 0;font-size:12px;color:#8A8377">Hace 2 días · Noticias del club</p></div>
+          </div>
+          <p style="margin:4px 0;display:flex;align-items:center;justify-content:center;gap:6px;font-size:10.5px;font-weight:600;letter-spacing:0.06em;color:#A39C8E">POWERED BY <svg width="14" height="14" viewBox="0 0 48 48" style="opacity:0.6"><rect x="4" y="10" width="40" height="28" rx="7" fill="none" stroke="#8A8377" stroke-width="4"></rect><rect x="10" y="16" width="13" height="16" rx="3" fill="#8A8377"></rect></svg> PADELCLUB OS</p>
+        </main>
+        <nav style="display:flex;height:64px;background:#fff;border-top:1px solid #E7E2D8">
+          <sc-for list="{{ navHome }}" as="n" hint-placeholder-count="5">
+            <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;font-size:10.5px;font-weight:600;color:{{ n.color }};position:relative"><span style="position:absolute;top:0;left:50%;transform:translateX(-50%);width:{{ n.pill }};height:3px;border-radius:0 0 3px 3px;background:#4F46E5"></span><i data-lucide="{{ n.icon }}" style="width:21px;height:21px"></i>{{ n.label }}</div>
+          </sc-for>
+        </nav>
+      </div>
+    </div>
+
+    <!-- 2b RESERVAR -->
+    <div id="2b">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px"><span style="background:#1C1A17;color:#fff;font-size:11px;font-weight:700;padding:3px 8px;border-radius:6px">2b</span><span style="font-size:13px;font-weight:600;color:#3C382F">Reservar pista · grid + selección</span></div>
+      <div data-screen-label="Reservar" style="width:390px;background:#F6F3ED;border:1px solid #C9C2B4;border-radius:24px;overflow:hidden;display:grid;align-content:start;box-shadow:0 12px 40px rgba(28,26,23,0.12)">
+        <header style="display:flex;align-items:center;gap:10px;padding:14px 16px;border-bottom:1px solid #E7E2D8">
+          <i data-lucide="chevron-left" style="width:22px;height:22px"></i>
+          <span style="font-family:'Archivo';font-stretch:112%;font-weight:700;font-size:17px;flex:1">Reservar pista</span>
+          <span style="font-size:12px;font-weight:600;color:#5C564C;display:inline-flex;align-items:center;gap:4px"><i data-lucide="sliders-horizontal" style="width:15px;height:15px"></i>90 min</span>
+        </header>
+        <div style="display:flex;gap:8px;padding:14px 16px 4px;overflow:hidden">
+          <sc-for list="{{ dias }}" as="d" hint-placeholder-count="5">
+            <div style="min-width:56px;border-radius:11px;padding:8px 0;text-align:center;background:{{ d.bg }};color:{{ d.fg }};border:{{ d.border }}"><p style="margin:0;font-size:10.5px;font-weight:600;text-transform:uppercase">{{ d.dia }}</p><p style="margin:0;font-family:'Archivo';font-weight:750;font-size:18px;font-variant-numeric:tabular-nums">{{ d.num }}</p></div>
+          </sc-for>
+        </div>
+        <div style="display:flex;gap:12px;padding:10px 16px;flex-wrap:wrap;font-size:11px;color:#5C564C">
+          <span style="display:inline-flex;align-items:center;gap:5px"><span style="width:14px;height:14px;border-radius:4px;border:1.5px dashed #A39C8E"></span>Libre</span>
+          <span style="display:inline-flex;align-items:center;gap:5px"><span style="width:14px;height:14px;border-radius:4px;background:repeating-linear-gradient(45deg,#DDD7CC 0 3px,#EFECE6 3px 6px);border:1px solid #C9C2B4"></span>Ocupada</span>
+          <span style="display:inline-flex;align-items:center;gap:5px"><span style="width:14px;height:14px;border-radius:4px;background:#1C1A17"></span>Tuya</span>
+          <span style="display:inline-flex;align-items:center;gap:5px"><span style="width:14px;height:14px;border-radius:4px;background:#F0F7F3;border:1.5px solid #157A54"></span>Abierta</span>
+          <span style="display:inline-flex;align-items:center;gap:5px"><span style="width:14px;height:14px;border-radius:4px;background:#EFECE6;border:1px solid #C9C2B4;display:grid;place-items:center"><i data-lucide="ban" style="width:9px;height:9px;color:#8A8377"></i></span>Bloqueada</span>
+        </div>
+        <div style="padding:4px 16px 16px">
+          <div style="background:#fff;border:1px solid #E7E2D8;border-radius:14px;overflow:hidden">
+            <div style="display:grid;grid-template-columns:52px 1fr 1fr 1fr;border-bottom:1px solid #E7E2D8;background:#FDFCFA">
+              <span></span>
+              <sc-for list="{{ pistasHead }}" as="p" hint-placeholder-count="3"><div style="padding:10px 4px;text-align:center"><p style="margin:0;font-size:12px;font-weight:700">{{ p.n }}</p><p style="margin:0;font-size:10px;color:#8A8377">{{ p.t }}</p></div></sc-for>
+            </div>
+            <sc-for list="{{ filas }}" as="f" hint-placeholder-count="6">
+              <div style="display:grid;grid-template-columns:52px 1fr 1fr 1fr;gap:0;border-bottom:1px solid #EFECE6">
+                <div style="display:flex;align-items:center;justify-content:center;font-size:11.5px;color:#8A8377;font-variant-numeric:tabular-nums;font-weight:600">{{ f.hora }}</div>
+                <sc-for list="{{ f.celdas }}" as="c" hint-placeholder-count="3">
+                  <div style="margin:4px;height:44px;border-radius:8px;background:{{ c.bg }};border:{{ c.border }};color:{{ c.fg }};display:grid;place-items:center;text-align:center;font-size:11px;font-weight:600;position:relative">
+                    <sc-if value="{{ c.icon }}" hint-placeholder-val="{{ false }}"><i data-lucide="{{ c.icon }}" style="width:13px;height:13px"></i></sc-if>
+                    <span style="font-variant-numeric:tabular-nums;line-height:1.25;white-space:pre-line">{{ c.txt }}</span>
+                  </div>
+                </sc-for>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+        <div style="margin:0 16px 16px;background:#1C1A17;color:#F6F3ED;border-radius:14px;padding:14px 16px;display:flex;align-items:center;gap:12px">
+          <div style="flex:1"><p style="margin:0;font-size:11px;color:#A39C8E;text-transform:uppercase;letter-spacing:0.08em">Selección</p><p style="margin:2px 0 0;font-size:14px;font-weight:600;font-variant-numeric:tabular-nums">Pista 2 · 19:00–20:30 · <span style="font-family:'Archivo';font-weight:750;font-size:16px">24 €</span></p></div>
+          <button style="height:44px;padding:0 20px;border-radius:10px;border:none;background:#4F46E5;color:#fff;font-family:inherit;font-size:14px;font-weight:700;cursor:pointer">Continuar</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2c CONFIRMACIÓN Y PAGO + 2d estados -->
+    <div id="2c">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px"><span style="background:#1C1A17;color:#fff;font-size:11px;font-weight:700;padding:3px 8px;border-radius:6px">2c</span><span style="font-size:13px;font-weight:600;color:#3C382F">Confirmación y pago</span></div>
+      <div data-screen-label="Pago" style="width:390px;background:#F6F3ED;border:1px solid #C9C2B4;border-radius:24px;overflow:hidden;display:grid;align-content:start;box-shadow:0 12px 40px rgba(28,26,23,0.12)">
+        <header style="display:flex;align-items:center;gap:10px;padding:14px 16px;border-bottom:1px solid #E7E2D8"><i data-lucide="chevron-left" style="width:22px;height:22px"></i><span style="font-family:'Archivo';font-stretch:112%;font-weight:700;font-size:17px">Confirmar reserva</span></header>
+        <main style="padding:18px 16px;display:grid;gap:16px">
+          <div style="background:#fff;border:1px solid #E7E2D8;border-radius:14px;padding:16px;display:grid;gap:12px">
+            <div style="display:flex;align-items:baseline;gap:12px"><span style="font-family:'Archivo';font-stretch:112%;font-weight:750;font-size:30px;font-variant-numeric:tabular-nums;letter-spacing:-0.02em">19:00</span><div><p style="margin:0;font-size:14px;font-weight:600">Hoy, mié 22 jul · Pista 2</p><p style="margin:0;font-size:12px;color:#8A8377">Cristal panorámica · 90 min</p></div></div>
+            <div style="display:flex;gap:4px"><sc-for list="{{ slotsPago }}" as="s" hint-placeholder-count="8"><span style="flex:1;height:8px;border-radius:2px;background:{{ s.bg }};border:{{ s.border }}"></span></sc-for></div>
+            <div style="border-top:1px solid #EFECE6;padding-top:12px;display:grid;gap:6px;font-size:13px">
+              <div style="display:flex;justify-content:space-between"><span style="color:#5C564C">Pista (90 min · tarifa tarde)</span><span style="font-variant-numeric:tabular-nums;font-weight:600">21,00 €</span></div>
+              <div style="display:flex;justify-content:space-between"><span style="color:#5C564C">Iluminación</span><span style="font-variant-numeric:tabular-nums;font-weight:600">3,00 €</span></div>
+              <div style="display:flex;justify-content:space-between;font-size:15px;font-weight:700;border-top:1px solid #EFECE6;padding-top:8px"><span>Total</span><span style="font-family:'Archivo';font-variant-numeric:tabular-nums">24,00 €</span></div>
+              <p style="margin:2px 0 0;font-size:12px;color:#8A8377;display:flex;align-items:center;gap:5px"><i data-lucide="users" style="width:13px;height:13px"></i>Dividir: 6,00 € por jugador — enviaremos enlace de pago</p>
+            </div>
+          </div>
+          <div style="display:grid;gap:8px">
+            <p style="margin:0;font-size:13px;font-weight:700">Método de pago</p>
+            <div style="background:#fff;border:2px solid #4F46E5;border-radius:12px;padding:14px;display:flex;align-items:center;gap:10px"><i data-lucide="credit-card" style="width:18px;height:18px;color:#4F46E5"></i><span style="font-size:13.5px;font-weight:600;flex:1">Pagar ahora con tarjeta</span><span style="width:18px;height:18px;border-radius:99px;border:5px solid #4F46E5"></span></div>
+            <div style="background:#fff;border:1.5px solid #E7E2D8;border-radius:12px;padding:14px;display:flex;align-items:center;gap:10px"><i data-lucide="store" style="width:18px;height:18px;color:#8A8377"></i><span style="font-size:13.5px;font-weight:600;flex:1;color:#5C564C">Pagar en el club</span><span style="width:18px;height:18px;border-radius:99px;border:1.5px solid #C9C2B4"></span></div>
+          </div>
+          <p style="margin:0;font-size:12px;color:#8A8377;display:flex;gap:6px;align-items:flex-start"><i data-lucide="info" style="width:14px;height:14px;flex-shrink:0;margin-top:1px"></i>Cancelación gratuita hasta 4 h antes. Después se cobra el 50%.</p>
+          <button style="height:52px;border-radius:12px;border:none;background:#4F46E5;color:#fff;font-family:inherit;font-size:16px;font-weight:700;cursor:pointer">Pagar 24,00 €</button>
+        </main>
+      </div>
+      <!-- 2d estados pago -->
+      <div id="2d" style="display:flex;gap:20px;margin-top:24px">
+        <div>
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px"><span style="background:#1C1A17;color:#fff;font-size:11px;font-weight:700;padding:3px 8px;border-radius:6px">2d</span><span style="font-size:13px;font-weight:600;color:#3C382F">Pago · éxito</span></div>
+          <div style="width:300px;background:#F6F3ED;border:1px solid #C9C2B4;border-radius:20px;padding:28px 20px;display:grid;gap:14px;justify-items:center;text-align:center;box-shadow:0 12px 40px rgba(28,26,23,0.12)">
+            <span style="width:64px;height:64px;border-radius:99px;background:#E9F4E6;border:2px solid #3D8B37;display:grid;place-items:center"><i data-lucide="check" style="width:30px;height:30px;color:#3D8B37"></i></span>
+            <div><p style="margin:0;font-family:'Archivo';font-stretch:112%;font-weight:750;font-size:20px">¡Pista reservada!</p><p style="margin:4px 0 0;font-size:13px;color:#5C564C;line-height:1.5">Hoy · Pista 2 · <span style="font-variant-numeric:tabular-nums">19:00–20:30</span><br>Recibo enviado a lucia@…</p></div>
+            <div style="display:flex;gap:4px;width:100%"><span style="flex:1;height:8px;border-radius:2px;background:#4F46E5"></span><span style="flex:1;height:8px;border-radius:2px;background:#4F46E5"></span><span style="flex:1;height:8px;border-radius:2px;background:#4F46E5"></span><span style="flex:1;height:8px;border-radius:2px;border:1px dashed #C9C2B4"></span><span style="flex:1;height:8px;border-radius:2px;border:1px dashed #C9C2B4"></span></div>
+            <button style="width:100%;height:44px;border-radius:10px;border:none;background:#1C1A17;color:#F6F3ED;font-family:inherit;font-size:14px;font-weight:600">Añadir al calendario</button>
+            <button style="width:100%;height:44px;border-radius:10px;border:1.5px solid #C9C2B4;background:transparent;font-family:inherit;font-size:14px;font-weight:600;color:#1C1A17">Invitar jugadores</button>
+          </div>
+        </div>
+        <div>
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px"><span style="background:#1C1A17;color:#fff;font-size:11px;font-weight:700;padding:3px 8px;border-radius:6px">2d</span><span style="font-size:13px;font-weight:600;color:#3C382F">Pago · fallo recuperable</span></div>
+          <div style="width:300px;background:#F6F3ED;border:1px solid #C9C2B4;border-radius:20px;padding:28px 20px;display:grid;gap:14px;justify-items:center;text-align:center;box-shadow:0 12px 40px rgba(28,26,23,0.12)">
+            <span style="width:64px;height:64px;border-radius:99px;background:#F9E8E4;border:2px solid #B3402E;display:grid;place-items:center"><i data-lucide="alert-circle" style="width:30px;height:30px;color:#B3402E"></i></span>
+            <div><p style="margin:0;font-family:'Archivo';font-stretch:112%;font-weight:750;font-size:20px">El pago no se completó</p><p style="margin:4px 0 0;font-size:13px;color:#5C564C;line-height:1.5">Tu banco rechazó la tarjeta.<br><strong>Tu pista sigue guardada 10 min.</strong></p></div>
+            <div style="width:100%;background:#FBF1DD;border:1px solid #EFD9AC;border-radius:9px;padding:8px;font-size:12px;font-weight:600;color:#96660F;display:flex;align-items:center;justify-content:center;gap:6px"><i data-lucide="clock" style="width:13px;height:13px"></i>Reserva retenida · <span style="font-variant-numeric:tabular-nums">09:42</span></div>
+            <button style="width:100%;height:44px;border-radius:10px;border:none;background:#4F46E5;color:#fff;font-family:inherit;font-size:14px;font-weight:700">Reintentar pago</button>
+            <button style="width:100%;height:44px;border-radius:10px;border:1.5px solid #C9C2B4;background:transparent;font-family:inherit;font-size:14px;font-weight:600;color:#1C1A17">Pagar en el club</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2e PARTIDAS -->
+    <div id="2e">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px"><span style="background:#1C1A17;color:#fff;font-size:11px;font-weight:700;padding:3px 8px;border-radius:6px">2e</span><span style="font-size:13px;font-weight:600;color:#3C382F">Partidas abiertas · lista + unión</span></div>
+      <div data-screen-label="Partidas" style="width:390px;background:#F6F3ED;border:1px solid #C9C2B4;border-radius:24px;overflow:hidden;display:grid;align-content:start;box-shadow:0 12px 40px rgba(28,26,23,0.12)">
+        <header style="display:flex;align-items:center;gap:10px;padding:14px 16px;border-bottom:1px solid #E7E2D8"><span style="font-family:'Archivo';font-stretch:112%;font-weight:700;font-size:17px;flex:1">Partidas abiertas</span><button style="height:36px;padding:0 14px;border-radius:9px;border:none;background:#4F46E5;color:#fff;font-family:inherit;font-size:13px;font-weight:700;display:inline-flex;align-items:center;gap:6px"><i data-lucide="plus" style="width:15px;height:15px"></i>Crear</button></header>
+        <div style="display:flex;gap:8px;padding:12px 16px 4px;flex-wrap:wrap">
+          <span style="height:32px;display:inline-flex;align-items:center;padding:0 14px;border-radius:99px;background:#1C1A17;color:#F6F3ED;font-size:12.5px;font-weight:600">Hoy</span>
+          <span style="height:32px;display:inline-flex;align-items:center;gap:5px;padding:0 14px;border-radius:99px;border:1.5px solid #C9C2B4;font-size:12.5px;font-weight:600;color:#3C382F">Mi nivel · 3,2</span>
+          <span style="height:32px;display:inline-flex;align-items:center;padding:0 14px;border-radius:99px;border:1.5px solid #C9C2B4;font-size:12.5px;font-weight:600;color:#3C382F">Tarde</span>
+        </div>
+        <main style="padding:12px 16px 20px;display:grid;gap:12px">
+          <!-- Card expandida -->
+          <div style="background:#fff;border:2px solid #4F46E5;border-radius:14px;padding:16px;display:grid;gap:14px">
+            <div style="display:flex;align-items:center;gap:12px">
+              <div style="text-align:center;width:56px"><p style="margin:0;font-family:'Archivo';font-stretch:112%;font-weight:750;font-size:22px;font-variant-numeric:tabular-nums">19:00</p><p style="margin:0;font-size:10.5px;color:#8A8377">HOY</p></div>
+              <div style="flex:1"><p style="margin:0;font-size:14px;font-weight:700">Pista 4 · 90 min</p><p style="margin:0;font-size:12px;color:#5C564C">Nivel 2,8 – 3,6 · Mixta · <span style="font-variant-numeric:tabular-nums">6 € / jugador</span></p></div>
+              <span style="font-size:11px;font-weight:700;color:#0E5C3F;background:#F0F7F3;border:1px solid #BFE0D0;border-radius:6px;padding:3px 8px">2 libres</span>
+            </div>
+            <div style="display:flex;gap:8px">
+              <sc-for list="{{ jugadores }}" as="j" hint-placeholder-count="4">
+                <div style="flex:1;display:grid;gap:5px;justify-items:center;border:{{ j.border }};border-radius:10px;padding:10px 4px;background:{{ j.bg }}">
+                  <span style="width:34px;height:34px;border-radius:99px;background:{{ j.avatarBg }};color:{{ j.avatarFg }};display:grid;place-items:center;font-size:13px;font-weight:700;border:{{ j.avatarBorder }}">{{ j.ini }}</span>
+                  <span style="font-size:10.5px;font-weight:600;color:{{ j.nameFg }}">{{ j.name }}</span>
+                </div>
+              </sc-for>
+            </div>
+            <button style="height:46px;border-radius:10px;border:none;background:#4F46E5;color:#fff;font-family:inherit;font-size:14.5px;font-weight:700">Unirme · pagar 6 €</button>
+          </div>
+          <sc-for list="{{ partidasLista }}" as="p" hint-placeholder-count="3">
+            <div style="background:#fff;border:1px solid #E7E2D8;border-radius:12px;padding:14px;display:flex;align-items:center;gap:12px;opacity:{{ p.op }}">
+              <div style="text-align:center;width:52px"><p style="margin:0;font-family:'Archivo';font-stretch:112%;font-weight:750;font-size:18px;font-variant-numeric:tabular-nums">{{ p.hora }}</p><p style="margin:0;font-size:10.5px;color:#8A8377">{{ p.dia }}</p></div>
+              <div style="flex:1"><p style="margin:0;font-size:13.5px;font-weight:600">{{ p.pista }} · Nivel {{ p.nivel }}</p><div style="display:flex;gap:3px;margin-top:5px"><sc-for list="{{ p.plazas }}" as="q" hint-placeholder-count="4"><span style="width:22px;height:10px;border-radius:3px;background:{{ q.bg }};border:{{ q.border }}"></span></sc-for></div></div>
+              <span style="font-size:12px;font-weight:700;border-radius:6px;padding:4px 10px;background:{{ p.tagBg }};color:{{ p.tagFg }};border:1px solid {{ p.tagBorder }};display:inline-flex;align-items:center;gap:4px"><i data-lucide="{{ p.tagIcon }}" style="width:12px;height:12px"></i>{{ p.tag }}</span>
+            </div>
+          </sc-for>
+          <!-- empty -->
+          <div style="border:1.5px dashed #C9C2B4;border-radius:14px;padding:24px;display:grid;gap:10px;justify-items:center;text-align:center">
+            <div style="display:flex;gap:3px"><span style="width:18px;height:12px;border-radius:3px;border:1.5px dashed #A39C8E"></span><span style="width:18px;height:12px;border-radius:3px;border:1.5px dashed #A39C8E"></span><span style="width:18px;height:12px;border-radius:3px;background:#DDD7CC"></span></div>
+            <p style="margin:0;font-size:13px;font-weight:600">No hay más partidas mañana</p>
+            <p style="margin:0;font-size:12px;color:#8A8377;line-height:1.5">Crea una y avisamos a los jugadores de tu nivel.</p>
+            <button style="height:38px;padding:0 16px;border-radius:9px;border:1.5px solid #1C1A17;background:transparent;font-family:inherit;font-size:13px;font-weight:600;color:#1C1A17">Crear partida</button>
+          </div>
+        </main>
+      </div>
+    </div>
+
+    <!-- 2f RANKING -->
+    <div id="2f">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px"><span style="background:#1C1A17;color:#fff;font-size:11px;font-weight:700;padding:3px 8px;border-radius:6px">2f</span><span style="font-size:13px;font-weight:600;color:#3C382F">Ranking · posición personal</span></div>
+      <div data-screen-label="Ranking" style="width:390px;background:#F6F3ED;border:1px solid #C9C2B4;border-radius:24px;overflow:hidden;display:grid;align-content:start;box-shadow:0 12px 40px rgba(28,26,23,0.12)">
+        <header style="padding:14px 16px;border-bottom:1px solid #E7E2D8;display:flex;align-items:center;gap:10px"><span style="font-family:'Archivo';font-stretch:112%;font-weight:700;font-size:17px;flex:1">Ranking del club</span><span style="height:32px;display:inline-flex;align-items:center;padding:0 12px;border-radius:99px;border:1.5px solid #C9C2B4;font-size:12px;font-weight:600;color:#3C382F">Temporada 25/26</span></header>
+        <div style="margin:16px;background:#1C1A17;border-radius:14px;padding:16px;color:#F6F3ED;display:flex;align-items:center;gap:14px">
+          <span style="font-family:'Archivo';font-stretch:112%;font-weight:750;font-size:30px;font-variant-numeric:tabular-nums;color:#6FBF9C">#14</span>
+          <div style="flex:1"><p style="margin:0;font-size:13.5px;font-weight:700">Tu posición · Lucía Ferrandis</p><p style="margin:0;font-size:12px;color:#A39C8E;font-variant-numeric:tabular-nums">1.412 ELO · 23 partidas</p></div>
+          <span style="display:inline-flex;align-items:center;gap:3px;font-size:12.5px;font-weight:700;color:#6FBF9C"><i data-lucide="arrow-up" style="width:14px;height:14px"></i>+2</span>
+        </div>
+        <main style="padding:0 16px 20px;display:grid;gap:6px">
+          <sc-for list="{{ ranking }}" as="r" hint-placeholder-count="8">
+            <div style="display:flex;align-items:center;gap:12px;background:{{ r.bg }};border:{{ r.border }};border-radius:12px;padding:11px 14px">
+              <span style="width:34px;font-family:'Archivo';font-stretch:112%;font-weight:750;font-size:{{ r.numSize }};font-variant-numeric:tabular-nums;color:{{ r.numColor }}">{{ r.pos }}</span>
+              <span style="width:34px;height:34px;border-radius:99px;background:{{ r.avBg }};color:{{ r.avFg }};display:grid;place-items:center;font-size:12.5px;font-weight:700">{{ r.ini }}</span>
+              <div style="flex:1"><p style="margin:0;font-size:13.5px;font-weight:{{ r.nameW }}">{{ r.name }}</p><p style="margin:0;font-size:11px;color:#8A8377;font-variant-numeric:tabular-nums">{{ r.stats }}</p></div>
+              <span style="font-family:'Archivo';font-weight:700;font-size:14px;font-variant-numeric:tabular-nums">{{ r.elo }}</span>
+              <span style="display:inline-flex;align-items:center;gap:2px;width:38px;justify-content:flex-end;font-size:11.5px;font-weight:700;color:{{ r.movColor }}"><i data-lucide="{{ r.movIcon }}" style="width:12px;height:12px"></i>{{ r.mov }}</span>
+            </div>
+          </sc-for>
+        </main>
+      </div>
+    </div>
+
+    <!-- 2g PERFIL -->
+    <div id="2g">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px"><span style="background:#1C1A17;color:#fff;font-size:11px;font-weight:700;padding:3px 8px;border-radius:6px">2g</span><span style="font-size:13px;font-weight:600;color:#3C382F">Perfil del jugador</span></div>
+      <div data-screen-label="Perfil" style="width:390px;background:#F6F3ED;border:1px solid #C9C2B4;border-radius:24px;overflow:hidden;display:grid;align-content:start;box-shadow:0 12px 40px rgba(28,26,23,0.12)">
+        <div style="background:#1C1A17;color:#F6F3ED;padding:22px 16px;display:grid;gap:14px">
+          <div style="display:flex;align-items:center;gap:14px">
+            <span style="width:60px;height:60px;border-radius:99px;background:#4F46E5;display:grid;place-items:center;font-family:'Archivo';font-weight:750;font-size:22px;border:2px solid rgba(246,243,237,0.3)">LF</span>
+            <div style="flex:1"><p style="margin:0;font-family:'Archivo';font-stretch:112%;font-weight:750;font-size:20px">Lucía Ferrandis</p><p style="margin:2px 0 0;font-size:12.5px;color:#A39C8E">Socia desde 2024 · Nivel 3,2</p></div>
+            <i data-lucide="settings" style="width:20px;height:20px;color:#A39C8E"></i>
+          </div>
+          <div style="display:flex;gap:8px">
+            <sc-for list="{{ statsPerfil }}" as="s" hint-placeholder-count="4">
+              <div style="flex:1;background:rgba(246,243,237,0.07);border-radius:10px;padding:10px 6px;text-align:center"><p style="margin:0;font-family:'Archivo';font-stretch:112%;font-weight:750;font-size:19px;font-variant-numeric:tabular-nums;color:{{ s.color }}">{{ s.v }}</p><p style="margin:2px 0 0;font-size:10px;color:#A39C8E;text-transform:uppercase;letter-spacing:0.06em">{{ s.l }}</p></div>
+            </sc-for>
+          </div>
+        </div>
+        <main style="padding:16px;display:grid;gap:16px">
+          <div style="display:grid;gap:8px">
+            <h2 style="margin:0;font-family:'Archivo';font-stretch:112%;font-weight:650;font-size:16px">Próximas reservas</h2>
+            <div style="background:#fff;border:1px solid #E7E2D8;border-radius:12px;padding:14px;display:flex;align-items:center;gap:12px">
+              <span style="font-family:'Archivo';font-stretch:112%;font-weight:750;font-size:18px;font-variant-numeric:tabular-nums">19:00</span>
+              <div style="flex:1"><p style="margin:0;font-size:13px;font-weight:600">Hoy · Pista 2 · 90 min</p><p style="margin:0;font-size:11.5px;color:#8A8377">Pagada · con Marta, Jorge y Dani</p></div>
+              <span style="font-size:12px;font-weight:600;color:#5C564C">Reagendar</span>
+            </div>
+          </div>
+          <div style="display:grid;gap:8px">
+            <h2 style="margin:0;font-family:'Archivo';font-stretch:112%;font-weight:650;font-size:16px">Historial</h2>
+            <sc-for list="{{ historial }}" as="h" hint-placeholder-count="3">
+              <div style="background:#fff;border:1px solid #E7E2D8;border-radius:12px;padding:12px 14px;display:flex;align-items:center;gap:12px">
+                <span style="width:30px;height:30px;border-radius:8px;background:{{ h.resBg }};color:{{ h.resFg }};display:grid;place-items:center;font-size:11px;font-weight:800">{{ h.res }}</span>
+                <div style="flex:1"><p style="margin:0;font-size:13px;font-weight:600">{{ h.txt }}</p><p style="margin:0;font-size:11.5px;color:#8A8377;font-variant-numeric:tabular-nums">{{ h.meta }}</p></div>
+                <span style="font-size:12px;font-weight:700;font-variant-numeric:tabular-nums;color:{{ h.eloColor }};display:inline-flex;align-items:center;gap:2px"><i data-lucide="{{ h.eloIcon }}" style="width:11px;height:11px"></i>{{ h.elo }}</span>
+              </div>
+            </sc-for>
+          </div>
+          <div style="display:grid;gap:2px">
+            <sc-for list="{{ ajustesPerfil }}" as="a" hint-placeholder-count="4">
+              <div style="display:flex;align-items:center;gap:12px;padding:13px 4px;border-bottom:1px solid #E7E2D8;font-size:13.5px;font-weight:600"><i data-lucide="{{ a.icon }}" style="width:17px;height:17px;color:#8A8377"></i><span style="flex:1;color:{{ a.color }}">{{ a.label }}</span><i data-lucide="chevron-right" style="width:15px;height:15px;color:#C9C2B4"></i></div>
+            </sc-for>
+          </div>
+        </main>
+      </div>
+    </div>
+
+    <!-- 2h LOGIN -->
+    <div id="2h">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px"><span style="background:#1C1A17;color:#fff;font-size:11px;font-weight:700;padding:3px 8px;border-radius:6px">2h</span><span style="font-size:13px;font-weight:600;color:#3C382F">Login del club · error inline</span></div>
+      <div data-screen-label="Login" style="width:390px;background:#F6F3ED;border:1px solid #C9C2B4;border-radius:24px;overflow:hidden;display:grid;align-content:start;box-shadow:0 12px 40px rgba(28,26,23,0.12)">
+        <div style="padding:44px 24px 32px;display:grid;gap:22px;justify-items:center">
+          <div style="display:grid;gap:10px;justify-items:center">
+            <span style="width:64px;height:64px;border-radius:18px;background:#4F46E5;color:#fff;display:grid;place-items:center;font-family:'Archivo';font-weight:750;font-size:26px">C</span>
+            <p style="margin:0;font-family:'Archivo';font-stretch:112%;font-weight:750;font-size:22px;letter-spacing:-0.01em;text-align:center">Club Pádel Mediterráneo</p>
+            <p style="margin:0;font-size:13.5px;color:#5C564C">Accede para reservar y competir</p>
+          </div>
+          <div style="width:100%;display:grid;gap:12px">
+            <div style="display:grid;gap:5px"><label style="font-size:12.5px;font-weight:600">Email</label><input value="lucia@ferrandis" style="height:48px;border:1.5px solid #B3402E;border-radius:11px;padding:0 14px;font-family:inherit;font-size:15px;background:#fff;color:#1C1A17;box-shadow:0 0 0 3px rgba(179,64,46,0.1)"><p style="margin:0;font-size:12px;color:#B3402E;display:flex;align-items:center;gap:4px"><i data-lucide="alert-circle" style="width:13px;height:13px"></i>Falta el dominio — ¿quizá lucia@ferrandis.com?</p></div>
+            <div style="display:grid;gap:5px"><label style="font-size:12.5px;font-weight:600">Contraseña</label><div style="height:48px;border:1.5px solid #C9C2B4;border-radius:11px;padding:0 14px;background:#fff;display:flex;align-items:center;justify-content:space-between"><span style="letter-spacing:3px;font-weight:700">••••••••</span><i data-lucide="eye" style="width:17px;height:17px;color:#8A8377"></i></div></div>
+            <span style="font-size:12.5px;font-weight:600;color:#4F46E5;justify-self:end">¿Has olvidado la contraseña?</span>
+            <button style="height:50px;border-radius:12px;border:none;background:#4F46E5;color:#fff;font-family:inherit;font-size:15px;font-weight:700">Entrar</button>
+            <button style="height:50px;border-radius:12px;border:1.5px solid #C9C2B4;background:transparent;font-family:inherit;font-size:14px;font-weight:600;color:#1C1A17">Crear cuenta</button>
+          </div>
+          <p style="margin:8px 0 0;display:flex;align-items:center;gap:6px;font-size:10.5px;font-weight:600;letter-spacing:0.06em;color:#A39C8E">POWERED BY <svg width="14" height="14" viewBox="0 0 48 48" style="opacity:0.6"><rect x="4" y="10" width="40" height="28" rx="7" fill="none" stroke="#8A8377" stroke-width="4"></rect><rect x="10" y="16" width="13" height="16" rx="3" fill="#8A8377"></rect></svg> PADELCLUB OS</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2i ESTADOS SISTEMA -->
+    <div id="2i">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px"><span style="background:#1C1A17;color:#fff;font-size:11px;font-weight:700;padding:3px 8px;border-radius:6px">2i</span><span style="font-size:13px;font-weight:600;color:#3C382F">Estados: offline · waitlist · cancelación</span></div>
+      <div style="display:grid;gap:20px">
+        <div style="width:330px;background:#F6F3ED;border:1px solid #C9C2B4;border-radius:20px;padding:16px;display:grid;gap:12px;box-shadow:0 12px 40px rgba(28,26,23,0.12)">
+          <div style="background:#1C1A17;color:#F6F3ED;border-radius:10px;padding:10px 14px;display:flex;align-items:center;gap:10px;font-size:12.5px;font-weight:600"><i data-lucide="wifi-off" style="width:16px;height:16px;color:#E5B05C"></i>Sin conexión — mostrando tus reservas guardadas<span style="margin-left:auto;font-size:11.5px;color:#A39C8E">Reintentar</span></div>
+          <div style="background:#fff;border:1px solid #E7E2D8;border-radius:12px;padding:14px;opacity:0.7"><p style="margin:0;font-size:13px;font-weight:600;font-variant-numeric:tabular-nums">Hoy · Pista 2 · 19:00–20:30</p><p style="margin:2px 0 0;font-size:11.5px;color:#8A8377">Disponible sin conexión (PWA)</p></div>
+        </div>
+        <div style="width:330px;background:#F6F3ED;border:1px solid #C9C2B4;border-radius:20px;padding:16px;display:grid;gap:12px;box-shadow:0 12px 40px rgba(28,26,23,0.12)">
+          <div style="background:#FBF1DD;border:1px solid #EFD9AC;border-radius:10px;padding:12px 14px;display:flex;gap:10px;align-items:flex-start"><i data-lucide="bell-ring" style="width:16px;height:16px;color:#96660F;flex-shrink:0;margin-top:2px"></i><div style="font-size:12.5px;line-height:1.5;color:#6B4A0C"><strong>En lista de espera</strong> — Pista 2, hoy <span style="font-variant-numeric:tabular-nums">19:00</span>. Te avisamos al momento si queda libre.<div style="margin-top:6px;font-weight:700;color:#96660F">Salir de la lista</div></div></div>
+        </div>
+        <div style="width:330px;background:#F6F3ED;border:1px solid #C9C2B4;border-radius:20px;padding:16px;display:grid;gap:10px;box-shadow:0 12px 40px rgba(28,26,23,0.12)">
+          <p style="margin:0;font-family:'Archivo';font-stretch:112%;font-weight:700;font-size:16px">¿Cancelar la reserva?</p>
+          <p style="margin:0;font-size:13px;color:#5C564C;line-height:1.5">Hoy · Pista 2 · <span style="font-variant-numeric:tabular-nums">19:00</span>. Quedan <strong>3 h 40 min</strong>: se aplica cargo del 50% (<span style="font-variant-numeric:tabular-nums">12 €</span>).</p>
+          <button style="height:44px;border-radius:10px;border:1.5px solid #1C1A17;background:transparent;font-family:inherit;font-size:13.5px;font-weight:700;color:#1C1A17">Reagendar gratis</button>
+          <button style="height:44px;border-radius:10px;border:none;background:#B3402E;color:#fff;font-family:inherit;font-size:13.5px;font-weight:700">Cancelar y asumir cargo</button>
+          <button style="height:40px;border-radius:10px;border:none;background:transparent;font-family:inherit;font-size:13px;font-weight:600;color:#5C564C">Volver</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  componentDidMount() { if (window.lucide) window.lucide.createIcons(); }
+  componentDidUpdate() { if (window.lucide) window.lucide.createIcons(); }
+  renderVals() {
+    const IND = '#4F46E5', MUT = '#8A8377';
+    const filled = {bg:'#6FBF9C', border:'none'}, empty = {bg:'transparent', border:'1px dashed rgba(246,243,237,0.35)'};
+    const slotsHero = [filled,filled,filled,empty,empty,empty,empty,empty];
+    const slotsPago = [{bg:IND,border:'none'},{bg:IND,border:'none'},{bg:IND,border:'none'},{bg:'transparent',border:'1px dashed #C9C2B4'},{bg:'transparent',border:'1px dashed #C9C2B4'},{bg:'transparent',border:'1px dashed #C9C2B4'},{bg:'transparent',border:'1px dashed #C9C2B4'},{bg:'transparent',border:'1px dashed #C9C2B4'}];
+    const accesos = [{icon:'users',label:'Partidas'},{icon:'medal',label:'Ranking'},{icon:'tag',label:'Tarifas'}];
+    const pf = {bg:'#1C1A17', border:'none'}, pe = {bg:'transparent', border:'1px dashed #A39C8E'};
+    const partidasMini = [
+      {hora:'19:00', dia:'HOY', pista:'Pista 4', nivel:'2,8–3,6', libres:2, plazas:[pf,pf,pe,pe]},
+      {hora:'20:30', dia:'HOY', pista:'Pista 1', nivel:'3,0–3,8', libres:1, plazas:[pf,pf,pf,pe]},
+    ];
+    const navHome = [['home','Inicio',1],['calendar-days','Reservar'],['users','Partidas'],['medal','Ranking'],['user','Perfil']]
+      .map(([icon,label,act]) => ({icon,label,color: act?IND:MUT,pill: act?'28px':'0'}));
+    const dias = [
+      {dia:'Mié', num:'22', bg:'#1C1A17', fg:'#F6F3ED', border:'none'},
+      {dia:'Jue', num:'23', bg:'#fff', fg:'#1C1A17', border:'1px solid #E7E2D8'},
+      {dia:'Vie', num:'24', bg:'#fff', fg:'#1C1A17', border:'1px solid #E7E2D8'},
+      {dia:'Sáb', num:'25', bg:'#fff', fg:'#1C1A17', border:'1px solid #E7E2D8'},
+      {dia:'Dom', num:'26', bg:'#fff', fg:'#1C1A17', border:'1px solid #E7E2D8'},
+      {dia:'Lun', num:'27', bg:'#fff', fg:'#1C1A17', border:'1px solid #E7E2D8'},
+    ];
+    const pistasHead = [{n:'Pista 1', t:'Cristal'},{n:'Pista 2', t:'Cristal'},{n:'Pista 3', t:'Muro'}];
+    const libre = (precio) => ({bg:'transparent', border:'1.5px dashed #C9C2B4', fg:'#5C564C', txt:precio, icon:''});
+    const ocup = {bg:'repeating-linear-gradient(45deg,#DDD7CC 0 4px,#EFECE6 4px 8px)', border:'1px solid #C9C2B4', fg:'#6B655A', txt:'', icon:''};
+    const ocupBell = {...ocup, txt:'Avisarme', icon:'bell'};
+    const tuya = {bg:'#1C1A17', border:'none', fg:'#F6F3ED', txt:'Tuya', icon:''};
+    const abierta = {bg:'#F0F7F3', border:'1.5px solid #157A54', fg:'#0E5C3F', txt:'2/4', icon:'users'};
+    const bloq = {bg:'#EFECE6', border:'1px solid #C9C2B4', fg:'#8A8377', txt:'', icon:'ban'};
+    const sel = {bg:'#EEEDFC', border:'2px solid #4F46E5', fg:'#3F38B8', txt:'19:00\n24 €', icon:''};
+    const filas = [
+      {hora:'17:00', celdas:[libre('18 €'), ocup, libre('18 €')]},
+      {hora:'17:30', celdas:[libre('18 €'), ocup, abierta]},
+      {hora:'18:00', celdas:[ocupBell, libre('21 €'), bloq]},
+      {hora:'18:30', celdas:[ocup, libre('21 €'), bloq]},
+      {hora:'19:00', celdas:[tuya, sel, libre('21 €')]},
+      {hora:'19:30', celdas:[tuya, sel, libre('21 €')]},
+      {hora:'20:00', celdas:[libre('24 €'), sel, ocup]},
+    ];
+    const jugadores = [
+      {ini:'RM', name:'Raúl', bg:'#FDFCFA', border:'1px solid #E7E2D8', avatarBg:'#E7E2D8', avatarFg:'#3C382F', avatarBorder:'none', nameFg:'#3C382F'},
+      {ini:'AC', name:'Ana', bg:'#FDFCFA', border:'1px solid #E7E2D8', avatarBg:'#E7E2D8', avatarFg:'#3C382F', avatarBorder:'none', nameFg:'#3C382F'},
+      {ini:'+', name:'Libre', bg:'transparent', border:'1.5px dashed #C9C2B4', avatarBg:'transparent', avatarFg:'#A39C8E', avatarBorder:'1.5px dashed #A39C8E', nameFg:'#A39C8E'},
+      {ini:'+', name:'Libre', bg:'transparent', border:'1.5px dashed #C9C2B4', avatarBg:'transparent', avatarFg:'#A39C8E', avatarBorder:'1.5px dashed #A39C8E', nameFg:'#A39C8E'},
+    ];
+    const pl = (hora, dia, pista, nivel, n, tag) => ({
+      hora, dia, pista, nivel, op: tag==='Completa' ? '0.6' : '1',
+      plazas: [0,1,2,3].map(i => i < n ? pf : pe),
+      tag, tagIcon: tag==='Completa' ? 'check' : 'users',
+      tagBg: tag==='Completa' ? '#EFECE6' : '#F0F7F3',
+      tagFg: tag==='Completa' ? '#6B655A' : '#0E5C3F',
+      tagBorder: tag==='Completa' ? '#DDD7CC' : '#BFE0D0',
+    });
+    const partidasLista = [pl('20:30','HOY','Pista 1','3,0–3,8',3,'1 libre'), pl('21:00','HOY','Pista 6','2,0–2,8',2,'2 libres'), pl('18:00','HOY','Pista 3','3,4–4,2',4,'Completa')];
+    const rk = (pos,ini,name,stats,elo,mov,me) => ({
+      pos:'#'+pos, ini, name, stats, elo,
+      bg: me ? '#EEEDFC' : (pos<=3 ? '#fff' : 'transparent'),
+      border: me ? '2px solid #4F46E5' : (pos<=3 ? '1px solid #E7E2D8' : '1px solid transparent'),
+      numSize: pos<=3 ? '20px' : '15px', numColor: pos<=3 ? '#157A54' : '#8A8377',
+      avBg: me ? '#4F46E5' : '#E7E2D8', avFg: me ? '#fff' : '#3C382F', nameW: me||pos<=3 ? '700' : '600',
+      mov: mov===0 ? '=' : (mov>0 ? '+'+mov : String(mov)),
+      movIcon: mov===0 ? 'minus' : (mov>0 ? 'arrow-up' : 'arrow-down'),
+      movColor: mov===0 ? '#8A8377' : (mov>0 ? '#3D8B37' : '#B3402E'),
+    });
+    const ranking = [
+      rk(1,'JB','Javi Borrás','31 PJ · 74% vict.','1.688',0), rk(2,'MS','María Sanchis','28 PJ · 71% vict.','1.654',1),
+      rk(3,'DC','Dani Cuenca','35 PJ · 66% vict.','1.611',-1), rk(12,'PA','Pau Alcaraz','19 PJ · 55% vict.','1.428',2),
+      rk(13,'NB','Nuria Beltrán','24 PJ · 54% vict.','1.419',-1), rk(14,'LF','Lucía Ferrandis','23 PJ · 52% vict.','1.412',2,true),
+      rk(15,'CG','Carla Gil','26 PJ · 51% vict.','1.401',-2), rk(16,'JM','Jorge Montesinos','18 PJ · 50% vict.','1.390',0),
+    ];
+    const statsPerfil = [
+      {v:'1.412', l:'ELO', color:'#6FBF9C'}, {v:'23', l:'Partidas', color:'#F6F3ED'},
+      {v:'12', l:'Victorias', color:'#F6F3ED'}, {v:'52%', l:'% Vict.', color:'#F6F3ED'},
+    ];
+    const historial = [
+      {res:'V', resBg:'#E9F4E6', resFg:'#2E6A29', txt:'con Marta · vs Pau y Carla', meta:'Lun 20 jul · 6-3, 4-6, 6-4', elo:'+12', eloColor:'#3D8B37', eloIcon:'arrow-up'},
+      {res:'D', resBg:'#F9E8E4', resFg:'#8F3323', txt:'con Jorge · vs Javi y Dani', meta:'Vie 17 jul · 3-6, 5-7', elo:'-8', eloColor:'#B3402E', eloIcon:'arrow-down'},
+      {res:'V', resBg:'#E9F4E6', resFg:'#2E6A29', txt:'con Marta · vs Nuria y Ana', meta:'Mié 15 jul · 6-2, 6-3', elo:'+10', eloColor:'#3D8B37', eloIcon:'arrow-up'},
+    ];
+    const ajustesPerfil = [
+      {icon:'user', label:'Datos personales', color:'#1C1A17'},
+      {icon:'bell', label:'Notificaciones', color:'#1C1A17'},
+      {icon:'credit-card', label:'Métodos de pago', color:'#1C1A17'},
+      {icon:'log-out', label:'Cerrar sesión', color:'#B3402E'},
+    ];
+    return { slotsHero, slotsPago, accesos, partidasMini, navHome, dias, pistasHead, filas, jugadores, partidasLista, ranking, statsPerfil, historial, ajustesPerfil };
+  }
+}
+</script>
+</body>
+</html>

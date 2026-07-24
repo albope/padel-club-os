@@ -7,6 +7,8 @@ import { enviarEmailActivacionCuenta } from "@/lib/email";
 import { logger } from "@/lib/logger";
 import { registrarAuditoria } from "@/lib/audit";
 import * as z from "zod";
+import { normalizarEmail } from "@/lib/identity";
+import { getPlanLimits, getSubscriptionInfo } from "@/lib/subscription";
 
 const SocioImportSchema = z.object({
   name: z.string().min(2, "El nombre debe tener al menos 2 caracteres.").max(100),
@@ -25,7 +27,7 @@ const ImportSociosSchema = z.object({
 // POST: Importar socios en bulk
 export async function POST(req: Request) {
   try {
-    const auth = await requireAuth("users:import")
+    const auth = await requireAuth("users:import", { requireSubscription: true })
     if (isAuthError(auth)) return auth
     const clubId = auth.session.user.clubId;
 
@@ -36,42 +38,100 @@ export async function POST(req: Request) {
 
     let successCount = 0;
     const errors: string[] = [];
-    const existingEmails = new Set(
-      (await db.user.findMany({ select: { email: true } })).map(u => u.email).filter(Boolean)
-    );
-
-    const sociosToCreate = [];
+    const emailsEnArchivo = new Set<string>();
+    const sociosNormalizados: Array<z.infer<typeof SocioImportSchema>> = [];
 
     for (const socio of socios) {
       if (!socio.name || !socio.email) {
         errors.push(`Entrada omitida: Faltan nombre o email.`);
         continue;
       }
-      if (existingEmails.has(socio.email)) {
-        errors.push(`Email duplicado: ${socio.email} ya existe y fue omitido.`);
+      const email = normalizarEmail(socio.email);
+      if (emailsEnArchivo.has(email)) {
+        errors.push(`Email duplicado en el archivo: ${email}.`);
         continue;
       }
-
-      sociosToCreate.push({
-        name: socio.name,
-        email: socio.email,
-        password: null,
-        mustResetPassword: true,
-        phone: socio.phone || null,
-        position: socio.position || null,
-        level: socio.level || null,
-        birthDate: socio.birthDate ? new Date(socio.birthDate) : null,
-        clubId,
-      });
-      existingEmails.add(socio.email);
+      emailsEnArchivo.add(email);
+      sociosNormalizados.push({ ...socio, email });
     }
 
-    if (sociosToCreate.length > 0) {
-      const createResult = await db.user.createMany({
-        data: sociosToCreate,
-        skipDuplicates: true,
+    const usuariosExistentes = await db.user.findMany({
+      where: { email: { in: sociosNormalizados.map((socio) => socio.email) } },
+      include: {
+        memberships: {
+          where: { clubId },
+          select: { id: true },
+        },
+      },
+    });
+    const usuariosPorEmail = new Map(
+      usuariosExistentes
+        .filter((usuario) => usuario.email)
+        .map((usuario) => [normalizarEmail(usuario.email!), usuario]),
+    );
+
+    const infoPlan = await getSubscriptionInfo(clubId);
+    const limiteSocios = getPlanLimits(infoPlan.tier).members;
+    const sociosActuales = await db.clubMembership.count({
+      where: {
+        clubId,
+        role: "PLAYER",
+        status: { in: ["ACTIVE", "PENDING"] },
+      },
+    });
+    let plazasDisponibles = limiteSocios === -1
+      ? Number.POSITIVE_INFINITY
+      : Math.max(0, limiteSocios - sociosActuales);
+
+    const sociosAceptados: Array<{
+      socio: z.infer<typeof SocioImportSchema>
+      existente: (typeof usuariosExistentes)[number] | undefined
+    }> = [];
+    for (const socio of sociosNormalizados) {
+      const existente = usuariosPorEmail.get(socio.email);
+      if (existente?.memberships.length) {
+        errors.push(`Email omitido: ${socio.email} ya pertenece al club.`);
+        continue;
+      }
+      if (plazasDisponibles <= 0) {
+        errors.push(`Límite del plan alcanzado: ${socio.email} no se importó.`);
+        continue;
+      }
+      sociosAceptados.push({ socio, existente });
+      plazasDisponibles--;
+    }
+
+    if (sociosAceptados.length > 0) {
+      await db.$transaction(async (tx) => {
+        for (const { socio, existente } of sociosAceptados) {
+          const usuario = existente ?? await tx.user.create({
+            data: {
+              name: socio.name,
+              email: socio.email,
+              password: null,
+              mustResetPassword: true,
+              phone: socio.phone || null,
+              position: socio.position || null,
+              level: socio.level || null,
+              birthDate: socio.birthDate ? new Date(socio.birthDate) : null,
+              clubId,
+              role: "PLAYER",
+            },
+          });
+
+          await tx.clubMembership.create({
+            data: {
+              userId: usuario.id,
+              clubId,
+              role: "PLAYER",
+              status: "ACTIVE",
+              approvedAt: new Date(),
+              approvedById: auth.session.user.id,
+            },
+          });
+        }
       });
-      successCount = createResult.count;
+      successCount = sociosAceptados.length;
     }
 
     // Enviar emails de activacion si se solicita
@@ -97,9 +157,13 @@ export async function POST(req: Request) {
       }
 
       // Reconsultar usuarios creados por email (createMany no devuelve IDs)
-      const emailsCreados = sociosToCreate.map(s => s.email).filter(Boolean) as string[];
+      const emailsCreados = sociosAceptados.map(({ socio }) => socio.email);
       const usuariosCreados = await db.user.findMany({
-        where: { email: { in: emailsCreados }, clubId },
+        where: {
+          email: { in: emailsCreados },
+          mustResetPassword: true,
+          memberships: { some: { clubId, status: "ACTIVE" } },
+        },
         select: { email: true, name: true },
       });
 

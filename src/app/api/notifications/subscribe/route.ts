@@ -15,7 +15,7 @@ const SubscribeSchema = z.object({
 // POST: Guardar suscripcion push
 export async function POST(req: Request) {
   try {
-    const auth = await requireAuth("notifications:read")
+    const auth = await requireAuth("notifications:update")
     if (isAuthError(auth)) return auth
 
     const body = await req.json()
@@ -56,7 +56,7 @@ export async function POST(req: Request) {
 // DELETE: Eliminar suscripcion push
 export async function DELETE(req: Request) {
   try {
-    const auth = await requireAuth("notifications:read")
+    const auth = await requireAuth("notifications:update")
     if (isAuthError(auth)) return auth
 
     const { searchParams } = new URL(req.url)

@@ -107,8 +107,12 @@ export async function canCreateMember(clubId: string): Promise<{ allowed: boolea
 
   if (limits.members === -1) return { allowed: true }
 
-  const memberCount = await db.user.count({
-    where: { clubId, role: "PLAYER" },
+  const memberCount = await db.clubMembership.count({
+    where: {
+      clubId,
+      role: "PLAYER",
+      status: { in: ["ACTIVE", "PENDING"] },
+    },
   })
 
   if (memberCount >= limits.members) {
@@ -190,8 +194,12 @@ export async function canCreateAdmin(
   }
 
   const [adminCount, pendingInvites] = await Promise.all([
-    db.user.count({
-      where: { clubId, role: { in: ["CLUB_ADMIN", "STAFF"] } },
+    db.clubMembership.count({
+      where: {
+        clubId,
+        role: { in: ["CLUB_ADMIN", "STAFF"] },
+        status: { in: ["ACTIVE", "PENDING"] },
+      },
     }),
     db.adminInvitation.count({ where: inviteWhere }),
   ])

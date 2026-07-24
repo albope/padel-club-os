@@ -89,23 +89,39 @@ export async function POST(req: Request) {
       }
     }
 
-    await db.$transaction(async (tx) => {
+    const joinResult = await db.$transaction(async (tx) => {
+      // Serializa altas de una misma partida para que dos peticiones
+      // simultaneas nunca puedan crear un quinto jugador.
+      await tx.$queryRaw`SELECT pg_advisory_xact_lock(hashtext(${openMatchId}))`
+      const current = await tx.openMatch.findFirst({
+        where: { id: openMatchId, clubId: auth.session.user.clubId },
+        include: { players: true },
+      })
+      if (!current) throw new Error("OPEN_MATCH_NOT_FOUND")
+      if (current.status !== OpenMatchStatus.OPEN || current.players.length >= 4) {
+        throw new Error("OPEN_MATCH_FULL")
+      }
+      if (current.players.some((player) => player.userId === auth.session.user.id)) {
+        throw new Error("OPEN_MATCH_ALREADY_JOINED")
+      }
+
       await tx.openMatchPlayer.create({
         data: { openMatchId, userId: auth.session.user.id },
       });
 
       // Si ahora hay 4 jugadores, marcar como FULL
-      const playerCount = openMatch.players.length + 1;
+      const playerCount = current.players.length + 1;
       if (playerCount >= 4) {
         await tx.openMatch.update({
           where: { id: openMatchId },
           data: { status: OpenMatchStatus.FULL },
         });
       }
+      return { playersBefore: current.players, playerCount }
     });
 
     // Notificar al creador de la partida (primer jugador inscrito)
-    const creador = openMatch.players[0]
+    const creador = joinResult.playersBefore[0]
     if (creador && creador.userId !== auth.session.user.id) {
       const jugadorActual = await db.user.findUnique({
         where: { id: auth.session.user.id },
@@ -123,9 +139,9 @@ export async function POST(req: Request) {
     }
 
     // Si ahora la partida esta FULL, notificar a todos los jugadores
-    const totalJugadores = openMatch.players.length + 1
+    const totalJugadores = joinResult.playerCount
     if (totalJugadores >= 4) {
-      for (const jugador of openMatch.players) {
+      for (const jugador of joinResult.playersBefore) {
         crearNotificacion({
           tipo: "open_match_full",
           titulo: "Partida completa",
@@ -140,6 +156,17 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ message: "Te has unido a la partida." });
   } catch (error) {
+    if (error instanceof Error) {
+      if (error.message === "OPEN_MATCH_NOT_FOUND") {
+        return NextResponse.json({ error: "Partida no encontrada." }, { status: 404 })
+      }
+      if (error.message === "OPEN_MATCH_FULL") {
+        return NextResponse.json({ error: "Esta partida ya esta completa." }, { status: 409 })
+      }
+      if (error.message === "OPEN_MATCH_ALREADY_JOINED") {
+        return NextResponse.json({ error: "Ya estas en esta partida." }, { status: 409 })
+      }
+    }
     logger.error("JOIN_OPEN_MATCH", "Error al unirse a partida abierta", { ruta: "/api/player/open-matches" }, error);
     return new NextResponse("Internal Server Error", { status: 500 });
   }
@@ -173,12 +200,22 @@ export async function DELETE(req: Request) {
     }
 
     await db.$transaction(async (tx) => {
+      await tx.$queryRaw`SELECT pg_advisory_xact_lock(hashtext(${openMatchId}))`
+      const current = await tx.openMatch.findFirst({
+        where: { id: openMatchId, clubId: auth.session.user.clubId },
+        include: { players: true },
+      })
+      if (!current) throw new Error("OPEN_MATCH_NOT_FOUND")
+      if (!current.players.some((player) => player.userId === auth.session.user.id)) {
+        throw new Error("OPEN_MATCH_NOT_JOINED")
+      }
+
       await tx.openMatchPlayer.delete({
         where: { openMatchId_userId: { openMatchId, userId: auth.session.user.id } },
       });
 
       // Si estaba FULL, volver a OPEN
-      if (openMatch.status === OpenMatchStatus.FULL) {
+      if (current.status === OpenMatchStatus.FULL) {
         await tx.openMatch.update({
           where: { id: openMatchId },
           data: { status: OpenMatchStatus.OPEN },
@@ -188,6 +225,14 @@ export async function DELETE(req: Request) {
 
     return NextResponse.json({ message: "Has salido de la partida." });
   } catch (error) {
+    if (error instanceof Error) {
+      if (error.message === "OPEN_MATCH_NOT_FOUND") {
+        return NextResponse.json({ error: "Partida no encontrada." }, { status: 404 })
+      }
+      if (error.message === "OPEN_MATCH_NOT_JOINED") {
+        return NextResponse.json({ error: "No estas en esta partida." }, { status: 409 })
+      }
+    }
     logger.error("LEAVE_OPEN_MATCH", "Error al salir de partida abierta", { ruta: "/api/player/open-matches" }, error);
     return new NextResponse("Internal Server Error", { status: 500 });
   }

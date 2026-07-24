@@ -20,6 +20,7 @@ const mockLiberarSlot = vi.fn().mockResolvedValue(undefined)
 const mockLimpiarWaitlist = vi.fn().mockResolvedValue(undefined)
 const mockStripeRefunds = { create: vi.fn().mockResolvedValue({}) }
 const mockStripeCheckoutExpire = vi.fn().mockResolvedValue({})
+const mockEnqueueBookingRefund = vi.fn().mockResolvedValue({ status: "not_needed" })
 
 vi.mock("@/lib/db", () => ({ db: mockDb }))
 vi.mock("@/lib/api-auth", () => ({
@@ -58,6 +59,9 @@ vi.mock("@/lib/payment-sync", () => ({
     { bookingId: "new-booking", userId: null, guestName: "Jugador 4", amount: 5, clubId: "club-1" },
   ]),
 }))
+vi.mock("@/lib/refunds", () => ({
+  enqueueBookingRefund: (...args: unknown[]) => mockEnqueueBookingRefund(...args),
+}))
 vi.mock("@/lib/logger", () => ({
   logger: { info: vi.fn(), error: vi.fn(), warn: vi.fn() },
 }))
@@ -85,35 +89,32 @@ describe("Refund en cancelacion de jugador con pago online", () => {
     }))
     mockDb.payment.update.mockResolvedValue({})
     mockDb.user.findUnique.mockResolvedValue({ email: "j@t.com", name: "J", club: { name: "C", slug: "c" } })
+    mockEnqueueBookingRefund.mockResolvedValue({
+      status: "succeeded",
+      operationId: "refund-op-1",
+    })
   })
 
-  it("emite refund via Stripe con payment_intent correcto", async () => {
+  it("encola un refund durable para la reserva correcta", async () => {
     const response = await DELETE(crearRequest({
       method: "DELETE",
       url: "http://localhost/api/player/bookings?bookingId=booking-1",
     }))
 
     expect(response.status).toBe(200)
-    expect(mockStripeRefunds.create).toHaveBeenCalledWith(
-      expect.objectContaining({
-        payment_intent: "pi_paid_123",
-        reverse_transfer: true,
-        refund_application_fee: false,
-      })
+    expect(mockEnqueueBookingRefund).toHaveBeenCalledWith(
+      "booking-1",
+      "Cancelado por el jugador",
     )
   })
 
-  it("marca Payment como refunded tras refund exitoso", async () => {
+  it("no marca el Payment antes de la confirmacion del worker", async () => {
     await DELETE(crearRequest({
       method: "DELETE",
       url: "http://localhost/api/player/bookings?bookingId=booking-1",
     }))
 
-    expect(mockDb.payment.update).toHaveBeenCalledWith(
-      expect.objectContaining({
-        data: { status: "refunded" },
-      })
-    )
+    expect(mockDb.payment.update).not.toHaveBeenCalled()
   })
 
   it("cancela booking ANTES de intentar refund (orden correcto)", async () => {
@@ -126,9 +127,9 @@ describe("Refund en cancelacion de jugador con pago online", () => {
       callOrder.push("payment.findUnique")
       return crearPagoMock({ stripePaymentId: "pi_test", status: "succeeded" })
     })
-    mockStripeRefunds.create.mockImplementation(async () => {
-      callOrder.push("stripe.refunds.create")
-      return {}
+    mockEnqueueBookingRefund.mockImplementation(async () => {
+      callOrder.push("refund.enqueue")
+      return { status: "succeeded", operationId: "refund-op-1" }
     })
 
     await DELETE(crearRequest({
@@ -137,7 +138,7 @@ describe("Refund en cancelacion de jugador con pago online", () => {
     }))
 
     expect(callOrder.indexOf("booking.update")).toBeLessThan(
-      callOrder.indexOf("stripe.refunds.create")
+      callOrder.indexOf("refund.enqueue")
     )
   })
 })
@@ -220,7 +221,10 @@ describe("Refund error no bloquea cancelacion", () => {
       stripePaymentId: "pi_fail",
       status: "succeeded",
     }))
-    mockStripeRefunds.create.mockRejectedValue(new Error("Stripe API error"))
+    mockEnqueueBookingRefund.mockResolvedValue({
+      status: "failed",
+      operationId: "refund-op-failed",
+    })
 
     const response = await DELETE(crearRequest({
       method: "DELETE",
@@ -243,7 +247,10 @@ describe("Refund error no bloquea cancelacion", () => {
       stripePaymentId: "pi_fail",
       status: "succeeded",
     }))
-    mockStripeRefunds.create.mockRejectedValue(new Error("Stripe down"))
+    mockEnqueueBookingRefund.mockResolvedValue({
+      status: "failed",
+      operationId: "refund-op-failed",
+    })
 
     await DELETE(crearRequest({
       method: "DELETE",
@@ -360,12 +367,14 @@ describe("Idempotencia de refund", () => {
       status: "refunded",
     }))
 
+    mockEnqueueBookingRefund.mockResolvedValue({ status: "already_refunded" })
+
     await DELETE(crearRequest({
       method: "DELETE",
       url: "http://localhost/api/player/bookings?bookingId=booking-1",
     }))
 
-    // status !== "succeeded" → no llama a stripe refunds
+    expect(mockEnqueueBookingRefund).toHaveBeenCalled()
     expect(mockStripeRefunds.create).not.toHaveBeenCalled()
   })
 })

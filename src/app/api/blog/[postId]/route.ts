@@ -36,10 +36,8 @@ const BlogUpdateSchema = z.object({
 })
 
 // GET: Obtener un post por ID (admin)
-export async function GET(
-  req: Request,
-  { params }: { params: { postId: string } }
-) {
+export async function GET(req: Request, props: { params: Promise<{ postId: string }> }) {
+  const params = await props.params;
   try {
     const auth = await requireAuth("blog:read")
     if (isAuthError(auth)) return auth
@@ -63,10 +61,8 @@ export async function GET(
 }
 
 // PATCH: Actualizar post
-export async function PATCH(
-  req: Request,
-  { params }: { params: { postId: string } }
-) {
+export async function PATCH(req: Request, props: { params: Promise<{ postId: string }> }) {
+  const params = await props.params;
   try {
     const auth = await requireAuth("blog:update")
     if (isAuthError(auth)) return auth
@@ -111,10 +107,8 @@ export async function PATCH(
 }
 
 // DELETE: Eliminar post
-export async function DELETE(
-  req: Request,
-  { params }: { params: { postId: string } }
-) {
+export async function DELETE(req: Request, props: { params: Promise<{ postId: string }> }) {
+  const params = await props.params;
   try {
     const auth = await requireAuth("blog:delete")
     if (isAuthError(auth)) return auth

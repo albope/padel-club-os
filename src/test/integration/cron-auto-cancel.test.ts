@@ -4,7 +4,7 @@ import { crearReservaMock, manana } from "@/test/factories"
 import { extraerJson } from "@/test/helpers/api-route"
 
 // --- Mocks ---
-const mockCrearNotificacion = vi.fn().mockResolvedValue(undefined)
+const mockCrearNotificacion = vi.fn().mockResolvedValue({ id: "notification-1" })
 const mockEnviarEmailRecordatorio = vi.fn().mockResolvedValue(undefined)
 const mockLiberarSlot = vi.fn().mockResolvedValue(undefined)
 
@@ -41,6 +41,7 @@ describe("Cron de recordatorios y auto-cancelacion", () => {
     process.env.CRON_SECRET = "test-secret"
     // Default: sin reservas proximas ni expiradas
     mockDb.booking.findMany.mockResolvedValue([])
+    mockDb.booking.updateMany.mockResolvedValue({ count: 1 })
   })
 
   it("rechaza sin CRON_SECRET → 401", async () => {
@@ -58,8 +59,6 @@ describe("Cron de recordatorios y auto-cancelacion", () => {
     mockDb.booking.findMany
       .mockResolvedValueOnce([reservaProxima])
       .mockResolvedValueOnce([])
-    mockDb.booking.update.mockResolvedValue({})
-
     const response = await POST(crearCronRequest("test-secret"))
     const data = await extraerJson(response) as { procesadas: number; enviadas: number }
 
@@ -77,12 +76,13 @@ describe("Cron de recordatorios y auto-cancelacion", () => {
     mockDb.booking.findMany
       .mockResolvedValueOnce([crearReservaMock({ userId: "user-1" })])
       .mockResolvedValueOnce([])
-    mockDb.booking.update.mockResolvedValue({})
-
     await POST(crearCronRequest("test-secret"))
 
-    expect(mockDb.booking.update).toHaveBeenCalledWith(
+    expect(mockDb.booking.updateMany).toHaveBeenCalledWith(
       expect.objectContaining({
+        where: expect.objectContaining({
+          reminderSentAt: null,
+        }),
         data: expect.objectContaining({
           reminderSentAt: expect.any(Date),
         }),
@@ -90,12 +90,24 @@ describe("Cron de recordatorios y auto-cancelacion", () => {
     )
   })
 
+  it("no duplica un recordatorio reclamado por otra ejecucion", async () => {
+    mockDb.booking.findMany
+      .mockResolvedValueOnce([crearReservaMock({ userId: "user-1" })])
+      .mockResolvedValueOnce([])
+    mockDb.booking.updateMany.mockResolvedValueOnce({ count: 0 })
+
+    const response = await POST(crearCronRequest("test-secret"))
+    const data = await extraerJson(response) as { enviadas: number }
+
+    expect(response.status).toBe(200)
+    expect(data.enviadas).toBe(0)
+    expect(mockCrearNotificacion).not.toHaveBeenCalled()
+  })
+
   it("envia email si user tiene email", async () => {
     mockDb.booking.findMany
       .mockResolvedValueOnce([crearReservaMock({ userId: "user-1" })])
       .mockResolvedValueOnce([])
-    mockDb.booking.update.mockResolvedValue({})
-
     await POST(crearCronRequest("test-secret"))
 
     expect(mockEnviarEmailRecordatorio).toHaveBeenCalled()
@@ -118,15 +130,13 @@ describe("Cron de recordatorios y auto-cancelacion", () => {
     mockDb.booking.findMany
       .mockResolvedValueOnce([]) // recordatorios
       .mockResolvedValueOnce([reservaExpirada]) // expiradas
-    mockDb.booking.update.mockResolvedValue({})
-
     const response = await POST(crearCronRequest("test-secret"))
     const data = await extraerJson(response) as { canceladasPorPago: number }
 
     expect(data.canceladasPorPago).toBe(1)
-    expect(mockDb.booking.update).toHaveBeenCalledWith(
+    expect(mockDb.booking.updateMany).toHaveBeenCalledWith(
       expect.objectContaining({
-        where: { id: "booking-exp" },
+        where: expect.objectContaining({ id: "booking-exp" }),
         data: expect.objectContaining({
           status: "cancelled",
           cancelReason: "Pago no completado en el plazo de 15 minutos",
@@ -168,8 +178,6 @@ describe("Cron de recordatorios y auto-cancelacion", () => {
     mockDb.booking.findMany
       .mockResolvedValueOnce([]) // recordatorios
       .mockResolvedValueOnce(reservas) // expiradas
-    mockDb.booking.update.mockResolvedValue({})
-
     await POST(crearCronRequest("test-secret"))
 
     expect(mockLiberarSlot).toHaveBeenCalledTimes(2)
@@ -179,8 +187,6 @@ describe("Cron de recordatorios y auto-cancelacion", () => {
     mockDb.booking.findMany
       .mockResolvedValueOnce([crearReservaMock({ userId: "u1" })])
       .mockResolvedValueOnce([])
-    mockDb.booking.update.mockResolvedValue({})
-
     const response = await POST(crearCronRequest("test-secret"))
     const data = await extraerJson(response) as Record<string, number>
 

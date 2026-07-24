@@ -4,10 +4,8 @@ import { NextResponse } from "next/server"
 import { logger } from "@/lib/logger"
 
 // DELETE: Revocar invitacion
-export async function DELETE(
-  req: Request,
-  { params }: { params: { invitationId: string } }
-) {
+export async function DELETE(req: Request, props: { params: Promise<{ invitationId: string }> }) {
+  const params = await props.params;
   try {
     const auth = await requireAuth("team:invite")
     if (isAuthError(auth)) return auth

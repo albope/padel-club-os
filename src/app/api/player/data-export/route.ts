@@ -22,7 +22,19 @@ export async function GET(req: Request) {
     const userId = auth.session.user.id
     const clubId = auth.session.user.clubId
 
-    const [usuario, reservas, partidasAbiertas, estadisticas, equipos, notificaciones, pagos] =
+    const [
+      usuario,
+      membresia,
+      reservas,
+      partidasAbiertas,
+      estadisticas,
+      equipos,
+      notificaciones,
+      pagos,
+      valoraciones,
+      mensajes,
+      listaEspera,
+    ] =
       await Promise.all([
         // 1. Datos personales
         db.user.findUnique({
@@ -39,7 +51,17 @@ export async function GET(req: Request) {
             isActive: true,
           },
         }),
-        // 2. Reservas
+        // 2. Pertenencia al club
+        db.clubMembership.findUnique({
+          where: { userId_clubId: { userId, clubId } },
+          select: {
+            role: true,
+            status: true,
+            joinedAt: true,
+            approvedAt: true,
+          },
+        }),
+        // 3. Reservas
         db.booking.findMany({
           where: { userId, clubId },
           select: {
@@ -54,9 +76,9 @@ export async function GET(req: Request) {
           },
           orderBy: { startTime: "desc" },
         }),
-        // 3. Participaciones en partidas abiertas
+        // 4. Participaciones en partidas abiertas
         db.openMatchPlayer.findMany({
-          where: { userId },
+          where: { userId, openMatch: { clubId } },
           select: {
             createdAt: true,
             openMatch: {
@@ -70,7 +92,7 @@ export async function GET(req: Request) {
             },
           },
         }),
-        // 4. Estadisticas
+        // 5. Estadisticas
         db.playerStats.findFirst({
           where: { userId, clubId },
           select: {
@@ -85,9 +107,12 @@ export async function GET(req: Request) {
             bestWinStreak: true,
           },
         }),
-        // 5. Equipos de competicion
+        // 6. Equipos de competicion
         db.team.findMany({
-          where: { OR: [{ player1Id: userId }, { player2Id: userId }] },
+          where: {
+            competition: { clubId },
+            OR: [{ player1Id: userId }, { player2Id: userId }],
+          },
           select: {
             name: true,
             points: true,
@@ -97,7 +122,7 @@ export async function GET(req: Request) {
             competition: { select: { name: true, format: true, status: true } },
           },
         }),
-        // 6. Notificaciones (ultimas 500)
+        // 7. Notificaciones (ultimas 500)
         db.notification.findMany({
           where: { userId, clubId },
           select: {
@@ -110,7 +135,7 @@ export async function GET(req: Request) {
           orderBy: { createdAt: "desc" },
           take: 500,
         }),
-        // 7. Pagos
+        // 8. Pagos
         db.payment.findMany({
           where: { userId, clubId },
           select: {
@@ -119,6 +144,42 @@ export async function GET(req: Request) {
             status: true,
             type: true,
             createdAt: true,
+          },
+          orderBy: { createdAt: "desc" },
+        }),
+        // 9. Valoraciones emitidas o recibidas en el club
+        db.playerRating.findMany({
+          where: { clubId, OR: [{ raterId: userId }, { ratedId: userId }] },
+          select: {
+            stars: true,
+            comment: true,
+            createdAt: true,
+            raterId: true,
+            ratedId: true,
+            openMatchId: true,
+          },
+          orderBy: { createdAt: "desc" },
+        }),
+        // 10. Mensajes propios en partidas del club
+        db.chatMessage.findMany({
+          where: { authorId: userId, clubId },
+          select: {
+            content: true,
+            createdAt: true,
+            openMatchId: true,
+          },
+          orderBy: { createdAt: "desc" },
+        }),
+        // 11. Solicitudes de lista de espera
+        db.bookingWaitlist.findMany({
+          where: { userId, clubId },
+          select: {
+            startTime: true,
+            endTime: true,
+            status: true,
+            notifiedAt: true,
+            createdAt: true,
+            court: { select: { name: true } },
           },
           orderBy: { createdAt: "desc" },
         }),
@@ -131,6 +192,7 @@ export async function GET(req: Request) {
         formato: "RGPD - Derecho de portabilidad (Articulo 20)",
       },
       datosPersonales: usuario,
+      pertenenciaAlClub: membresia,
       reservas,
       partidasAbiertas: partidasAbiertas.map((p) => ({
         fechaUnion: p.createdAt,
@@ -140,6 +202,9 @@ export async function GET(req: Request) {
       competiciones: equipos,
       notificaciones,
       pagos,
+      valoraciones,
+      mensajes,
+      listaEspera,
     }
 
     const json = JSON.stringify(exportacion, null, 2)

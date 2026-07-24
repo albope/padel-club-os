@@ -27,7 +27,7 @@ export default async function ClubsPage() {
       _count: {
         select: {
           courts: true,
-          admins: { where: { role: "PLAYER" } },
+          memberships: { where: { role: "PLAYER", status: "ACTIVE" } },
           bookings: { where: { startTime: { gte: hace30dias } } },
         },
       },
@@ -43,7 +43,16 @@ export default async function ClubsPage() {
         </p>
       </div>
 
-      <ClubsClient initialClubs={JSON.parse(JSON.stringify(clubs))} />
+      <ClubsClient
+        initialClubs={JSON.parse(JSON.stringify(clubs.map((club) => ({
+          ...club,
+          _count: {
+            courts: club._count.courts,
+            members: club._count.memberships,
+            bookings: club._count.bookings,
+          },
+        }))))}
+      />
     </div>
   )
 }

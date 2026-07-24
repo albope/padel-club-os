@@ -15,10 +15,8 @@ const MatchesBulkUpdateSchema = z.object({
 })
 
 // PATCH: Actualizar fechas de partidos en bulk
-export async function PATCH(
-  req: Request,
-  { params }: { params: { competitionId: string } }
-) {
+export async function PATCH(req: Request, props: { params: Promise<{ competitionId: string }> }) {
+  const params = await props.params;
   try {
     const auth = await requireAuth("competitions:update")
     if (isAuthError(auth)) return auth

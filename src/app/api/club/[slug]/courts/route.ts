@@ -3,10 +3,8 @@ import { NextResponse } from "next/server";
 import { logger } from "@/lib/logger";
 
 // GET: Obtener pistas de un club por slug (para portal publico, requiere auth de jugador)
-export async function GET(
-  req: Request,
-  { params }: { params: { slug: string } }
-) {
+export async function GET(req: Request, props: { params: Promise<{ slug: string }> }) {
+  const params = await props.params;
   try {
     const club = await db.club.findUnique({
       where: { slug: params.slug },

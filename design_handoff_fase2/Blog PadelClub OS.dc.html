@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@112,600..800&family=Instrument+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  body { margin:0; background:hsl(40 26% 95%); color:#1C1A17; font-family:'Instrument Sans',sans-serif; -webkit-font-smoothing:antialiased; }
+  a { color:#157A54; text-decoration:none; }
+  a:hover { color:#0E5C3F; }
+</style>
+</helmet>
+<div style="min-width:1200px">
+
+  <!-- Nav -->
+  <header style="position:sticky;top:0;z-index:10;background:hsl(40 26% 95% / 0.92);backdrop-filter:blur(10px);border-bottom:1px solid hsl(38 18% 83%)">
+    <div style="max-width:1200px;margin:0 auto;padding:0 32px;height:64px;display:flex;align-items:center;justify-content:space-between">
+      <div style="display:flex;align-items:center;gap:10px">
+        <svg viewBox="0 0 48 48" width="26" height="26"><rect x="4" y="10" width="40" height="28" rx="7" fill="none" stroke="#1C1A17" stroke-width="3"></rect><rect x="10" y="16" width="13" height="16" rx="3" fill="#157A54"></rect></svg>
+        <span style="font-family:'Archivo',sans-serif;font-stretch:112%;font-weight:750;font-size:17px">Padel Club <span style="color:#157A54">OS</span></span>
+      </div>
+      <nav style="display:flex;align-items:center;gap:28px;font-size:14px;font-weight:600">
+        <a href="Landing PadelClub OS.dc.html" style="color:#3C382F">Funcionalidades</a>
+        <a href="Landing PadelClub OS.dc.html" style="color:#3C382F">Cómo funciona</a>
+        <a href="Landing PadelClub OS.dc.html" style="color:#3C382F">Precios</a>
+        <a href="#" style="color:#1C1A17;border-bottom:2px solid #157A54;padding-bottom:2px">Blog</a>
+        <a href="#" style="color:#3C382F">Contacto</a>
+      </nav>
+      <div style="display:flex;align-items:center;gap:14px">
+        <a href="#" style="font-size:14px;font-weight:600;color:#1C1A17">Iniciar sesión</a>
+        <a href="#" style="background:#157A54;color:#F6F3ED;font-size:14px;font-weight:700;padding:10px 20px;border-radius:6px" style-hover="background:#0E5C3F;color:#F6F3ED">Solicitar demo</a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Cabecera -->
+  <section style="max-width:1200px;margin:0 auto;padding:64px 32px 40px;display:grid;gap:14px">
+    <a href="Landing PadelClub OS.dc.html" style="font-size:13px;font-weight:600;color:#8A8377;display:inline-flex;align-items:center;gap:6px"><span style="font-family:'JetBrains Mono',monospace">◂</span> Volver al inicio</a>
+    <h1 style="font-family:'Archivo',sans-serif;font-stretch:112%;font-weight:800;font-size:52px;letter-spacing:-0.025em;margin:0">Blog</h1>
+    <p style="font-size:16px;color:#5C564C;margin:0;max-width:560px">Ideas, consejos y novedades para la gestión moderna de clubes de pádel.</p>
+  </section>
+
+  <!-- Destacado -->
+  <section style="max-width:1200px;margin:0 auto;padding:0 32px 40px">
+    <a href="#" style="display:grid;grid-template-columns:1.2fr 1fr;background:#1C1A17;color:#F1EDE4;border-radius:14px;overflow:hidden" style-hover="color:#F1EDE4">
+      <div style="padding:44px;display:grid;gap:16px;align-content:center">
+        <span style="justify-self:start;font-size:10.5px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:#0B241A;background:#6FBF9C;padding:4px 12px;border-radius:999px">Industria</span>
+        <h2 style="font-family:'Archivo',sans-serif;font-stretch:112%;font-weight:750;font-size:32px;line-height:1.12;letter-spacing:-0.02em;margin:0;text-wrap:balance">Digitalización de clubes de pádel en España: el estado actual</h2>
+        <p style="font-size:15px;color:#A39C8E;line-height:1.6;margin:0">España tiene más de 7.000 clubes de pádel, pero la mayoría sigue gestionándose con métodos analógicos. Analizamos la situación y las oportunidades.</p>
+        <div style="display:flex;align-items:center;gap:10px;font-size:13px;color:#A39C8E"><span style="width:28px;height:28px;border-radius:999px;background:#2FA075;color:#0B241A;display:grid;place-items:center;font-size:10.5px;font-weight:700">AB</span>Alberto Bort<span style="color:#5C564C">·</span>22 de febrero de 2026<span style="color:#5C564C">·</span><span style="font-variant-numeric:tabular-nums">5 min lectura</span></div>
+      </div>
+      <div style="background:repeating-linear-gradient(45deg,#282420 0 12px,#1E1B17 12px 24px);display:grid;place-items:center;min-height:320px">
+        <span style="font-family:'JetBrains Mono',monospace;font-size:11px;color:#8A8377;background:#1C1A17;border:1px dashed #37322A;border-radius:6px;padding:6px 12px">FOTO · portada del artículo</span>
+      </div>
+    </a>
+  </section>
+
+  <!-- Grid de artículos -->
+  <section style="max-width:1200px;margin:0 auto;padding:0 32px 88px">
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:24px">
+      <sc-for list="{{ posts }}" as="post" hint-placeholder-count="5">
+        <a href="#" style="background:#fff;border:1px solid hsl(38 18% 83%);border-radius:14px;overflow:hidden;display:grid;align-content:start;color:#1C1A17" style-hover="color:#1C1A17;box-shadow:0 8px 24px -12px rgba(28,26,23,0.25)">
+          <div style="height:150px;background:repeating-linear-gradient(45deg,#E7E2D8 0 12px,#EFECE6 12px 24px);display:grid;place-items:center">
+            <span style="font-family:'JetBrains Mono',monospace;font-size:10px;color:#8A8377;background:#fff;border:1px dashed #C9C2B4;border-radius:6px;padding:4px 10px">FOTO</span>
+          </div>
+          <div style="padding:22px 24px 24px;display:grid;gap:10px;align-content:start">
+            <span style="justify-self:start;font-size:10px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:{{ post.catFg }};background:{{ post.catBg }};border:1px solid {{ post.catBorder }};padding:3px 10px;border-radius:999px">{{ post.cat }}</span>
+            <h3 style="font-family:'Archivo',sans-serif;font-stretch:112%;font-weight:700;font-size:18px;line-height:1.25;letter-spacing:-0.01em;margin:0;text-wrap:balance">{{ post.title }}</h3>
+            <p style="font-size:13.5px;color:#5C564C;line-height:1.6;margin:0">{{ post.excerpt }}</p>
+            <div style="display:flex;align-items:center;gap:8px;font-size:12px;color:#8A8377;padding-top:4px"><span style="width:24px;height:24px;border-radius:999px;background:#157A54;color:#F6F3ED;display:grid;place-items:center;font-size:9.5px;font-weight:700">AB</span>Alberto Bort<span>·</span>22 feb 2026<span>·</span><span style="font-variant-numeric:tabular-nums">{{ post.mins }} min</span></div>
+          </div>
+        </a>
+      </sc-for>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer style="background:#1C1A17;color:#A39C8E">
+    <div style="max-width:1200px;margin:0 auto;padding:56px 32px 40px;display:grid;gap:40px">
+      <div style="display:grid;grid-template-columns:1.4fr 1fr 1fr 1.2fr;gap:32px">
+        <div style="display:grid;gap:14px;align-content:start">
+          <div style="display:flex;align-items:center;gap:10px">
+            <svg viewBox="0 0 48 48" width="24" height="24"><rect x="4" y="10" width="40" height="28" rx="7" fill="none" stroke="#F1EDE4" stroke-width="3"></rect><rect x="10" y="16" width="13" height="16" rx="3" fill="#2FA075"></rect></svg>
+            <span style="font-family:'Archivo',sans-serif;font-stretch:112%;font-weight:750;font-size:16px;color:#F1EDE4">Padel Club <span style="color:#2FA075">OS</span></span>
+          </div>
+          <p style="font-size:13px;line-height:1.6;margin:0;max-width:280px">La plataforma de gestión para clubes de pádel en España. Moderna, accesible y sin complicaciones.</p>
+          <div style="display:flex;gap:14px;font-family:'JetBrains Mono',monospace;font-size:11px"><a href="#" style="color:#A39C8E">Twitter</a><a href="#" style="color:#A39C8E">LinkedIn</a><a href="#" style="color:#A39C8E">Instagram</a></div>
+        </div>
+        <div style="display:grid;gap:10px;align-content:start;font-size:13.5px"><span style="font-size:11px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:#5C564C">Producto</span><a href="Landing PadelClub OS.dc.html" style="color:#A39C8E">Funcionalidades</a><a href="Landing PadelClub OS.dc.html" style="color:#A39C8E">Precios</a><a href="Landing PadelClub OS.dc.html" style="color:#A39C8E">Cómo funciona</a></div>
+        <div style="display:grid;gap:10px;align-content:start;font-size:13.5px"><span style="font-size:11px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:#5C564C">Empresa</span><a href="#" style="color:#A39C8E">Sobre nosotros</a><a href="#" style="color:#A39C8E">Blog</a><a href="#" style="color:#A39C8E">Contacto</a></div>
+        <div style="display:grid;gap:10px;align-content:start;font-size:13.5px"><span style="font-size:11px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:#5C564C">Legal</span><a href="#" style="color:#A39C8E">Aviso legal</a><a href="#" style="color:#A39C8E">Privacidad</a><a href="#" style="color:#A39C8E">Condiciones SaaS</a><a href="#" style="color:#A39C8E">Acuerdo RGPD (DPA)</a><a href="#" style="color:#A39C8E">Cookies</a><a href="#" style="color:#A39C8E">Pago seguro</a></div>
+      </div>
+      <div style="border-top:1px solid #37322A;padding-top:20px;display:flex;justify-content:space-between;font-family:'JetBrains Mono',monospace;font-size:11px;color:#5C564C">
+        <span>© 2026 Padel Club OS. Todos los derechos reservados.</span>
+        <span>Hecho en España</span>
+      </div>
+    </div>
+  </footer>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  renderVals() {
+    const cat = {
+      'Negocio':    { catFg: '#C7871E', catBg: '#FBF1DD', catBorder: '#EFD9AC' },
+      'Gestión':    { catFg: '#157A54', catBg: '#E9F4E6', catBorder: '#C8E4C3' },
+      'Tecnología': { catFg: '#2E63C0', catBg: '#E8EFFA', catBorder: '#C6D8F2' },
+      'Consejos':   { catFg: '#7B4B94', catBg: '#F2EAF6', catBorder: '#DECBE9' },
+    };
+    const p = (c, title, excerpt, mins) => ({ cat: c, ...cat[c], title, excerpt, mins });
+    return {
+      posts: [
+        p('Negocio', 'Precios dinámicos en pistas de pádel: cómo maximizar tus ingresos', 'No todas las horas valen lo mismo. Aprende a configurar precios dinámicos para llenar las horas valle y maximizar ingresos en las horas punta.', 4),
+        p('Gestión', 'Cómo retener socios en tu club de pádel: 7 estrategias que funcionan', 'Captar un socio nuevo cuesta 5 veces más que retener uno existente. Aquí tienes 7 estrategias probadas para que tus jugadores no se vayan a la competencia.', 5),
+        p('Tecnología', 'Por qué tu club de pádel necesita una PWA (y no una app nativa)', 'Desarrollar una app nativa cuesta miles de euros y meses de trabajo. Una PWA ofrece la misma experiencia por una fracción del coste. Te explico por qué.', 5),
+        p('Consejos', 'Cómo organizar un torneo de pádel exitoso: guía paso a paso', 'Organizar un torneo que los jugadores recuerden no es cuestión de suerte. Desde el formato hasta la comunicación, aquí tienes todo lo que necesitas saber.', 6),
+        p('Gestión', '5 errores que cometen los clubes de pádel al gestionar reservas', 'Libretas, WhatsApp y hojas de cálculo siguen siendo la norma en muchos clubes. Estos son los errores más comunes y cómo evitarlos para no perder socios ni ingresos.', 4),
+      ],
+    };
+  }
+}
+</script>
+</body>
+</html>

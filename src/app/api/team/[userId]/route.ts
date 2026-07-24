@@ -12,10 +12,8 @@ const ChangeRoleSchema = z.object({
 })
 
 // PATCH: Cambiar rol de un miembro del equipo
-export async function PATCH(
-  req: Request,
-  { params }: { params: { userId: string } }
-) {
+export async function PATCH(req: Request, props: { params: Promise<{ userId: string }> }) {
+  const params = await props.params;
   try {
     const { userId } = params
     if (!userId) {
@@ -43,17 +41,19 @@ export async function PATCH(
     }
 
     // Buscar usuario target
-    const targetUser = await db.user.findUnique({
-      where: { id: userId, clubId },
-      select: { id: true, role: true, name: true, email: true },
+    const targetMembership = await db.clubMembership.findUnique({
+      where: { userId_clubId: { userId, clubId } },
+      include: {
+        user: { select: { id: true, name: true, email: true, clubId: true } },
+      },
     })
 
-    if (!targetUser) {
+    if (!targetMembership || targetMembership.status === "REVOKED") {
       return NextResponse.json({ error: "Usuario no encontrado." }, { status: 404 })
     }
 
     // No se puede cambiar el rol de SUPER_ADMIN
-    if (targetUser.role === "SUPER_ADMIN") {
+    if (targetMembership.role === "SUPER_ADMIN") {
       return NextResponse.json(
         { error: "No se puede cambiar el rol de un super administrador." },
         { status: 403 }
@@ -61,9 +61,9 @@ export async function PATCH(
     }
 
     // Si se baja el unico CLUB_ADMIN, bloquear
-    if (targetUser.role === "CLUB_ADMIN" && newRole !== "CLUB_ADMIN") {
-      const clubAdminCount = await db.user.count({
-        where: { clubId, role: "CLUB_ADMIN" },
+    if (targetMembership.role === "CLUB_ADMIN" && newRole !== "CLUB_ADMIN") {
+      const clubAdminCount = await db.clubMembership.count({
+        where: { clubId, role: "CLUB_ADMIN", status: "ACTIVE" },
       })
       if (clubAdminCount <= 1) {
         return NextResponse.json(
@@ -74,24 +74,32 @@ export async function PATCH(
     }
 
     // Si sube a admin/staff desde PLAYER, verificar limite del plan
-    if (targetUser.role === "PLAYER" && (newRole === "CLUB_ADMIN" || newRole === "STAFF")) {
+    if (targetMembership.role === "PLAYER" && (newRole === "CLUB_ADMIN" || newRole === "STAFF")) {
       const check = await canCreateAdmin(clubId)
       if (!check.allowed) {
         return NextResponse.json({ error: check.reason }, { status: 403 })
       }
     }
 
-    // Actualizar rol
-    await db.user.update({
-      where: { id: userId },
-      data: { role: newRole },
+    await db.$transaction(async (tx) => {
+      await tx.clubMembership.update({
+        where: { id: targetMembership.id },
+        data: { role: newRole, status: "ACTIVE" },
+      })
+      await tx.user.update({
+        where: { id: userId },
+        data: {
+          ...(targetMembership.user.clubId === clubId ? { role: newRole } : {}),
+          sessionVersion: { increment: 1 },
+        },
+      })
     })
 
     registrarAuditoria({
       recurso: "user",
       accion: "actualizar",
       entidadId: userId,
-      detalles: { tipo: "cambio-rol", rolAnterior: targetUser.role, rolNuevo: newRole },
+      detalles: { tipo: "cambio-rol", rolAnterior: targetMembership.role, rolNuevo: newRole },
       userId: auth.session.user.id,
       userName: auth.session.user.name,
       clubId,

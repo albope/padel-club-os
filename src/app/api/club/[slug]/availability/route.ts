@@ -7,10 +7,8 @@ import { inicioDiaEnZonaClub } from "@/lib/timezone";
 
 // GET: Obtener disponibilidad de todas las pistas de un club para una fecha
 // Publica (sin auth) - devuelve bloques ocupados anonimizados
-export async function GET(
-  req: Request,
-  { params }: { params: { slug: string } }
-) {
+export async function GET(req: Request, props: { params: Promise<{ slug: string }> }) {
+  const params = await props.params;
   try {
     const { searchParams } = new URL(req.url);
     const date = searchParams.get("date");

@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@100,400..800;112,500..800&family=Instrument+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/lucide@0.417.0/dist/umd/lucide.min.js"></script>
+<style>
+body { margin:0; background:#EFECE6; font-family:'Instrument Sans',system-ui,sans-serif; color:#1C1A17; }
+a { color:#157A54; text-decoration:none; } a:hover { color:#0E5C3F; }
+</style>
+</helmet>
+<div style="max-width:1240px;margin:0 auto;padding:56px 40px 96px;display:grid;gap:64px;align-content:start">
+
+  <!-- Cabecera -->
+  <div style="display:grid;gap:12px">
+    <div style="display:flex;align-items:center;gap:10px;font-size:12px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:#8A8377"><span style="width:28px;height:2px;background:#157A54"></span>PadelClub OS · Dirección «Marcador» · Bloques C–D</div>
+    <h1 style="font-family:'Archivo',sans-serif;font-stretch:112%;font-weight:750;font-size:44px;line-height:1.05;letter-spacing:-0.02em;margin:0">Brand kit y design system</h1>
+    <p style="font-size:16px;line-height:1.55;color:#5C564C;max-width:760px;margin:0;text-wrap:pretty">Marca maestra, sistema visual y tokens implementables sobre el stack actual (Tailwind + variables HSL). Los tokens de referencia viven también en <code>tokens.padelclubos.json</code>.</p>
+  </div>
+
+  <!-- C · MARCA -->
+  <div style="display:grid;gap:28px">
+    <h2 style="font-family:'Archivo',sans-serif;font-stretch:112%;font-weight:700;font-size:13px;letter-spacing:0.16em;text-transform:uppercase;margin:0;color:#157A54">C1 · Marca maestra</h2>
+    <div style="display:grid;grid-template-columns:1.1fr 1fr;gap:24px;align-items:stretch">
+      <!-- Lockup principal -->
+      <div style="background:#F6F3ED;border:1px solid #DDD7CC;border-radius:14px;padding:48px;display:grid;place-items:center">
+        <div style="display:grid;gap:20px;justify-items:center">
+          <div style="display:flex;align-items:center;gap:14px">
+            <svg width="56" height="56" viewBox="0 0 48 48"><rect x="4" y="10" width="40" height="28" rx="7" fill="none" stroke="#1C1A17" stroke-width="3"></rect><rect x="10" y="16" width="13" height="16" rx="3" fill="#157A54"></rect></svg>
+            <span style="font-family:'Archivo',sans-serif;font-stretch:112%;font-weight:750;font-size:36px;letter-spacing:-0.02em">PadelClub<span style="display:inline-flex;align-items:center;justify-content:center;background:#157A54;color:#F6F3ED;border-radius:9px;padding:2px 10px;margin-left:8px;font-size:28px;vertical-align:4px">OS</span></span>
+          </div>
+          <p style="margin:0;font-size:12px;color:#8A8377">Lockup horizontal · uso preferente</p>
+        </div>
+      </div>
+      <!-- Concepto -->
+      <div style="background:#1C1A17;color:#F6F3ED;border-radius:14px;padding:32px;display:grid;gap:14px;align-content:start">
+        <p style="margin:0;font-size:11px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:#A39C8E">Concepto en una frase</p>
+        <p style="margin:0;font-family:'Archivo',sans-serif;font-stretch:112%;font-weight:700;font-size:22px;line-height:1.3">«Cada franja cuenta»: el símbolo es la celda del marcador — un turno ocupado dentro del ritmo del club.</p>
+        <p style="margin:0;font-size:13.5px;line-height:1.6;color:#C4BDB0">Decisión sobre el símbolo actual: <strong style="color:#F6F3ED">sustituir</strong>. La pista literal dentro de un cuadrado con degradado azul/cian es descriptiva, no distintiva, y no escala a favicon (6 trazos a 16px). El nuevo isotipo conserva la idea de «campo delimitado» pero la abstrae al objeto que el producto gestiona: el slot. Personalidad verbal: directa, operativa, sin marketing dentro de tareas.</p>
+        <div style="display:flex;gap:10px;margin-top:4px;flex-wrap:wrap">
+          <span style="font-size:11px;border:1px solid rgba(246,243,237,0.25);border-radius:99px;padding:4px 12px">Preciso</span><span style="font-size:11px;border:1px solid rgba(246,243,237,0.25);border-radius:99px;padding:4px 12px">Sereno</span><span style="font-size:11px;border:1px solid rgba(246,243,237,0.25);border-radius:99px;padding:4px 12px">Competitivo</span><span style="font-size:11px;border:1px solid rgba(246,243,237,0.25);border-radius:99px;padding:4px 12px">Mediterráneo</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Versiones -->
+    <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:14px">
+      <div style="background:#F6F3ED;border:1px solid #DDD7CC;border-radius:10px;padding:20px;display:grid;gap:12px;place-items:center">
+        <svg width="40" height="40" viewBox="0 0 48 48"><rect x="4" y="10" width="40" height="28" rx="7" fill="none" stroke="#1C1A17" stroke-width="3"></rect><rect x="10" y="16" width="13" height="16" rx="3" fill="#157A54"></rect></svg>
+        <p style="margin:0;font-size:11px;color:#8A8377;text-align:center">Isotipo color</p>
+      </div>
+      <div style="background:#F6F3ED;border:1px solid #DDD7CC;border-radius:10px;padding:20px;display:grid;gap:12px;place-items:center">
+        <svg width="40" height="40" viewBox="0 0 48 48"><rect x="4" y="10" width="40" height="28" rx="7" fill="none" stroke="#1C1A17" stroke-width="3"></rect><rect x="10" y="16" width="13" height="16" rx="3" fill="#1C1A17"></rect></svg>
+        <p style="margin:0;font-size:11px;color:#8A8377;text-align:center">Monocromo</p>
+      </div>
+      <div style="background:#1C1A17;border-radius:10px;padding:20px;display:grid;gap:12px;place-items:center">
+        <svg width="40" height="40" viewBox="0 0 48 48"><rect x="4" y="10" width="40" height="28" rx="7" fill="none" stroke="#F6F3ED" stroke-width="3"></rect><rect x="10" y="16" width="13" height="16" rx="3" fill="#6FBF9C"></rect></svg>
+        <p style="margin:0;font-size:11px;color:#A39C8E;text-align:center">Negativo</p>
+      </div>
+      <div style="background:#F6F3ED;border:1px solid #DDD7CC;border-radius:10px;padding:20px;display:grid;gap:12px;place-items:center">
+        <span style="display:inline-flex;align-items:center;justify-content:center;background:#157A54;color:#F6F3ED;border-radius:8px;padding:4px 10px;font-family:'Archivo';font-stretch:112%;font-weight:750;font-size:18px">OS</span>
+        <p style="margin:0;font-size:11px;color:#8A8377;text-align:center">Compacto / chip</p>
+      </div>
+      <div style="background:#F6F3ED;border:1px solid #DDD7CC;border-radius:10px;padding:20px;display:grid;gap:12px;place-items:center">
+        <span style="width:40px;height:40px;border-radius:10px;background:#157A54;display:grid;place-items:center"><svg width="26" height="26" viewBox="0 0 48 48"><rect x="4" y="10" width="40" height="28" rx="7" fill="none" stroke="#F6F3ED" stroke-width="4"></rect><rect x="10" y="16" width="13" height="16" rx="3" fill="#F6F3ED"></rect></svg></span>
+        <p style="margin:0;font-size:11px;color:#8A8377;text-align:center">Favicon / PWA maskable</p>
+      </div>
+      <div style="background:#F6F3ED;border:1px solid #DDD7CC;border-radius:10px;padding:20px;display:grid;gap:8px;place-items:center">
+        <div style="display:grid;gap:6px;justify-items:center"><svg width="28" height="28" viewBox="0 0 48 48"><rect x="4" y="10" width="40" height="28" rx="7" fill="none" stroke="#1C1A17" stroke-width="3"></rect><rect x="10" y="16" width="13" height="16" rx="3" fill="#157A54"></rect></svg><span style="font-family:'Archivo';font-stretch:112%;font-weight:750;font-size:13px">PadelClub <span style="background:#157A54;color:#F6F3ED;border-radius:4px;padding:0 4px">OS</span></span></div>
+        <p style="margin:0;font-size:11px;color:#8A8377;text-align:center">Lockup vertical</p>
+      </div>
+    </div>
+
+    <!-- Reglas de uso -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
+      <div style="background:#fff;border:1px solid #DDD7CC;border-radius:10px;padding:22px">
+        <p style="margin:0 0 10px;font-weight:700;font-size:13px;letter-spacing:0.08em;text-transform:uppercase;color:#157A54">Construcción y mínimos</p>
+        <ul style="margin:0;padding-left:18px;font-size:13.5px;line-height:1.75;color:#3C382F">
+          <li>Área de seguridad: la altura del bloque interior del isotipo (⅓ del símbolo) en todos los lados</li>
+          <li>Tamaño mínimo: isotipo 16px, lockup horizontal 96px de ancho</li>
+          <li>El chip «OS» siempre en verde marca sobre papel/tinta — nunca en color de tenant</li>
+          <li>Wordmark en Archivo SemiExpanded 750; nunca condensado, itálica ni mayúsculas totales</li>
+          <li>Sobre fotografía: solo versión negativa sobre veladura de tinta ≥60%</li>
+        </ul>
+      </div>
+      <div style="background:#fff;border:1px solid #DDD7CC;border-radius:10px;padding:22px">
+        <p style="margin:0 0 10px;font-weight:700;font-size:13px;letter-spacing:0.08em;text-transform:uppercase;color:#B3402E">Usos incorrectos</p>
+        <ul style="margin:0;padding-left:18px;font-size:13.5px;line-height:1.75;color:#3C382F">
+          <li>No aplicar degradados, sombras ni contornos al símbolo</li>
+          <li>No recolorear con el color del club ni con semánticos de estado</li>
+          <li>No encerrar el isotipo en contenedores adicionales (ya es un contenedor)</li>
+          <li>No rotar, estirar ni recomponer las proporciones bloque/marco</li>
+          <li>No usar el wordmark sin el chip «OS» (pierde la firma)</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- C2 · COLOR -->
+  <div style="display:grid;gap:24px">
+    <h2 style="font-family:'Archivo',sans-serif;font-stretch:112%;font-weight:700;font-size:13px;letter-spacing:0.16em;text-transform:uppercase;margin:0;color:#157A54">C2 · Color</h2>
+    <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:14px">
+      <sc-for list="{{ corporativos }}" as="c" hint-placeholder-count="5">
+        <div style="border:1px solid #DDD7CC;border-radius:10px;overflow:hidden;background:#fff">
+          <div style="height:76px;background:{{ c.hex }};display:flex;align-items:flex-end;padding:8px"><span style="font-size:11px;font-weight:600;color:{{ c.on }};font-family:'JetBrains Mono',monospace">{{ c.hex }}</span></div>
+          <div style="padding:10px 12px"><p style="margin:0;font-size:12.5px;font-weight:700">{{ c.name }}</p><p style="margin:2px 0 0;font-size:11px;color:#8A8377">{{ c.uso }}</p></div>
+        </div>
+      </sc-for>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px">
+      <sc-for list="{{ semanticos }}" as="s" hint-placeholder-count="4">
+        <div style="border:1px solid #DDD7CC;border-radius:10px;background:#fff;padding:14px;display:grid;gap:8px">
+          <div style="display:flex;align-items:center;gap:8px"><span style="width:26px;height:26px;border-radius:6px;background:{{ s.hex }};display:grid;place-items:center"><i data-lucide="{{ s.icon }}" style="width:14px;height:14px;color:#fff"></i></span><p style="margin:0;font-size:13px;font-weight:700">{{ s.name }}</p><span style="margin-left:auto;font-size:10.5px;font-family:'JetBrains Mono',monospace;color:#8A8377">{{ s.hex }}</span></div>
+          <div style="display:flex;gap:4px"><span style="flex:1;height:14px;border-radius:3px;background:{{ s.bg }}"></span><span style="flex:1;height:14px;border-radius:3px;background:{{ s.hex }}"></span><span style="flex:1;height:14px;border-radius:3px;background:{{ s.dark }}"></span></div>
+          <p style="margin:0;font-size:11px;color:#8A8377;line-height:1.45">{{ s.nota }}</p>
+        </div>
+      </sc-for>
+    </div>
+    <div style="display:grid;grid-template-columns:1.3fr 1fr;gap:20px">
+      <div style="background:#fff;border:1px solid #DDD7CC;border-radius:10px;padding:22px;display:grid;gap:12px">
+        <p style="margin:0;font-weight:700;font-size:13px;letter-spacing:0.08em;text-transform:uppercase;color:#8A8377">Combinaciones aprobadas · contraste</p>
+        <sc-for list="{{ contrastes }}" as="k" hint-placeholder-count="6">
+          <div style="display:flex;align-items:center;gap:12px;border-bottom:1px solid #EFECE6;padding-bottom:10px">
+            <span style="width:130px;height:34px;border-radius:6px;background:{{ k.bg }};color:{{ k.fg }};display:grid;place-items:center;font-size:12.5px;font-weight:600;border:1px solid #E7E2D8">Texto Aa</span>
+            <span style="font-size:12.5px;color:#3C382F;flex:1">{{ k.label }}</span>
+            <span style="font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:600;color:#157A54;font-variant-numeric:tabular-nums">{{ k.ratio }}</span>
+            <span style="font-size:10px;font-weight:700;background:#F0F7F3;color:#157A54;border-radius:4px;padding:2px 6px">{{ k.nivel }}</span>
+          </div>
+        </sc-for>
+      </div>
+      <div style="background:#14120F;border-radius:10px;padding:22px;color:#F1EDE4;display:grid;gap:12px;align-content:start">
+        <p style="margin:0;font-weight:700;font-size:13px;letter-spacing:0.08em;text-transform:uppercase;color:#A39C8E">Modo oscuro diseñado</p>
+        <p style="margin:0;font-size:13px;line-height:1.55;color:#C4BDB0">No es una inversión: tres capas de superficie cálidas y el verde re-tonificado para AA sobre oscuro.</p>
+        <div style="display:grid;gap:8px">
+          <div style="background:#14120F;border:1px solid #37322A;border-radius:8px;padding:10px;font-size:12px">background <span style="float:right;font-family:'JetBrains Mono',monospace;color:#A39C8E">#14120F</span></div>
+          <div style="background:#1E1B17;border:1px solid #37322A;border-radius:8px;padding:10px;font-size:12px">surface / card <span style="float:right;font-family:'JetBrains Mono',monospace;color:#A39C8E">#1E1B17</span></div>
+          <div style="background:#282420;border:1px solid #37322A;border-radius:8px;padding:10px;font-size:12px">raised / popover <span style="float:right;font-family:'JetBrains Mono',monospace;color:#A39C8E">#282420</span></div>
+          <div style="background:#2FA075;border-radius:8px;padding:10px;font-size:12px;color:#0B241A;font-weight:600">action primary <span style="float:right;font-family:'JetBrains Mono',monospace">#2FA075</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- C3 · TIPOGRAFÍA + MOTIVO -->
+  <div style="display:grid;gap:24px">
+    <h2 style="font-family:'Archivo',sans-serif;font-stretch:112%;font-weight:700;font-size:13px;letter-spacing:0.16em;text-transform:uppercase;margin:0;color:#157A54">C3 · Tipografía, motivo e imagen</h2>
+    <div style="display:grid;grid-template-columns:1.3fr 1fr;gap:20px">
+      <div style="background:#fff;border:1px solid #DDD7CC;border-radius:10px;padding:26px;display:grid;gap:4px">
+        <sc-for list="{{ escalaTipo }}" as="t" hint-placeholder-count="7">
+          <div style="display:flex;align-items:baseline;gap:16px;border-bottom:1px solid #EFECE6;padding:10px 0">
+            <span style="width:150px;font-size:11px;color:#8A8377;font-family:'JetBrains Mono',monospace;flex-shrink:0">{{ t.token }}</span>
+            <span style="font-family:{{ t.family }};font-stretch:{{ t.stretch }};font-weight:{{ t.weight }};font-size:{{ t.size }};letter-spacing:{{ t.ls }};font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ t.sample }}</span>
+            <span style="margin-left:auto;font-size:11px;color:#8A8377;font-variant-numeric:tabular-nums;flex-shrink:0">{{ t.spec }}</span>
+          </div>
+        </sc-for>
+        <p style="margin:12px 0 0;font-size:12.5px;line-height:1.6;color:#5C564C"><strong>Decisión:</strong> Inter y Sora se retiran. <strong>Archivo</strong> (variable, eje width — SIL OFL, autohospedable) para display y cifras; <strong>Instrument Sans</strong> (SIL OFL) para UI y párrafo, con <code>font-variant-numeric: tabular-nums</code> en KPIs, precios, tablas y calendarios. Fallback: <code>system-ui</code>. ES/EN verificado: Archivo cubre diacríticos y la expansión EN→ES (~15%) se absorbe con <code>text-wrap:pretty</code> y truncados definidos.</p>
+      </div>
+      <div style="display:grid;gap:20px;align-content:start">
+        <div style="background:#1C1A17;border-radius:10px;padding:22px;color:#F6F3ED;display:grid;gap:12px">
+          <p style="margin:0;font-weight:700;font-size:13px;letter-spacing:0.08em;text-transform:uppercase;color:#A39C8E">Motivo propietario · la banda de slots</p>
+          <div style="display:flex;gap:4px">
+            <span style="flex:1;height:34px;border-radius:4px;background:#157A54"></span><span style="flex:1;height:34px;border-radius:4px;background:#2FA075"></span><span style="flex:1;height:34px;border-radius:4px;background:repeating-linear-gradient(45deg,#37322A 0 4px,#1E1B17 4px 8px)"></span><span style="flex:1;height:34px;border-radius:4px;border:1px dashed #6B655A"></span><span style="flex:1;height:34px;border-radius:4px;border:1px dashed #6B655A"></span><span style="flex:1;height:34px;border-radius:4px;background:#6FBF9C"></span><span style="flex:1;height:34px;border-radius:4px;border:1px dashed #6B655A"></span>
+          </div>
+          <p style="margin:0;font-size:12.5px;line-height:1.55;color:#C4BDB0">Franja modular de celdas (llena / rayada / punteada) usada como firma en cabeceras de marketing, emails, portadas y empty states. Nunca como fondo de zonas de trabajo. Es la única «decoración» permitida del sistema.</p>
+        </div>
+        <div style="background:#fff;border:1px solid #DDD7CC;border-radius:10px;padding:22px;display:grid;gap:10px">
+          <p style="margin:0;font-weight:700;font-size:13px;letter-spacing:0.08em;text-transform:uppercase;color:#8A8377">Dirección fotográfica</p>
+          <div style="height:110px;border-radius:8px;background:repeating-linear-gradient(-45deg,#E7E2D8 0 10px,#EFECE6 10px 20px);display:grid;place-items:center"><span style="font-family:'JetBrains Mono',monospace;font-size:11px;color:#6B655A">foto: acción real, luz natural cálida</span></div>
+          <ul style="margin:0;padding-left:18px;font-size:12.5px;line-height:1.7;color:#3C382F">
+            <li>Juego real, no posado: golpeo, desplazamiento, celebración contenida</li>
+            <li>Luz natural mediterránea o indoor cálida; sin filtros HDR ni neón</li>
+            <li>Diversidad real de edad, género y nivel; instalaciones vividas</li>
+            <li>Tratamiento: leve calidez (+5), negros nunca puros (#1C1A17)</li>
+            <li>Texto sobre foto siempre sobre veladura de tinta ≥60%</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- D1 · TOKENS -->
+  <div style="display:grid;gap:24px">
+    <h2 style="font-family:'Archivo',sans-serif;font-stretch:112%;font-weight:700;font-size:13px;letter-spacing:0.16em;text-transform:uppercase;margin:0;color:#157A54">D1 · Arquitectura de tokens y tenant</h2>
+    <div style="display:grid;grid-template-columns:1fr 1.2fr;gap:20px;align-items:start">
+      <div style="background:#fff;border:1px solid #DDD7CC;border-radius:10px;padding:22px;display:grid;gap:2px">
+        <p style="margin:0 0 10px;font-weight:700;font-size:13px;letter-spacing:0.08em;text-transform:uppercase;color:#8A8377">Capas (de primitivo a contexto)</p>
+        <sc-for list="{{ capas }}" as="c" hint-placeholder-count="7">
+          <div style="display:grid;grid-template-columns:110px 1fr;gap:12px;border-bottom:1px solid #EFECE6;padding:9px 0">
+            <code style="font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:600;color:#157A54">{{ c.ns }}</code>
+            <span style="font-size:12.5px;line-height:1.5;color:#3C382F">{{ c.desc }}</span>
+          </div>
+        </sc-for>
+      </div>
+      <div style="background:#14120F;border-radius:10px;padding:22px;color:#E8E3D8;overflow:auto">
+        <p style="margin:0 0 12px;font-weight:700;font-size:13px;letter-spacing:0.08em;text-transform:uppercase;color:#A39C8E">Mapeo a variables existentes (extracto)</p>
+<pre style="margin:0;font-family:'JetBrains Mono',monospace;font-size:11.5px;line-height:1.65"><span style="color:#8A8377">/* :root — claro. Mismos nombres que hoy: adopción sin refactor */</span>
+--background: 40 26% 95%;      <span style="color:#8A8377">/* semantic.background ← primitive.sand.50 */</span>
+--foreground: 36 8% 10%;       <span style="color:#8A8377">/* semantic.foreground ← primitive.ink.900 */</span>
+--card: 40 30% 97%;            <span style="color:#8A8377">/* semantic.surface */</span>
+--primary: 158 70% 28%;        <span style="color:#8A8377">/* semantic.action.primary ← brand.green.600 */</span>
+--primary-foreground: 40 30% 96%;
+--border: 38 18% 83%;  --ring: 158 70% 28%;
+--sidebar-background: 36 8% 10%;  <span style="color:#8A8377">/* admin.* : sidebar pasa a tinta */</span>
+--sidebar-foreground: 39 20% 88%;
+<span style="color:#6FBF9C">/* NUEVAS */</span>
+--surface-raised: 0 0% 100%;   <span style="color:#8A8377">/* capa 2 de elevación */</span>
+--success: 132 45% 36%; --warning: 38 74% 45%; --info: 215 62% 46%;
+--status-*-bg / --status-*-fg  <span style="color:#8A8377">/* pares AA por estado */</span>
+--tenant-primary / --tenant-on-primary / --tenant-50…900  <span style="color:#8A8377">/* generados */</span>
+--dataviz-1…6                  <span style="color:#8A8377">/* series seguras daltonismo */</span></pre>
+      </div>
+    </div>
+
+    <!-- Tenant engine -->
+    <div style="background:#fff;border:1px solid #DDD7CC;border-radius:12px;padding:26px;display:grid;gap:18px">
+      <div style="display:flex;align-items:baseline;justify-content:space-between;gap:16px;flex-wrap:wrap">
+        <p style="margin:0;font-weight:700;font-size:15px">Motor de tenant: del hex del club a una escala accesible</p>
+        <p style="margin:0;font-size:12.5px;color:#8A8377">Reemplaza el uso directo de <code>primaryColor</code> en <code>ClubLayout.tsx</code></p>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
+        <sc-for list="{{ tenants }}" as="t" hint-placeholder-count="2">
+          <div style="border:1px solid #E7E2D8;border-radius:10px;padding:18px;display:grid;gap:12px">
+            <div style="display:flex;align-items:center;gap:10px">
+              <span style="width:30px;height:30px;border-radius:99px;background:{{ t.base }}"></span>
+              <div><p style="margin:0;font-size:13px;font-weight:700">{{ t.name }}</p><p style="margin:0;font-size:11px;color:#8A8377;font-family:'JetBrains Mono',monospace">tenant.primary = {{ t.base }}</p></div>
+              <span style="margin-left:auto;font-size:10px;font-weight:700;padding:3px 8px;border-radius:4px;background:{{ t.checkBg }};color:{{ t.checkFg }}">{{ t.check }}</span>
+            </div>
+            <div style="display:flex;border-radius:6px;overflow:hidden;height:34px">
+              <sc-for list="{{ t.escala }}" as="e" hint-placeholder-count="9"><span style="flex:1;background:{{ e }}"></span></sc-for>
+            </div>
+            <div style="display:flex;gap:8px">
+              <span style="flex:1;height:38px;border-radius:7px;background:{{ t.action }};color:{{ t.onAction }};display:grid;place-items:center;font-size:13px;font-weight:600">Reservar · <span style="font-variant-numeric:tabular-nums">24 €</span></span>
+              <span style="width:38px;height:38px;border-radius:7px;border:2px solid {{ t.action }};display:grid;place-items:center;color:{{ t.action }}"><i data-lucide="heart" style="width:16px;height:16px"></i></span>
+            </div>
+            <p style="margin:0;font-size:11.5px;line-height:1.5;color:#8A8377">{{ t.nota }}</p>
+          </div>
+        </sc-for>
+      </div>
+      <ul style="margin:0;padding-left:18px;font-size:13px;line-height:1.75;color:#3C382F;columns:2;column-gap:40px">
+        <li>Escala tonal 50–900 generada en OKLCH desde el hex del club (croma limitado a 0.17)</li>
+        <li><code>on-primary</code> calculado: blanco o tinta según contraste ≥4.5:1; hover/pressed = L±6</li>
+        <li>El color de club actúa SOLO en: acción primaria del portal jugador, nav activa, acentos de identidad</li>
+        <li>Nunca en: semánticos de estado, textos de párrafo, celdas del grid, gráficos, modo admin</li>
+        <li>Colores fuera de gama accesible → se ajusta L automáticamente y Ajustes muestra advertencia con preview</li>
+        <li>Logos: variantes clara/oscura, contenedor 1:1 con recorte circular u original, fallback = inicial sobre tenant.600</li>
+        <li>Banner: veladura de tinta 60% garantiza texto blanco AA siempre</li>
+        <li>«Powered by PadelClub OS»: pie de portal y pantallas de auth, monocromo al 60%, nunca compite con el club</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- D2 · FOUNDATIONS -->
+  <div style="display:grid;gap:24px">
+    <h2 style="font-family:'Archivo',sans-serif;font-stretch:112%;font-weight:700;font-size:13px;letter-spacing:0.16em;text-transform:uppercase;margin:0;color:#157A54">D2 · Composición, iconografía y motion</h2>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px">
+      <div style="background:#fff;border:1px solid #DDD7CC;border-radius:10px;padding:22px">
+        <p style="margin:0 0 10px;font-weight:700;font-size:13px;letter-spacing:0.08em;text-transform:uppercase;color:#8A8377">Retícula y densidad</p>
+        <ul style="margin:0;padding-left:18px;font-size:13px;line-height:1.8;color:#3C382F">
+          <li>Espaciado base 4px; ritmo de página 8/16/24/40</li>
+          <li>Breakpoints: 360 · 768 · 1024 · 1440; contenido admin máx. 1320px</li>
+          <li>Sidebar admin 264px (agrupada); header 56px; bottom-nav 64px + safe-area</li>
+          <li>Densidad admin: fila de tabla 40px, celda de calendario 36px</li>
+          <li>Densidad jugador: hit targets ≥44px, listas 56–64px</li>
+          <li>Radios: 6px controles · 10px módulos · 14px superficies móviles</li>
+          <li>Elevación: 3 niveles de sombra cálida; sin cards dentro de cards — módulos separados por espacio y regla de 1px</li>
+        </ul>
+      </div>
+      <div style="background:#fff;border:1px solid #DDD7CC;border-radius:10px;padding:22px">
+        <p style="margin:0 0 10px;font-weight:700;font-size:13px;letter-spacing:0.08em;text-transform:uppercase;color:#8A8377">Iconografía · Lucide</p>
+        <div style="display:flex;gap:14px;align-items:center;margin-bottom:10px;color:#1C1A17">
+          <i data-lucide="calendar" style="width:16px;height:16px"></i><i data-lucide="calendar" style="width:20px;height:20px"></i><i data-lucide="calendar" style="width:24px;height:24px"></i>
+          <span style="font-size:11px;color:#8A8377;font-family:'JetBrains Mono',monospace">16 / 20 / 24 · stroke 1.75</span>
+        </div>
+        <ul style="margin:0;padding-left:18px;font-size:13px;line-height:1.8;color:#3C382F">
+          <li>Stroke 1.75 global (hoy 2): más fino, acorde a la precisión del sistema</li>
+          <li>16px en línea con texto, 20px en nav y botones, 24px solo en empty states</li>
+          <li>Icono siempre acompañado de etiqueta o aria-label</li>
+          <li>Iconos propios: solo el isotipo y el motivo de slots; nada de palas/pelotas decorativas</li>
+          <li>Empty states: motivo de slots + icono Lucide 24px + acción — sin ilustraciones spot</li>
+        </ul>
+      </div>
+      <div style="background:#fff;border:1px solid #DDD7CC;border-radius:10px;padding:22px">
+        <p style="margin:0 0 10px;font-weight:700;font-size:13px;letter-spacing:0.08em;text-transform:uppercase;color:#8A8377">Motion</p>
+        <ul style="margin:0;padding-left:18px;font-size:13px;line-height:1.8;color:#3C382F">
+          <li>Hover/press: 120ms · <code>ease-out</code></li>
+          <li>Apertura de sheet/modal: 220ms · <code>cubic-bezier(0.32,0.72,0,1)</code></li>
+          <li>Cambio de vista/fecha: 180ms fade+4px</li>
+          <li>Confirmación de reserva/pago: única celebración del sistema — check dibujado 400ms + slot que se «llena»</li>
+          <li>Skeletons con pulso 1.6s; optimistic UI en reservar/unirse; toast 4s con deshacer</li>
+          <li><code>prefers-reduced-motion</code>: todo pasa a fades de 80ms</li>
+          <li>Prohibido: animación continua, parallax, shimmer decorativo</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- D3 · COMPONENTES -->
+  <div style="display:grid;gap:24px">
+    <h2 style="font-family:'Archivo',sans-serif;font-stretch:112%;font-weight:700;font-size:13px;letter-spacing:0.16em;text-transform:uppercase;margin:0;color:#157A54">D3 · Componentes y estados (especímenes)</h2>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
+      <!-- Botones -->
+      <div style="background:#fff;border:1px solid #DDD7CC;border-radius:10px;padding:22px;display:grid;gap:14px">
+        <p style="margin:0;font-weight:700;font-size:13px;letter-spacing:0.08em;text-transform:uppercase;color:#8A8377">Botones · 36 / 40 / 48px</p>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+          <button style="height:40px;padding:0 18px;border-radius:8px;border:none;background:#157A54;color:#F6F3ED;font-family:inherit;font-size:14px;font-weight:600;cursor:pointer" style-hover="background:#0E5C3F">Nueva reserva</button>
+          <button style="height:40px;padding:0 18px;border-radius:8px;border:1.5px solid #C9C2B4;background:transparent;color:#1C1A17;font-family:inherit;font-size:14px;font-weight:600;cursor:pointer" style-hover="border-color:#1C1A17">Secundario</button>
+          <button style="height:40px;padding:0 18px;border-radius:8px;border:none;background:transparent;color:#1C1A17;font-family:inherit;font-size:14px;font-weight:600;cursor:pointer" style-hover="background:#EFECE6">Ghost</button>
+          <button style="height:40px;padding:0 18px;border-radius:8px;border:none;background:#B3402E;color:#fff;font-family:inherit;font-size:14px;font-weight:600;cursor:pointer">Eliminar</button>
+        </div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+          <button style="height:40px;padding:0 18px;border-radius:8px;border:none;background:#157A54;color:#F6F3ED;font-family:inherit;font-size:14px;font-weight:600;outline:2px solid #157A54;outline-offset:2px">Foco visible</button>
+          <button style="height:40px;padding:0 18px;border-radius:8px;border:none;background:#157A54;color:#F6F3ED;font-family:inherit;font-size:14px;font-weight:600;opacity:0.45" disabled>Deshabilitado</button>
+          <button style="height:40px;padding:0 14px;border-radius:8px;border:none;background:#0E5C3F;color:#F6F3ED;font-family:inherit;font-size:14px;font-weight:600;display:inline-flex;align-items:center;gap:8px"><span style="width:14px;height:14px;border:2px solid rgba(246,243,237,0.4);border-top-color:#F6F3ED;border-radius:99px"></span>Cobrando…</button>
+        </div>
+        <p style="margin:0;font-size:11.5px;color:#8A8377;line-height:1.5">Acción primaria: máx. 1 por vista. Destructivas siempre con confirmación + nombre del objeto. Split button para «Cobrar / Cobrar y enviar recibo».</p>
+      </div>
+      <!-- Inputs -->
+      <div style="background:#fff;border:1px solid #DDD7CC;border-radius:10px;padding:22px;display:grid;gap:12px">
+        <p style="margin:0;font-weight:700;font-size:13px;letter-spacing:0.08em;text-transform:uppercase;color:#8A8377">Formularios</p>
+        <div style="display:grid;gap:4px"><label style="font-size:12.5px;font-weight:600">Nombre del socio</label><input value="María Sanchis" style="height:40px;border:1.5px solid #C9C2B4;border-radius:8px;padding:0 12px;font-family:inherit;font-size:14px;background:#FDFCFA;color:#1C1A17"></div>
+        <div style="display:grid;gap:4px"><label style="font-size:12.5px;font-weight:600">Email</label><input value="maria@..." style="height:40px;border:1.5px solid #B3402E;border-radius:8px;padding:0 12px;font-family:inherit;font-size:14px;background:#FDFCFA;color:#1C1A17;box-shadow:0 0 0 3px rgba(179,64,46,0.12)"><p style="margin:0;font-size:12px;color:#B3402E;display:flex;align-items:center;gap:4px"><i data-lucide="alert-circle" style="width:13px;height:13px"></i>Introduce un email válido — lo usamos para el recibo</p></div>
+        <div style="display:flex;gap:10px"><div style="flex:1;display:grid;gap:4px"><label style="font-size:12.5px;font-weight:600">Pista</label><div style="height:40px;border:1.5px solid #C9C2B4;border-radius:8px;padding:0 12px;font-size:14px;display:flex;align-items:center;justify-content:space-between;background:#FDFCFA">Pista 2 <i data-lucide="chevron-down" style="width:16px;height:16px;color:#8A8377"></i></div></div><div style="flex:1;display:grid;gap:4px"><label style="font-size:12.5px;font-weight:600">Hora</label><div style="height:40px;border:1.5px solid #157A54;border-radius:8px;padding:0 12px;font-size:14px;display:flex;align-items:center;background:#FDFCFA;box-shadow:0 0 0 3px rgba(21,122,84,0.14);font-variant-numeric:tabular-nums">19:00</div></div></div>
+      </div>
+      <!-- Estados / badges -->
+      <div style="background:#fff;border:1px solid #DDD7CC;border-radius:10px;padding:22px;display:grid;gap:14px">
+        <p style="margin:0;font-weight:700;font-size:13px;letter-spacing:0.08em;text-transform:uppercase;color:#8A8377">Estados · nunca solo color</p>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <sc-for list="{{ badges }}" as="b" hint-placeholder-count="6">
+            <span style="display:inline-flex;align-items:center;gap:5px;height:26px;padding:0 10px;border-radius:6px;font-size:12px;font-weight:600;background:{{ b.bg }};color:{{ b.fg }};border:1px solid {{ b.border }}"><i data-lucide="{{ b.icon }}" style="width:12px;height:12px"></i>{{ b.label }}</span>
+          </sc-for>
+        </div>
+        <p style="margin:0;font-weight:700;font-size:13px;letter-spacing:0.08em;text-transform:uppercase;color:#8A8377">Celdas de slot (grid reservas)</p>
+        <div style="display:flex;gap:8px">
+          <div style="flex:1;height:52px;border:1.5px dashed #C9C2B4;border-radius:6px;display:grid;place-items:center;font-size:11px;color:#6B655A"><span style="font-variant-numeric:tabular-nums;font-weight:600">18 €</span></div>
+          <div style="flex:1;height:52px;border-radius:6px;background:repeating-linear-gradient(45deg,#E7E2D8 0 4px,#EFECE6 4px 8px);border:1px solid #C9C2B4;display:grid;place-items:center;font-size:10.5px;color:#5C564C;font-weight:600">Ocupada</div>
+          <div style="flex:1;height:52px;border-radius:6px;background:#1C1A17;color:#F6F3ED;display:grid;place-items:center;font-size:10.5px;font-weight:600;text-align:center">Tuya<br>19:00</div>
+          <div style="flex:1;height:52px;border-radius:6px;background:#F0F7F3;border:1.5px solid #157A54;color:#0E5C3F;display:grid;place-items:center;font-size:10.5px;font-weight:600;text-align:center">Abierta 2/4</div>
+          <div style="flex:1;height:52px;border-radius:6px;background:#EFECE6;border:1px solid #C9C2B4;display:grid;place-items:center;color:#8A8377"><i data-lucide="ban" style="width:14px;height:14px"></i></div>
+        </div>
+        <p style="margin:0;font-size:11.5px;color:#8A8377;line-height:1.5">Libre = borde punteado + precio · Ocupada = trama diagonal · Propia = tinta sólida · Abierta = borde verde + plazas · Bloqueo = icono. Distinguibles en escala de grises y con deficiencia cromática.</p>
+      </div>
+      <!-- KPI + dataviz -->
+      <div style="background:#fff;border:1px solid #DDD7CC;border-radius:10px;padding:22px;display:grid;gap:14px">
+        <p style="margin:0;font-weight:700;font-size:13px;letter-spacing:0.08em;text-transform:uppercase;color:#8A8377">KPI block + dataviz</p>
+        <div style="display:flex;gap:12px">
+          <div style="flex:1;border:1px solid #E7E2D8;border-radius:10px;padding:14px"><p style="margin:0;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:#8A8377">Ingresos hoy</p><p style="margin:4px 0 0;font-family:'Archivo';font-stretch:112%;font-weight:750;font-size:28px;font-variant-numeric:tabular-nums;letter-spacing:-0.01em">420 €</p><p style="margin:2px 0 0;font-size:11.5px;color:#157A54;display:flex;align-items:center;gap:3px;font-weight:600"><i data-lucide="trending-up" style="width:12px;height:12px"></i>+12% vs mié. pasado</p></div>
+          <div style="flex:1;border:1px solid #E7E2D8;border-radius:10px;padding:14px"><p style="margin:0;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:#8A8377">Ocupación</p><p style="margin:4px 0 0;font-family:'Archivo';font-stretch:112%;font-weight:750;font-size:28px;font-variant-numeric:tabular-nums;letter-spacing:-0.01em">68<span style="font-size:16px;color:#8A8377">%</span></p><div style="display:flex;gap:2px;margin-top:6px"><span style="flex:1;height:6px;border-radius:2px;background:#157A54"></span><span style="flex:1;height:6px;border-radius:2px;background:#157A54"></span><span style="flex:1;height:6px;border-radius:2px;background:#157A54"></span><span style="flex:1;height:6px;border-radius:2px;background:#E7E2D8"></span><span style="flex:1;height:6px;border-radius:2px;background:#E7E2D8"></span></div></div>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center">
+          <sc-for list="{{ dataviz }}" as="d" hint-placeholder-count="6"><span style="display:inline-flex;align-items:center;gap:5px;font-size:11px;color:#5C564C"><span style="width:14px;height:14px;border-radius:4px;background:{{ d.c }}"></span>{{ d.l }}</span></sc-for>
+        </div>
+        <p style="margin:0;font-size:11.5px;color:#8A8377;line-height:1.5">Series seguras para visión cromática diversa (verde/azul/ámbar/berenjena separados por luminancia); «pendiente» además con trama en barras apiladas. Datos insuficientes → estado propio con acción, nunca gráfico vacío.</p>
+      </div>
+    </div>
+    <p style="margin:0;font-size:13px;color:#5C564C;line-height:1.6">Inventario completo (modal, sheet, toast, tabla expandible, podium, chat, trial…) con anatomía y estados se demuestra aplicado en las pantallas hi-fi del bloque E y queda especificado en el handoff (bloque F).</p>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  componentDidMount() { if (window.lucide) window.lucide.createIcons(); }
+  componentDidUpdate() { if (window.lucide) window.lucide.createIcons(); }
+  renderVals() {
+    const corporativos = [
+      {hex:'#1C1A17', on:'#F6F3ED', name:'Tinta', uso:'Texto, superficies de contraste, sidebar admin'},
+      {hex:'#157A54', on:'#F6F3ED', name:'Verde pista 600', uso:'Acción primaria, marca, foco'},
+      {hex:'#6FBF9C', on:'#0B241A', name:'Verde 300', uso:'Acentos sobre oscuro, dataviz-1'},
+      {hex:'#E7E2D8', on:'#5C564C', name:'Arena 200', uso:'Bordes, divisores, tramas'},
+      {hex:'#F6F3ED', on:'#5C564C', name:'Papel 50', uso:'Fondo claro, on-dark text'},
+    ];
+    const semanticos = [
+      {name:'Información', hex:'#2E63C0', bg:'#E8EFFA', dark:'#7FA6E8', icon:'info', nota:'Azul reservado SOLO a estado informativo — ya no es color de marca.'},
+      {name:'Éxito', hex:'#3D8B37', bg:'#E9F4E6', dark:'#7FC276', icon:'check', nota:'Más claro y amarillento que el verde marca; siempre con icono check.'},
+      {name:'Aviso', hex:'#C7871E', bg:'#FBF1DD', dark:'#E5B05C', icon:'alert-triangle', nota:'Pagos pendientes, trial por caducar, waitlist.'},
+      {name:'Error', hex:'#B3402E', bg:'#F9E8E4', dark:'#E08A7A', icon:'alert-circle', nota:'Destructivo y fallos; nunca decorativo.'},
+    ];
+    const contrastes = [
+      {bg:'#F6F3ED', fg:'#1C1A17', label:'Texto principal sobre papel', ratio:'14,9:1', nivel:'AAA'},
+      {bg:'#F6F3ED', fg:'#5C564C', label:'Texto secundario sobre papel', ratio:'6,3:1', nivel:'AA'},
+      {bg:'#157A54', fg:'#F6F3ED', label:'on-primary sobre verde 600', ratio:'5,0:1', nivel:'AA'},
+      {bg:'#1C1A17', fg:'#F1EDE4', label:'Texto sobre tinta (sidebar)', ratio:'14,2:1', nivel:'AAA'},
+      {bg:'#F6F3ED', fg:'#157A54', label:'Verde 600 como texto/enlace', ratio:'4,6:1', nivel:'AA'},
+      {bg:'#14120F', fg:'#2FA075', label:'Verde dark como texto', ratio:'5,6:1', nivel:'AA'},
+    ];
+    const escalaTipo = [
+      {token:'display-xl · 36', family:"'Archivo'", stretch:'112%', weight:'750', size:'36px', ls:'-0.02em', sample:'Club Pádel Mediterráneo', spec:'40 lh · hero, onboarding'},
+      {token:'display-lg · 28', family:"'Archivo'", stretch:'112%', weight:'700', size:'28px', ls:'-0.015em', sample:'Reservas de hoy', spec:'34 lh · título de página'},
+      {token:'kpi · 28 tnum', family:"'Archivo'", stretch:'112%', weight:'750', size:'28px', ls:'-0.01em', sample:'1.284 € · 68% · 19:00', spec:'tabular-nums · KPIs'},
+      {token:'title · 18', family:"'Archivo'", stretch:'112%', weight:'650', size:'18px', ls:'-0.01em', sample:'Agenda del día', spec:'24 lh · módulos'},
+      {token:'body · 14', family:"'Instrument Sans'", stretch:'100%', weight:'400', size:'14px', ls:'0', sample:'María Sanchis reservó la Pista 2 de 19:00 a 20:30.', spec:'21 lh · UI y párrafo'},
+      {token:'body-strong · 14', family:"'Instrument Sans'", stretch:'100%', weight:'600', size:'14px', ls:'0', sample:'Cobrar 24 € ahora', spec:'botones, énfasis'},
+      {token:'caption · 12', family:"'Instrument Sans'", stretch:'100%', weight:'500', size:'12px', ls:'0.01em', sample:'Actualizado hace 2 min · Pista 4 · 90 min', spec:'16 lh · metadatos'},
+      {token:'label · 11', family:"'Instrument Sans'", stretch:'100%', weight:'600', size:'11px', ls:'0.08em', sample:'OCUPACIÓN · INGRESOS · PENDIENTES', spec:'uppercase · etiquetas'},
+    ];
+    const capas = [
+      {ns:'primitive.*', desc:'Valores base: color OKLCH, espacio 4px, radios, tipografía, duraciones. Nunca se usan directamente en componentes.'},
+      {ns:'semantic.*', desc:'background, foreground, surface, surface-raised, border, focus, action, status.{info,success,warning,error}.{bg,fg,border}'},
+      {ns:'platform.*', desc:'Acentos exclusivos de superadmin: banda de contexto, densidad máxima, estados de suscripción.'},
+      {ns:'admin.*', desc:'Backoffice del club: sidebar tinta, fila 40px, celda calendario 36px, agrupación de nav.'},
+      {ns:'player.*', desc:'Portal jugador: touch 44px+, radios 14px, bottom-nav, superficies móviles.'},
+      {ns:'tenant.*', desc:'primary, on-primary, escala 50–900 generada, logo variantes, banner con veladura. Único punto de entrada del color del club.'},
+      {ns:'dataViz.*', desc:'series-1…6, comparación, objetivo, positivo/negativo/neutral — estables aunque cambie el tenant.'},
+    ];
+    const mkScale = (stops) => stops;
+    const tenants = [
+      {name:'Club Pádel Mediterráneo · índigo', base:'#4F46E5', check:'AA ✓ 7,2:1', checkBg:'#E9F4E6', checkFg:'#3D8B37',
+       escala: mkScale(['#EEEDFC','#DCDafa','#C3C0F5','#A5A0EF','#847CE9','#4F46E5','#3F38B8','#312B8F','#232064']),
+       action:'#4F46E5', onAction:'#FFFFFF', nota:'on-primary = blanco (7,2:1). Hover 700, pressed 800. Nav activa usa 600; fondos suaves usan 50.'},
+      {name:'Pádel Sol Levante · amarillo', base:'#F5D90A', check:'Ajustado ⚠', checkBg:'#FBF1DD', checkFg:'#C7871E',
+       escala: mkScale(['#FEFBE6','#FDF6C0','#FAEC85','#F5D90A','#D9BC00','#A98F00','#7D6900','#5A4B00','#3D3200']),
+       action:'#F5D90A', onAction:'#3D3200', nota:'Blanco no alcanza contraste → on-primary = tinta 900 del propio tenant (10,8:1). Ajustes muestra la advertencia y la corrección aplicada.'},
+    ];
+    const badges = [
+      {label:'Pagado', icon:'check', bg:'#E9F4E6', fg:'#2E6A29', border:'#C8E4C3'},
+      {label:'Pendiente', icon:'clock', bg:'#FBF1DD', fg:'#96660F', border:'#EFD9AC'},
+      {label:'Cancelada', icon:'x', bg:'#F9E8E4', fg:'#8F3323', border:'#EFC9C0'},
+      {label:'Abierta 2/4', icon:'users', bg:'#F0F7F3', fg:'#0E5C3F', border:'#BFE0D0'},
+      {label:'Bloqueada', icon:'ban', bg:'#EFECE6', fg:'#6B655A', border:'#DDD7CC'},
+      {label:'Trial · 9 días', icon:'hourglass', bg:'#E8EFFA', fg:'#24509B', border:'#C6D8F2'},
+    ];
+    const dataviz = [
+      {c:'#157A54', l:'serie 1'}, {c:'#2E63C0', l:'serie 2'}, {c:'#C7871E', l:'serie 3'},
+      {c:'#7B4B94', l:'serie 4'}, {c:'#4A9DA8', l:'serie 5'}, {c:'#8A8377', l:'neutral'},
+    ];
+    return { corporativos, semanticos, contrastes, escalaTipo, capas, tenants, badges, dataviz };
+  }
+}
+</script>
+</body>
+</html>

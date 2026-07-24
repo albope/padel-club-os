@@ -4,7 +4,7 @@ Plataforma SaaS para clubes de padel con dashboard de operacion, portal de jugad
 
 ## Estado actual
 
-Hoy el repo ya incluye:
+El producto incluye:
 
 - dashboard para club con reservas, pistas, socios, noticias, blog, partidas abiertas, rankings y analiticas;
 - portal de jugador con reservas, tarifas, noticias, competiciones, rankings, perfil y recuperacion de password;
@@ -12,20 +12,16 @@ Hoy el repo ya incluye:
 - pagos por jugador, reservas recurrentes, recordatorios y waitlist;
 - notificaciones push, email e in-app;
 - auth con roles, permisos, RGPD, PWA e i18n.
-
-Los huecos mas claros a dia de hoy siguen siendo:
-
-- `CI` y `typecheck` como checks formales;
-- importacion/migracion mas robusta para switching;
-- multi-admin con invitacion real de staff;
-- horarios especiales, cierres y audit log;
-- cierre fino del contrato de estados de pago.
+- membresías multi-club, invitación de staff y aislamiento por tenant;
+- centro de demos e impersonación de soporte en modo solo lectura;
+- feedback de admin/jugador y bandeja de triaje;
+- reembolsos durables, webhook idempotente y readiness operativo.
 
 ## Stack
 
 | Tecnologia | Uso |
 |---|---|
-| Next.js 14 | App Router, web publica, dashboard y APIs |
+| Next.js 15 | App Router, web publica, dashboard y APIs |
 | TypeScript 5 | Tipado |
 | Prisma 6 + PostgreSQL | Modelo de datos y acceso a BD |
 | NextAuth 4 | Auth con JWT + credentials |
@@ -59,7 +55,7 @@ El schema actual ya cubre, entre otros:
 - `RecurringBooking`, `BookingWaitlist`
 - `News`, `BlogPost`
 
-La referencia real del modelo es [schema.prisma](c:/Users/abort/Desktop/Projects/padel-club-os/prisma/schema.prisma).
+La referencia real del modelo es `prisma/schema.prisma`.
 
 ## Estructura del repo
 
@@ -81,7 +77,7 @@ prisma/
 
 ### Requisitos
 
-- Node.js 20+
+- Node.js 20.19+
 - PostgreSQL
 
 ### Instalacion
@@ -89,7 +85,7 @@ prisma/
 ```bash
 npm install
 cp .env.example .env
-npx prisma db push
+npx prisma migrate dev
 npm run dev
 ```
 
@@ -148,16 +144,20 @@ Segun lo que quieras probar tambien entran:
 | `npm run typecheck` | tsc --noEmit |
 | `npm test` | tests con Vitest |
 | `npm run test:watch` | Vitest en watch |
+| `npm run test:e2e` | flujo crítico real con Playwright |
+| `npm run db:test-migrations` | reconstrucción de schema desde cero |
+| `npm run production:preflight` | valida configuración de lanzamiento |
+| `npm run release:verify` | auditoría, lint, tipos, tests, build y migraciones |
 
 CI (GitHub Actions): lint + typecheck + test + build en cada push/PR a master.
 Vercel despliega automaticamente los push a master.
 
 ## Documentacion del repo
 
-- [FUNCIONAL.md](c:/Users/abort/Desktop/Projects/padel-club-os/FUNCIONAL.md): foto corta del producto.
-- [AUDITORIA-2-SEMANAS.md](c:/Users/abort/Desktop/Projects/padel-club-os/AUDITORIA-2-SEMANAS.md): deuda tecnica viva.
-- [ROADMAP-90-DIAS-SWITCH-MATCHPOINT.md](c:/Users/abort/Desktop/Projects/padel-club-os/ROADMAP-90-DIAS-SWITCH-MATCHPOINT.md): roadmap realista a 90 dias.
-- [MATERIAL-LANZAMIENTO.md](c:/Users/abort/Desktop/Projects/padel-club-os/MATERIAL-LANZAMIENTO.md): materiales pendientes para vender y operar mejor.
+- `docs/production-readiness.md`: auditoría, bloques y bloqueos externos.
+- `docs/operacion.md`: despliegue, observabilidad, crons y recuperación.
+- `FUNCIONAL.md`: foto corta del producto.
+- `ROADMAP-90-DIAS-SWITCH-MATCHPOINT.md`: evolución posterior al piloto.
 
 ## Licencia
 

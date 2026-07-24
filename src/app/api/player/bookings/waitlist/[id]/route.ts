@@ -4,10 +4,8 @@ import { NextResponse } from "next/server"
 import { logger } from "@/lib/logger"
 
 // DELETE: Salir de la lista de espera
-export async function DELETE(
-  req: Request,
-  { params }: { params: { id: string } }
-) {
+export async function DELETE(req: Request, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   try {
     const auth = await requireAuth("booking-waitlist:delete")
     if (isAuthError(auth)) return auth

@@ -7,6 +7,7 @@ import { validarBody } from "@/lib/validation";
 import { logger } from "@/lib/logger";
 import { registrarAuditoria } from "@/lib/audit";
 import * as z from "zod";
+import { normalizarEmail } from "@/lib/identity";
 
 const UserCreateSchema = z.object({
   email: z.string().email("Email no valido.").max(255, "El email no puede superar 255 caracteres."),
@@ -36,23 +37,51 @@ export async function POST(req: Request) {
     const body = await req.json();
     const result = validarBody(UserCreateSchema, body);
     if (!result.success) return result.response;
-    const { email, name, password, phone, position, level, birthDate } = result.data;
+    const { name, password, phone, position, level, birthDate } = result.data;
+    const email = normalizarEmail(result.data.email);
 
-    const existingUser = await db.user.findUnique({ where: { email } });
-    if (existingUser) {
-      return new NextResponse("Ya existe un usuario con ese email", { status: 409 });
+    const existingUser = await db.user.findUnique({
+      where: { email },
+      include: {
+        memberships: {
+          where: { clubId: auth.session.user.clubId },
+          select: { id: true },
+        },
+      },
+    });
+    if (existingUser?.memberships.length) {
+      return new NextResponse("Este usuario ya pertenece al club", { status: 409 });
     }
 
     const hashedPassword = await hash(password, 10);
 
-    const newUser = await db.user.create({
-      data: {
-        email, name,
-        password: hashedPassword,
-        phone, position, level,
-        birthDate: birthDate ? new Date(birthDate) : null,
-        clubId: auth.session.user.clubId,
-      },
+    const newUser = await db.$transaction(async (tx) => {
+      const user = existingUser ?? await tx.user.create({
+        data: {
+          email,
+          name,
+          password: hashedPassword,
+          phone,
+          position,
+          level,
+          birthDate: birthDate ? new Date(birthDate) : null,
+          clubId: auth.session.user.clubId,
+          role: "PLAYER",
+        },
+      });
+
+      await tx.clubMembership.create({
+        data: {
+          userId: user.id,
+          clubId: auth.session.user.clubId,
+          role: "PLAYER",
+          status: "ACTIVE",
+          approvedAt: new Date(),
+          approvedById: auth.session.user.id,
+        },
+      });
+
+      return user;
     });
 
     registrarAuditoria({
@@ -65,7 +94,20 @@ export async function POST(req: Request) {
       clubId: auth.session.user.clubId,
     })
 
-    return NextResponse.json(newUser, { status: 201 });
+    return NextResponse.json(
+      {
+        id: newUser.id,
+        email: newUser.email,
+        name: newUser.name,
+        phone: newUser.phone,
+        position: newUser.position,
+        level: newUser.level,
+        birthDate: newUser.birthDate,
+        isActive: newUser.isActive,
+        role: "PLAYER",
+      },
+      { status: 201 },
+    );
   } catch (error) {
     logger.error("CREATE_USER", "Error al crear socio", { ruta: "/api/users" }, error);
     return new NextResponse("Internal Server Error", { status: 500 });

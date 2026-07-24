@@ -1,13 +1,16 @@
 import { defineConfig, devices } from "@playwright/test"
+import "dotenv/config"
 
 // E2E del flujo critico contra la rama dev de Neon (NUNCA produccion):
 // - Local: usa el dev server y el DATABASE_URL del .env. Uso: npm run test:e2e
-// - CI (job e2e): build + start de produccion con el secret E2E_DATABASE_URL
+// - CI (job e2e): PostgreSQL efimero + build/start de produccion
 const enCI = !!process.env.CI
 
 export default defineConfig({
   testDir: "./e2e",
-  timeout: 90_000,
+  // El servidor local compila rutas bajo demanda; el journey de alta completo
+  // recorre varias pantallas. En CI se ejecuta sobre build de produccion.
+  timeout: 180_000,
   expect: { timeout: 10_000 },
   fullyParallel: false,
   workers: 1,
@@ -28,6 +31,10 @@ export default defineConfig({
     timeout: 300_000,
     // Rate limit en memoria: evita que registros repetidos de los tests
     // agoten los limites compartidos (Upstash) entre ejecuciones
-    env: { RATE_LIMIT_BACKEND: "memory" },
+    env: {
+      RATE_LIMIT_BACKEND: "memory",
+      NEXTAUTH_URL: "http://localhost:3000",
+      NEXT_PUBLIC_APP_URL: "http://localhost:3000",
+    },
   },
 })

@@ -9,12 +9,13 @@ import CompetitionDetailClient from '@/components/competitions/CompetitionDetail
 import { Button } from '@/components/ui/button';
 
 interface CompetitionDetailPageProps {
-  params: {
+  params: Promise<{
     competitionId: string;
-  };
+  }>;
 }
 
-const CompetitionDetailPage = async ({ params }: CompetitionDetailPageProps) => {
+const CompetitionDetailPage = async (props: CompetitionDetailPageProps) => {
+  const params = await props.params;
   const session = await getServerSession(authOptions);
   if (!session?.user?.clubId) {
     redirect('/dashboard');

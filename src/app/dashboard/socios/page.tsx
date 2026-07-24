@@ -14,16 +14,30 @@ const SociosPage = async () => {
     redirect('/dashboard');
   }
 
-  const usersWithStatsData = await db.user.findMany({
-    where: { clubId: session.user.clubId, role: "PLAYER" },
-    orderBy: { name: 'asc' },
+  const memberships = await db.clubMembership.findMany({
+    where: {
+      clubId: session.user.clubId,
+      role: "PLAYER",
+      status: { not: "REVOKED" },
+    },
+    orderBy: { user: { name: 'asc' } },
     include: {
-      _count: { select: { bookings: true } },
-      bookings: { where: { startTime: { gte: new Date() } }, select: { id: true } },
+      user: {
+        include: {
+          _count: { select: { bookings: true } },
+          bookings: { where: { startTime: { gte: new Date() } }, select: { id: true } },
+        },
+      },
     },
   });
 
-  const initialSocios = usersWithStatsData;
+  const initialSocios = memberships.map((membership) => ({
+    ...membership.user,
+    role: membership.role,
+    isActive: membership.status === "ACTIVE",
+    membershipId: membership.id,
+    membershipStatus: membership.status,
+  }));
 
   return (
     <div className="space-y-8">

@@ -61,7 +61,11 @@ export async function POST(req: Request) {
     const hashedPassword = await hash(password, 10)
     await db.user.update({
       where: { id: usuario.id },
-      data: { password: hashedPassword, mustResetPassword: false },
+      data: {
+        password: hashedPassword,
+        mustResetPassword: false,
+        sessionVersion: { increment: 1 },
+      },
     })
 
     // Eliminar token (single-use)

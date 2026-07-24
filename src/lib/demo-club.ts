@@ -160,6 +160,7 @@ export async function crearClubDemo(
     hash(playerPassword, 10),
   ])
   const trialEndsAt = new Date(ahora.getTime() + 90 * 24 * 60 * 60 * 1000)
+  const verifiedAt = new Date()
 
   const nombresPistas =
     numCourts === 2
@@ -194,16 +195,33 @@ export async function crearClubDemo(
         subscriptionTier: "pro",
         subscriptionStatus: "active",
         trialEndsAt,
+        timezone: "Europe/Madrid",
+        registrationMode: "CLOSED",
+        isPublished: true,
+        onboardingCompletedAt: verifiedAt,
+        bannerUrl: "/images/defaults/club-hero.webp",
+        logoUrl: "/images/defaults/club-hero.webp",
       },
     })
 
-    await tx.user.create({
+    const admin = await tx.user.create({
       data: {
         name: "Administración",
         email: adminEmail,
         password: passwordAdminHash,
         role: UserRole.CLUB_ADMIN,
         clubId: club.id,
+        emailVerified: verifiedAt,
+        image: "/images/defaults/player.webp",
+      },
+    })
+    await tx.clubMembership.create({
+      data: {
+        userId: admin.id,
+        clubId: club.id,
+        role: UserRole.CLUB_ADMIN,
+        status: "ACTIVE",
+        approvedAt: verifiedAt,
       },
     })
 
@@ -244,6 +262,8 @@ export async function crearClubDemo(
       position: s.position,
       role: UserRole.PLAYER,
       clubId: club.id,
+      emailVerified: verifiedAt,
+      image: "/images/defaults/player.webp",
     })),
     select: { id: true, email: true },
   })
@@ -252,6 +272,16 @@ export async function crearClubDemo(
     const creado = sociosCreados.find((c) => c.email === `${s.email}@${dominioEmail}`)
     if (!creado) throw new Error(`Socio no creado: ${s.email}`)
     return { id: creado.id, level: s.level }
+  })
+  await prisma.clubMembership.createMany({
+    data: socios.map((socio) => ({
+      userId: socio.id,
+      clubId: club.id,
+      role: UserRole.PLAYER,
+      status: "ACTIVE",
+      approvedAt: verifiedAt,
+    })),
+    skipDuplicates: true,
   })
 
   // --- 4. Estadisticas ELO (coherentes con eloANivel: elo = 900 + (nivel-1)*200) ---
@@ -479,6 +509,7 @@ export async function crearClubDemo(
         "Estrenamos sistema de reservas online. A partir de ahora puedes reservar pista desde el móvil las 24 horas, ver la disponibilidad en tiempo real y cancelar hasta 24 horas antes sin coste.\n\nEntra en la sección Reservar, elige pista y hora, y listo. Sin llamadas ni mensajes.",
       published: true,
       clubId: club.id,
+      imageUrl: "/images/defaults/news.webp",
     },
     {
       title: "Torneo de verano - inscripciones abiertas",
@@ -486,6 +517,7 @@ export async function crearClubDemo(
         "Abrimos las inscripciones para el Torneo de Verano del club. Formato por parejas, todas las categorías bienvenidas.\n\nFechas: último fin de semana de agosto.\nPrecio: 10€ por pareja (incluye bolas y picoteo).\n\nApúntate en recepción o escríbenos.",
       published: true,
       clubId: club.id,
+      imageUrl: "/images/defaults/news.webp",
     },
     {
       title: "Nuevo horario de verano",
@@ -493,6 +525,7 @@ export async function crearClubDemo(
         "Durante los meses de verano el club abre de 9:00 a 22:00 todos los días.\n\nLas horas con más demanda son las de tarde (18:00 a 21:30); os recomendamos reservar con antelación desde la app.",
       published: true,
       clubId: club.id,
+      imageUrl: "/images/defaults/news.webp",
     },
   ]
   await prisma.news.createMany({ data: noticias })

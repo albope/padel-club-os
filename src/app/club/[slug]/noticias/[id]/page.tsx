@@ -5,14 +5,16 @@ import Image from "next/image"
 import { ArrowLeft } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { getLocale } from "next-intl/server"
+import { DEFAULT_IMAGES } from "@/lib/default-images"
 
 export const revalidate = 1800 // 30min
 
-export default async function ClubNewsDetailPage({
-  params,
-}: {
-  params: { slug: string; id: string }
-}) {
+export default async function ClubNewsDetailPage(
+  props: {
+    params: Promise<{ slug: string; id: string }>
+  }
+) {
+  const params = await props.params;
   const locale = await getLocale()
   const localeCode = locale === 'es' ? 'es-ES' : 'en-GB'
   const club = await db.club.findUnique({
@@ -38,17 +40,15 @@ export default async function ClubNewsDetailPage({
       </Link>
 
       <article className="max-w-3xl">
-        {noticia.imageUrl && (
-          <div className="relative w-full h-64 mb-6">
-            <Image
-              src={noticia.imageUrl}
-              alt={noticia.title}
-              fill
-              className="object-cover rounded-lg"
-              sizes="(max-width: 768px) 100vw, 768px"
-            />
-          </div>
-        )}
+        <div className="relative w-full h-64 mb-6">
+          <Image
+            src={noticia.imageUrl || DEFAULT_IMAGES.news}
+            alt={noticia.imageUrl ? noticia.title : "Material de padel"}
+            fill
+            className="object-cover rounded-lg"
+            sizes="(max-width: 768px) 100vw, 768px"
+          />
+        </div>
 
         <h1 className="text-3xl font-bold tracking-tight text-foreground">
           {noticia.title}

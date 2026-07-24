@@ -4,12 +4,14 @@ import { NextResponse } from "next/server"
 import { calcularPrecioReserva } from "@/lib/pricing"
 import { crearNotificacion } from "@/lib/notifications"
 import { enviarEmailReagendamientoReserva } from "@/lib/email"
-import { generarDatosPagoPorJugador, aplicarRefundBooking } from "@/lib/payment-sync"
+import { generarDatosPagoPorJugador } from "@/lib/payment-sync"
+import { enqueueBookingRefund } from "@/lib/refunds"
 import { liberarSlotYNotificar, limpiarWaitlistAlReservar } from "@/lib/waitlist"
 import { verificarBloqueo } from "@/lib/court-blocks"
 import { logger } from "@/lib/logger"
 import { validarBody } from "@/lib/validation"
 import * as z from "zod"
+import { respuestaErrorReserva, validarRangoReserva } from "@/lib/booking-domain"
 
 const RescheduleSchema = z.object({
   newCourtId: z.string().min(1).optional(),
@@ -78,6 +80,10 @@ export async function PATCH(
         enablePlayerBooking: true,
         slug: true,
         name: true,
+        timezone: true,
+        openingTime: true,
+        closingTime: true,
+        bookingDuration: true,
       },
     })
 
@@ -103,26 +109,13 @@ export async function PATCH(
     const nuevaStartTime = new Date(newStartTime)
     const nuevaEndTime = new Date(newEndTime)
     const now = new Date()
-
-    // Verificar que el nuevo horario no sea en el pasado
-    if (nuevaStartTime < now) {
-      return NextResponse.json(
-        { error: "No puedes reagendar a un horario pasado." },
-        { status: 400 }
-      )
-    }
-
-    // Verificar ventana maxima de reserva anticipada
-    if (club.maxAdvanceBooking) {
-      const maxDate = new Date()
-      maxDate.setDate(maxDate.getDate() + club.maxAdvanceBooking)
-      if (nuevaStartTime > maxDate) {
-        return NextResponse.json(
-          { error: `Solo puedes reservar con ${club.maxAdvanceBooking} dias de antelacion.` },
-          { status: 400 }
-        )
-      }
-    }
+    validarRangoReserva({
+      startTime: nuevaStartTime,
+      endTime: nuevaEndTime,
+      policy: club,
+      now,
+      requireFuture: true,
+    })
 
     const courtIdDestino = newCourtId || reservaOriginal.courtId
 
@@ -168,6 +161,16 @@ export async function PATCH(
 
     // Calcular nuevo precio
     const nuevoPrecio = await calcularPrecioReserva(courtIdDestino, clubId, nuevaStartTime, nuevaEndTime)
+    if (nuevoPrecio <= 0) {
+      return NextResponse.json(
+        {
+          error:
+            "Este horario no tiene una tarifa completa configurada. Contacta con el club.",
+          code: "PRICE_NOT_CONFIGURED",
+        },
+        { status: 409 },
+      )
+    }
 
     // Determinar paymentMethod y paymentStatus de la nueva reserva segun la original
     const origMethod = reservaOriginal.paymentMethod
@@ -245,36 +248,12 @@ export async function PATCH(
       return nueva
     })
 
-    // Reembolso post-transaccion si la reserva original fue pagada online
+    // Reembolso durable post-transaccion si la reserva original fue pagada online
     if (origMethod === "online" && reservaOriginal.paymentStatus === "paid") {
-      const payment = await db.payment.findUnique({
-        where: { bookingId },
-        select: { id: true, stripePaymentId: true, status: true, amount: true },
-      })
-      if (payment?.stripePaymentId && payment.status === "succeeded") {
-        try {
-          const { stripe: stripeClient } = await import("@/lib/stripe")
-          await stripeClient.refunds.create({
-            payment_intent: payment.stripePaymentId,
-            reverse_transfer: true,
-            refund_application_fee: false,
-          })
-          // Sincronizar Payment + Booking.paymentStatus atomicamente
-          await db.$transaction(async (tx) => {
-            await tx.payment.update({
-              where: { id: payment.id },
-              data: { status: "refunded" },
-            })
-            await aplicarRefundBooking(tx, bookingId)
-          })
-          logger.info("RESCHEDULE_REFUND", "Reembolso procesado por reagendamiento", {
-            bookingId,
-            paymentId: payment.id,
-            amount: payment.amount,
-          })
-        } catch (refundError) {
-          logger.error("RESCHEDULE_REFUND", "Error al procesar reembolso", { bookingId, paymentId: payment.id }, refundError)
-        }
+      try {
+        await enqueueBookingRefund(bookingId, "Reagendamiento solicitado por el jugador")
+      } catch (refundError) {
+        logger.error("RESCHEDULE_REFUND_QUEUE", "No se pudo registrar el reembolso inmediatamente", { bookingId }, refundError)
       }
     }
 
@@ -327,6 +306,13 @@ export async function PATCH(
 
     return NextResponse.json(nuevaReserva)
   } catch (error) {
+    const domainError = respuestaErrorReserva(error)
+    if (domainError) {
+      return NextResponse.json(
+        { error: domainError.message, code: domainError.code },
+        { status: domainError.status },
+      )
+    }
     logger.error("RESCHEDULE_BOOKING", "Error reagendando reserva", { ruta: "/api/player/bookings/[bookingId]/reschedule", metodo: "PATCH" }, error)
     return new NextResponse("Internal Server Error", { status: 500 })
   }

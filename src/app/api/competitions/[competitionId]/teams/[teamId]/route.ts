@@ -14,8 +14,9 @@ const TeamUpdateSchema = z.object({
 // PATCH: Actualizar un equipo
 export async function PATCH(
   req: Request,
-  { params }: { params: { competitionId: string; teamId: string } }
+  props: { params: Promise<{ competitionId: string; teamId: string }> }
 ) {
+  const params = await props.params;
   try {
     const auth = await requireAuth("competitions:update")
     if (isAuthError(auth)) return auth
@@ -52,8 +53,9 @@ export async function PATCH(
 // DELETE: Eliminar un equipo
 export async function DELETE(
   req: Request,
-  { params }: { params: { competitionId: string; teamId: string } }
+  props: { params: Promise<{ competitionId: string; teamId: string }> }
 ) {
+  const params = await props.params;
   try {
     const auth = await requireAuth("competitions:delete")
     if (isAuthError(auth)) return auth

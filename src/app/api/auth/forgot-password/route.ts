@@ -5,10 +5,17 @@ import { crearRateLimiter, obtenerIP } from "@/lib/rate-limit"
 import { logger } from "@/lib/logger"
 import { NextResponse } from "next/server"
 import * as z from "zod"
+import { normalizarEmail } from "@/lib/identity"
 
 const ForgotPasswordSchema = z.object({
   email: z.string().email("Email no valido.").max(255),
-  redirectUrl: z.string().max(500).optional(),
+  redirectUrl: z.string().max(200).refine(
+    (value) => (
+      value === "/login"
+      || /^\/club\/[a-z0-9-]+\/login$/.test(value)
+    ),
+    "Ruta de retorno no permitida.",
+  ).optional(),
 })
 
 const limiter = crearRateLimiter({ maxRequests: 3, windowMs: 15 * 60 * 1000, prefix: "rl:forgot-pw" })
@@ -34,7 +41,8 @@ export async function POST(req: Request) {
       )
     }
 
-    const { email, redirectUrl } = parsed.data
+    const { redirectUrl } = parsed.data
+    const email = normalizarEmail(parsed.data.email)
 
     // SEGURIDAD: siempre responder con exito, incluso si el email no existe
     const mensaje =
@@ -42,7 +50,7 @@ export async function POST(req: Request) {
 
     // Buscar usuario
     const usuario = await db.user.findUnique({
-      where: { email: email.toLowerCase() },
+      where: { email },
       select: { id: true, email: true, name: true, password: true },
     })
 

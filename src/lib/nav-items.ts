@@ -19,6 +19,8 @@ import {
   UserCog,
   Inbox,
   Building2,
+  Bug,
+  ScanEye,
   type LucideIcon,
 } from 'lucide-react';
 import type { Permission } from '@/lib/permissions';
@@ -56,6 +58,8 @@ export const navItems: NavItem[] = [
   { nameKey: 'nav.blog', href: '/dashboard/blog', icon: FileText, requiredPermission: 'blog:read', group: 'contenido' },
   { nameKey: 'nav.leads', href: '/dashboard/leads', icon: Inbox, requiredPermission: 'leads:read', group: 'plataforma' },
   { nameKey: 'nav.clubs', href: '/dashboard/clubs', icon: Building2, requiredPermission: 'platform:read', group: 'plataforma' },
+  { nameKey: 'nav.accesos', href: '/dashboard/accesos', icon: ScanEye, requiredPermission: 'platform:manage', group: 'plataforma' },
+  { nameKey: 'nav.reportes', href: '/dashboard/reportes', icon: Bug, requiredPermission: 'platform:read', group: 'plataforma' },
   { nameKey: 'nav.analiticas', href: '/dashboard/analiticas', icon: BarChart3, group: 'negocio' },
   { nameKey: 'nav.migracion', href: '/dashboard/migracion', icon: DatabaseZap, group: 'sistema' },
   { nameKey: 'nav.actividad', href: '/dashboard/audit-log', icon: ScrollText, requiredPermission: 'audit:read', group: 'sistema' },
@@ -97,6 +101,8 @@ const ORDEN_MARCADOR = [
   '/dashboard/facturacion',
   '/dashboard/leads',
   '/dashboard/clubs',
+  '/dashboard/accesos',
+  '/dashboard/reportes',
   '/dashboard/equipo',
   '/dashboard/migracion',
   '/dashboard/audit-log',

@@ -8,10 +8,11 @@ import { enviarEmailInvitacionEquipo } from "@/lib/email"
 import { crearRateLimiter, obtenerIP } from "@/lib/rate-limit"
 import { registrarAuditoria } from "@/lib/audit"
 import { logger } from "@/lib/logger"
+import { normalizarEmail } from "@/lib/identity"
 import * as z from "zod"
 
 const InviteSchema = z.object({
-  email: z.string().email("Email no valido.").max(255).transform((e) => e.toLowerCase().trim()),
+  email: z.string().email("Email no valido.").max(255).transform(normalizarEmail),
   role: z.enum(["CLUB_ADMIN", "STAFF"], { errorMap: () => ({ message: "Rol no valido." }) }),
 })
 
@@ -47,25 +48,18 @@ export async function POST(req: Request) {
     }
 
     // Verificar que el email no es ya admin/staff en este club
-    const existingAdmin = await db.user.findFirst({
-      where: { email, clubId, role: { not: "PLAYER" } },
+    const existingAdmin = await db.clubMembership.findFirst({
+      where: {
+        clubId,
+        role: { in: ["CLUB_ADMIN", "STAFF"] },
+        status: { in: ["ACTIVE", "PENDING"] },
+        user: { email },
+      },
       select: { id: true },
     })
     if (existingAdmin) {
       return NextResponse.json(
         { error: "Este email ya pertenece a un miembro del equipo." },
-        { status: 409 }
-      )
-    }
-
-    // Verificar que el email no existe en otro club
-    const existingOtherClub = await db.user.findFirst({
-      where: { email, clubId: { not: clubId } },
-      select: { id: true },
-    })
-    if (existingOtherClub) {
-      return NextResponse.json(
-        { error: "Este email ya esta registrado en otro club." },
         { status: 409 }
       )
     }

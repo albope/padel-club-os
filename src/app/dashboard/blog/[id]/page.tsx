@@ -11,10 +11,11 @@ import { Card } from '@/components/ui/card'
 import { hasPermission } from '@/lib/permissions'
 
 interface EditArticuloPageProps {
-  params: { id: string }
+  params: Promise<{ id: string }>
 }
 
-const EditArticuloPage = async ({ params }: EditArticuloPageProps) => {
+const EditArticuloPage = async (props: EditArticuloPageProps) => {
+  const params = await props.params;
   const session = await getServerSession(authOptions)
   if (!session?.user?.clubId) redirect('/login')
   if (!session.user.role || !hasPermission(session.user.role, 'blog:update')) redirect('/dashboard')

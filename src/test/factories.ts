@@ -42,6 +42,9 @@ export function crearClubMock(overrides: Record<string, unknown> = {}) {
     cancellationHours: 2,
     bookingPaymentMode: "presential",
     bookingDuration: 90,
+    timezone: "Europe/Madrid",
+    openingTime: "00:00",
+    closingTime: "23:59",
     stripeConnectAccountId: null,
     stripeConnectOnboarded: false,
     stripeCustomerId: null,
@@ -71,6 +74,7 @@ export function crearPistaMock(overrides: Record<string, unknown> = {}) {
     name: "Pista 1",
     type: "indoor",
     clubId: "club-1",
+    club: crearClubMock(),
     ...overrides,
   }
 }

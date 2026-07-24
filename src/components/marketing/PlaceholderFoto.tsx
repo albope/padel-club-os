@@ -1,4 +1,6 @@
 import { cn } from "@/lib/utils"
+import Image from "next/image"
+import { DEFAULT_IMAGES } from "@/lib/default-images"
 
 /** Chip de categoria del blog por color semantico (mock Marcador). */
 export const chipCategoriaBase =
@@ -35,25 +37,19 @@ export function PlaceholderFoto({
   label?: string
   className?: string
 }) {
-  const claro = variant === "claro"
   return (
     <div
-      className={cn("grid place-items-center", className)}
-      style={{
-        backgroundImage: claro
-          ? "repeating-linear-gradient(45deg, hsl(var(--border)) 0 12px, hsl(var(--secondary)) 12px 24px)"
-          : "repeating-linear-gradient(45deg, hsl(var(--popover)) 0 12px, hsl(var(--card)) 12px 24px)",
-      }}
-      aria-hidden="true"
+      className={cn("relative overflow-hidden bg-muted", className)}
+      role="img"
+      aria-label={label === "FOTO" ? "Material de padel" : label}
     >
-      <span
-        className={cn(
-          "rounded-[var(--radius-control)] border border-dashed px-3 py-1.5 font-mono text-[10px] text-muted-foreground",
-          claro ? "border-border-strong bg-surface-raised" : "border-border bg-background"
-        )}
-      >
-        {label}
-      </span>
+      <Image
+        src={DEFAULT_IMAGES.news}
+        alt=""
+        fill
+        sizes="(max-width: 768px) 100vw, 640px"
+        className={cn("object-cover", variant === "oscuro" && "brightness-75")}
+      />
     </div>
   )
 }

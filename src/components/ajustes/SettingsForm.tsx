@@ -5,7 +5,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { useRouter } from 'next/navigation';
-import { Loader2, Upload, X, ImageIcon } from 'lucide-react';
+import { ExternalLink, Loader2, Upload, X } from 'lucide-react';
 import { upload } from '@vercel/blob/client';
 import { Club } from '@prisma/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -17,6 +17,7 @@ import { toast } from '@/hooks/use-toast';
 import { temaMarcadorActivo } from '@/lib/feature-flags';
 import { PreviewTenant } from '@/components/ajustes/PreviewTenant';
 import Image from 'next/image';
+import { DEFAULT_IMAGES } from '@/lib/default-images';
 
 const SettingsSchema = z.object({
   name: z.string().min(3, "El nombre del club es requerido."),
@@ -36,6 +37,9 @@ const SettingsSchema = z.object({
   enableOpenMatches: z.boolean().optional(),
   enablePlayerBooking: z.boolean().optional(),
   bookingPaymentMode: z.enum(["presential", "online", "both"]).optional(),
+  timezone: z.string(),
+  registrationMode: z.enum(["OPEN", "APPROVAL", "INVITE_ONLY", "CLOSED"]),
+  isPublished: z.boolean(),
 });
 
 interface SettingsFormProps {
@@ -70,6 +74,9 @@ const SettingsForm: React.FC<SettingsFormProps> = ({ club }) => {
       enableOpenMatches: club.enableOpenMatches ?? true,
       enablePlayerBooking: club.enablePlayerBooking ?? true,
       bookingPaymentMode: (club.bookingPaymentMode as "presential" | "online" | "both") ?? "presential",
+      timezone: club.timezone || "Europe/Madrid",
+      registrationMode: club.registrationMode,
+      isPublished: club.isPublished,
     },
   });
 
@@ -84,7 +91,8 @@ const SettingsForm: React.FC<SettingsFormProps> = ({ club }) => {
       });
 
       if (!response.ok) {
-        throw new Error('No se pudieron guardar los ajustes.');
+        const data = await response.json().catch(() => null);
+        throw new Error(data?.error || 'No se pudieron guardar los ajustes.');
       }
 
       toast({ title: "Ajustes guardados", description: "Los ajustes se han guardado con exito.", variant: "success" });
@@ -112,7 +120,8 @@ const SettingsForm: React.FC<SettingsFormProps> = ({ club }) => {
 
     setIsUploading(true)
     try {
-      const blob = await upload(file.name, file, {
+      const extension = file.name.split('.').pop()?.toLowerCase() || 'webp'
+      const blob = await upload(`club-banner.${extension}`, file, {
         access: "public",
         handleUploadUrl: "/api/upload",
       })
@@ -142,7 +151,8 @@ const SettingsForm: React.FC<SettingsFormProps> = ({ club }) => {
 
     setIsUploadingLogo(true)
     try {
-      const blob = await upload(file.name, file, {
+      const extension = file.name.split('.').pop()?.toLowerCase() || 'webp'
+      const blob = await upload(`club-logo.${extension}`, file, {
         access: "public",
         handleUploadUrl: "/api/upload",
       })
@@ -161,6 +171,42 @@ const SettingsForm: React.FC<SettingsFormProps> = ({ club }) => {
 
   return (
     <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+      <Card className={form.watch('isPublished') ? 'border-primary/30' : 'border-warning-border'}>
+        <CardHeader>
+          <CardTitle>Publicacion del portal</CardTitle>
+          <CardDescription>
+            Controla cuando el portal del club esta listo para recibir jugadores.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <Label htmlFor="isPublished">
+                {form.watch('isPublished') ? 'Portal publicado' : 'Portal en borrador'}
+              </Label>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Al publicar se comprobara que exista al menos una pista con tarifa.
+              </p>
+            </div>
+            <label className="relative inline-flex items-center cursor-pointer">
+              <input
+                id="isPublished"
+                type="checkbox"
+                className="sr-only peer"
+                checked={form.watch('isPublished')}
+                onChange={(e) => form.setValue('isPublished', e.target.checked, { shouldDirty: true })}
+              />
+              <div className="w-11 h-6 bg-muted rounded-full peer peer-checked:bg-primary transition-colors after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:after:translate-x-full" />
+            </label>
+          </div>
+          <Button asChild type="button" variant="outline" size="sm">
+            <a href={`/club/${club.slug}`} target="_blank" rel="noopener noreferrer">
+              Ver portal <ExternalLink className="ml-2 h-4 w-4" />
+            </a>
+          </Button>
+        </CardContent>
+      </Card>
+
       {/* Informacion basica */}
       <Card>
         <CardHeader>
@@ -211,6 +257,34 @@ const SettingsForm: React.FC<SettingsFormProps> = ({ club }) => {
               <Input id="closingTime" type="time" {...form.register('closingTime')} />
             </div>
           </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="timezone">Zona horaria</Label>
+              <select
+                id="timezone"
+                {...form.register('timezone')}
+                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+              >
+                <option value="Europe/Madrid">España peninsular</option>
+                <option value="Atlantic/Canary">Islas Canarias</option>
+                <option value="Europe/Lisbon">Portugal peninsular</option>
+              </select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="registrationMode">Altas de jugadores</Label>
+              <select
+                id="registrationMode"
+                {...form.register('registrationMode')}
+                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+              >
+                <option value="APPROVAL">Solicitud con aprobacion</option>
+                <option value="OPEN">Registro abierto</option>
+                <option value="INVITE_ONLY">Solo por invitacion</option>
+                <option value="CLOSED">Registro cerrado</option>
+              </select>
+            </div>
+          </div>
         </CardContent>
       </Card>
 
@@ -259,15 +333,15 @@ const SettingsForm: React.FC<SettingsFormProps> = ({ club }) => {
               Se muestra en la cabecera del portal de jugadores. Recomendado: cuadrado, min 200x200px.
             </p>
             <div className="flex items-center gap-4">
-              {logoUrl ? (
-                <div className="relative">
-                  <Image
-                    src={logoUrl}
-                    alt="Logo del club"
-                    width={64}
-                    height={64}
-                    className="h-16 w-16 rounded-full object-cover ring-2 ring-border"
-                  />
+              <div className="relative">
+                <Image
+                  src={logoUrl || DEFAULT_IMAGES.clubHero}
+                  alt={logoUrl ? "Logo del club" : "Imagen predeterminada del club"}
+                  width={64}
+                  height={64}
+                  className="h-16 w-16 rounded-full object-cover ring-2 ring-border"
+                />
+                {logoUrl && (
                   <button
                     type="button"
                     onClick={() => form.setValue("logoUrl", "")}
@@ -275,12 +349,8 @@ const SettingsForm: React.FC<SettingsFormProps> = ({ club }) => {
                   >
                     <X className="h-3 w-3" />
                   </button>
-                </div>
-              ) : (
-                <div className="h-16 w-16 rounded-full border-2 border-dashed border-muted-foreground/25 bg-muted/50 flex items-center justify-center">
-                  <ImageIcon className="h-6 w-6 text-muted-foreground" />
-                </div>
-              )}
+                )}
+              </div>
               <div>
                 <input
                   ref={logoInputRef}
@@ -314,14 +384,15 @@ const SettingsForm: React.FC<SettingsFormProps> = ({ club }) => {
             <p className="text-xs text-muted-foreground">
               Se muestra como banner en la pagina principal del portal. Recomendado: 1200x400px, JPG o PNG.
             </p>
-            {bannerUrl ? (
-              <div className="relative rounded-lg overflow-hidden border border-input">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={bannerUrl}
-                  alt="Portada del club"
+            <div className="relative rounded-lg overflow-hidden border border-input">
+                <Image
+                  src={bannerUrl || DEFAULT_IMAGES.clubHero}
+                  alt={bannerUrl ? "Portada del club" : "Portada predeterminada del club"}
+                  width={1200}
+                  height={400}
                   className="w-full h-40 object-cover"
                 />
+              {bannerUrl && (
                 <button
                   type="button"
                   onClick={() => form.setValue("bannerUrl", "")}
@@ -329,15 +400,8 @@ const SettingsForm: React.FC<SettingsFormProps> = ({ club }) => {
                 >
                   <X className="h-4 w-4" />
                 </button>
-              </div>
-            ) : (
-              <div className="flex items-center justify-center h-32 rounded-lg border-2 border-dashed border-muted-foreground/25 bg-muted/50">
-                <div className="text-center text-muted-foreground">
-                  <ImageIcon className="h-8 w-8 mx-auto mb-1" />
-                  <p className="text-sm">Sin imagen de portada</p>
-                </div>
-              </div>
-            )}
+              )}
+            </div>
             <input
               ref={fileInputRef}
               type="file"
@@ -502,7 +566,7 @@ const SettingsForm: React.FC<SettingsFormProps> = ({ club }) => {
               Como cobran las reservas a los jugadores.
             </p>
             {!club.stripeConnectOnboarded && (
-              <p className="text-xs text-amber-600">
+              <p className="text-xs text-warning-foreground">
                 Para habilitar pagos online, conecta tu cuenta de Stripe en la seccion de Facturacion.
               </p>
             )}

@@ -27,6 +27,7 @@ const mockStripeCheckout = {
 const mockConstructWebhookEvent = vi.fn()
 const mockSincronizarEstadoPago = vi.fn().mockResolvedValue("pending")
 const mockAsegurarBookingPayments = vi.fn().mockResolvedValue(4)
+const mockEnqueueRefund = vi.fn().mockResolvedValue({ status: "not_needed" })
 
 vi.mock("@/lib/db", () => ({ db: mockDb }))
 vi.mock("@/lib/api-auth", () => ({
@@ -75,6 +76,9 @@ vi.mock("@/lib/payment-sync", () => ({
   ]),
   sincronizarEstadoPago: (...args: unknown[]) => mockSincronizarEstadoPago(...args),
   asegurarBookingPayments: (...args: unknown[]) => mockAsegurarBookingPayments(...args),
+}))
+vi.mock("@/lib/refunds", () => ({
+  enqueueBookingRefund: (...args: unknown[]) => mockEnqueueRefund(...args),
 }))
 vi.mock("@/lib/logger", () => ({
   logger: { info: vi.fn(), error: vi.fn(), warn: vi.fn() },
@@ -212,6 +216,7 @@ describe("Journey 1: Reserva online completa con pago y cancelacion", () => {
     }))
     mockDb.payment.update.mockResolvedValue({})
     mockDb.user.findUnique.mockResolvedValue({ email: "j@t.com", name: "J", club: { name: "C", slug: "c" } })
+    mockEnqueueRefund.mockResolvedValue({ status: "succeeded" })
 
     const { DELETE: cancelBooking } = await import("@/app/api/player/bookings/route")
     const cancelResp = await cancelBooking(crearRequest({
@@ -220,14 +225,12 @@ describe("Journey 1: Reserva online completa con pago y cancelacion", () => {
     }))
 
     expect(cancelResp.status).toBe(200)
-    // Refund emitido
-    expect(mockStripeRefunds.create).toHaveBeenCalledWith(
-      expect.objectContaining({ payment_intent: "pi_j1" })
+    // La obligacion queda registrada; el procesador duradero se prueba aparte.
+    expect(mockEnqueueRefund).toHaveBeenCalledWith(
+      "booking-j1",
+      "Cancelado por el jugador",
     )
-    // Payment marcado como refunded
-    expect(mockDb.payment.update).toHaveBeenCalledWith(
-      expect.objectContaining({ data: { status: "refunded" } })
-    )
+    expect(mockStripeRefunds.create).not.toHaveBeenCalled()
     // Waitlist notificada
     expect(mockLiberarSlot).toHaveBeenCalled()
     // Email de cancelacion enviado

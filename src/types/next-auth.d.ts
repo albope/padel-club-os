@@ -12,6 +12,14 @@ declare module "next-auth/jwt" {
     subscriptionStatus?: string | null;
     trialEndsAt?: string | null;
     subscriptionRefreshedAt?: number;
+    sessionVersion?: number;
+    identityRefreshedAt?: number;
+    authInvalid?: boolean;
+    actorId?: string | null;
+    actorName?: string | null;
+    impersonationId?: string | null;
+    impersonationReadOnly?: boolean;
+    impersonationToken?: string | null;
   }
 }
 
@@ -25,6 +33,12 @@ declare module "next-auth" {
       mustResetPassword?: boolean;
       subscriptionStatus?: string | null;
       trialEndsAt?: string | null;
+      sessionVersion?: number;
+      authInvalid?: boolean;
+      actorId?: string | null;
+      actorName?: string | null;
+      impersonationId?: string | null;
+      impersonationReadOnly?: boolean;
     } & DefaultSession["user"]
   }
 
@@ -34,5 +48,6 @@ declare module "next-auth" {
     clubName?: string | null;
     role?: UserRole;
     mustResetPassword?: boolean;
+    sessionVersion?: number;
   }
 }

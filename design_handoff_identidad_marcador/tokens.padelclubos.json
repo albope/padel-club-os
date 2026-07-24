@@ -1,0 +1,110 @@
+{
+  "$meta": {
+    "name": "PadelClub OS — Dirección Marcador",
+    "version": "1.0.0",
+    "format": "OKLCH primitives + HSL output for existing Tailwind vars",
+    "modes": ["light", "dark"]
+  },
+  "primitive": {
+    "color": {
+      "ink": { "900": "#1C1A17", "700": "#3C382F", "500": "#5C564C", "400": "#8A8377", "300": "#A39C8E" },
+      "sand": { "50": "#F6F3ED", "100": "#EFECE6", "200": "#E7E2D8", "300": "#DDD7CC", "400": "#C9C2B4" },
+      "green": { "300": "#6FBF9C", "400": "#2FA075", "600": "#157A54", "700": "#0E5C3F", "900": "#0B241A" },
+      "darkSurface": { "bg": "#14120F", "surface": "#1E1B17", "raised": "#282420", "border": "#37322A", "text": "#F1EDE4" }
+    },
+    "space": { "unit": 4, "scale": [4, 8, 12, 16, 24, 32, 40, 56] },
+    "radius": { "control": 6, "module": 10, "surface": 14, "pill": 999 },
+    "type": {
+      "display": "Archivo (variable, wdth 112, wght 650-800)",
+      "text": "Instrument Sans (400-700)",
+      "mono": "JetBrains Mono (código/handoff)",
+      "numeric": "font-variant-numeric: tabular-nums en KPI, precio, tabla, calendario",
+      "scale": { "display-xl": 36, "display-lg": 28, "kpi": 28, "title": 18, "body": 14, "caption": 12, "label": 11 }
+    },
+    "motion": {
+      "press": "120ms ease-out",
+      "overlay": "220ms cubic-bezier(0.32,0.72,0,1)",
+      "view": "180ms fade+4px",
+      "celebrate": "400ms (solo confirmación reserva/pago)",
+      "reducedMotion": "fades 80ms"
+    }
+  },
+  "semantic": {
+    "light": {
+      "background": "hsl(40 26% 95%)",
+      "foreground": "hsl(36 8% 10%)",
+      "surface": "hsl(40 30% 97%)",
+      "surfaceRaised": "hsl(0 0% 100%)",
+      "border": "hsl(38 18% 83%)",
+      "focus": "hsl(158 70% 28%)",
+      "action": { "primary": "hsl(158 70% 28%)", "onPrimary": "hsl(40 30% 96%)", "hover": "hsl(158 74% 21%)" },
+      "status": {
+        "info": { "fg": "#2E63C0", "bg": "#E8EFFA", "border": "#C6D8F2" },
+        "success": { "fg": "#3D8B37", "bg": "#E9F4E6", "border": "#C8E4C3" },
+        "warning": { "fg": "#C7871E", "bg": "#FBF1DD", "border": "#EFD9AC" },
+        "error": { "fg": "#B3402E", "bg": "#F9E8E4", "border": "#EFC9C0" }
+      }
+    },
+    "dark": {
+      "background": "#14120F",
+      "foreground": "#F1EDE4",
+      "surface": "#1E1B17",
+      "surfaceRaised": "#282420",
+      "border": "#37322A",
+      "focus": "#2FA075",
+      "action": { "primary": "#2FA075", "onPrimary": "#0B241A", "hover": "#6FBF9C" },
+      "status": {
+        "info": { "fg": "#7FA6E8" }, "success": { "fg": "#7FC276" },
+        "warning": { "fg": "#E5B05C" }, "error": { "fg": "#E08A7A" }
+      }
+    }
+  },
+  "platform": {
+    "contextBand": "primitive.color.ink.900 con chip OS verde",
+    "density": "fila 36px, tablas máximas",
+    "subscriptionStates": ["trial", "active", "past_due", "canceled", "demo"]
+  },
+  "admin": {
+    "sidebar": { "width": 264, "background": "primitive.color.ink.900", "grouping": ["Operación", "Comunidad", "Contenido", "Negocio", "Sistema"] },
+    "header": 56,
+    "tableRow": 40,
+    "calendarCell": 36
+  },
+  "player": {
+    "touchTarget": 44,
+    "listItem": 56,
+    "bottomNav": "64 + env(safe-area-inset-bottom)",
+    "radius": "surface 14",
+    "poweredBy": "pie de portal + auth, monocromo 60%"
+  },
+  "tenant": {
+    "input": "primaryColor hex del club",
+    "engine": "escala 50-900 en OKLCH, croma máx 0.17, L ajustada a gama accesible",
+    "computed": ["primary", "onPrimary (blanco o tinta ≥4.5:1)", "hover (L-6)", "pressed (L-12)", "tint-50", "nav-active"],
+    "allowedSurfaces": ["acción primaria del portal jugador", "nav activa jugador", "acentos de identidad (línea, avatar, hero)"],
+    "forbiddenSurfaces": ["semánticos de estado", "texto de párrafo", "celdas del grid", "dataviz", "portal admin"],
+    "logo": { "variants": ["light", "dark"], "fallback": "inicial sobre tenant.600", "banner": "veladura tinta 60% para texto AA" },
+    "settingsPreview": "previsualización en Ajustes con advertencia automática de contraste"
+  },
+  "dataViz": {
+    "series": ["#157A54", "#2E63C0", "#C7871E", "#7B4B94", "#4A9DA8", "#8A8377"],
+    "positive": "#3D8B37", "negative": "#B3402E", "neutral": "#8A8377", "target": "#1C1A17 dashed",
+    "rule": "pendiente/estimado siempre con trama además de color"
+  },
+  "cssVarMapping": {
+    "--background": "semantic.background",
+    "--foreground": "semantic.foreground",
+    "--card": "semantic.surface",
+    "--popover": "semantic.surfaceRaised",
+    "--primary": "semantic.action.primary",
+    "--primary-foreground": "semantic.action.onPrimary",
+    "--border | --input": "semantic.border",
+    "--ring": "semantic.focus",
+    "--destructive": "semantic.status.error.fg",
+    "--muted": "primitive.sand.100",
+    "--muted-foreground": "primitive.ink.500",
+    "--sidebar-background": "admin.sidebar.background (NUEVO: tinta)",
+    "--sidebar-primary": "semantic.action.primary",
+    "NUEVAS": ["--surface-raised", "--success", "--warning", "--info", "--status-*-bg/fg/border", "--tenant-primary", "--tenant-on-primary", "--tenant-50…900", "--dataviz-1…6"]
+  }
+}

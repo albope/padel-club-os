@@ -24,10 +24,8 @@ const patchSchema = z
     { message: "Debes indicar al menos una accion" }
   )
 
-export async function PATCH(
-  req: Request,
-  { params }: { params: { clubId: string } }
-) {
+export async function PATCH(req: Request, props: { params: Promise<{ clubId: string }> }) {
+  const params = await props.params;
   try {
     const auth = await requireAuth("platform:manage")
     if (isAuthError(auth)) return auth

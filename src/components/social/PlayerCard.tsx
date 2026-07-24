@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { EstrellasDisplay } from './EstrellasDisplay';
 import { useTranslations } from 'next-intl';
+import { DEFAULT_IMAGES } from '@/lib/default-images';
 
 interface PlayerCardProps {
   jugador: {
@@ -33,19 +34,13 @@ export function PlayerCard({ jugador, slug }: PlayerCardProps) {
       <Card className="transition-colors hover:border-primary/30 hover:bg-muted/30 cursor-pointer h-full">
         <CardContent className="p-4 flex flex-col items-center text-center gap-2">
           {/* Avatar */}
-          {jugador.imagen ? (
-            <Image
-              src={jugador.imagen}
-              alt={jugador.nombre}
-              width={56}
-              height={56}
-              className="h-14 w-14 rounded-full object-cover"
-            />
-          ) : (
-            <div className="h-14 w-14 rounded-full bg-primary/10 text-primary flex items-center justify-center text-xl font-semibold">
-              {jugador.nombre.charAt(0).toUpperCase()}
-            </div>
-          )}
+          <Image
+            src={jugador.imagen || DEFAULT_IMAGES.player}
+            alt={jugador.nombre}
+            width={56}
+            height={56}
+            className="h-14 w-14 rounded-full object-cover"
+          />
 
           {/* Nombre */}
           <p className="font-semibold truncate w-full">{jugador.nombre}</p>

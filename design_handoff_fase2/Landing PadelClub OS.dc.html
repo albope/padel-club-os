@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@112,600..800&family=Instrument+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  body { margin:0; background:hsl(40 26% 95%); color:#1C1A17; font-family:'Instrument Sans',sans-serif; -webkit-font-smoothing:antialiased; }
+  a { color:#157A54; text-decoration:none; }
+  a:hover { color:#0E5C3F; }
+</style>
+</helmet>
+<div style="min-width:1200px">
+
+  <!-- Nav -->
+  <header style="position:sticky;top:0;z-index:10;background:hsl(40 26% 95% / 0.92);backdrop-filter:blur(10px);border-bottom:1px solid hsl(38 18% 83%)">
+    <div style="max-width:1200px;margin:0 auto;padding:0 32px;height:64px;display:flex;align-items:center;justify-content:space-between">
+      <div style="display:flex;align-items:center;gap:10px">
+        <svg viewBox="0 0 48 48" width="26" height="26"><rect x="4" y="10" width="40" height="28" rx="7" fill="none" stroke="#1C1A17" stroke-width="3"></rect><rect x="10" y="16" width="13" height="16" rx="3" fill="#157A54"></rect></svg>
+        <span style="font-family:'Archivo',sans-serif;font-stretch:112%;font-weight:750;font-size:17px">Padel Club <span style="color:#157A54">OS</span></span>
+      </div>
+      <nav style="display:flex;align-items:center;gap:28px;font-size:14px;font-weight:600">
+        <a href="#funcionalidades" style="color:#3C382F">Funcionalidades</a>
+        <a href="#como-funciona" style="color:#3C382F">Cómo funciona</a>
+        <a href="#precios" style="color:#3C382F">Precios</a>
+        <a href="#" style="color:#3C382F">Blog</a>
+        <a href="#" style="color:#3C382F">Contacto</a>
+      </nav>
+      <div style="display:flex;align-items:center;gap:14px">
+        <a href="#" style="font-size:14px;font-weight:600;color:#1C1A17">Iniciar sesión</a>
+        <a href="#" style="background:#157A54;color:#F6F3ED;font-size:14px;font-weight:700;padding:10px 20px;border-radius:6px" style-hover="background:#0E5C3F;color:#F6F3ED">Solicitar demo</a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Hero -->
+  <section style="max-width:1200px;margin:0 auto;padding:80px 32px 72px;display:grid;grid-template-columns:1.05fr 1fr;gap:64px;align-items:center">
+    <div style="display:grid;gap:24px">
+      <div style="display:inline-flex;align-items:center;gap:10px;font-size:12px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:#157A54"><span style="width:28px;height:2px;background:#157A54;display:inline-block"></span>Prueba gratuita 14 días — sin tarjeta</div>
+      <h1 style="font-family:'Archivo',sans-serif;font-stretch:112%;font-weight:800;font-size:56px;line-height:1.04;letter-spacing:-0.025em;margin:0;text-wrap:balance">Tu club de pádel merece algo mejor</h1>
+      <p style="font-size:17px;color:#5C564C;line-height:1.6;margin:0;max-width:480px;text-wrap:pretty">Reservas, socios, competiciones y pagos en una sola plataforma. Diseñada para clubes que quieren dejar atrás el WhatsApp, el Excel y el papel.</p>
+      <div style="display:flex;align-items:center;gap:16px">
+        <a href="#" style="background:#157A54;color:#F6F3ED;font-size:15px;font-weight:700;padding:15px 30px;border-radius:6px" style-hover="background:#0E5C3F;color:#F6F3ED">Solicitar demo gratuita</a>
+        <a href="#como-funciona" style="font-size:15px;font-weight:600;color:#1C1A17;display:inline-flex;align-items:center;gap:8px">Ver cómo funciona <span style="font-family:'JetBrains Mono',monospace;font-size:12px;color:#8A8377">▸</span></a>
+      </div>
+      <p style="font-size:12.5px;color:#8A8377;margin:0">Sin tarjeta de crédito · Sin permanencia · Configura en 5 minutos</p>
+    </div>
+    <!-- Hero visual: KPIs + pistas -->
+    <div style="background:#fff;border:1px solid hsl(38 18% 83%);border-radius:14px;box-shadow:0 24px 60px -24px rgba(28,26,23,0.25);overflow:hidden">
+      <div style="padding:18px 20px;display:grid;grid-template-columns:repeat(3,1fr);gap:12px;font-variant-numeric:tabular-nums">
+        <div style="border:1px solid hsl(38 18% 83%);border-radius:10px;padding:14px"><div style="font-size:10.5px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#8A8377;margin-bottom:6px">Reservas hoy</div><div style="font-family:'Archivo',sans-serif;font-weight:750;font-size:26px">24</div><div style="font-size:11.5px;color:#3D8B37;font-weight:600">+12% vs ayer</div></div>
+        <div style="border:1px solid hsl(38 18% 83%);border-radius:10px;padding:14px"><div style="font-size:10.5px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#8A8377;margin-bottom:6px">Socios activos</div><div style="font-family:'Archivo',sans-serif;font-weight:750;font-size:26px">342</div><div style="font-size:11.5px;color:#3D8B37;font-weight:600">+8 esta semana</div></div>
+        <div style="border:1px solid hsl(38 18% 83%);border-radius:10px;padding:14px"><div style="font-size:10.5px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#8A8377;margin-bottom:6px">Ocupación</div><div style="font-family:'Archivo',sans-serif;font-weight:750;font-size:26px">87%</div><div style="font-size:11.5px;color:#3D8B37;font-weight:600">Máximo histórico</div></div>
+      </div>
+      <div style="padding:0 20px 18px;display:grid;gap:8px;font-variant-numeric:tabular-nums">
+        <sc-for list="{{ gridRows }}" as="row" hint-placeholder-count="4">
+          <div style="display:grid;grid-template-columns:60px repeat(4,1fr);gap:6px;align-items:stretch">
+            <span style="font-family:'JetBrains Mono',monospace;font-size:11px;color:#8A8377;display:flex;align-items:center">{{ row.hour }}</span>
+            <sc-for list="{{ row.cells }}" as="cell" hint-placeholder-count="4">
+              <div style="height:36px;border-radius:6px;border:1px solid {{ cell.border }};background:{{ cell.bg }};color:{{ cell.fg }};display:flex;align-items:center;padding:0 10px;font-size:11.5px;font-weight:600;overflow:hidden;white-space:nowrap">{{ cell.label }}</div>
+            </sc-for>
+          </div>
+        </sc-for>
+        <div style="display:grid;grid-template-columns:60px repeat(4,1fr);gap:6px;font-size:10.5px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:#8A8377"><span></span><span>Pista 1</span><span>Pista 2</span><span>Pista 3</span><span>Pista 4</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Beneficios rápidos -->
+  <section style="max-width:1200px;margin:0 auto;padding:0 32px 72px">
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:20px">
+      <sc-for list="{{ quick }}" as="q" hint-placeholder-count="4">
+        <div style="background:#fff;border:1px solid hsl(38 18% 83%);border-radius:10px;padding:20px;display:grid;gap:8px;align-content:start">
+          <div style="width:34px;height:24px;border:2px solid #157A54;border-radius:6px;position:relative"><div style="position:absolute;left:4px;top:4px;bottom:4px;width:9px;border-radius:2px;background:#157A54"></div></div>
+          <h3 style="font-family:'Archivo',sans-serif;font-stretch:112%;font-weight:700;font-size:15px;margin:4px 0 0">{{ q.t }}</h3>
+          <p style="font-size:13px;color:#5C564C;line-height:1.55;margin:0">{{ q.b }}</p>
+        </div>
+      </sc-for>
+    </div>
+  </section>
+
+  <!-- ¿Suena familiar? -->
+  <section style="background:#1C1A17;color:#F1EDE4">
+    <div style="max-width:1200px;margin:0 auto;padding:80px 32px;display:grid;gap:44px">
+      <div style="display:grid;gap:12px;max-width:640px">
+        <h2 style="font-family:'Archivo',sans-serif;font-stretch:112%;font-weight:750;font-size:38px;letter-spacing:-0.02em;margin:0;line-height:1.1">¿Suena familiar?</h2>
+        <p style="font-size:16px;color:#A39C8E;line-height:1.6;margin:0">Si gestionas tu club con WhatsApp, Excel o papel, sabemos exactamente por lo que estás pasando.</p>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:24px">
+        <sc-for list="{{ problems }}" as="p" hint-placeholder-count="3">
+          <div style="border:1px solid #37322A;border-radius:14px;background:#1E1B17;overflow:hidden;display:grid;align-content:start">
+            <h3 style="font-family:'Archivo',sans-serif;font-stretch:112%;font-weight:700;font-size:18px;margin:0;padding:22px 24px 14px">{{ p.title }}</h3>
+            <div style="padding:0 24px 18px;display:grid;gap:8px">
+              <div style="font-size:10.5px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:#E08A7A">Ahora</div>
+              <p style="font-size:13.5px;color:#A39C8E;line-height:1.6;margin:0">{{ p.now }}</p>
+            </div>
+            <div style="padding:18px 24px 22px;border-top:1px solid #37322A;background:#282420;display:grid;gap:8px">
+              <div style="font-size:10.5px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:#6FBF9C">Con Padel Club OS</div>
+              <p style="font-size:13.5px;color:#F1EDE4;line-height:1.6;margin:0">{{ p.after }}</p>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+      <div><a href="#" style="display:inline-block;background:#2FA075;color:#0B241A;font-size:14.5px;font-weight:700;padding:14px 28px;border-radius:6px" style-hover="background:#6FBF9C;color:#0B241A">Resuelve estos problemas hoy</a></div>
+    </div>
+  </section>
+
+  <!-- Funcionalidades -->
+  <section id="funcionalidades" style="max-width:1200px;margin:0 auto;padding:88px 32px">
+    <div style="display:grid;gap:12px;max-width:680px;margin-bottom:44px">
+      <div style="font-size:12px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:#157A54">Funcionalidades</div>
+      <h2 style="font-family:'Archivo',sans-serif;font-stretch:112%;font-weight:750;font-size:38px;letter-spacing:-0.02em;margin:0;line-height:1.1">Todo lo que tu club necesita. Nada que no necesite.</h2>
+      <p style="font-size:16px;color:#5C564C;line-height:1.6;margin:0">8 herramientas esenciales para la gestión diaria de tu club. Sin módulos innecesarios, sin complejidad de más.</p>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:20px">
+      <sc-for list="{{ features }}" as="f" hint-placeholder-count="8">
+        <div style="background:#fff;border:1px solid hsl(38 18% 83%);border-radius:10px;padding:24px;display:grid;gap:10px;align-content:start">
+          <span style="font-family:'JetBrains Mono',monospace;font-size:11px;color:#157A54">{{ f.n }}</span>
+          <h3 style="font-family:'Archivo',sans-serif;font-stretch:112%;font-weight:700;font-size:16px;margin:0;line-height:1.3">{{ f.t }}</h3>
+          <p style="font-size:13px;color:#5C564C;line-height:1.6;margin:0">{{ f.b }}</p>
+        </div>
+      </sc-for>
+    </div>
+  </section>
+
+  <!-- Cómo funciona -->
+  <section id="como-funciona" style="background:#EFECE6;border-top:1px solid hsl(38 18% 83%);border-bottom:1px solid hsl(38 18% 83%)">
+    <div style="max-width:1200px;margin:0 auto;padding:80px 32px;display:grid;gap:44px">
+      <div style="display:grid;gap:12px;justify-items:center;text-align:center">
+        <div style="font-size:12px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:#157A54">Cómo funciona</div>
+        <h2 style="font-family:'Archivo',sans-serif;font-stretch:112%;font-weight:750;font-size:38px;letter-spacing:-0.02em;margin:0">Configura tu club en 5 minutos</h2>
+        <p style="font-size:15px;color:#5C564C;margin:0;max-width:560px">Sin instalaciones complicadas. Sin formación necesaria. Si sabes usar WhatsApp, sabes usar Padel Club OS.</p>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:24px">
+        <sc-for list="{{ steps }}" as="s" hint-placeholder-count="3">
+          <div style="background:#fff;border:1px solid hsl(38 18% 83%);border-radius:14px;padding:28px;display:grid;gap:12px;align-content:start">
+            <div style="width:40px;height:28px;border:2px solid #1C1A17;border-radius:7px;display:grid;place-items:center;font-family:'Archivo',sans-serif;font-weight:800;font-size:15px;font-variant-numeric:tabular-nums">{{ s.n }}</div>
+            <h3 style="font-family:'Archivo',sans-serif;font-stretch:112%;font-weight:700;font-size:19px;margin:6px 0 0">{{ s.t }}</h3>
+            <p style="font-size:14px;color:#5C564C;line-height:1.6;margin:0">{{ s.b }}</p>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+  </section>
+
+  <!-- Precios -->
+  <section id="precios" style="max-width:1200px;margin:0 auto;padding:88px 32px;display:grid;gap:44px">
+    <div style="display:grid;gap:12px;justify-items:center;text-align:center">
+      <div style="font-size:12px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:#157A54">Precios</div>
+      <h2 style="font-family:'Archivo',sans-serif;font-stretch:112%;font-weight:750;font-size:38px;letter-spacing:-0.02em;margin:0">Precios claros. Sin sorpresas.</h2>
+      <p style="font-size:15px;color:#5C564C;margin:0;max-width:560px">Mientras otros te hacen llamar a ventas para saber cuánto cuesta, nosotros te lo decimos aquí mismo.</p>
+      <div style="display:inline-flex;border:1px solid hsl(38 18% 83%);border-radius:999px;background:#fff;padding:3px;margin-top:8px">
+        <span style="font-size:13px;font-weight:700;padding:7px 18px;border-radius:999px;background:#1C1A17;color:#F6F3ED">Mensual</span>
+        <span style="font-size:13px;font-weight:600;padding:7px 18px;border-radius:999px;color:#5C564C">Anual</span>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:24px;align-items:stretch">
+      <sc-for list="{{ plans }}" as="plan" hint-placeholder-count="3">
+        <div style="background:{{ plan.bg }};color:{{ plan.fg }};border:1px solid {{ plan.border }};border-radius:14px;padding:32px;display:grid;gap:18px;align-content:start;position:relative">
+          <sc-if value="{{ plan.tag }}" hint-placeholder-val="{{ false }}">
+            <span style="position:absolute;top:-11px;left:32px;background:#157A54;color:#F6F3ED;font-size:10.5px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;padding:4px 12px;border-radius:999px;white-space:nowrap">{{ plan.tag }}</span>
+          </sc-if>
+          <div style="display:grid;gap:4px">
+            <h3 style="font-family:'Archivo',sans-serif;font-stretch:112%;font-weight:750;font-size:20px;margin:0">{{ plan.name }}</h3>
+            <p style="font-size:13px;color:{{ plan.muted }};margin:0">{{ plan.sub }}</p>
+          </div>
+          <div style="display:grid;gap:4px;font-variant-numeric:tabular-nums">
+            <div style="display:flex;align-items:baseline;gap:6px"><span style="font-family:'Archivo',sans-serif;font-weight:800;font-size:42px;letter-spacing:-0.02em">{{ plan.price }}€</span><span style="font-size:13px;color:{{ plan.muted }}">/mes</span></div>
+            <span style="font-size:12px;color:{{ plan.muted }}">14 días gratis incluidos · IVA no incluido</span>
+          </div>
+          <div style="display:grid;gap:9px">
+            <sc-for list="{{ plan.features }}" as="f" hint-placeholder-count="5">
+              <div style="display:flex;gap:10px;align-items:baseline;font-size:13.5px;line-height:1.45"><span style="width:14px;height:10px;border:1.5px solid #2FA075;border-radius:3px;flex-shrink:0;position:relative;top:1px;background:rgba(47,160,117,0.15)"></span><span>{{ f }}</span></div>
+            </sc-for>
+          </div>
+          <a href="#" style="margin-top:6px;display:block;text-align:center;background:{{ plan.ctaBg }};color:{{ plan.ctaFg }};font-size:14px;font-weight:700;padding:13px 0;border-radius:6px">Solicitar demo</a>
+        </div>
+      </sc-for>
+    </div>
+    <!-- Comparativa -->
+    <div style="background:#fff;border:1px solid hsl(38 18% 83%);border-radius:14px;overflow:hidden">
+      <div style="padding:22px 28px;border-bottom:1px solid hsl(38 18% 83%)"><h3 style="font-family:'Archivo',sans-serif;font-stretch:112%;font-weight:750;font-size:19px;margin:0">Gestión tradicional vs Padel Club OS</h3></div>
+      <div style="display:grid;grid-template-columns:1fr 1.2fr 1.4fr;padding:12px 28px;font-size:10.5px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:#8A8377;border-bottom:1px solid hsl(38 18% 83%);background:#F6F3ED"><span>Aspecto</span><span>Tradicional</span><span>Padel Club OS</span></div>
+      <sc-for list="{{ compare }}" as="row" hint-placeholder-count="5">
+        <div style="display:grid;grid-template-columns:1fr 1.2fr 1.4fr;padding:13px 28px;font-size:13.5px;border-bottom:1px solid #EFECE6;align-items:baseline">
+          <span style="font-weight:700">{{ row.a }}</span>
+          <span style="color:#8A8377">{{ row.old }}</span>
+          <span style="color:#157A54;font-weight:600">{{ row.os }}</span>
+        </div>
+      </sc-for>
+    </div>
+  </section>
+
+  <!-- FAQ -->
+  <section style="background:#EFECE6;border-top:1px solid hsl(38 18% 83%);border-bottom:1px solid hsl(38 18% 83%)">
+    <div style="max-width:1200px;margin:0 auto;padding:80px 32px;display:grid;grid-template-columns:0.8fr 1.4fr;gap:56px;align-items:start">
+      <div style="display:grid;gap:12px">
+        <div style="font-size:12px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:#157A54">FAQ</div>
+        <h2 style="font-family:'Archivo',sans-serif;font-stretch:112%;font-weight:750;font-size:34px;letter-spacing:-0.02em;margin:0;line-height:1.12">Preguntas frecuentes</h2>
+        <p style="font-size:15px;color:#5C564C;margin:0">Todo lo que necesitas saber antes de empezar.</p>
+      </div>
+      <div style="display:grid;gap:14px">
+        <sc-for list="{{ faq }}" as="q" hint-placeholder-count="6">
+          <div style="background:#fff;border:1px solid hsl(38 18% 83%);border-radius:10px;padding:20px 24px;display:grid;gap:8px">
+            <h3 style="font-family:'Archivo',sans-serif;font-stretch:112%;font-weight:700;font-size:15.5px;margin:0">{{ q.q }}</h3>
+            <p style="font-size:13.5px;color:#5C564C;line-height:1.6;margin:0">{{ q.a }}</p>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA final -->
+  <section style="max-width:820px;margin:0 auto;padding:88px 32px;display:grid;gap:20px;justify-items:center;text-align:center">
+    <h2 style="font-family:'Archivo',sans-serif;font-stretch:112%;font-weight:750;font-size:38px;letter-spacing:-0.02em;margin:0;text-wrap:balance">Tu club no puede esperar más</h2>
+    <p style="font-size:16px;color:#5C564C;line-height:1.6;margin:0;max-width:600px;text-wrap:pretty">Cada día sin digitalizar es un día de reservas perdidas, socios frustrados y horas malgastadas. Empieza hoy. Es gratis durante 14 días.</p>
+    <div style="display:flex;gap:16px;align-items:center;margin-top:6px">
+      <a href="#" style="background:#157A54;color:#F6F3ED;font-size:15px;font-weight:700;padding:15px 32px;border-radius:6px" style-hover="background:#0E5C3F;color:#F6F3ED">Solicitar demo</a>
+      <a href="#" style="font-size:14.5px;font-weight:600">Hablar con el equipo</a>
+    </div>
+    <p style="font-size:12.5px;color:#8A8377;margin:0">Sin tarjeta de crédito · Configura en 5 minutos · Cancela cuando quieras</p>
+  </section>
+
+  <!-- Footer -->
+  <footer style="background:#1C1A17;color:#A39C8E">
+    <div style="max-width:1200px;margin:0 auto;padding:56px 32px 40px;display:grid;gap:40px">
+      <div style="display:grid;grid-template-columns:1.4fr 1fr 1fr 1.2fr;gap:32px">
+        <div style="display:grid;gap:14px;align-content:start">
+          <div style="display:flex;align-items:center;gap:10px">
+            <svg viewBox="0 0 48 48" width="24" height="24"><rect x="4" y="10" width="40" height="28" rx="7" fill="none" stroke="#F1EDE4" stroke-width="3"></rect><rect x="10" y="16" width="13" height="16" rx="3" fill="#2FA075"></rect></svg>
+            <span style="font-family:'Archivo',sans-serif;font-stretch:112%;font-weight:750;font-size:16px;color:#F1EDE4">Padel Club <span style="color:#2FA075">OS</span></span>
+          </div>
+          <p style="font-size:13px;line-height:1.6;margin:0;max-width:280px">La plataforma de gestión para clubes de pádel en España. Moderna, accesible y sin complicaciones.</p>
+          <div style="display:flex;gap:14px;font-family:'JetBrains Mono',monospace;font-size:11px"><a href="#" style="color:#A39C8E">Twitter</a><a href="#" style="color:#A39C8E">LinkedIn</a><a href="#" style="color:#A39C8E">Instagram</a></div>
+        </div>
+        <div style="display:grid;gap:10px;align-content:start;font-size:13.5px"><span style="font-size:11px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:#5C564C">Producto</span><a href="#funcionalidades" style="color:#A39C8E">Funcionalidades</a><a href="#precios" style="color:#A39C8E">Precios</a><a href="#como-funciona" style="color:#A39C8E">Cómo funciona</a></div>
+        <div style="display:grid;gap:10px;align-content:start;font-size:13.5px"><span style="font-size:11px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:#5C564C">Empresa</span><a href="#" style="color:#A39C8E">Sobre nosotros</a><a href="#" style="color:#A39C8E">Blog</a><a href="#" style="color:#A39C8E">Contacto</a></div>
+        <div style="display:grid;gap:10px;align-content:start;font-size:13.5px"><span style="font-size:11px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:#5C564C">Legal</span><a href="#" style="color:#A39C8E">Aviso legal</a><a href="#" style="color:#A39C8E">Privacidad</a><a href="#" style="color:#A39C8E">Condiciones SaaS</a><a href="#" style="color:#A39C8E">Acuerdo RGPD (DPA)</a><a href="#" style="color:#A39C8E">Cookies</a><a href="#" style="color:#A39C8E">Pago seguro</a></div>
+      </div>
+      <div style="border-top:1px solid #37322A;padding-top:20px;display:flex;justify-content:space-between;font-family:'JetBrains Mono',monospace;font-size:11px;color:#5C564C">
+        <span>© 2026 Padel Club OS. Todos los derechos reservados.</span>
+        <span>Hecho en España</span>
+      </div>
+    </div>
+  </footer>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  renderVals() {
+    const free = { bg: '#fff', fg: '#8A8377', border: '#C9C2B4', label: 'Libre' };
+    const res = (n) => ({ bg: '#157A54', fg: '#F6F3ED', border: '#157A54', label: n });
+    const cls = (n) => ({ bg: '#E9F4E6', fg: '#157A54', border: '#C8E4C3', label: n });
+    return {
+      gridRows: [
+        { hour: '17:00', cells: [res('Reservada'), res('Reservada'), free, res('Reservada')] },
+        { hour: '18:30', cells: [res('Reservada'), res('Reservada'), res('Abierta'), res('Reservada')] },
+        { hour: '20:00', cells: [cls('Clase'), res('Reservada'), res('Reservada'), res('Abierta')] },
+        { hour: '21:30', cells: [res('Reservada'), free, res('Reservada'), res('Reservada')] },
+      ],
+      quick: [
+        { t: 'Configura en 5 min', b: 'Crea tu club, añade pistas y empieza a recibir reservas hoy mismo' },
+        { t: 'Todo desde el móvil', b: 'Tus jugadores reservan, pagan y se apuntan a partidas sin llamar' },
+        { t: 'Cobros automáticos', b: 'Stripe integrado para que cobres online sin perseguir a nadie' },
+        { t: 'Adiós al Excel', b: 'Reservas, socios, competiciones y pagos en un solo lugar' },
+      ],
+      problems: [
+        { title: 'Reservas por WhatsApp', now: 'Mensajes a deshora, dobles reservas, malentendidos constantes.', after: 'Reservas 24/7 online. Sin llamadas, sin errores, sin dramas.' },
+        { title: 'Competiciones en Excel', now: 'Cuadros manuales, resultados perdidos, clasificaciones que nadie entiende.', after: 'Ligas automáticas con clasificación en tiempo real.' },
+        { title: 'Gestión fragmentada', now: 'Un Excel para socios, otro para pagos, WhatsApp para comunicar.', after: 'Todo unificado: socios, reservas, pagos y comunicación.' },
+      ],
+      features: [
+        { n: '01', t: 'Reservas 24/7 sin WhatsApp', b: 'Tus socios reservan desde el móvil a cualquier hora. Detección de solapamientos y confirmación automática.' },
+        { n: '02', t: 'Socios organizados al fin', b: 'Perfiles completos, importación masiva desde Excel y comunicación directa. Adiós a las listas de papel.' },
+        { n: '03', t: 'Ligas y torneos automáticos', b: 'Genera cuadros, registra resultados y publica clasificaciones. Todo calculado y visible para tus jugadores.' },
+        { n: '04', t: 'Cobra online o en caja', b: 'Cobro online con Stripe o pago en recepción al llegar. Configúralo por pista y franja horaria.' },
+        { n: '05', t: 'Portal móvil para jugadores', b: 'Reservas, partidas abiertas, competiciones y perfil. Sin descargar nada, funciona desde el navegador.' },
+        { n: '06', t: 'Analíticas que importan', b: 'Ocupación por pista, ingresos, tendencias y crecimiento de socios. Datos reales para decisiones reales.' },
+        { n: '07', t: 'Noticias y blog del club', b: 'Comunica novedades, eventos y promociones directamente a tus socios desde tu propio portal.' },
+        { n: '08', t: 'Roles y permisos seguros', b: 'Admins, staff y socios con accesos diferenciados. Cada persona ve solo lo que necesita.' },
+      ],
+      steps: [
+        { n: '1', t: 'Crea tu cuenta', b: 'Regístrate en 30 segundos con tu email. Tu club se crea automáticamente con todo listo para empezar.' },
+        { n: '2', t: 'Configura tus pistas', b: 'Añade tus pistas, define horarios y precios. Importa tus socios desde Excel si ya los tienes.' },
+        { n: '3', t: 'Empieza a gestionar', b: 'Comparte el link con tus socios. Ellos reservan desde el móvil; tú descansas.' },
+      ],
+      plans: [
+        { name: 'Starter', sub: 'Para clubes pequeños que empiezan a digitalizarse.', price: '19', bg: '#fff', fg: '#1C1A17', muted: '#8A8377', border: 'hsl(38 18% 83%)', tag: null, ctaBg: '#EFECE6', ctaFg: '#1C1A17',
+          features: ['Hasta 4 pistas', 'Gestión de reservas', 'Hasta 50 socios', 'Portal de jugadores', 'Soporte por email'] },
+        { name: 'Pro', sub: 'Para clubes en crecimiento que necesitan más.', price: '49', bg: '#1C1A17', fg: '#F1EDE4', muted: '#A39C8E', border: '#1C1A17', tag: 'Más popular', ctaBg: '#2FA075', ctaFg: '#0B241A',
+          features: ['Pistas ilimitadas y hasta 500 socios', 'Todo de Starter', 'Competiciones y ligas', 'Pagos con Stripe', 'Analíticas avanzadas', 'Soporte prioritario'] },
+        { name: 'Enterprise', sub: 'Para grandes clubes con necesidades avanzadas.', price: '99', bg: '#fff', fg: '#1C1A17', muted: '#8A8377', border: 'hsl(38 18% 83%)', tag: null, ctaBg: '#EFECE6', ctaFg: '#1C1A17',
+          features: ['Pistas ilimitadas', 'Todo de Pro', 'Socios ilimitados', 'Administradores ilimitados', 'Clases fijas ilimitadas', 'Onboarding dedicado'] },
+      ],
+      compare: [
+        { a: 'Reservas', old: 'WhatsApp / teléfono', os: '24/7 online desde el móvil' },
+        { a: 'Competiciones', old: 'Excel manual', os: 'Automáticas con clasificación' },
+        { a: 'Pagos', old: 'Solo efectivo', os: 'Online + presencial' },
+        { a: 'Precio', old: '«Llama para saber»', os: 'Desde 19 €/mes' },
+        { a: 'Configuración', old: 'Días o semanas', os: '5 minutos' },
+      ],
+      faq: [
+        { q: '¿Cuánto tarda configurar mi club?', a: 'Menos de 5 minutos. Creas tu cuenta, añades tus pistas y ya puedes compartir el enlace con tus socios. Sin instalaciones, sin formación, sin complicaciones.' },
+        { q: '¿Necesito conocimientos técnicos?', a: 'Para nada. Si sabes usar WhatsApp, sabes usar Padel Club OS. La interfaz es intuitiva y está diseñada para que cualquier persona del club pueda gestionarlo.' },
+        { q: '¿Mis jugadores necesitan descargar una app?', a: 'No. El portal de jugadores funciona directamente desde el navegador del móvil, como una web normal. También se puede instalar como app (PWA) sin pasar por tiendas.' },
+        { q: '¿Puedo migrar mis datos actuales?', a: 'Sí. Puedes importar tu lista de socios desde un archivo Excel. Las reservas se empiezan a gestionar desde el momento en que configuras el club.' },
+        { q: '¿Hay permanencia o compromiso mínimo?', a: 'No. Puedes cancelar en cualquier momento. Sin penalizaciones, sin letra pequeña. Empiezas con 14 días gratis y decides si te conviene.' },
+        { q: '¿Qué pasa cuando termina la prueba gratuita?', a: 'Tu club sigue activo pero las funciones de gestión se bloquean hasta que elijas un plan. No se borra nada y puedes retomar donde lo dejaste.' },
+      ],
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,16 +1,19 @@
 import { db } from "@/lib/db";
 import { hash } from "bcrypt";
 import { crearRateLimiter, obtenerIP } from "@/lib/rate-limit";
-import { enviarEmailBienvenidaAdmin } from "@/lib/email";
+import { enviarEmailBienvenidaAdmin, enviarEmailVerificacion } from "@/lib/email";
 import { logger } from "@/lib/logger";
 import { NextResponse } from "next/server";
 import * as z from "zod";
 import { LEGAL_VERSIONS } from "@/lib/legal-versions";
+import { normalizarEmail } from "@/lib/identity";
+import { crearTokenVerificacionEmail } from "@/lib/tokens";
 
 const RegistroAdminSchema = z.object({
   email: z.string().email("Email no valido.").max(255),
   password: z.string().min(8, "La contrasena debe tener al menos 8 caracteres.").max(128),
   name: z.string().min(2, "El nombre debe tener al menos 2 caracteres.").max(100),
+  clubName: z.string().min(2, "El nombre del club debe tener al menos 2 caracteres.").max(120),
   legalAccepted: z.literal(true, {
     errorMap: () => ({ message: "Debes aceptar las condiciones del servicio y el acuerdo de tratamiento de datos." }),
   }),
@@ -57,7 +60,8 @@ export async function POST(req: Request) {
       );
     }
 
-    const { email, password, name } = parsed.data;
+    const { password, name, clubName } = parsed.data;
+    const email = normalizarEmail(parsed.data.email);
 
     const existingUserByEmail = await db.user.findUnique({
       where: { email: email },
@@ -71,7 +75,6 @@ export async function POST(req: Request) {
     }
 
     const hashedPassword = await hash(password, 10);
-    const clubName = `${name}'s Club`;
     const slug = await generateUniqueSlug(clubName);
 
     const { newUser, newClub } = await db.$transaction(async (prisma) => {
@@ -81,6 +84,8 @@ export async function POST(req: Request) {
           slug,
           subscriptionStatus: "trialing",
           trialEndsAt: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000), // 14 dias
+          isPublished: false,
+          registrationMode: "APPROVAL",
         },
       });
 
@@ -91,6 +96,16 @@ export async function POST(req: Request) {
           password: hashedPassword,
           clubId: club.id,
           role: "CLUB_ADMIN",
+        },
+      });
+
+      await prisma.clubMembership.create({
+        data: {
+          userId: user.id,
+          clubId: club.id,
+          role: "CLUB_ADMIN",
+          status: "ACTIVE",
+          approvedAt: new Date(),
         },
       });
 
@@ -111,18 +126,38 @@ export async function POST(req: Request) {
       return { newUser: user, newClub: club };
     });
 
-    // Enviar email de bienvenida (no bloquear si falla)
-    enviarEmailBienvenidaAdmin({
-      email,
-      nombre: name,
-      clubNombre: clubName,
-      clubSlug: slug,
-      trialEndsAt: newClub.trialEndsAt!,
-    }).catch(() => {})
+    // Esperar los intentos para que el runtime serverless no los corte al
+    // devolver la respuesta. El registro queda valido aunque Resend falle y
+    // el usuario siempre puede solicitar un nuevo enlace.
+    await Promise.allSettled([
+      enviarEmailBienvenidaAdmin({
+        email,
+        nombre: name,
+        clubNombre: clubName,
+        clubSlug: slug,
+        trialEndsAt: newClub.trialEndsAt!,
+      }),
+      crearTokenVerificacionEmail(email)
+        .then((token) => enviarEmailVerificacion({
+          email,
+          nombre: name,
+          token,
+          next: "/login",
+        })),
+    ]).then((results) => {
+      if (results[1]?.status === "rejected") {
+        logger.error(
+          "REGISTER_ADMIN_VERIFY",
+          "No se pudo enviar la verificacion de email",
+          { userId: newUser.id },
+          results[1].reason,
+        )
+      }
+    })
 
     const { password: newUserPassword, ...rest } = newUser;
     return NextResponse.json(
-      { user: rest, message: "Usuario y club creados con éxito." },
+      { user: rest, message: "Cuenta creada. Revisa tu email para verificarla." },
       { status: 201 }
     );
 

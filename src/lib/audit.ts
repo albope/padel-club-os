@@ -11,6 +11,8 @@ export type RecursoAuditoria =
   | "club"
   | "recurring-booking"
   | "broadcast"
+  | "bug-report"
+  | "impersonation"
 
 export type AccionAuditoria =
   | "crear"
@@ -24,7 +26,7 @@ export type OrigenAuditoria = "usuario" | "sistema" | "cron"
 
 // Valores para filtros de UI e i18n
 export const RECURSOS_AUDITORIA: RecursoAuditoria[] = [
-  "booking", "court", "user", "club", "recurring-booking", "broadcast",
+  "booking", "court", "user", "club", "recurring-booking", "broadcast", "bug-report", "impersonation",
 ]
 
 export const ACCIONES_AUDITORIA: AccionAuditoria[] = [

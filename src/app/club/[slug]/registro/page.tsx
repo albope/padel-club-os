@@ -12,6 +12,7 @@ import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
+import { Checkbox } from '@/components/ui/checkbox';
 
 const RegisterSchema = z.object({
   name: z.string().min(1, 'El nombre es requerido.'),
@@ -21,6 +22,7 @@ const RegisterSchema = z.object({
     .min(1, 'La contraseña es requerida.')
     .min(8, 'Mínimo 8 caracteres.'),
   phone: z.string().optional(),
+  privacyAccepted: z.boolean().refine((value) => value, 'Debes aceptar la política de privacidad.'),
 });
 
 function evaluarPassword(password: string) {
@@ -50,12 +52,13 @@ export default function ClubRegisterPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [passwordValue, setPasswordValue] = useState('');
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   const fortaleza = useMemo(() => evaluarPassword(passwordValue), [passwordValue]);
 
   const form = useForm<z.infer<typeof RegisterSchema>>({
     resolver: zodResolver(RegisterSchema),
-    defaultValues: { name: '', email: '', password: '', phone: '' },
+    defaultValues: { name: '', email: '', password: '', phone: '', privacyAccepted: false },
   });
 
   const onSubmit = async (values: z.infer<typeof RegisterSchema>) => {
@@ -70,7 +73,8 @@ export default function ClubRegisterPage() {
       });
 
       if (response.ok) {
-        router.push(`/club/${slug}/login`);
+        const data = await response.json();
+        setSuccessMessage(data.message);
       } else {
         const data = await response.json();
         setError(data.error || 'Error en el registro.');
@@ -92,6 +96,18 @@ export default function ClubRegisterPage() {
           </p>
         </CardHeader>
         <CardContent>
+          {successMessage ? (
+            <div className="rounded-xl border border-primary/25 bg-primary/10 p-5 text-center">
+              <CheckCircle2 className="mx-auto mb-3 h-8 w-8 text-primary" />
+              <p className="font-semibold">
+                {successMessage.startsWith('Registro') ? 'Cuenta creada' : 'Solicitud enviada'}
+              </p>
+              <p className="mt-1 text-sm text-muted-foreground">{successMessage}</p>
+              <Button asChild variant="outline" className="mt-4">
+                <Link href={`/club/${slug}`}>Volver al club</Link>
+              </Button>
+            </div>
+          ) : (
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <div className="space-y-1.5">
               <Label htmlFor="name">Nombre completo</Label>
@@ -104,6 +120,33 @@ export default function ClubRegisterPage() {
               />
               {form.formState.errors.name && (
                 <p className="text-xs text-destructive">{form.formState.errors.name.message}</p>
+              )}
+            </div>
+
+            <div className="space-y-1.5">
+              <div className="flex items-start gap-2.5">
+                <Checkbox
+                  id="privacyAccepted"
+                  checked={form.watch('privacyAccepted')}
+                  onCheckedChange={(checked) => form.setValue(
+                    'privacyAccepted',
+                    checked === true,
+                    { shouldValidate: true, shouldDirty: true },
+                  )}
+                  className="mt-0.5"
+                />
+                <Label htmlFor="privacyAccepted" className="text-xs font-normal leading-relaxed text-muted-foreground">
+                  He leído y acepto la{' '}
+                  <Link href="/privacidad" target="_blank" className="underline hover:text-foreground">
+                    política de privacidad
+                  </Link>{' '}
+                  y las condiciones de uso del portal.
+                </Label>
+              </div>
+              {form.formState.errors.privacyAccepted && (
+                <p className="text-xs text-destructive">
+                  {form.formState.errors.privacyAccepted.message}
+                </p>
               )}
             </div>
 
@@ -179,6 +222,7 @@ export default function ClubRegisterPage() {
               )}
             </Button>
           </form>
+          )}
 
           <div className="mt-4 pt-4 border-t text-center">
             <p className="text-sm text-muted-foreground">

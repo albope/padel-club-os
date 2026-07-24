@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="design_doc_mode" content="canvas">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@100,400..800;112,500..800&family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/lucide@0.417.0/dist/umd/lucide.min.js"></script>
+<style>
+body { margin:0; background:#E6E2DA; font-family:'Instrument Sans',system-ui,sans-serif; color:#1C1A17; }
+a { color:#157A54; text-decoration:none; } a:hover { color:#0E5C3F; }
+</style>
+</helmet>
+<section style="padding:48px">
+  <div style="max-width:980px;margin-bottom:32px">
+    <div style="display:flex;align-items:center;gap:10px;font-size:12px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:#8A8377"><span style="width:28px;height:2px;background:#157A54"></span>Bloque E · Hi-fi · Admin de club y plataforma · 1440px</div>
+    <h1 style="font-family:'Archivo',sans-serif;font-stretch:112%;font-weight:750;font-size:30px;letter-spacing:-0.02em;margin:8px 0 4px">Backoffice — dirección Marcador</h1>
+    <p style="font-size:14px;color:#5C564C;margin:0;line-height:1.55;text-wrap:pretty">Sidebar tinta agrupada por dominio, densidad operativa (filas 40px, celdas 36px), verde marca como única acción primaria, estados con icono+texto+trama. Ids: <a href="#3a">3a</a>–<a href="#3f">3f</a>.</p>
+  </div>
+  <div style="display:grid;gap:44px">
+
+    <!-- 3a DASHBOARD -->
+    <div id="3a">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px"><span style="background:#1C1A17;color:#fff;font-size:11px;font-weight:700;padding:3px 8px;border-radius:6px">3a</span><span style="font-size:13px;font-weight:600;color:#3C382F">Admin · Dashboard · claro</span></div>
+      <div data-screen-label="Dashboard admin" style="width:1440px;height:940px;background:#F6F3ED;border:1px solid #C9C2B4;border-radius:14px;overflow:hidden;display:flex;box-shadow:0 12px 40px rgba(28,26,23,0.12)">
+        <!-- Sidebar -->
+        <aside style="width:264px;flex-shrink:0;background:#1C1A17;color:#C4BDB0;display:flex;flex-direction:column">
+          <div style="height:56px;display:flex;align-items:center;gap:10px;padding:0 20px;border-bottom:1px solid rgba(246,243,237,0.08)">
+            <svg width="24" height="24" viewBox="0 0 48 48"><rect x="4" y="10" width="40" height="28" rx="7" fill="none" stroke="#F6F3ED" stroke-width="3"></rect><rect x="10" y="16" width="13" height="16" rx="3" fill="#6FBF9C"></rect></svg>
+            <span style="font-family:'Archivo';font-stretch:112%;font-weight:750;font-size:15px;color:#F6F3ED">PadelClub <span style="background:#157A54;color:#F6F3ED;border-radius:4px;padding:0 5px">OS</span></span>
+          </div>
+          <nav style="flex:1;padding:14px 12px;overflow:hidden;display:grid;gap:14px;align-content:start">
+            <sc-for list="{{ navDash }}" as="g" hint-placeholder-count="5">
+              <div style="display:grid;gap:1px">
+                <p style="margin:0 0 4px;padding:0 10px;font-size:10px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:#6B655A">{{ g.grupo }}</p>
+                <sc-for list="{{ g.items }}" as="it" hint-placeholder-count="4">
+                  <div style="display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:7px;font-size:13px;font-weight:{{ it.w }};background:{{ it.bg }};color:{{ it.color }};border-left:3px solid {{ it.bar }}">
+                    <i data-lucide="{{ it.icon }}" style="width:16px;height:16px"></i>{{ it.label }}
+                    <sc-if value="{{ it.count }}" hint-placeholder-val="{{ false }}"><span style="margin-left:auto;font-size:10.5px;font-weight:700;background:#C7871E;color:#1C1A17;border-radius:99px;padding:1px 7px;font-variant-numeric:tabular-nums">{{ it.count }}</span></sc-if>
+                  </div>
+                </sc-for>
+              </div>
+            </sc-for>
+          </nav>
+          <div style="padding:14px 16px;border-top:1px solid rgba(246,243,237,0.08);display:flex;align-items:center;gap:10px">
+            <span style="width:30px;height:30px;border-radius:8px;background:#4F46E5;color:#fff;display:grid;place-items:center;font-weight:700;font-size:12px">C</span>
+            <div style="flex:1;min-width:0"><p style="margin:0;font-size:12.5px;font-weight:600;color:#F6F3ED;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Club Pádel Mediterráneo</p><p style="margin:0;font-size:10.5px;color:#8A8377">Plan Pro · Álvaro (admin)</p></div>
+            <i data-lucide="chevrons-up-down" style="width:14px;height:14px;color:#6B655A"></i>
+          </div>
+        </aside>
+        <!-- Main -->
+        <div style="flex:1;display:flex;flex-direction:column;min-width:0">
+          <header style="height:56px;flex-shrink:0;display:flex;align-items:center;gap:14px;padding:0 24px;border-bottom:1px solid #DDD7CC;background:#F6F3ED">
+            <p style="margin:0;font-size:13.5px;font-weight:600;color:#5C564C">Miércoles 22 de julio · <span style="color:#1C1A17">Buenos días, Álvaro</span></p>
+            <div style="margin-left:auto;display:flex;align-items:center;gap:10px">
+              <div style="height:34px;width:220px;border:1px solid #DDD7CC;border-radius:8px;background:#fff;display:flex;align-items:center;gap:8px;padding:0 10px;color:#8A8377;font-size:12.5px"><i data-lucide="search" style="width:14px;height:14px"></i>Buscar socio, reserva… <span style="margin-left:auto;font-size:10px;border:1px solid #DDD7CC;border-radius:4px;padding:1px 4px;background:#F6F3ED">⌘K</span></div>
+              <span style="position:relative;width:34px;height:34px;border:1px solid #DDD7CC;border-radius:8px;background:#fff;display:grid;place-items:center"><i data-lucide="bell" style="width:16px;height:16px;color:#3C382F"></i><span style="position:absolute;top:6px;right:7px;width:6px;height:6px;border-radius:99px;background:#B3402E"></span></span>
+              <button style="height:34px;padding:0 14px;border-radius:8px;border:none;background:#157A54;color:#F6F3ED;font-family:inherit;font-size:13px;font-weight:700;display:inline-flex;align-items:center;gap:6px;cursor:pointer"><i data-lucide="plus" style="width:15px;height:15px"></i>Nueva reserva</button>
+            </div>
+          </header>
+          <main style="flex:1;overflow:hidden;padding:20px 24px;display:grid;gap:16px;align-content:start">
+            <!-- KPIs -->
+            <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px">
+              <sc-for list="{{ kpis }}" as="k" hint-placeholder-count="4">
+                <div style="background:#fff;border:1px solid #E7E2D8;border-radius:10px;padding:16px 18px">
+                  <p style="margin:0;font-size:11px;font-weight:600;letter-spacing:0.07em;text-transform:uppercase;color:#8A8377">{{ k.label }}</p>
+                  <div style="display:flex;align-items:baseline;gap:10px;margin-top:4px">
+                    <span style="font-family:'Archivo';font-stretch:112%;font-weight:750;font-size:30px;letter-spacing:-0.015em;font-variant-numeric:tabular-nums">{{ k.value }}</span>
+                    <span style="display:inline-flex;align-items:center;gap:3px;font-size:11.5px;font-weight:700;color:{{ k.trendColor }}"><i data-lucide="{{ k.trendIcon }}" style="width:12px;height:12px"></i>{{ k.trend }}</span>
+                  </div>
+                  <p style="margin:4px 0 0;font-size:11.5px;color:#8A8377">{{ k.sub }}</p>
+                </div>
+              </sc-for>
+            </div>
+            <!-- Banda de ocupación (firma) -->
+            <div style="background:#fff;border:1px solid #E7E2D8;border-radius:10px;padding:16px 18px;display:grid;gap:10px">
+              <div style="display:flex;align-items:baseline;gap:10px"><h2 style="margin:0;font-family:'Archivo';font-stretch:112%;font-weight:650;font-size:15px">Ocupación de hoy por franja</h2><span style="font-size:11.5px;color:#8A8377">8 pistas · 08:00–23:00</span><span style="margin-left:auto;display:inline-flex;gap:12px;font-size:11px;color:#5C564C"><span style="display:inline-flex;align-items:center;gap:4px"><span style="width:10px;height:10px;border-radius:2px;background:#157A54"></span>Reservada</span><span style="display:inline-flex;align-items:center;gap:4px"><span style="width:10px;height:10px;border-radius:2px;background:#F0F7F3;border:1px solid #157A54"></span>Abierta</span><span style="display:inline-flex;align-items:center;gap:4px"><span style="width:10px;height:10px;border-radius:2px;border:1px dashed #A39C8E"></span>Libre</span></span></div>
+              <div style="display:flex;gap:3px">
+                <sc-for list="{{ banda }}" as="b" hint-placeholder-count="30"><div style="flex:1;display:grid;gap:2px"><span style="height:30px;border-radius:3px;background:{{ b.bg }};border:{{ b.border }}"></span></div></sc-for>
+              </div>
+              <div style="display:flex;justify-content:space-between;font-size:10.5px;color:#8A8377;font-variant-numeric:tabular-nums"><span>08:00</span><span>11:00</span><span>14:00</span><span>17:00</span><span>20:00</span><span>23:00</span></div>
+            </div>
+            <!-- Fila inferior -->
+            <div style="display:grid;grid-template-columns:1.15fr 1fr 0.9fr;gap:14px;align-items:start">
+              <div style="background:#fff;border:1px solid #E7E2D8;border-radius:10px;overflow:hidden">
+                <div style="padding:14px 18px;border-bottom:1px solid #EFECE6;display:flex;align-items:center"><h2 style="margin:0;font-family:'Archivo';font-stretch:112%;font-weight:650;font-size:15px">Siguiente en pista</h2><span style="margin-left:auto;font-size:12px;font-weight:600;color:#157A54">Ver agenda</span></div>
+                <sc-for list="{{ agenda }}" as="a" hint-placeholder-count="5">
+                  <div style="display:flex;align-items:center;gap:12px;padding:9px 18px;border-bottom:1px solid #EFECE6;height:40px;box-sizing:border-box">
+                    <span style="width:44px;font-family:'Archivo';font-weight:700;font-size:13.5px;font-variant-numeric:tabular-nums">{{ a.hora }}</span>
+                    <span style="width:52px;font-size:12px;font-weight:600;color:#5C564C">{{ a.pista }}</span>
+                    <span style="flex:1;font-size:13px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ a.quien }}</span>
+                    <span style="display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:700;border-radius:5px;padding:2px 8px;background:{{ a.stBg }};color:{{ a.stFg }};border:1px solid {{ a.stBorder }}"><i data-lucide="{{ a.stIcon }}" style="width:11px;height:11px"></i>{{ a.st }}</span>
+                  </div>
+                </sc-for>
+              </div>
+              <div style="background:#fff;border:1px solid #E7E2D8;border-radius:10px;padding:14px 18px;display:grid;gap:10px">
+                <div style="display:flex;align-items:baseline"><h2 style="margin:0;font-family:'Archivo';font-stretch:112%;font-weight:650;font-size:15px">Ingresos · últimos 7 días</h2><span style="margin-left:auto;font-family:'Archivo';font-weight:750;font-size:18px;font-variant-numeric:tabular-nums">2.812 €</span></div>
+                <div style="height:150px;display:flex;align-items:flex-end;gap:10px;padding-top:6px">
+                  <sc-for list="{{ barras }}" as="b" hint-placeholder-count="7">
+                    <div style="flex:1;display:grid;gap:3px;align-content:end;height:100%">
+                      <span style="height:{{ b.pend }};border-radius:3px 3px 0 0;background:repeating-linear-gradient(45deg,#EFD9AC 0 4px,#FBF1DD 4px 8px);border:1px solid #E5B05C"></span>
+                      <span style="height:{{ b.cobr }};border-radius:{{ b.radius }};background:#157A54"></span>
+                      <span style="text-align:center;font-size:10px;color:#8A8377">{{ b.dia }}</span>
+                    </div>
+                  </sc-for>
+                </div>
+                <div style="display:flex;gap:14px;font-size:11px;color:#5C564C"><span style="display:inline-flex;align-items:center;gap:4px"><span style="width:10px;height:10px;border-radius:2px;background:#157A54"></span>Cobrado</span><span style="display:inline-flex;align-items:center;gap:4px"><span style="width:10px;height:10px;border-radius:2px;background:repeating-linear-gradient(45deg,#EFD9AC 0 3px,#FBF1DD 3px 6px);border:1px solid #E5B05C"></span>Pendiente (trama)</span></div>
+              </div>
+              <div style="background:#fff;border:1px solid #E7E2D8;border-radius:10px;overflow:hidden">
+                <div style="padding:14px 18px;border-bottom:1px solid #EFECE6;display:flex;align-items:center;gap:8px"><i data-lucide="alert-triangle" style="width:15px;height:15px;color:#C7871E"></i><h2 style="margin:0;font-family:'Archivo';font-stretch:112%;font-weight:650;font-size:15px">Pendientes de cobro</h2><span style="margin-left:auto;font-family:'Archivo';font-weight:750;font-size:15px;color:#96660F;font-variant-numeric:tabular-nums">86 €</span></div>
+                <sc-for list="{{ pendientes }}" as="p" hint-placeholder-count="4">
+                  <div style="display:flex;align-items:center;gap:10px;padding:9px 18px;border-bottom:1px solid #EFECE6">
+                    <div style="flex:1;min-width:0"><p style="margin:0;font-size:12.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ p.quien }}</p><p style="margin:0;font-size:11px;color:#8A8377;font-variant-numeric:tabular-nums">{{ p.meta }}</p></div>
+                    <span style="font-family:'Archivo';font-weight:700;font-size:13px;font-variant-numeric:tabular-nums">{{ p.imp }}</span>
+                    <button style="height:28px;padding:0 10px;border-radius:6px;border:1.5px solid #157A54;background:transparent;color:#0E5C3F;font-family:inherit;font-size:11.5px;font-weight:700;cursor:pointer">Cobrar</button>
+                  </div>
+                </sc-for>
+              </div>
+            </div>
+          </main>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3b RESERVAS + DRAWER -->
+    <div id="3b">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px"><span style="background:#1C1A17;color:#fff;font-size:11px;font-weight:700;padding:3px 8px;border-radius:6px">3b</span><span style="font-size:13px;font-weight:600;color:#3C382F">Admin · Reservas por pista + drawer de creación</span></div>
+      <div data-screen-label="Reservas admin" style="width:1440px;height:940px;background:#F6F3ED;border:1px solid #C9C2B4;border-radius:14px;overflow:hidden;display:flex;position:relative;box-shadow:0 12px 40px rgba(28,26,23,0.12)">
+        <aside style="width:72px;flex-shrink:0;background:#1C1A17;display:flex;flex-direction:column;align-items:center;padding:14px 0;gap:6px">
+          <svg width="24" height="24" viewBox="0 0 48 48" style="margin-bottom:10px"><rect x="4" y="10" width="40" height="28" rx="7" fill="none" stroke="#F6F3ED" stroke-width="3"></rect><rect x="10" y="16" width="13" height="16" rx="3" fill="#6FBF9C"></rect></svg>
+          <sc-for list="{{ railIcons }}" as="r" hint-placeholder-count="8"><span style="width:40px;height:40px;border-radius:9px;display:grid;place-items:center;background:{{ r.bg }};color:{{ r.color }}"><i data-lucide="{{ r.icon }}" style="width:18px;height:18px"></i></span></sc-for>
+          <p style="margin:6px 0 0;font-size:8.5px;color:#6B655A;text-align:center">Rail colapsado<br>(1024px)</p>
+        </aside>
+        <div style="flex:1;display:flex;flex-direction:column;min-width:0">
+          <header style="height:56px;flex-shrink:0;display:flex;align-items:center;gap:12px;padding:0 20px;border-bottom:1px solid #DDD7CC">
+            <h1 style="margin:0;font-family:'Archivo';font-stretch:112%;font-weight:700;font-size:17px">Reservas</h1>
+            <div style="display:flex;align-items:center;gap:4px;border:1px solid #DDD7CC;border-radius:8px;background:#fff;padding:3px">
+              <span style="height:28px;display:inline-flex;align-items:center;padding:0 12px;border-radius:6px;background:#1C1A17;color:#F6F3ED;font-size:12px;font-weight:600">Día</span>
+              <span style="height:28px;display:inline-flex;align-items:center;padding:0 12px;border-radius:6px;font-size:12px;font-weight:600;color:#5C564C">Semana</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:6px"><span style="width:30px;height:30px;border:1px solid #DDD7CC;border-radius:7px;background:#fff;display:grid;place-items:center"><i data-lucide="chevron-left" style="width:15px;height:15px"></i></span><span style="font-size:13.5px;font-weight:700;text-transform:capitalize">miércoles, 22 jul</span><span style="width:30px;height:30px;border:1px solid #DDD7CC;border-radius:7px;background:#fff;display:grid;place-items:center"><i data-lucide="chevron-right" style="width:15px;height:15px"></i></span><span style="height:30px;display:inline-flex;align-items:center;padding:0 10px;border:1px solid #DDD7CC;border-radius:7px;background:#fff;font-size:12px;font-weight:600">Hoy</span></div>
+            <div style="margin-left:auto;display:flex;gap:14px;font-size:11px;color:#5C564C;align-items:center">
+              <span style="display:inline-flex;align-items:center;gap:4px"><i data-lucide="check" style="width:12px;height:12px;color:#157A54"></i>Pagada</span>
+              <span style="display:inline-flex;align-items:center;gap:4px"><i data-lucide="clock" style="width:12px;height:12px;color:#C7871E"></i>Pendiente</span>
+              <span style="display:inline-flex;align-items:center;gap:4px"><i data-lucide="users" style="width:12px;height:12px;color:#0E5C3F"></i>Abierta</span>
+              <span style="display:inline-flex;align-items:center;gap:4px"><i data-lucide="repeat" style="width:12px;height:12px;color:#2E63C0"></i>Clase fija</span>
+              <span style="display:inline-flex;align-items:center;gap:4px"><i data-lucide="ban" style="width:12px;height:12px;color:#8A8377"></i>Bloqueo</span>
+            </div>
+          </header>
+          <main style="flex:1;overflow:hidden;padding:16px 20px">
+            <div style="background:#fff;border:1px solid #E7E2D8;border-radius:10px;overflow:hidden;height:100%;box-sizing:border-box">
+              <div style="display:grid;grid-template-columns:56px repeat(6,1fr);border-bottom:1px solid #E7E2D8;background:#FDFCFA">
+                <span></span>
+                <sc-for list="{{ pistas6 }}" as="p" hint-placeholder-count="6"><div style="padding:9px 6px;text-align:center;border-left:1px solid #EFECE6"><p style="margin:0;font-size:12px;font-weight:700">{{ p.n }}</p><p style="margin:0;font-size:10px;color:#8A8377">{{ p.t }} · {{ p.oc }}</p></div></sc-for>
+              </div>
+              <div style="display:grid;grid-template-columns:56px repeat(6,1fr);grid-auto-rows:36px;position:relative">
+                <sc-for list="{{ horasAdmin }}" as="h" hint-placeholder-count="20">
+                  <div style="grid-row:{{ h.row }};grid-column:1;display:flex;align-items:start;justify-content:center;font-size:10.5px;color:#8A8377;font-variant-numeric:tabular-nums;border-top:{{ h.bt }};padding-top:2px">{{ h.label }}</div>
+                </sc-for>
+                <sc-for list="{{ celdasAdmin }}" as="c" hint-placeholder-count="40"><div style="grid-row:{{ c.row }};grid-column:{{ c.col }};border-left:1px solid #EFECE6;border-top:{{ c.bt }}"></div></sc-for>
+                <sc-for list="{{ bloquesAdmin }}" as="b" hint-placeholder-count="10">
+                  <div style="grid-row:{{ b.row }};grid-column:{{ b.col }};margin:2px 3px;border-radius:6px;background:{{ b.bg }};border:{{ b.border }};border-left:3px solid {{ b.edge }};padding:5px 8px;overflow:hidden;display:grid;align-content:start;gap:1px">
+                    <div style="display:flex;align-items:center;gap:4px;font-size:11px;font-weight:700;color:{{ b.fg }}"><i data-lucide="{{ b.icon }}" style="width:11px;height:11px;flex-shrink:0"></i><span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ b.titulo }}</span></div>
+                    <span style="font-size:10px;color:{{ b.sub }};font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ b.meta }}</span>
+                  </div>
+                </sc-for>
+                <div style="grid-row:7 / span 3;grid-column:5;margin:2px 3px;border-radius:6px;border:2px dashed #157A54;background:#F0F7F3;display:grid;place-items:center"><span style="font-size:11px;font-weight:700;color:#0E5C3F;display:inline-flex;align-items:center;gap:4px"><i data-lucide="plus" style="width:12px;height:12px"></i>19:00 · 90'</span></div>
+              </div>
+            </div>
+          </main>
+        </div>
+        <!-- Drawer -->
+        <div style="position:absolute;top:0;right:0;bottom:0;width:392px;background:#fff;border-left:1px solid #DDD7CC;box-shadow:-24px 0 48px rgba(28,26,23,0.14);display:flex;flex-direction:column">
+          <div style="padding:16px 20px;border-bottom:1px solid #EFECE6;display:flex;align-items:center"><h2 style="margin:0;font-family:'Archivo';font-stretch:112%;font-weight:700;font-size:16px">Nueva reserva</h2><i data-lucide="x" style="width:18px;height:18px;color:#8A8377;margin-left:auto"></i></div>
+          <div style="flex:1;padding:18px 20px;display:grid;gap:14px;align-content:start;overflow:hidden">
+            <div style="background:#F6F3ED;border:1px solid #E7E2D8;border-radius:10px;padding:12px 14px;display:flex;align-items:center;gap:10px"><span style="font-family:'Archivo';font-stretch:112%;font-weight:750;font-size:20px;font-variant-numeric:tabular-nums">19:00</span><div style="flex:1"><p style="margin:0;font-size:13px;font-weight:600">Hoy · Pista 5 · 90 min</p><p style="margin:0;font-size:11.5px;color:#8A8377">Desde la celda seleccionada</p></div><span style="font-size:12px;font-weight:600;color:#157A54">Cambiar</span></div>
+            <div style="display:grid;gap:5px"><label style="font-size:12.5px;font-weight:600">Socio o invitado</label><div style="height:40px;border:1.5px solid #157A54;border-radius:8px;padding:0 12px;display:flex;align-items:center;gap:8px;box-shadow:0 0 0 3px rgba(21,122,84,0.12)"><i data-lucide="search" style="width:15px;height:15px;color:#8A8377"></i><span style="font-size:13.5px">mar<span style="opacity:0.4">|</span></span></div>
+              <div style="border:1px solid #E7E2D8;border-radius:8px;overflow:hidden;margin-top:2px">
+                <div style="display:flex;align-items:center;gap:10px;padding:9px 12px;background:#F0F7F3"><span style="width:26px;height:26px;border-radius:99px;background:#E7E2D8;display:grid;place-items:center;font-size:10.5px;font-weight:700">MS</span><span style="font-size:13px;font-weight:600;flex:1">María Sanchis</span><span style="font-size:11px;color:#8A8377">Socia · nivel 3,4</span></div>
+                <div style="display:flex;align-items:center;gap:10px;padding:9px 12px;border-top:1px solid #EFECE6"><span style="width:26px;height:26px;border-radius:99px;background:#E7E2D8;display:grid;place-items:center;font-size:10.5px;font-weight:700">MB</span><span style="font-size:13px;font-weight:600;flex:1">Marta Bosch</span><span style="font-size:11px;color:#8A8377">Socia · nivel 2,9</span></div>
+              </div>
+            </div>
+            <div style="display:grid;gap:5px"><label style="font-size:12.5px;font-weight:600">Duración</label><div style="display:flex;gap:6px"><span style="flex:1;height:36px;border:1px solid #DDD7CC;border-radius:8px;display:grid;place-items:center;font-size:12.5px;font-weight:600;color:#5C564C">60 min</span><span style="flex:1;height:36px;border:2px solid #157A54;background:#F0F7F3;border-radius:8px;display:grid;place-items:center;font-size:12.5px;font-weight:700;color:#0E5C3F">90 min</span><span style="flex:1;height:36px;border:1px solid #DDD7CC;border-radius:8px;display:grid;place-items:center;font-size:12.5px;font-weight:600;color:#5C564C">120 min</span></div></div>
+            <div style="display:flex;align-items:center;gap:10px;border:1px solid #E7E2D8;border-radius:10px;padding:12px 14px"><i data-lucide="repeat" style="width:16px;height:16px;color:#2E63C0"></i><div style="flex:1"><p style="margin:0;font-size:13px;font-weight:600">Repetir semanalmente</p><p style="margin:0;font-size:11.5px;color:#8A8377">Crea una clase fija (mié · 19:00)</p></div><span style="width:36px;height:20px;border-radius:99px;background:#DDD7CC;position:relative"><span style="position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:99px;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,0.2)"></span></span></div>
+            <div style="border-top:1px solid #EFECE6;padding-top:12px;display:grid;gap:6px;font-size:13px">
+              <div style="display:flex;justify-content:space-between"><span style="color:#5C564C">Tarifa tarde · 90 min</span><span style="font-weight:600;font-variant-numeric:tabular-nums">21,00 €</span></div>
+              <div style="display:flex;justify-content:space-between"><span style="color:#5C564C">Iluminación</span><span style="font-weight:600;font-variant-numeric:tabular-nums">3,00 €</span></div>
+              <div style="display:flex;justify-content:space-between;font-weight:700;font-size:14.5px"><span>Total</span><span style="font-family:'Archivo';font-variant-numeric:tabular-nums">24,00 €</span></div>
+            </div>
+          </div>
+          <div style="padding:16px 20px;border-top:1px solid #EFECE6;display:grid;gap:8px">
+            <button style="height:44px;border-radius:9px;border:none;background:#157A54;color:#F6F3ED;font-family:inherit;font-size:14px;font-weight:700;cursor:pointer">Crear y cobrar 24 €</button>
+            <button style="height:40px;border-radius:9px;border:1.5px solid #C9C2B4;background:transparent;font-family:inherit;font-size:13px;font-weight:600;color:#1C1A17;cursor:pointer">Crear con pago pendiente</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3c SOCIOS -->
+    <div id="3c">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px"><span style="background:#1C1A17;color:#fff;font-size:11px;font-weight:700;padding:3px 8px;border-radius:6px">3c</span><span style="font-size:13px;font-weight:600;color:#3C382F">Admin · Socios · tabla con bulk actions</span></div>
+      <div data-screen-label="Socios" style="width:1440px;background:#F6F3ED;border:1px solid #C9C2B4;border-radius:14px;overflow:hidden;display:flex;box-shadow:0 12px 40px rgba(28,26,23,0.12)">
+        <aside style="width:264px;flex-shrink:0;background:#1C1A17;padding:14px 12px;display:grid;gap:14px;align-content:start">
+          <div style="display:flex;align-items:center;gap:10px;padding:0 8px 12px;border-bottom:1px solid rgba(246,243,237,0.08)"><svg width="22" height="22" viewBox="0 0 48 48"><rect x="4" y="10" width="40" height="28" rx="7" fill="none" stroke="#F6F3ED" stroke-width="3"></rect><rect x="10" y="16" width="13" height="16" rx="3" fill="#6FBF9C"></rect></svg><span style="font-family:'Archivo';font-stretch:112%;font-weight:750;font-size:14px;color:#F6F3ED">PadelClub <span style="background:#157A54;border-radius:4px;padding:0 4px">OS</span></span></div>
+          <sc-for list="{{ navSocios }}" as="g" hint-placeholder-count="5">
+            <div style="display:grid;gap:1px">
+              <p style="margin:0 0 4px;padding:0 10px;font-size:10px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:#6B655A">{{ g.grupo }}</p>
+              <sc-for list="{{ g.items }}" as="it" hint-placeholder-count="4">
+                <div style="display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:7px;font-size:13px;font-weight:{{ it.w }};background:{{ it.bg }};color:{{ it.color }};border-left:3px solid {{ it.bar }}"><i data-lucide="{{ it.icon }}" style="width:16px;height:16px"></i>{{ it.label }}</div>
+              </sc-for>
+            </div>
+          </sc-for>
+        </aside>
+        <div style="flex:1;display:flex;flex-direction:column;min-width:0">
+          <header style="height:56px;flex-shrink:0;display:flex;align-items:center;gap:12px;padding:0 20px;border-bottom:1px solid #DDD7CC">
+            <h1 style="margin:0;font-family:'Archivo';font-stretch:112%;font-weight:700;font-size:17px">Socios <span style="font-size:12.5px;color:#8A8377;font-weight:600;font-variant-numeric:tabular-nums">· 182 activos</span></h1>
+            <div style="margin-left:auto;display:flex;gap:8px">
+              <span style="height:34px;display:inline-flex;align-items:center;gap:6px;padding:0 12px;border:1px solid #DDD7CC;border-radius:8px;background:#fff;font-size:12.5px;font-weight:600;color:#3C382F"><i data-lucide="upload" style="width:14px;height:14px"></i>Importar</span>
+              <span style="height:34px;display:inline-flex;align-items:center;gap:6px;padding:0 12px;border:1px solid #DDD7CC;border-radius:8px;background:#fff;font-size:12.5px;font-weight:600;color:#3C382F"><i data-lucide="download" style="width:14px;height:14px"></i>Exportar</span>
+              <button style="height:34px;padding:0 14px;border-radius:8px;border:none;background:#157A54;color:#F6F3ED;font-family:inherit;font-size:13px;font-weight:700;display:inline-flex;align-items:center;gap:6px"><i data-lucide="plus" style="width:15px;height:15px"></i>Nuevo socio</button>
+            </div>
+          </header>
+          <main style="padding:16px 20px;display:grid;gap:12px">
+            <div style="display:flex;gap:8px;align-items:center">
+              <div style="height:36px;flex:0 0 280px;border:1px solid #DDD7CC;border-radius:8px;background:#fff;display:flex;align-items:center;gap:8px;padding:0 12px;color:#8A8377;font-size:13px"><i data-lucide="search" style="width:15px;height:15px"></i>Buscar por nombre o email…</div>
+              <span style="height:36px;display:inline-flex;align-items:center;gap:6px;padding:0 12px;border-radius:99px;background:#1C1A17;color:#F6F3ED;font-size:12.5px;font-weight:600">Con saldo pendiente <i data-lucide="x" style="width:13px;height:13px"></i></span>
+              <span style="height:36px;display:inline-flex;align-items:center;gap:6px;padding:0 12px;border-radius:99px;border:1.5px solid #C9C2B4;font-size:12.5px;font-weight:600;color:#3C382F">Nivel <i data-lucide="chevron-down" style="width:13px;height:13px"></i></span>
+              <span style="height:36px;display:inline-flex;align-items:center;gap:6px;padding:0 12px;border-radius:99px;border:1.5px solid #C9C2B4;font-size:12.5px;font-weight:600;color:#3C382F">Alta <i data-lucide="chevron-down" style="width:13px;height:13px"></i></span>
+            </div>
+            <div style="background:#1C1A17;color:#F6F3ED;border-radius:10px;padding:10px 16px;display:flex;align-items:center;gap:14px">
+              <span style="font-size:13px;font-weight:700;font-variant-numeric:tabular-nums">2 seleccionados</span>
+              <span style="display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:600;color:#C4BDB0"><i data-lucide="mail" style="width:14px;height:14px"></i>Enviar comunicación</span>
+              <span style="display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:600;color:#C4BDB0"><i data-lucide="download" style="width:14px;height:14px"></i>Exportar selección</span>
+              <span style="display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:600;color:#E08A7A;margin-left:auto"><i data-lucide="user-x" style="width:14px;height:14px"></i>Dar de baja…</span>
+            </div>
+            <div style="background:#fff;border:1px solid #E7E2D8;border-radius:10px;overflow:hidden">
+              <div style="display:grid;grid-template-columns:44px 2.2fr 1.6fr 0.9fr 1fr 1fr 1.1fr 0.9fr;padding:0 16px;height:38px;align-items:center;background:#FDFCFA;border-bottom:1px solid #E7E2D8;font-size:10.5px;font-weight:700;letter-spacing:0.07em;text-transform:uppercase;color:#8A8377">
+                <span><span style="width:15px;height:15px;border:1.5px solid #C9C2B4;border-radius:4px;display:inline-block"></span></span><span style="display:inline-flex;align-items:center;gap:3px">Socio <i data-lucide="arrow-up" style="width:11px;height:11px"></i></span><span>Email</span><span>Nivel</span><span>Reservas/mes</span><span>Saldo</span><span>Estado</span><span style="text-align:right">Acciones</span>
+              </div>
+              <sc-for list="{{ socios }}" as="s" hint-placeholder-count="8">
+                <div style="display:grid;grid-template-columns:44px 2.2fr 1.6fr 0.9fr 1fr 1fr 1.1fr 0.9fr;padding:0 16px;height:40px;align-items:center;border-bottom:1px solid #EFECE6;background:{{ s.rowBg }};font-size:13px">
+                  <span><span style="width:15px;height:15px;border:1.5px solid {{ s.ckBorder }};border-radius:4px;display:inline-grid;place-items:center;background:{{ s.ckBg }}"><sc-if value="{{ s.sel }}" hint-placeholder-val="{{ false }}"><i data-lucide="check" style="width:11px;height:11px;color:#fff"></i></sc-if></span></span>
+                  <span style="display:inline-flex;align-items:center;gap:9px;font-weight:600;min-width:0"><span style="width:26px;height:26px;border-radius:99px;background:#E7E2D8;display:inline-grid;place-items:center;font-size:10px;font-weight:700;flex-shrink:0">{{ s.ini }}</span><span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ s.nombre }}</span></span>
+                  <span style="color:#5C564C;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ s.email }}</span>
+                  <span style="font-variant-numeric:tabular-nums">{{ s.nivel }}</span>
+                  <span style="font-variant-numeric:tabular-nums">{{ s.reservas }}</span>
+                  <span style="font-variant-numeric:tabular-nums;font-weight:{{ s.saldoW }};color:{{ s.saldoColor }}">{{ s.saldo }}</span>
+                  <span><span style="display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:700;border-radius:5px;padding:2px 8px;background:{{ s.stBg }};color:{{ s.stFg }};border:1px solid {{ s.stBorder }}"><i data-lucide="{{ s.stIcon }}" style="width:11px;height:11px"></i>{{ s.st }}</span></span>
+                  <span style="text-align:right;color:#8A8377;display:inline-flex;justify-content:flex-end;gap:12px"><i data-lucide="eye" style="width:15px;height:15px"></i><i data-lucide="pencil" style="width:15px;height:15px"></i><i data-lucide="more-horizontal" style="width:15px;height:15px"></i></span>
+                </div>
+              </sc-for>
+              <div style="display:flex;align-items:center;padding:10px 16px;font-size:12.5px;color:#5C564C"><span style="font-variant-numeric:tabular-nums">Mostrando 1–8 de 182</span><span style="margin-left:auto;display:inline-flex;gap:6px;align-items:center"><span style="width:28px;height:28px;border:1px solid #DDD7CC;border-radius:6px;display:grid;place-items:center;opacity:0.4"><i data-lucide="chevron-left" style="width:14px;height:14px"></i></span><span style="width:28px;height:28px;border-radius:6px;background:#1C1A17;color:#F6F3ED;display:grid;place-items:center;font-weight:700;font-size:12px">1</span><span style="width:28px;height:28px;border:1px solid #DDD7CC;border-radius:6px;display:grid;place-items:center;font-size:12px">2</span><span style="width:28px;height:28px;border:1px solid #DDD7CC;border-radius:6px;display:grid;place-items:center"><i data-lucide="chevron-right" style="width:14px;height:14px"></i></span></span></div>
+            </div>
+          </main>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3d AJUSTES IDENTIDAD -->
+    <div id="3d">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px"><span style="background:#1C1A17;color:#fff;font-size:11px;font-weight:700;padding:3px 8px;border-radius:6px">3d</span><span style="font-size:13px;font-weight:600;color:#3C382F">Admin · Ajustes de identidad con preview y contraste</span></div>
+      <div data-screen-label="Ajustes identidad" style="width:1440px;background:#F6F3ED;border:1px solid #C9C2B4;border-radius:14px;overflow:hidden;box-shadow:0 12px 40px rgba(28,26,23,0.12);padding:24px 28px;display:grid;grid-template-columns:1fr 1.15fr;gap:28px">
+        <div style="display:grid;gap:18px;align-content:start">
+          <div><h1 style="margin:0;font-family:'Archivo';font-stretch:112%;font-weight:700;font-size:20px">Identidad del club</h1><p style="margin:4px 0 0;font-size:13px;color:#5C564C">Lo que ven tus jugadores en el portal y la app instalada.</p></div>
+          <div style="background:#fff;border:1px solid #E7E2D8;border-radius:10px;padding:18px;display:grid;gap:14px">
+            <div style="display:flex;gap:14px;align-items:center">
+              <span style="width:64px;height:64px;border-radius:16px;background:#4F46E5;color:#fff;display:grid;place-items:center;font-family:'Archivo';font-weight:750;font-size:24px">C</span>
+              <div style="flex:1"><p style="margin:0;font-size:13.5px;font-weight:700">Logo del club</p><p style="margin:2px 0 0;font-size:12px;color:#8A8377">PNG/SVG · fondo transparente · variantes clara y oscura</p></div>
+              <span style="height:34px;display:inline-flex;align-items:center;gap:6px;padding:0 12px;border:1.5px solid #C9C2B4;border-radius:8px;font-size:12.5px;font-weight:600"><i data-lucide="upload" style="width:14px;height:14px"></i>Subir</span>
+            </div>
+            <div style="border-top:1px solid #EFECE6;padding-top:14px;display:grid;gap:8px">
+              <p style="margin:0;font-size:13.5px;font-weight:700">Color de marca</p>
+              <div style="display:flex;gap:8px;align-items:center">
+                <sc-for list="{{ swatches }}" as="w" hint-placeholder-count="6"><span style="width:34px;height:34px;border-radius:99px;background:{{ w.c }};border:{{ w.border }};display:grid;place-items:center"><sc-if value="{{ w.sel }}" hint-placeholder-val="{{ false }}"><i data-lucide="check" style="width:15px;height:15px;color:#fff"></i></sc-if></span></sc-for>
+                <span style="height:34px;display:inline-flex;align-items:center;gap:6px;padding:0 12px;border:1.5px dashed #C9C2B4;border-radius:99px;font-size:12px;font-weight:600;color:#5C564C;font-family:monospace">#4F46E5</span>
+              </div>
+              <div style="background:#E9F4E6;border:1px solid #C8E4C3;border-radius:8px;padding:10px 12px;display:flex;gap:8px;align-items:flex-start"><i data-lucide="check-circle-2" style="width:15px;height:15px;color:#2E6A29;flex-shrink:0;margin-top:1px"></i><p style="margin:0;font-size:12px;line-height:1.5;color:#2E6A29"><strong>Contraste correcto.</strong> Texto blanco sobre tu color: 7,2:1 (AA). Generada escala 50–900 para claro y oscuro.</p></div>
+              <div style="background:#FBF1DD;border:1px solid #EFD9AC;border-radius:8px;padding:10px 12px;display:flex;gap:8px;align-items:flex-start"><i data-lucide="alert-triangle" style="width:15px;height:15px;color:#96660F;flex-shrink:0;margin-top:1px"></i><p style="margin:0;font-size:12px;line-height:1.5;color:#6B4A0C"><strong>Ejemplo con color difícil (#F5D90A):</strong> el blanco no alcanza 4,5:1 → los botones usarían texto oscuro automáticamente. Te lo mostraríamos aquí antes de guardar.</p></div>
+            </div>
+            <div style="border-top:1px solid #EFECE6;padding-top:14px;display:grid;gap:8px">
+              <p style="margin:0;font-size:13.5px;font-weight:700">Banner de portada</p>
+              <div style="height:84px;border-radius:8px;background:repeating-linear-gradient(-45deg,#E7E2D8 0 10px,#EFECE6 10px 20px);display:grid;place-items:center;position:relative;overflow:hidden"><span style="font-family:monospace;font-size:11px;color:#6B655A">foto: pistas del club (mín. 1600×600)</span><span style="position:absolute;inset:0;background:linear-gradient(0deg,rgba(28,26,23,0.6),transparent 60%)"></span></div>
+              <p style="margin:0;font-size:11.5px;color:#8A8377">Aplicamos una veladura oscura del 60% para que el texto siempre sea legible.</p>
+            </div>
+          </div>
+          <div style="display:flex;gap:8px"><button style="height:40px;padding:0 18px;border-radius:8px;border:none;background:#157A54;color:#F6F3ED;font-family:inherit;font-size:13.5px;font-weight:700">Guardar cambios</button><button style="height:40px;padding:0 18px;border-radius:8px;border:1.5px solid #C9C2B4;background:transparent;font-family:inherit;font-size:13px;font-weight:600;color:#1C1A17">Descartar</button></div>
+        </div>
+        <!-- Preview -->
+        <div style="background:#1C1A17;border-radius:14px;padding:22px;display:grid;gap:14px;align-content:start">
+          <div style="display:flex;align-items:center;gap:10px"><p style="margin:0;font-size:11px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#A39C8E;flex:1">Previsualización en vivo · portal del jugador</p>
+            <span style="display:inline-flex;border:1px solid rgba(246,243,237,0.2);border-radius:99px;padding:2px"><span style="height:24px;display:inline-flex;align-items:center;padding:0 10px;border-radius:99px;background:#F6F3ED;color:#1C1A17;font-size:11px;font-weight:700">Claro</span><span style="height:24px;display:inline-flex;align-items:center;padding:0 10px;border-radius:99px;color:#A39C8E;font-size:11px;font-weight:600">Oscuro</span></span>
+          </div>
+          <div style="display:flex;gap:16px;justify-content:center">
+            <div style="width:250px;background:#F6F3ED;border-radius:18px;overflow:hidden;border:1px solid rgba(246,243,237,0.2)">
+              <div style="display:flex;align-items:center;gap:7px;padding:10px 12px;border-bottom:1px solid #E7E2D8"><span style="width:24px;height:24px;border-radius:7px;background:#4F46E5;color:#fff;display:grid;place-items:center;font-family:'Archivo';font-weight:750;font-size:11px">C</span><span style="font-family:'Archivo';font-stretch:112%;font-weight:700;font-size:11.5px;color:#1C1A17">Club Pádel Mediterráneo</span></div>
+              <div style="padding:12px;display:grid;gap:8px">
+                <div style="background:#1C1A17;border-radius:9px;padding:10px;color:#F6F3ED"><p style="margin:0;font-size:8px;color:#A39C8E;text-transform:uppercase;letter-spacing:0.08em">Tu próxima reserva</p><p style="margin:2px 0 0;font-family:'Archivo';font-weight:750;font-size:16px;font-variant-numeric:tabular-nums">19:00 · Pista 2</p></div>
+                <span style="height:34px;border-radius:9px;background:#4F46E5;color:#fff;display:grid;place-items:center;font-size:11.5px;font-weight:700">Reservar pista</span>
+                <div style="display:flex;gap:5px"><span style="flex:1;height:22px;border-radius:6px;background:#fff;border:1px solid #E7E2D8"></span><span style="flex:1;height:22px;border-radius:6px;background:#fff;border:1px solid #E7E2D8"></span><span style="flex:1;height:22px;border-radius:6px;background:#fff;border:1px solid #E7E2D8"></span></div>
+              </div>
+            </div>
+            <div style="width:250px;background:#14120F;border-radius:18px;overflow:hidden;border:1px solid rgba(246,243,237,0.15)">
+              <div style="display:flex;align-items:center;gap:7px;padding:10px 12px;border-bottom:1px solid #37322A"><span style="width:24px;height:24px;border-radius:7px;background:#4F46E5;color:#fff;display:grid;place-items:center;font-family:'Archivo';font-weight:750;font-size:11px">C</span><span style="font-family:'Archivo';font-stretch:112%;font-weight:700;font-size:11.5px;color:#F1EDE4">Club Pádel Mediterráneo</span></div>
+              <div style="padding:12px;display:grid;gap:8px">
+                <div style="background:#1E1B17;border:1px solid #37322A;border-radius:9px;padding:10px;color:#F1EDE4"><p style="margin:0;font-size:8px;color:#A39C8E;text-transform:uppercase;letter-spacing:0.08em">Tu próxima reserva</p><p style="margin:2px 0 0;font-family:'Archivo';font-weight:750;font-size:16px;font-variant-numeric:tabular-nums">19:00 · Pista 2</p></div>
+                <span style="height:34px;border-radius:9px;background:#847CE9;color:#14120F;display:grid;place-items:center;font-size:11.5px;font-weight:700">Reservar pista</span>
+                <div style="display:flex;gap:5px"><span style="flex:1;height:22px;border-radius:6px;background:#1E1B17;border:1px solid #37322A"></span><span style="flex:1;height:22px;border-radius:6px;background:#1E1B17;border:1px solid #37322A"></span><span style="flex:1;height:22px;border-radius:6px;background:#1E1B17;border:1px solid #37322A"></span></div>
+              </div>
+            </div>
+          </div>
+          <p style="margin:0;font-size:11.5px;color:#8A8377;line-height:1.5;text-align:center">En oscuro el sistema usa tu tono 400 (#847CE9) con texto tinta — contraste calculado automáticamente.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3e PLATAFORMA -->
+    <div id="3e">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px"><span style="background:#1C1A17;color:#fff;font-size:11px;font-weight:700;padding:3px 8px;border-radius:6px">3e</span><span style="font-size:13px;font-weight:600;color:#3C382F">Plataforma · Clubes (SUPER_ADMIN) + acción sensible</span></div>
+      <div data-screen-label="Plataforma clubes" style="width:1440px;background:#F6F3ED;border:1px solid #C9C2B4;border-radius:14px;overflow:hidden;box-shadow:0 12px 40px rgba(28,26,23,0.12)">
+        <div style="height:44px;background:#1C1A17;display:flex;align-items:center;gap:12px;padding:0 20px">
+          <svg width="20" height="20" viewBox="0 0 48 48"><rect x="4" y="10" width="40" height="28" rx="7" fill="none" stroke="#F6F3ED" stroke-width="3"></rect><rect x="10" y="16" width="13" height="16" rx="3" fill="#6FBF9C"></rect></svg>
+          <span style="font-family:'Archivo';font-stretch:112%;font-weight:750;font-size:13px;color:#F6F3ED">PadelClub <span style="background:#157A54;border-radius:4px;padding:0 4px">OS</span> · <span style="color:#6FBF9C">Plataforma</span></span>
+          <div style="margin-left:auto;display:flex;gap:16px;font-size:12.5px;font-weight:600;color:#A39C8E"><span style="color:#F6F3ED;border-bottom:2px solid #6FBF9C;padding:12px 0">Clubes</span><span>Leads</span><span>Demos</span><span>Blog</span><span>Facturación</span></div>
+          <span style="width:26px;height:26px;border-radius:99px;background:#157A54;color:#F6F3ED;display:grid;place-items:center;font-size:10.5px;font-weight:700;margin-left:16px">AB</span>
+        </div>
+        <div style="padding:20px 24px;display:grid;gap:14px">
+          <div style="display:flex;gap:12px;align-items:center">
+            <h1 style="margin:0;font-family:'Archivo';font-stretch:112%;font-weight:700;font-size:19px">Clubes <span style="font-size:12.5px;color:#8A8377;font-weight:600;font-variant-numeric:tabular-nums">· 47 en producción</span></h1>
+            <div style="margin-left:auto;display:flex;gap:8px;align-items:center">
+              <div style="height:36px;width:260px;border:1px solid #DDD7CC;border-radius:8px;background:#fff;display:flex;align-items:center;gap:8px;padding:0 12px;color:#8A8377;font-size:13px"><i data-lucide="search" style="width:15px;height:15px"></i>Buscar club…</div>
+              <span style="height:36px;display:inline-flex;align-items:center;gap:6px;padding:0 12px;border-radius:99px;background:#1C1A17;color:#F6F3ED;font-size:12.5px;font-weight:600">Estado: Todos <i data-lucide="chevron-down" style="width:13px;height:13px"></i></span>
+              <span style="height:36px;display:inline-flex;align-items:center;gap:6px;padding:0 12px;border-radius:99px;border:1.5px solid #C9C2B4;font-size:12.5px;font-weight:600;color:#3C382F">Plan <i data-lucide="chevron-down" style="width:13px;height:13px"></i></span>
+              <button style="height:36px;padding:0 14px;border-radius:8px;border:none;background:#157A54;color:#F6F3ED;font-family:inherit;font-size:13px;font-weight:700;display:inline-flex;align-items:center;gap:6px"><i data-lucide="sparkles" style="width:14px;height:14px"></i>Generar demo</button>
+            </div>
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px">
+            <sc-for list="{{ kpisPlat }}" as="k" hint-placeholder-count="4">
+              <div style="background:#fff;border:1px solid #E7E2D8;border-radius:10px;padding:12px 16px;display:flex;align-items:baseline;gap:10px"><span style="font-family:'Archivo';font-stretch:112%;font-weight:750;font-size:24px;font-variant-numeric:tabular-nums">{{ k.v }}</span><span style="font-size:12px;color:#5C564C">{{ k.l }}</span><span style="margin-left:auto;font-size:11px;font-weight:700;color:{{ k.tc }};display:inline-flex;align-items:center;gap:2px"><i data-lucide="{{ k.ti }}" style="width:11px;height:11px"></i>{{ k.t }}</span></div>
+            </sc-for>
+          </div>
+          <div style="background:#fff;border:1px solid #E7E2D8;border-radius:10px;overflow:hidden">
+            <div style="display:grid;grid-template-columns:2.2fr 1fr 1.2fr 1fr 1fr 1.2fr 1fr;padding:0 16px;height:36px;align-items:center;background:#FDFCFA;border-bottom:1px solid #E7E2D8;font-size:10.5px;font-weight:700;letter-spacing:0.07em;text-transform:uppercase;color:#8A8377">
+              <span>Club</span><span>Plan</span><span>Suscripción</span><span>Pistas</span><span>Socios</span><span>MRR</span><span style="text-align:right">Acciones</span>
+            </div>
+            <sc-for list="{{ clubes }}" as="c" hint-placeholder-count="7">
+              <div style="display:grid;grid-template-columns:2.2fr 1fr 1.2fr 1fr 1fr 1.2fr 1fr;padding:0 16px;height:42px;align-items:center;border-bottom:1px solid #EFECE6;font-size:13px">
+                <span style="display:inline-flex;align-items:center;gap:9px;font-weight:600;min-width:0"><span style="width:26px;height:26px;border-radius:8px;background:{{ c.logoBg }};color:#fff;display:inline-grid;place-items:center;font-size:10.5px;font-weight:700;flex-shrink:0">{{ c.ini }}</span><span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ c.nombre }}</span><sc-if value="{{ c.demo }}" hint-placeholder-val="{{ false }}"><span style="font-size:9.5px;font-weight:700;background:#E8EFFA;color:#24509B;border:1px solid #C6D8F2;border-radius:4px;padding:1px 6px">DEMO</span></sc-if></span>
+                <span style="font-weight:600;color:#5C564C">{{ c.plan }}</span>
+                <span><span style="display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:700;border-radius:5px;padding:2px 8px;background:{{ c.stBg }};color:{{ c.stFg }};border:1px solid {{ c.stBorder }}"><i data-lucide="{{ c.stIcon }}" style="width:11px;height:11px"></i>{{ c.st }}</span></span>
+                <span style="font-variant-numeric:tabular-nums">{{ c.pistas }}</span>
+                <span style="font-variant-numeric:tabular-nums">{{ c.socios }}</span>
+                <span style="font-variant-numeric:tabular-nums;font-weight:600">{{ c.mrr }}</span>
+                <span style="text-align:right;display:inline-flex;justify-content:flex-end;gap:10px;color:#8A8377"><span style="font-size:12px;font-weight:600;color:#157A54">Entrar como</span><i data-lucide="more-horizontal" style="width:15px;height:15px"></i></span>
+              </div>
+            </sc-for>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+            <div style="border:1.5px dashed #C9C2B4;border-radius:12px;padding:22px;display:grid;gap:8px;justify-items:center;text-align:center">
+              <div style="display:flex;gap:3px"><span style="width:18px;height:12px;border-radius:3px;border:1.5px dashed #A39C8E"></span><span style="width:18px;height:12px;border-radius:3px;border:1.5px dashed #A39C8E"></span><span style="width:18px;height:12px;border-radius:3px;background:#DDD7CC"></span></div>
+              <p style="margin:0;font-size:13px;font-weight:700">Sin resultados para «marina» con estado Impagada</p>
+              <p style="margin:0;font-size:12px;color:#8A8377">Prueba quitando filtros, o crea el club si aún no existe.</p>
+              <span style="font-size:12.5px;font-weight:700;color:#157A54">Limpiar filtros</span>
+            </div>
+            <div style="background:#fff;border:1px solid #E7E2D8;border-radius:12px;padding:20px;display:grid;gap:10px">
+              <p style="margin:0;font-family:'Archivo';font-stretch:112%;font-weight:700;font-size:15px;display:flex;align-items:center;gap:8px"><i data-lucide="shield-alert" style="width:16px;height:16px;color:#B3402E"></i>Suspender «Pádel Nord BCN»</p>
+              <p style="margin:0;font-size:12.5px;color:#5C564C;line-height:1.55">Los jugadores no podrán reservar y el admin verá el aviso de suscripción. Sus datos se conservan. Para confirmar, escribe el nombre del club.</p>
+              <div style="height:38px;border:1.5px solid #C9C2B4;border-radius:8px;padding:0 12px;display:flex;align-items:center;font-size:13px;color:#8A8377;background:#FDFCFA">Pádel Nord BCN</div>
+              <div style="display:flex;gap:8px;justify-content:flex-end"><button style="height:38px;padding:0 14px;border-radius:8px;border:1.5px solid #C9C2B4;background:transparent;font-family:inherit;font-size:12.5px;font-weight:600">Cancelar</button><button style="height:38px;padding:0 14px;border-radius:8px;border:none;background:#B3402E;color:#fff;font-family:inherit;font-size:12.5px;font-weight:700;opacity:0.5">Suspender club</button></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3f DARK -->
+    <div id="3f">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px"><span style="background:#1C1A17;color:#fff;font-size:11px;font-weight:700;padding:3px 8px;border-radius:6px">3f</span><span style="font-size:13px;font-weight:600;color:#3C382F">Admin · Dashboard · modo oscuro (representativo)</span></div>
+      <div data-screen-label="Dashboard dark" style="width:1440px;background:#14120F;border:1px solid #37322A;border-radius:14px;overflow:hidden;display:flex;box-shadow:0 12px 40px rgba(0,0,0,0.3)">
+        <aside style="width:264px;flex-shrink:0;background:#100E0C;border-right:1px solid #37322A;padding:14px 12px;display:grid;gap:12px;align-content:start">
+          <div style="display:flex;align-items:center;gap:10px;padding:0 8px 12px;border-bottom:1px solid #37322A"><svg width="22" height="22" viewBox="0 0 48 48"><rect x="4" y="10" width="40" height="28" rx="7" fill="none" stroke="#F1EDE4" stroke-width="3"></rect><rect x="10" y="16" width="13" height="16" rx="3" fill="#2FA075"></rect></svg><span style="font-family:'Archivo';font-stretch:112%;font-weight:750;font-size:14px;color:#F1EDE4">PadelClub <span style="background:#2FA075;color:#0B241A;border-radius:4px;padding:0 4px">OS</span></span></div>
+          <sc-for list="{{ navDark }}" as="it" hint-placeholder-count="6">
+            <div style="display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:7px;font-size:13px;font-weight:{{ it.w }};background:{{ it.bg }};color:{{ it.color }};border-left:3px solid {{ it.bar }}"><i data-lucide="{{ it.icon }}" style="width:16px;height:16px"></i>{{ it.label }}</div>
+          </sc-for>
+        </aside>
+        <main style="flex:1;padding:20px 24px;display:grid;gap:14px;align-content:start;color:#F1EDE4">
+          <div style="display:flex;align-items:center"><p style="margin:0;font-size:13.5px;font-weight:600;color:#A39C8E">Miércoles 22 de julio · <span style="color:#F1EDE4">Turno de noche, Sara</span></p><button style="margin-left:auto;height:34px;padding:0 14px;border-radius:8px;border:none;background:#2FA075;color:#0B241A;font-family:inherit;font-size:13px;font-weight:700;display:inline-flex;align-items:center;gap:6px"><i data-lucide="plus" style="width:15px;height:15px"></i>Nueva reserva</button></div>
+          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px">
+            <sc-for list="{{ kpisDark }}" as="k" hint-placeholder-count="4">
+              <div style="background:#1E1B17;border:1px solid #37322A;border-radius:10px;padding:14px 16px"><p style="margin:0;font-size:10.5px;font-weight:600;letter-spacing:0.07em;text-transform:uppercase;color:#A39C8E">{{ k.label }}</p><div style="display:flex;align-items:baseline;gap:8px;margin-top:3px"><span style="font-family:'Archivo';font-stretch:112%;font-weight:750;font-size:26px;font-variant-numeric:tabular-nums">{{ k.value }}</span><span style="font-size:11px;font-weight:700;color:{{ k.tc }};display:inline-flex;align-items:center;gap:2px"><i data-lucide="{{ k.ti }}" style="width:11px;height:11px"></i>{{ k.t }}</span></div></div>
+            </sc-for>
+          </div>
+          <div style="background:#1E1B17;border:1px solid #37322A;border-radius:10px;padding:14px 16px;display:grid;gap:9px">
+            <div style="display:flex;align-items:baseline;gap:10px"><h2 style="margin:0;font-family:'Archivo';font-stretch:112%;font-weight:650;font-size:14px">Ocupación de hoy por franja</h2><span style="margin-left:auto;display:inline-flex;gap:12px;font-size:10.5px;color:#A39C8E"><span style="display:inline-flex;align-items:center;gap:4px"><span style="width:9px;height:9px;border-radius:2px;background:#2FA075"></span>Reservada</span><span style="display:inline-flex;align-items:center;gap:4px"><span style="width:9px;height:9px;border-radius:2px;border:1px dashed #6B655A"></span>Libre</span></span></div>
+            <div style="display:flex;gap:3px"><sc-for list="{{ bandaDark }}" as="b" hint-placeholder-count="30"><span style="flex:1;height:26px;border-radius:3px;background:{{ b.bg }};border:{{ b.border }}"></span></sc-for></div>
+            <div style="display:flex;justify-content:space-between;font-size:10px;color:#6B655A;font-variant-numeric:tabular-nums"><span>08:00</span><span>14:00</span><span>18:00</span><span>23:00</span></div>
+          </div>
+          <div style="background:#1E1B17;border:1px solid #37322A;border-radius:10px;overflow:hidden">
+            <sc-for list="{{ agendaDark }}" as="a" hint-placeholder-count="3">
+              <div style="display:flex;align-items:center;gap:12px;padding:9px 16px;border-bottom:1px solid #282420;height:40px;box-sizing:border-box">
+                <span style="width:44px;font-family:'Archivo';font-weight:700;font-size:13px;font-variant-numeric:tabular-nums">{{ a.hora }}</span>
+                <span style="width:52px;font-size:12px;font-weight:600;color:#A39C8E">{{ a.pista }}</span>
+                <span style="flex:1;font-size:12.5px">{{ a.quien }}</span>
+                <span style="display:inline-flex;align-items:center;gap:4px;font-size:10.5px;font-weight:700;border-radius:5px;padding:2px 8px;background:{{ a.stBg }};color:{{ a.stFg }};border:1px solid {{ a.stBorder }}"><i data-lucide="{{ a.stIcon }}" style="width:10px;height:10px"></i>{{ a.st }}</span>
+              </div>
+            </sc-for>
+          </div>
+        </main>
+      </div>
+    </div>
+  </div>
+</section>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  componentDidMount() { if (window.lucide) window.lucide.createIcons(); }
+  componentDidUpdate() { if (window.lucide) window.lucide.createIcons(); }
+  renderVals() {
+    const mkNav = (activeLabel) => [
+      {grupo:'Operación', items:[['layout-dashboard','Dashboard'],['calendar','Reservas'],['repeat','Clases fijas'],['shield-ban','Bloqueos'],['layout-grid','Pistas']]},
+      {grupo:'Comunidad', items:[['users','Socios'],['calendar-plus','Partidas abiertas'],['trophy','Competiciones'],['medal','Rankings']]},
+      {grupo:'Contenido', items:[['newspaper','Noticias'],['megaphone','Comunicación'],['file-text','Blog']]},
+      {grupo:'Negocio', items:[['bar-chart-3','Analíticas'],['credit-card','Facturación',7]]},
+      {grupo:'Sistema', items:[['user-cog','Equipo'],['database-zap','Migración'],['scroll-text','Actividad'],['settings','Ajustes']]},
+    ].map(g => ({grupo: g.grupo, items: g.items.map(([icon,label,count]) => {
+      const act = label === activeLabel;
+      return {icon, label, count: count || false, w: act ? '700' : '500',
+        bg: act ? 'rgba(21,122,84,0.22)' : 'transparent', color: act ? '#F6F3ED' : '#C4BDB0',
+        bar: act ? '#6FBF9C' : 'transparent'};
+    })}));
+    const navDash = mkNav('Dashboard');
+    const navSocios = mkNav('Socios');
+    const kpis = [
+      {label:'Reservas hoy', value:'23', trend:'+4', trendIcon:'arrow-up', trendColor:'#3D8B37', sub:'18 pagadas · 5 pendientes'},
+      {label:'Ocupación hoy', value:'68%', trend:'+6 pts', trendIcon:'arrow-up', trendColor:'#3D8B37', sub:'pico 18:00–21:00 al 96%'},
+      {label:'Ingresos hoy', value:'420 €', trend:'+12%', trendIcon:'arrow-up', trendColor:'#3D8B37', sub:'vs. miércoles pasado'},
+      {label:'Pendiente de cobro', value:'86 €', trend:'7 pagos', trendIcon:'alert-triangle', trendColor:'#C7871E', sub:'el más antiguo: hace 3 días'},
+    ];
+    // banda: 30 franjas 08-23, ocupación variable
+    const patt = 'rlrrfrlrra rrffaarrll rrrrrfffll'.replace(/ /g,'').split('');
+    const banda = patt.map(ch => ch==='r' ? {bg:'#157A54', border:'none'} : ch==='a' ? {bg:'#F0F7F3', border:'1px solid #157A54'} : ch==='f' ? {bg:'#DDD7CC', border:'none'} : {bg:'transparent', border:'1px dashed #C9C2B4'});
+    const st = (t) => t==='p' ? {st:'Pagada', stIcon:'check', stBg:'#E9F4E6', stFg:'#2E6A29', stBorder:'#C8E4C3'}
+      : t==='q' ? {st:'Pendiente', stIcon:'clock', stBg:'#FBF1DD', stFg:'#96660F', stBorder:'#EFD9AC'}
+      : t==='a' ? {st:'Abierta 2/4', stIcon:'users', stBg:'#F0F7F3', stFg:'#0E5C3F', stBorder:'#BFE0D0'}
+      : {st:'Clase fija', stIcon:'repeat', stBg:'#E8EFFA', stFg:'#24509B', stBorder:'#C6D8F2'};
+    const agenda = [
+      {hora:'17:00', pista:'Pista 1', quien:'Carlos Ferrer + 3', ...st('p')},
+      {hora:'17:00', pista:'Pista 3', quien:'Escuela infantil · N. Beltrán', ...st('c')},
+      {hora:'17:30', pista:'Pista 2', quien:'Partida abierta · nivel 2,8–3,6', ...st('a')},
+      {hora:'18:00', pista:'Pista 4', quien:'Andrés Climent (invitado)', ...st('q')},
+      {hora:'18:00', pista:'Pista 6', quien:'María Sanchis + 3', ...st('p')},
+      {hora:'19:00', pista:'Pista 2', quien:'Lucía Ferrandis + 3', ...st('p')},
+      {hora:'19:00', pista:'Pista 5', quien:'Jorge Montesinos + 3', ...st('q')},
+    ];
+    const barras = [[62,10],[78,0],[96,16],[70,8],[34,6],[52,14],[44,20]].map(([c,p],i) => ({
+      cobr: c*1.15+'px', pend: p*1.15+'px', radius: p===0 ? '3px 3px 0 0' : '0', dia: ['Jue','Vie','Sáb','Dom','Lun','Mar','Mié'][i]}));
+    const pendientes = [
+      {quien:'Andrés Climent', meta:'Hoy 18:00 · Pista 4', imp:'24 €'},
+      {quien:'Jorge Montesinos', meta:'Hoy 19:00 · Pista 5', imp:'24 €'},
+      {quien:'Carla Gil', meta:'Ayer 20:30 · Pista 1', imp:'18 €'},
+      {quien:'Pau Alcaraz', meta:'Lun 20 · Pista 3', imp:'20 €'},
+    ];
+    const railIcons = ['layout-dashboard','calendar','repeat','shield-ban','layout-grid','users','trophy','bar-chart-3','settings']
+      .map((icon,i) => ({icon, bg: i===1 ? 'rgba(21,122,84,0.3)' : 'transparent', color: i===1 ? '#6FBF9C' : '#8A8377'}));
+    const pistas6 = [
+      {n:'Pista 1', t:'Cristal', oc:'82%'},{n:'Pista 2', t:'Cristal', oc:'75%'},{n:'Pista 3', t:'Cristal', oc:'64%'},
+      {n:'Pista 4', t:'Muro', oc:'58%'},{n:'Pista 5', t:'Cristal', oc:'71%'},{n:'Pista 6', t:'Indoor', oc:'88%'},
+    ];
+    // filas 09:00.. cada 30min, 16 filas (rows 1..16); labels on hour
+    const horasAdmin = Array.from({length:16}, (_,i) => {
+      const m = 16*60 + i*30, onHour = m%60===0;
+      return {row: i+1, label: onHour ? `${String(m/60|0).padStart(2,'0')}:00` : '', bt: onHour && i>0 ? '1px solid #E7E2D8' : (i>0 ? '1px solid #F4F1EA' : 'none')};
+    });
+    const occAdmin = new Set();
+    const bloquesAdmin = [];
+    const addB = (col, start, span, tipo, titulo, meta) => {
+      const cfg = {
+        pag: {bg:'#FDFCFA', border:'1px solid #E7E2D8', edge:'#157A54', icon:'check', fg:'#1C1A17', sub:'#8A8377'},
+        pen: {bg:'#FBF1DD', border:'1px solid #EFD9AC', edge:'#C7871E', icon:'clock', fg:'#6B4A0C', sub:'#96660F'},
+        abi: {bg:'#F0F7F3', border:'1.5px solid #157A54', edge:'#157A54', icon:'users', fg:'#0E5C3F', sub:'#157A54'},
+        cla: {bg:'#E8EFFA', border:'1px solid #C6D8F2', edge:'#2E63C0', icon:'repeat', fg:'#24509B', sub:'#4A76C4'},
+        blo: {bg:'repeating-linear-gradient(45deg,#E7E2D8 0 5px,#EFECE6 5px 10px)', border:'1px solid #C9C2B4', edge:'#8A8377', icon:'ban', fg:'#5C564C', sub:'#8A8377'},
+      }[tipo];
+      bloquesAdmin.push({row:`${start} / span ${span}`, col, titulo, meta, ...cfg});
+      for (let r=start;r<start+span;r++) occAdmin.add(col+'-'+r);
+    };
+    // fila = (hora - 16:00) * 2 + 1
+    addB(2,3,3,'pag','C. Ferrer +3','17:00–18:30 · 24 €');
+    addB(2,6,3,'pen','A. Climent','18:30–20:00 · pendiente 24 €');
+    addB(2,9,3,'pag','Liga interna R3','20:00–21:30');
+    addB(3,4,3,'abi','Partida abierta','17:30 · 2/4 · nivel 2,8–3,6');
+    addB(3,7,4,'cla','Escuela adultos','19:00–21:00 · J. Navarro');
+    addB(4,3,4,'cla','Escuela infantil','17:00–19:00 · N. Beltrán');
+    addB(4,7,3,'pag','M. Sanchis +3','19:00–20:30 · 24 €');
+    addB(5,1,6,'blo','Mantenimiento','Cambio de red · hasta 19:00');
+    addB(6,5,3,'pag','J. Montesinos +3','18:00–19:30 · 24 €');
+    addB(6,8,3,'pen','P. Alcaraz','19:30–21:00 · pendiente 20 €');
+    addB(7,3,3,'pag','C. Gil +3','17:00–18:30 · 18 €');
+    addB(7,7,3,'abi','Partida abierta','19:00 · 1/4 · nivel 3,0–3,8');
+    // selección (19:00 · 90') ocupa col5 rows 7-9
+    for (let r=7;r<=9;r++) occAdmin.add('5-'+r);
+    const celdasAdmin = [];
+    for (let col=2; col<=7; col++) for (let r=1; r<=16; r++) {
+      if (occAdmin.has(col+'-'+r)) continue;
+      const onHour = (r-1)%2===0;
+      celdasAdmin.push({row:r, col, bt: r>1 ? (onHour ? '1px solid #E7E2D8' : '1px solid #F4F1EA') : 'none'});
+    }
+    const socios = [
+      ['MS','María Sanchis','maria.sanchis@gmail.com','3,4','9','0 €','ok',1],
+      ['JB','Javi Borrás','javiborras@hotmail.com','4,1','12','0 €','ok',0],
+      ['AC','Andrés Climent','a.climent@empresa.es','2,7','4','24 €','deuda',1],
+      ['LF','Lucía Ferrandis','lucia.ferrandis@gmail.com','3,2','7','0 €','ok',0],
+      ['PA','Pau Alcaraz','paualcaraz@gmail.com','2,9','5','20 €','deuda',0],
+      ['NB','Nuria Beltrán','nuria.beltran@gmail.com','3,6','8','0 €','ok',0],
+      ['CG','Carla Gil','carla.gil@uv.es','3,1','6','18 €','deuda',0],
+      ['JM','Jorge Montesinos','jmontesinos@gmail.com','3,0','3','0 €','baja',0],
+    ].map(([ini,nombre,email,nivel,reservas,saldo,estado,sel]) => ({
+      ini, nombre, email, nivel, reservas, saldo, sel: !!sel,
+      rowBg: sel ? '#F0F7F3' : 'transparent',
+      ckBg: sel ? '#157A54' : 'transparent', ckBorder: sel ? '#157A54' : '#C9C2B4',
+      saldoW: saldo==='0 €' ? '400' : '700', saldoColor: saldo==='0 €' ? '#8A8377' : '#96660F',
+      ...(estado==='ok' ? {st:'Activo', stIcon:'check', stBg:'#E9F4E6', stFg:'#2E6A29', stBorder:'#C8E4C3'}
+        : estado==='deuda' ? {st:'Saldo pendiente', stIcon:'clock', stBg:'#FBF1DD', stFg:'#96660F', stBorder:'#EFD9AC'}
+        : {st:'De baja', stIcon:'x', stBg:'#EFECE6', stFg:'#6B655A', stBorder:'#DDD7CC'}),
+    }));
+    const swatches = [
+      {c:'#4F46E5', sel:true, border:'2px solid #1C1A17'}, {c:'#157A54', sel:false, border:'none'},
+      {c:'#B3402E', sel:false, border:'none'}, {c:'#C7871E', sel:false, border:'none'},
+      {c:'#2E63C0', sel:false, border:'none'}, {c:'#1C1A17', sel:false, border:'none'},
+    ];
+    const kpisPlat = [
+      {v:'47', l:'clubes activos', t:'+3', ti:'arrow-up', tc:'#3D8B37'},
+      {v:'9', l:'en trial', t:'2 caducan esta semana', ti:'alert-triangle', tc:'#C7871E'},
+      {v:'6.120 €', l:'MRR', t:'+8%', ti:'arrow-up', tc:'#3D8B37'},
+      {v:'12', l:'demos vivas', t:'4 sin actividad', ti:'minus', tc:'#8A8377'},
+    ];
+    const cst = (t) => t==='act' ? {st:'Activa', stIcon:'check', stBg:'#E9F4E6', stFg:'#2E6A29', stBorder:'#C8E4C3'}
+      : t==='tri' ? {st:'Trial · 9 días', stIcon:'hourglass', stBg:'#E8EFFA', stFg:'#24509B', stBorder:'#C6D8F2'}
+      : t==='imp' ? {st:'Impagada', stIcon:'alert-circle', stBg:'#F9E8E4', stFg:'#8F3323', stBorder:'#EFC9C0'}
+      : {st:'Cancelada', stIcon:'x', stBg:'#EFECE6', stFg:'#6B655A', stBorder:'#DDD7CC'};
+    const clubes = [
+      ['CM','Club Pádel Mediterráneo','#4F46E5','Pro','act','8','182','129 €',0],
+      ['PN','Pádel Nord BCN','#0E7490','Pro','imp','12','347','189 €',0],
+      ['SL','Pádel Sol Levante','#B45309','Básico','tri','4','61','—',0],
+      ['LM','La Marina Pádel Club','#15803D','Básico','act','6','128','79 €',0],
+      ['DM','Demo · Feria Pádel Pro','#6D28D9','Pro','tri','8','40','—',1],
+      ['AT','Atlántico Indoor Vigo','#1D4ED8','Pro','act','10','203','129 €',0],
+      ['GR','Granada Pádel Center','#9F1239','Básico','can','5','88','—',0],
+    ].map(([ini,nombre,logoBg,plan,estado,pistas,socios2,mrr,demo]) => ({ini,nombre,logoBg,plan,pistas,socios:socios2,mrr,demo:!!demo,...cst(estado)}));
+    const navDark = [['layout-dashboard','Dashboard',1],['calendar','Reservas'],['users','Socios'],['bar-chart-3','Analíticas'],['credit-card','Facturación'],['settings','Ajustes']]
+      .map(([icon,label,act]) => ({icon,label,w:act?'700':'500',bg:act?'rgba(47,160,117,0.18)':'transparent',color:act?'#F1EDE4':'#A39C8E',bar:act?'#2FA075':'transparent'}));
+    const kpisDark = [
+      {label:'Reservas hoy', value:'23', t:'+4', ti:'arrow-up', tc:'#7FC276'},
+      {label:'Ocupación', value:'68%', t:'+6 pts', ti:'arrow-up', tc:'#7FC276'},
+      {label:'Ingresos hoy', value:'420 €', t:'+12%', ti:'arrow-up', tc:'#7FC276'},
+      {label:'Pendiente', value:'86 €', t:'7 pagos', ti:'alert-triangle', tc:'#E5B05C'},
+    ];
+    const bandaDark = patt.map(ch => ch==='r'||ch==='a' ? {bg:'#2FA075', border:'none'} : ch==='f' ? {bg:'#37322A', border:'none'} : {bg:'transparent', border:'1px dashed #4A443B'});
+    const dst = (t) => t==='p' ? {st:'Pagada', stIcon:'check', stBg:'rgba(127,194,118,0.14)', stFg:'#7FC276', stBorder:'rgba(127,194,118,0.35)'}
+      : {st:'Pendiente', stIcon:'clock', stBg:'rgba(229,176,92,0.12)', stFg:'#E5B05C', stBorder:'rgba(229,176,92,0.35)'};
+    const agendaDark = [
+      {hora:'21:00', pista:'Pista 2', quien:'R. Martí + 3', ...dst('p')},
+      {hora:'21:30', pista:'Pista 6', quien:'A. Soler (invitada)', ...dst('q')},
+      {hora:'22:00', pista:'Pista 1', quien:'Liga nocturna · Ronda 4', ...dst('p')},
+    ];
+    return { navDash, navSocios, kpis, banda, agenda, barras, pendientes, railIcons, pistas6, horasAdmin, celdasAdmin, bloquesAdmin, socios, swatches, kpisPlat, clubes, navDark, kpisDark, bandaDark, agendaDark };
+  }
+}
+</script>
+</body>
+</html>

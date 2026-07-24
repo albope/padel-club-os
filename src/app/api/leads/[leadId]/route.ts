@@ -11,10 +11,8 @@ const patchSchema = z.object({
   leido: z.boolean(),
 })
 
-export async function PATCH(
-  req: Request,
-  { params }: { params: { leadId: string } }
-) {
+export async function PATCH(req: Request, props: { params: Promise<{ leadId: string }> }) {
+  const params = await props.params;
   try {
     const auth = await requireAuth("leads:update")
     if (isAuthError(auth)) return auth

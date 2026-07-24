@@ -44,7 +44,7 @@ describe("Partidas abiertas - POST (Crear)", () => {
     mockDb.court.findFirst.mockResolvedValue(crearPistaMock())
     mockDb.club.findUnique.mockResolvedValue(crearClubMock())
     mockDb.booking.findFirst.mockResolvedValue(null) // sin overlap
-    mockDb.user.findMany.mockResolvedValue([{ id: "user-1" }, { id: "user-2" }])
+    mockDb.clubMembership.findMany.mockResolvedValue([{ userId: "user-1" }, { userId: "user-2" }])
 
     // $transaction callback: ejecuta la funcion con mockDb
     mockDb.$transaction.mockImplementation(async (cb: unknown) => {
@@ -93,7 +93,12 @@ describe("Partidas abiertas - POST (Crear)", () => {
   })
 
   it("4 jugadores genera openMatch con status FULL", async () => {
-    mockDb.user.findMany.mockResolvedValue([{ id: "u1" }, { id: "u2" }, { id: "u3" }, { id: "u4" }])
+    mockDb.clubMembership.findMany.mockResolvedValue([
+      { userId: "u1" },
+      { userId: "u2" },
+      { userId: "u3" },
+      { userId: "u4" },
+    ])
 
     await POST(crearRequest({
       body: {
@@ -145,7 +150,7 @@ describe("Partidas abiertas - POST (Crear)", () => {
   })
 
   it("jugador no valido rechaza 400", async () => {
-    mockDb.user.findMany.mockResolvedValue([{ id: "user-1" }]) // solo 1 de 2
+    mockDb.clubMembership.findMany.mockResolvedValue([{ userId: "user-1" }]) // solo 1 de 2
 
     const response = await POST(crearRequest({
       body: {
@@ -183,7 +188,10 @@ describe("Partidas abiertas - PATCH (Modificar)", () => {
     mockDb.court.findFirst.mockResolvedValue(crearPistaMock())
     mockDb.club.findUnique.mockResolvedValue(crearClubMock())
     mockDb.booking.findFirst.mockResolvedValue(null)
-    mockDb.user.findMany.mockResolvedValue([{ id: "user-1" }, { id: "user-2" }])
+    mockDb.clubMembership.findMany.mockResolvedValue([
+      { userId: "user-1" },
+      { userId: "user-2" },
+    ])
 
     mockDb.$transaction.mockImplementation(async (cb: unknown) => {
       if (typeof cb === "function") return cb(mockDb)

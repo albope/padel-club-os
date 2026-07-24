@@ -13,16 +13,25 @@ export async function GET() {
     const clubId = auth.session.user.clubId
 
     const [members, invitations, limits] = await Promise.all([
-      db.user.findMany({
-        where: { clubId, role: { not: "PLAYER" } },
+      db.clubMembership.findMany({
+        where: {
+          clubId,
+          role: { in: ["CLUB_ADMIN", "STAFF"] },
+          status: { not: "REVOKED" },
+        },
         select: {
           id: true,
-          name: true,
-          email: true,
           role: true,
-          isActive: true,
+          status: true,
+          user: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+            },
+          },
         },
-        orderBy: { name: "asc" },
+        orderBy: { user: { name: "asc" } },
       }),
       db.adminInvitation.findMany({
         where: { clubId, expires: { gt: new Date() } },
@@ -40,7 +49,14 @@ export async function GET() {
     ])
 
     return NextResponse.json({
-      members,
+      members: members.map((membership) => ({
+        id: membership.user.id,
+        membershipId: membership.id,
+        name: membership.user.name,
+        email: membership.user.email,
+        role: membership.role,
+        isActive: membership.status === "ACTIVE",
+      })),
       invitations,
       limits: { used: limits.used, limit: limits.limit },
       currentUserId: auth.session.user.id,

@@ -5,10 +5,8 @@ import { eloANivel } from "@/lib/elo"
 import { logger } from "@/lib/logger"
 
 // GET: Directorio de jugadores del club (requiere auth + mismo club)
-export async function GET(
-  req: Request,
-  { params }: { params: { slug: string } }
-) {
+export async function GET(req: Request, props: { params: Promise<{ slug: string }> }) {
+  const params = await props.params;
   try {
     const auth = await requireAuth("players:read")
     if (isAuthError(auth)) return auth
@@ -39,43 +37,52 @@ export async function GET(
     const posicionFilter = posicion ? { position: posicion } : {}
     const nameFilter = q ? { name: { contains: q, mode: "insensitive" as const } } : {}
 
-    const where = {
-      clubId: club.id,
-      role: "PLAYER" as const,
+    const userWhere = {
       isActive: true,
       ...nameFilter,
       ...nivelFilter,
       ...posicionFilter,
     }
 
-    const [jugadores, total] = await Promise.all([
-      db.user.findMany({
-        where,
+    const membershipWhere = {
+      clubId: club.id,
+      role: "PLAYER" as const,
+      status: "ACTIVE" as const,
+      user: userWhere,
+    }
+
+    const [memberships, total] = await Promise.all([
+      db.clubMembership.findMany({
+        where: membershipWhere,
         select: {
-          id: true,
-          name: true,
-          image: true,
-          level: true,
-          position: true,
-          playerStats: {
-            where: { clubId: club.id },
+          user: {
             select: {
-              eloRating: true,
-              matchesPlayed: true,
-              matchesWon: true,
-              averageRating: true,
-              totalRatings: true,
+              id: true,
+              name: true,
+              image: true,
+              level: true,
+              position: true,
+              playerStats: {
+                where: { clubId: club.id },
+                select: {
+                  eloRating: true,
+                  matchesPlayed: true,
+                  matchesWon: true,
+                  averageRating: true,
+                  totalRatings: true,
+                },
+              },
             },
           },
         },
-        orderBy: { name: "asc" },
+        orderBy: { user: { name: "asc" } },
         skip: (page - 1) * limit,
         take: limit,
       }),
-      db.user.count({ where }),
+      db.clubMembership.count({ where: membershipWhere }),
     ])
 
-    const response = jugadores.map((j) => {
+    const response = memberships.map(({ user: j }) => {
       const stats = j.playerStats[0]
       return {
         id: j.id,

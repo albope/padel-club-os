@@ -10,11 +10,12 @@ const formatLabel: Record<string, string> = {
   GROUP_AND_KNOCKOUT: "Grupos + Eliminatorias",
 };
 
-export default async function ClubCompetitionDetailPage({
-  params,
-}: {
-  params: { slug: string; id: string };
-}) {
+export default async function ClubCompetitionDetailPage(
+  props: {
+    params: Promise<{ slug: string; id: string }>;
+  }
+) {
+  const params = await props.params;
   const club = await db.club.findUnique({
     where: { slug: params.slug },
     select: { id: true },

@@ -72,7 +72,7 @@ export interface ClubItem {
   trialEndsAt: string | null
   esDemo: boolean
   stripeSubscriptionId: string | null
-  _count: { courts: number; admins: number; bookings: number }
+  _count: { courts: number; members: number; bookings: number }
 }
 
 interface ResultadoDemo {
@@ -265,7 +265,7 @@ export default function ClubsClient({ initialClubs }: ClubsClientProps) {
           stripeSubscriptionId: null,
           _count: {
             courts: data.contadores.pistas,
-            admins: data.contadores.socios,
+            members: data.contadores.socios,
             bookings: data.contadores.reservas,
           },
         },
@@ -357,7 +357,7 @@ export default function ClubsClient({ initialClubs }: ClubsClientProps) {
                     </span>
                   </TableCell>
                   <TableCell className="text-right">{club._count.courts}</TableCell>
-                  <TableCell className="text-right">{club._count.admins}</TableCell>
+                  <TableCell className="text-right">{club._count.members}</TableCell>
                   <TableCell className="text-right">{club._count.bookings}</TableCell>
                   <TableCell>
                     <DropdownMenu>

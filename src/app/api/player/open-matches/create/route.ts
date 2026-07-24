@@ -7,11 +7,13 @@ import { validarBody } from "@/lib/validation";
 import { verificarBloqueo } from "@/lib/court-blocks";
 import { logger } from "@/lib/logger";
 import * as z from "zod";
+import { respuestaErrorReserva, validarRangoReserva } from "@/lib/booking-domain";
+import { instanteDesdeZonaClub } from "@/lib/timezone";
 
 const PlayerOpenMatchCreateSchema = z.object({
   courtId: z.string().min(1, "El ID de pista es requerido."),
   matchDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Formato de fecha invalido (YYYY-MM-DD)."),
-  matchTime: z.string().regex(/^\d{2}:\d{2}$/, "Formato de hora invalido (HH:MM)."),
+  matchTime: z.string().regex(/^(?:[01]\d|2[0-3]):[0-5]\d$/, "Formato de hora invalido (HH:MM)."),
   levelMin: z.coerce.number().min(1).max(7).optional().nullable(),
   levelMax: z.coerce.number().min(1).max(7).optional().nullable(),
 })
@@ -33,6 +35,9 @@ export async function POST(req: Request) {
         enableOpenMatches: true,
         bookingDuration: true,
         maxAdvanceBooking: true,
+        timezone: true,
+        openingTime: true,
+        closingTime: true,
       },
     });
 
@@ -44,29 +49,25 @@ export async function POST(req: Request) {
     }
 
     const duracionMinutos = club.bookingDuration || 90;
-    const startTime = new Date(`${matchDate}T${matchTime}:00`);
+    const [year, month, day] = matchDate.split("-").map(Number)
+    const [hour, minute] = matchTime.split(":").map(Number)
+    const startTime = instanteDesdeZonaClub(
+      year,
+      month,
+      day,
+      hour,
+      minute,
+      club.timezone,
+    );
     const endTime = new Date(startTime.getTime() + duracionMinutos * 60 * 1000);
     const now = new Date();
-
-    // No en el pasado
-    if (startTime < now) {
-      return NextResponse.json(
-        { error: "No puedes crear una partida en el pasado." },
-        { status: 400 }
-      );
-    }
-
-    // Ventana maxima de antelacion
-    if (club.maxAdvanceBooking) {
-      const maxDate = new Date();
-      maxDate.setDate(maxDate.getDate() + club.maxAdvanceBooking);
-      if (startTime > maxDate) {
-        return NextResponse.json(
-          { error: `Solo puedes crear partidas con ${club.maxAdvanceBooking} dias de antelacion.` },
-          { status: 400 }
-        );
-      }
-    }
+    validarRangoReserva({
+      startTime,
+      endTime,
+      policy: club,
+      now,
+      requireFuture: true,
+    })
 
     // Verificar que la pista pertenece al club
     const pista = await db.court.findFirst({
@@ -165,6 +166,13 @@ export async function POST(req: Request) {
 
     return NextResponse.json(partida, { status: 201 });
   } catch (error) {
+    const domainError = respuestaErrorReserva(error)
+    if (domainError) {
+      return NextResponse.json(
+        { error: domainError.message, code: domainError.code },
+        { status: domainError.status },
+      )
+    }
     logger.error("CREATE_PLAYER_OPEN_MATCH", "Error al crear partida abierta", { ruta: "/api/player/open-matches/create" }, error);
     return new NextResponse("Internal Server Error", { status: 500 });
   }

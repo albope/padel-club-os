@@ -10,12 +10,13 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 
 interface EditSocioPageProps {
-  params: {
+  params: Promise<{
     userId: string;
-  };
+  }>;
 }
 
-const EditSocioPage = async ({ params }: EditSocioPageProps) => {
+const EditSocioPage = async (props: EditSocioPageProps) => {
+  const params = await props.params;
   const session = await getServerSession(authOptions);
 
   if (!session?.user?.clubId) {

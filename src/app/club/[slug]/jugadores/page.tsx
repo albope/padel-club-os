@@ -8,7 +8,8 @@ import JugadoresClient from "@/components/social/JugadoresClient";
 
 export const revalidate = 300; // 5min
 
-export default async function ClubJugadoresPage({ params }: { params: { slug: string } }) {
+export default async function ClubJugadoresPage(props: { params: Promise<{ slug: string }> }) {
+  const params = await props.params;
   const t = await getTranslations('social');
   const session = await getServerSession(authOptions);
 

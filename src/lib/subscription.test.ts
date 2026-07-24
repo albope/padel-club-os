@@ -203,7 +203,7 @@ describe("canCreateMember", () => {
       subscriptionTier: "starter",
       trialEndsAt: null,
     })
-    mockDb.user.count.mockResolvedValue(30)
+    mockDb.clubMembership.count.mockResolvedValue(30)
 
     const result = await canCreateMember("club-1")
     expect(result.allowed).toBe(true)
@@ -215,7 +215,7 @@ describe("canCreateMember", () => {
       subscriptionTier: "starter",
       trialEndsAt: null,
     })
-    mockDb.user.count.mockResolvedValue(50)
+    mockDb.clubMembership.count.mockResolvedValue(50)
 
     const result = await canCreateMember("club-1")
     expect(result.allowed).toBe(false)
@@ -234,7 +234,7 @@ describe("canCreateAdmin", () => {
       subscriptionTier: "starter",
       trialEndsAt: null,
     })
-    mockDb.user.count.mockResolvedValue(0)
+    mockDb.clubMembership.count.mockResolvedValue(0)
     mockDb.adminInvitation.count.mockResolvedValue(0)
 
     const result = await canCreateAdmin("club-1")
@@ -247,7 +247,7 @@ describe("canCreateAdmin", () => {
       subscriptionTier: "starter",
       trialEndsAt: null,
     })
-    mockDb.user.count.mockResolvedValue(1)
+    mockDb.clubMembership.count.mockResolvedValue(1)
     mockDb.adminInvitation.count.mockResolvedValue(0)
 
     const result = await canCreateAdmin("club-1")
@@ -261,7 +261,7 @@ describe("canCreateAdmin", () => {
       subscriptionTier: "starter",
       trialEndsAt: null,
     })
-    mockDb.user.count.mockResolvedValue(0)
+    mockDb.clubMembership.count.mockResolvedValue(0)
     mockDb.adminInvitation.count.mockResolvedValue(1)
 
     const result = await canCreateAdmin("club-1")

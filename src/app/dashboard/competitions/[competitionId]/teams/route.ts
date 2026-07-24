@@ -3,10 +3,8 @@ import { requireAuth, isAuthError } from "@/lib/api-auth";
 import { NextResponse } from "next/server";
 
 // POST: Crear un equipo para una competicion
-export async function POST(
-  req: Request,
-  { params }: { params: { competitionId: string } }
-) {
+export async function POST(req: Request, props: { params: Promise<{ competitionId: string }> }) {
+  const params = await props.params;
   try {
     const auth = await requireAuth("competitions:update")
     if (isAuthError(auth)) return auth

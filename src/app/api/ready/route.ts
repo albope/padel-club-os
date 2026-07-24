@@ -4,7 +4,7 @@ import { logger } from '@/lib/logger'
 
 export const dynamic = 'force-dynamic'
 
-const LATEST_MIGRATION = '20260723030000_durable_refunds'
+const LATEST_MIGRATION = '20260725000000_presential_bookings_and_database_rate_limit'
 const REQUIRED_PRODUCTION_ENV = [
   'DATABASE_URL',
   'AUTH_SECRET',
@@ -20,8 +20,6 @@ const REQUIRED_PRODUCTION_ENV = [
   'HEARTBEAT_URL_REMINDERS',
   'HEARTBEAT_URL_RECURRING',
   'HEARTBEAT_URL_REFUNDS',
-  'UPSTASH_REDIS_REST_URL',
-  'UPSTASH_REDIS_REST_TOKEN',
   'SENTRY_DSN',
   'NEXT_PUBLIC_SENTRY_DSN',
   'STRIPE_SECRET_KEY',
@@ -36,7 +34,6 @@ const REQUIRED_PRODUCTION_ENV = [
   'LEGAL_EMAIL',
   'STRIPE_TAX_ENABLED',
   'TAX_HANDLING_CONFIRMED',
-  'NEXT_PUBLIC_TEMA_MARCADOR',
 ] as const
 
 export async function GET() {
@@ -54,10 +51,15 @@ export async function GET() {
       }),
     ])
 
+    const rateLimitBackend = process.env.RATE_LIMIT_BACKEND?.trim() || 'database'
     const configurationIssues = process.env.NODE_ENV === 'production'
       ? [
           ...REQUIRED_PRODUCTION_ENV.filter((key) => !process.env[key]?.trim()),
-          ...(process.env.RATE_LIMIT_BACKEND === 'upstash' ? [] : ['RATE_LIMIT_BACKEND']),
+          ...(['database', 'upstash'].includes(rateLimitBackend) ? [] : ['RATE_LIMIT_BACKEND']),
+          ...(rateLimitBackend !== 'upstash' || (
+            process.env.UPSTASH_REDIS_REST_URL?.trim()
+            && process.env.UPSTASH_REDIS_REST_TOKEN?.trim()
+          ) ? [] : ['UPSTASH_REDIS']),
           ...(process.env.TAX_HANDLING_CONFIRMED === 'true' ? [] : ['TAX_HANDLING_CONFIRMED']),
           ...(process.env.STRIPE_SECRET_KEY?.startsWith('sk_live_') ? [] : ['STRIPE_SECRET_KEY_FORMAT']),
         ]

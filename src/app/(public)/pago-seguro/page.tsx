@@ -17,7 +17,7 @@ export default function PagoSeguroPage() {
       title="Pago seguro y facturación"
       version={LEGAL_VERSIONS.terminos}
       updatedAt={LEGAL_LAST_UPDATED}
-      description="Cómo se procesan los pagos de la suscripción SaaS y los pagos de reservas de los clubes."
+      description="Cómo se procesa la suscripción SaaS y cómo se gestionan los cobros presenciales de las reservas."
     >
       <section>
         <h2>1. Suscripciones de clubes</h2>
@@ -29,12 +29,12 @@ export default function PagoSeguroPage() {
       </section>
 
       <section>
-        <h2>2. Pagos de reservas</h2>
+        <h2>2. Cobros de reservas</h2>
         <p className="mt-3">
-          Cuando un club activa el pago online de reservas, el cobro se procesa mediante Stripe Connect. El club
-          presta el servicio deportivo, fija el precio y sus reglas de cancelación, y actúa frente al jugador como
-          vendedor del servicio. Padel Club OS aporta la infraestructura tecnológica y puede cobrar al club la
-          comisión indicada en su plan o acuerdo comercial.
+          Las reservas se pagan directamente en el club por los medios que este acepte. Padel Club OS permite
+          registrar el estado del cobro, pero no recibe, procesa ni intermedia en el dinero que el jugador entrega
+          por la pista o actividad. El club presta el servicio deportivo, fija el precio, emite el justificante o
+          factura que corresponda y aplica sus reglas de cancelación.
         </p>
       </section>
 
@@ -65,8 +65,8 @@ export default function PagoSeguroPage() {
         <h2>5. Reembolsos y cancelaciones</h2>
         <p className="mt-3">
           Las cancelaciones de la suscripción se rigen por las <a href="/terminos">Condiciones del servicio SaaS</a>.
-          Los reembolsos de reservas se rigen por la política publicada por cada club. Un comprobante de Stripe no
-          modifica por sí mismo esas condiciones contractuales.
+          Las devoluciones de importes cobrados presencialmente por una reserva se solicitan y resuelven directamente
+          con el club conforme a su política publicada.
         </p>
       </section>
     </LegalPage>

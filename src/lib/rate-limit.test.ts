@@ -1,9 +1,18 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest"
 import { crearRateLimiter, obtenerIP, _formatearVentanaUpstash } from "./rate-limit"
 
+const { queryRawMock } = vi.hoisted(() => ({
+  queryRawMock: vi.fn(),
+}))
+
+vi.mock("./db", () => ({
+  db: { $queryRaw: queryRawMock },
+}))
+
 // Forzar fallback local en todos los tests
 beforeEach(() => {
   process.env.RATE_LIMIT_BACKEND = "memory"
+  queryRawMock.mockReset()
 })
 
 afterEach(() => {
@@ -97,6 +106,27 @@ describe("crearRateLimiter (seguridad en produccion)", () => {
     const limiter = crearRateLimiter({ maxRequests: 3, windowMs: 60000, prefix: "rl:test-e2e" })
 
     expect(await limiter.verificar("1.1.1.1")).toBe(true)
+  })
+
+  it("usa PostgreSQL compartido en produccion sin Upstash", async () => {
+    vi.stubEnv("NODE_ENV", "production")
+    vi.stubEnv("RATE_LIMIT_BACKEND", "database")
+    queryRawMock.mockResolvedValue([{ count: 1 }])
+
+    const limiter = crearRateLimiter({ maxRequests: 3, windowMs: 60000, prefix: "rl:test-db" })
+
+    expect(await limiter.verificar("1.1.1.1")).toBe(true)
+    expect(queryRawMock).toHaveBeenCalledOnce()
+  })
+
+  it("bloquea cuando PostgreSQL supera el limite", async () => {
+    vi.stubEnv("NODE_ENV", "production")
+    vi.stubEnv("RATE_LIMIT_BACKEND", "database")
+    queryRawMock.mockResolvedValue([{ count: 4 }])
+
+    const limiter = crearRateLimiter({ maxRequests: 3, windowMs: 60000, prefix: "rl:test-db" })
+
+    expect(await limiter.verificar("1.1.1.1")).toBe(false)
   })
 })
 

@@ -40,8 +40,6 @@ interface GridReservasProps {
     openingTime: string | null;
     closingTime: string | null;
     bookingDuration: number | null;
-    bookingPaymentMode: string | null;
-    stripeConnectOnboarded: boolean;
   };
   pistas: Pista[];
   sesionUserId: string | null;
@@ -663,8 +661,6 @@ export default function GridReservas({ club, pistas, sesionUserId, slug, fechaIn
         precio={slotSeleccionado?.precio ?? null}
         slug={slug}
         onReservaConfirmada={cargarDatos}
-        bookingPaymentMode={club.bookingPaymentMode || 'presential'}
-        stripeConnectOnboarded={club.stripeConnectOnboarded}
       />
     </div>
   );

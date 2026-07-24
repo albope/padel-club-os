@@ -92,8 +92,6 @@ export default function PlayerBookingPage() {
           openingTime: clubInfo.openingTime,
           closingTime: clubInfo.closingTime,
           bookingDuration: clubInfo.bookingDuration,
-          bookingPaymentMode: clubInfo.bookingPaymentMode || 'presential',
-          stripeConnectOnboarded: clubInfo.stripeConnectOnboarded || false,
         }}
         pistas={courts}
         sesionUserId={session?.user?.id ?? null}

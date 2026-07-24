@@ -126,14 +126,6 @@ export async function canCreateMember(clubId: string): Promise<{ allowed: boolea
 }
 
 /**
- * Verifica si el plan del club permite pagos online (Stripe Connect).
- * Solo disponible para Pro y Enterprise.
- */
-export function canUseOnlinePayments(tier: PlanKey): boolean {
-  return tier === "pro" || tier === "enterprise"
-}
-
-/**
  * Verifica si un club puede crear mas reservas recurrentes segun su plan.
  * Starter: 0 (no disponible), Pro: 10 activas, Enterprise: ilimitadas.
  */

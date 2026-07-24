@@ -13,6 +13,8 @@ interface RateLimiter {
   verificar(clave: string): Promise<boolean>
 }
 
+type RateLimitBackend = "upstash" | "database" | "memory" | "blocked"
+
 // Singleton Redis — reutilizado entre todos los limiters
 let _redis: Redis | null = null
 
@@ -37,25 +39,82 @@ function formatearVentanaUpstash(ms: number): `${number} ms` | `${number} s` | `
 }
 
 /**
- * Determina si usar Upstash (distribuido) o fallback local (memoria).
+ * Determina el backend de rate limiting.
  * - RATE_LIMIT_BACKEND=memory → fuerza fallback local (tests, dev)
  * - RATE_LIMIT_BACKEND=upstash → fuerza Upstash (falla si no hay credenciales)
- * - Sin variable → auto-detecta por presencia de credenciales
+ * - RATE_LIMIT_BACKEND=database → PostgreSQL compartido entre instancias
+ * - Sin variable → Upstash si esta configurado, PostgreSQL en produccion y
+ *   memoria en desarrollo.
  */
-function usarUpstash(): boolean {
+function resolverBackend(): RateLimitBackend {
   const backend = process.env.RATE_LIMIT_BACKEND
-  if (backend === "memory") return false
+  if (backend === "memory") {
+    const memoriaPermitidaEnPruebas =
+      process.env.RATE_LIMIT_ALLOW_MEMORY === "true"
+    return process.env.NODE_ENV === "production" && !memoriaPermitidaEnPruebas
+      ? "blocked"
+      : "memory"
+  }
+  if (backend === "database") return "database"
   if (backend === "upstash") {
     const redis = obtenerRedis()
     if (!redis) {
       logger.error("RATE_LIMIT", "RATE_LIMIT_BACKEND=upstash sin credenciales Redis", {
         backend: "unavailable",
       })
-      return false
+      return "blocked"
     }
-    return true
+    return "upstash"
   }
-  return obtenerRedis() !== null
+  if (obtenerRedis()) return "upstash"
+  return process.env.NODE_ENV === "production" ? "database" : "memory"
+}
+
+function crearRateLimiterBaseDatos(config: RateLimitConfig): RateLimiter {
+  return {
+    async verificar(clave: string): Promise<boolean> {
+      try {
+        const { db } = await import("./db")
+        const key = `${config.prefix}:${clave}`.slice(0, 191)
+        const rows = await db.$queryRaw<Array<{ count: number }>>`
+          WITH cleanup AS (
+            DELETE FROM "RateLimitBucket"
+            WHERE "resetAt" < NOW() - INTERVAL '1 day'
+            RETURNING "key"
+          )
+          INSERT INTO "RateLimitBucket" ("key", "count", "resetAt", "updatedAt")
+          VALUES (
+            ${key},
+            1,
+            NOW() + (${config.windowMs} * INTERVAL '1 millisecond'),
+            NOW()
+          )
+          ON CONFLICT ("key") DO UPDATE SET
+            "count" = CASE
+              WHEN "RateLimitBucket"."resetAt" <= NOW() THEN 1
+              ELSE "RateLimitBucket"."count" + 1
+            END,
+            "resetAt" = CASE
+              WHEN "RateLimitBucket"."resetAt" <= NOW()
+                THEN NOW() + (${config.windowMs} * INTERVAL '1 millisecond')
+              ELSE "RateLimitBucket"."resetAt"
+            END,
+            "updatedAt" = NOW()
+          RETURNING "count"
+        `
+        return Number(rows[0]?.count ?? config.maxRequests + 1) <= config.maxRequests
+      } catch (error) {
+        const failClosed = process.env.NODE_ENV === "production"
+        logger.warn(
+          "RATE_LIMIT",
+          `PostgreSQL no disponible, ${failClosed ? "fail-closed" : "fail-open"}`,
+          { prefix: config.prefix },
+          error,
+        )
+        return !failClosed
+      }
+    },
+  }
 }
 
 /**
@@ -68,7 +127,9 @@ function usarUpstash(): boolean {
  * @param config.prefix - Prefijo unico obligatorio (ej: "rl:forgot-pw", "rl:chat")
  */
 export function crearRateLimiter(config: RateLimitConfig): RateLimiter {
-  if (usarUpstash()) {
+  const backend = resolverBackend()
+
+  if (backend === "upstash") {
     const limiter = new Ratelimit({
       redis: obtenerRedis()!,
       limiter: Ratelimit.fixedWindow(config.maxRequests, formatearVentanaUpstash(config.windowMs)),
@@ -91,11 +152,11 @@ export function crearRateLimiter(config: RateLimitConfig): RateLimiter {
     }
   }
 
-  const memoriaPermitidaEnPruebas =
-    process.env.RATE_LIMIT_BACKEND === "memory"
-    && process.env.RATE_LIMIT_ALLOW_MEMORY === "true"
+  if (backend === "database") {
+    return crearRateLimiterBaseDatos(config)
+  }
 
-  if (process.env.NODE_ENV === "production" && !memoriaPermitidaEnPruebas) {
+  if (backend === "blocked") {
     // No registrar en la importacion: Next carga los modulos durante el build.
     // El fallo se informa una sola vez al recibir una peticion real.
     let logged = false

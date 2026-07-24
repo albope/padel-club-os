@@ -1,13 +1,19 @@
 'use client';
 
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
+import dynamic from 'next/dynamic';
 import { Court, User } from '@prisma/client';
 import { Calendar, LayoutGrid, ChevronLeft, ChevronRight, Download, CreditCard } from 'lucide-react';
-import CalendarView, { BookingWithDetails } from './CalendarView';
+import type { BookingWithDetails } from './CalendarView';
 import CourtGridView, { CourtBlockForGrid } from './CourtGridView';
 import BookingModal from './BookingModal';
 import PendingPayments from './PendingPayments';
 import { Button } from '@/components/ui/button';
+
+const CalendarView = dynamic(() => import('./CalendarView'), {
+  ssr: false,
+  loading: () => <div className="h-[600px] animate-pulse rounded-lg bg-muted" aria-label="Cargando calendario" />,
+});
 
 interface ReservasContainerProps {
   initialBookings: BookingWithDetails[];

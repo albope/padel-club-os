@@ -274,7 +274,7 @@ export default function ClubLayout({ club, children }: ClubLayoutProps) {
       {/* Co-branding «Powered by»: pie del portal, monocromo 60% */}
       {temaMarcador && (
         <footer className="mx-auto max-w-5xl px-4 pt-4 pb-6">
-          <p className="text-center text-xs text-muted-foreground/60">
+          <p className="text-center text-xs text-muted-foreground">
             Powered by PadelClub OS
           </p>
         </footer>

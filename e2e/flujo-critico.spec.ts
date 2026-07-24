@@ -1,5 +1,7 @@
 import { test, expect } from "@playwright/test"
+import AxeBuilder from "@axe-core/playwright"
 import { PrismaClient } from "@prisma/client"
+import { hash } from "bcrypt"
 
 // E2E del flujo critico comercial:
 //   Admin: registro de club -> wizard de configuracion -> reserva desde el grid
@@ -13,6 +15,8 @@ const adminName = `E2E Admin ${ts}`
 const clubName = `E2E Club ${ts}`
 const adminEmail = `e2e-admin-${ts}@e2e.test`
 const playerEmail = `e2e-jugador-${ts}@e2e.test`
+const staffEmail = `e2e-staff-${ts}@e2e.test`
+const superAdminEmail = `e2e-superadmin-${ts}@e2e.test`
 const password = "e2ePassword123"
 
 const clubSlug = `e2e-club-${ts}`
@@ -131,12 +135,22 @@ test.describe.serial("Flujo critico: alta de club, configuracion y reservas", ()
     await expect(tituloModal).toBeVisible()
 
     await page.getByRole("button", { name: "Confirmar Reserva" }).click()
-    await tituloModal.waitFor({ state: "hidden", timeout: 15_000 })
+    // En desarrollo la primera compilacion del endpoint puede consumir varios
+    // segundos; esperamos al cierre funcional, no a un tiempo de red concreto.
+    await tituloModal.waitFor({ state: "hidden", timeout: 30_000 })
 
     // La reserva aparece en el grid
     await expect(
       reservasAdmin.getByRole("button", { name: /Ver reserva de Invitado E2E/ })
     ).toBeVisible({ timeout: 20_000 })
+
+    // Reporte de incidencia discreto desde el portal administrador.
+    await page.getByRole("button", { name: "Informar de un problema o enviar una sugerencia" }).click()
+    await page.locator("#feedback-description").fill(
+      "Reporte E2E del administrador para verificar el canal de soporte.",
+    )
+    await page.getByRole("button", { name: "Enviar", exact: true }).click()
+    await expect(page.getByText("Reporte recibido", { exact: true })).toBeVisible()
   })
 
   test("jugador: registro en el portal, login y reserva en el grid publico", async ({ page }) => {
@@ -174,6 +188,18 @@ test.describe.serial("Flujo critico: alta de club, configuracion y reservas", ()
     await loginJugador.locator("#password").fill(password)
     await loginJugador.getByRole("button", { name: "Iniciar sesión" }).click()
     await page.waitForURL(`**/club/${clubSlug}`, { timeout: 30_000 })
+    const consentimientoJugador = page.getByRole("button", { name: "Entendido" })
+    if (await consentimientoJugador.isVisible().catch(() => false)) {
+      await consentimientoJugador.click()
+    }
+
+    // El jugador puede reportar desde su portal sin abandonar el flujo.
+    await page.getByRole("button", { name: "Informar de un problema o enviar una sugerencia" }).click()
+    await page.locator("#feedback-description").fill(
+      "Reporte E2E del jugador para comprobar el contexto del portal.",
+    )
+    await page.getByRole("button", { name: "Enviar", exact: true }).click()
+    await expect(page.getByText("Reporte recibido", { exact: true })).toBeVisible()
 
     // --- Reservar pista desde el grid publico ---
     await page.goto(`/club/${clubSlug}/reservar`)
@@ -201,6 +227,85 @@ test.describe.serial("Flujo critico: alta de club, configuracion y reservas", ()
     await expect(
       page.getByRole("heading", { name: "Reserva confirmada!", level: 3 })
     ).toBeVisible({ timeout: 20_000 })
+
+  })
+
+  test("superadmin: acceso temporal como jugador y restauracion de sesion", async ({ page }) => {
+    const club = await prisma.club.findUniqueOrThrow({ where: { slug: clubSlug } })
+    const passwordHash = await hash(password, 10)
+    const superAdmin = await prisma.user.create({
+      data: {
+        name: "E2E Superadmin",
+        email: superAdminEmail,
+        password: passwordHash,
+        role: "SUPER_ADMIN",
+        clubId: club.id,
+        emailVerified: new Date(),
+      },
+    })
+    await prisma.clubMembership.create({
+      data: {
+        userId: superAdmin.id,
+        clubId: club.id,
+        role: "SUPER_ADMIN",
+        status: "ACTIVE",
+        approvedAt: new Date(),
+      },
+    })
+
+    await page.goto("/login")
+    const consent = page.getByRole("button", { name: "Entendido" })
+    if (await consent.isVisible().catch(() => false)) await consent.click()
+    await page.locator("#email").fill(superAdminEmail)
+    await page.locator("#password").fill(password)
+    await page.getByRole("button", { name: "Iniciar sesión" }).click()
+    await page.waitForURL("**/dashboard", { timeout: 30_000 })
+
+    await page.goto("/dashboard/accesos")
+    await page.locator("#support-search").fill(playerEmail)
+    const accessCard = page.locator("[class*='rounded']").filter({ hasText: playerEmail }).last()
+    await accessCard.getByRole("button", { name: "Acceder" }).click()
+    await page.locator("#support-reason").fill("Validar la incidencia E2E comunicada por el jugador")
+    await page.getByRole("button", { name: "Iniciar acceso" }).click()
+
+    await page.waitForURL(`**/club/${clubSlug}`, { timeout: 30_000 })
+    await expect(page.getByText(/Acceso de soporte como/)).toBeVisible()
+    await expect(page.getByText(/Modo solo lectura/)).toBeVisible()
+    await page.getByRole("button", { name: "Volver a soporte" }).click()
+    await page.waitForURL("**/dashboard/accesos", { timeout: 30_000 })
+    await expect(page.getByRole("heading", { name: "Centro de accesos" })).toBeVisible()
+  })
+
+  test("staff: login y acceso al dashboard del club", async ({ page }) => {
+    const club = await prisma.club.findUniqueOrThrow({ where: { slug: clubSlug } })
+    const staff = await prisma.user.create({
+      data: {
+        name: "E2E Staff",
+        email: staffEmail,
+        password: await hash(password, 10),
+        role: "STAFF",
+        clubId: club.id,
+        emailVerified: new Date(),
+      },
+    })
+    await prisma.clubMembership.create({
+      data: {
+        userId: staff.id,
+        clubId: club.id,
+        role: "STAFF",
+        status: "ACTIVE",
+        approvedAt: new Date(),
+      },
+    })
+
+    await page.goto("/login")
+    const consent = page.getByRole("button", { name: "Entendido" })
+    if (await consent.isVisible().catch(() => false)) await consent.click()
+    await page.locator("#email").fill(staffEmail)
+    await page.locator("#password").fill(password)
+    await page.getByRole("button", { name: "Iniciar sesión" }).click()
+    await page.waitForURL("**/dashboard", { timeout: 30_000 })
+    await expect(page.locator("#contenido-principal")).toBeVisible()
   })
 
   test("calidad basica: portal movil, imagenes y cabeceras de seguridad", async ({ page, request }) => {
@@ -222,5 +327,13 @@ test.describe.serial("Flujo critico: alta de club, configuracion y reservas", ()
         || (image as HTMLImageElement).naturalWidth === 0).length
     )
     expect(brokenVisibleImages).toBe(0)
+
+    const accessibility = await new AxeBuilder({ page })
+      .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"])
+      .analyze()
+    const blockingViolations = accessibility.violations.filter(
+      (violation) => violation.impact === "critical" || violation.impact === "serious",
+    )
+    expect(blockingViolations).toEqual([])
   })
 })

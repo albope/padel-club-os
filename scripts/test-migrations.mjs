@@ -60,6 +60,9 @@ urlPrueba.searchParams.set("schema", schemaPrueba)
 const admin = new PrismaClient({
   datasources: { db: { url: urlBase.toString() } },
 })
+const probe = new PrismaClient({
+  datasources: { db: { url: urlPrueba.toString() } },
+})
 
 try {
   console.log(`Aplicando migraciones en schema aislado ${schemaPrueba}...`)
@@ -98,9 +101,50 @@ try {
     throw new Error(`Faltan restricciones de dominio: encontradas ${count} de 4`)
   }
 
-  console.log("Migraciones verificadas correctamente desde una base vacia.")
+  console.log("Probando dos reservas concurrentes y solapadas...")
+  const club = await probe.club.create({
+    data: { name: "Club prueba concurrencia", slug: `concurrency-${Date.now()}` },
+  })
+  const user = await probe.user.create({
+    data: { name: "Jugador prueba", email: `concurrency-${Date.now()}@test.invalid`, clubId: club.id },
+  })
+  const court = await probe.court.create({
+    data: { name: "Pista prueba", clubId: club.id },
+  })
+  const start = new Date("2035-01-15T10:00:00.000Z")
+  const concurrentResults = await Promise.allSettled([
+    probe.booking.create({
+      data: {
+        startTime: start,
+        endTime: new Date("2035-01-15T11:30:00.000Z"),
+        totalPrice: 20,
+        courtId: court.id,
+        userId: user.id,
+        clubId: club.id,
+        paymentMethod: "presential",
+      },
+    }),
+    probe.booking.create({
+      data: {
+        startTime: new Date("2035-01-15T10:30:00.000Z"),
+        endTime: new Date("2035-01-15T12:00:00.000Z"),
+        totalPrice: 20,
+        courtId: court.id,
+        userId: user.id,
+        clubId: club.id,
+        paymentMethod: "presential",
+      },
+    }),
+  ])
+  const creadas = concurrentResults.filter((result) => result.status === "fulfilled").length
+  if (creadas !== 1) {
+    throw new Error(`La exclusion de solapes permitio ${creadas} reservas; se esperaba exactamente 1`)
+  }
+
+  console.log("Migraciones y proteccion de concurrencia verificadas desde una base vacia.")
 } finally {
   console.log(`Eliminando schema aislado ${schemaPrueba}...`)
+  await probe.$disconnect()
   await admin.$executeRawUnsafe(`DROP SCHEMA IF EXISTS "${schemaPrueba}" CASCADE`)
   await admin.$disconnect()
 }

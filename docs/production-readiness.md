@@ -44,6 +44,7 @@ crítico terminan en verde. Un lanzamiento comercial exige además:
 - [x] Hacer la impersonación solo lectura y mostrar banner persistente.
 - [x] Restaurar una sola vez la sesión original y auditar inicio/fin.
 - [x] Probar origen, sujeto, club, auditoría y restauración.
+- [x] Añadir restauración explícita de datos demo y rotación de credenciales.
 
 ## Bloque 4 — Reservas y tiempo
 
@@ -59,6 +60,9 @@ crítico terminan en verde. Un lanzamiento comercial exige además:
 
 ## Bloque 5 — Pagos y suscripciones
 
+- [x] Retirar Stripe Connect y el checkout de nuevas reservas.
+- [x] Forzar cobro presencial en API, configuración, UI y base de datos.
+- [x] Mantener reconciliación histórica sin exponer nuevos cobros Connect.
 - [x] Unificar transiciones válidas de estados de pago.
 - [x] Hacer idempotente el webhook de Stripe y persistir sus eventos.
 - [x] Crear cola durable de reembolsos con reintentos y reconciliación.
@@ -92,20 +96,25 @@ crítico terminan en verde. Un lanzamiento comercial exige además:
 
 ## Bloque 8 — Seguridad y privacidad
 
-- [x] Rate limiting distribuido obligatorio en producción.
+- [x] Rate limiting PostgreSQL distribuido por defecto, con Upstash opcional.
 - [x] Validar tipo, tamaño, nombre y autorización de uploads.
 - [x] Añadir cabeceras CSP, anti-sniff y seguridad de navegador.
 - [x] Reducir datos almacenados en feedback y logs.
 - [x] Mantener exportación y eliminación de datos disponibles.
 - [x] Actualizar dependencias vulnerables y dejar `npm audit` sin hallazgos.
 - [x] Fijar Node 20.19+ en proyecto y CI.
+- [x] Añadir detección de secretos versionados en CI.
+- [x] Reforzar superadmin con email verificado, limitación global de intentos,
+  sesiones revocables, acceso de soporte temporal y auditoría.
 
 ## Bloque 9 — Calidad, CI y observabilidad
 
 - [x] Lint sin warnings y typecheck independiente.
 - [x] Tests unitarios e integración de rutas críticas.
 - [x] Build real de Next.js 15.
-- [x] E2E con registro, activación controlada, reserva, móvil y cabeceras.
+- [x] E2E con registro, activación controlada, reserva, feedback, impersonación,
+  móvil y cabeceras.
+- [x] Matriz E2E Chromium, WebKit/Safari y navegador móvil.
 - [x] CI con PostgreSQL 16 efímero, migraciones y auditoría de dependencias.
 - [x] Endpoint `/api/ready` para migración, configuración y reembolsos fallidos.
 - [x] Preflight estricto sin mostrar secretos.
@@ -124,7 +133,7 @@ Estos puntos no se pueden completar desde el repositorio ni deben inventarse:
 - [ ] Stripe Live: cuenta verificada, productos/prices, webhook, impuestos y
   prueba controlada.
 - [ ] Resend: dominio/remitente verificado.
-- [ ] Vercel Blob, VAPID, Upstash y Sentry configurados con claves reales.
+- [ ] Vercel Blob, VAPID y Sentry configurados con claves reales.
 - [ ] Vercel Pro activo antes de depender de crons frecuentes para la operación
   comercial.
 - [ ] Tres checks de healthchecks.io, alertas Sentry y monitor de uptime activos.

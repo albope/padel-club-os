@@ -9,10 +9,10 @@ que `npm run production:preflight`, la migración y `/api/ready` estén en verde
 |---|---|---|
 | Vercel Hobby | Hosting, funciones y tres crons diarios | Válido para demo y arranque limitado; revisar manualmente impagos y reembolsos urgentes |
 | Neon PostgreSQL | Datos multi-tenant | Producción separada de desarrollo, snapshot previo a migrar |
-| Stripe Live | Suscripciones y cobros | Productos, prices, webhook y tratamiento fiscal verificados |
+| Stripe Live | Suscripciones SaaS | Productos, prices, webhook y tratamiento fiscal verificados |
 | Resend | Emails transaccionales | Dominio verificado y remitente probado |
 | Vercel Blob | Imágenes subidas por clubes | Store enlazado y token Read/Write |
-| Upstash Redis | Rate limiting distribuido | Backend `upstash`, nunca memoria |
+| PostgreSQL / Upstash | Rate limiting distribuido | Backend `database` por defecto o `upstash`; nunca memoria |
 | Sentry | Errores y contexto técnico | DSN servidor/cliente y alertas activas |
 | healthchecks.io | Ausencia de ejecuciones cron | Un check independiente por cron |
 | Monitor externo | Uptime y base de datos | GET de `/api/health` cada 5 minutos |
@@ -20,8 +20,7 @@ que `npm run production:preflight`, la migración y `/api/ready` estén en verde
 El plan Hobby de Vercel limita cada cron a una ejecución diaria y no garantiza
 el minuto exacto dentro de la hora programada. `vercel.json` usa ese máximo para
 permitir el despliegue inicial. Hasta activar Pro o un scheduler externo, los
-recordatorios, la liberación automática de reservas impagadas y los reintentos
-de reembolso pueden demorarse hasta 24 horas.
+recordatorios y las tareas históricas de reembolso pueden demorarse hasta 24 horas.
 
 ## Puesta en marcha inicial
 
@@ -31,10 +30,11 @@ de reembolso pueden demorarse hasta 24 horas.
 - [ ] Confirmar con asesoría el alta censal, Seguridad Social, IVA/IRPF,
   facturación y conservación de registros; después establecer
   `TAX_HANDLING_CONFIRMED=true`.
-- [ ] Configurar Stripe Live, probar una suscripción y un cobro/reembolso de
-  reserva en modo test antes de copiar las claves live.
+- [ ] Configurar Stripe Live y probar una suscripción SaaS completa antes de copiar
+  las claves live.
 - [ ] Configurar los tres heartbeats y alertas de Sentry.
-- [ ] Verificar dominio de Resend, VAPID, Blob y Upstash.
+- [ ] Verificar dominio de Resend, VAPID y Blob; usar PostgreSQL para rate limiting
+  o configurar Upstash si se elige ese backend.
 - [ ] Contratar Vercel Pro antes de depender de automatizaciones frecuentes y
   fijar alertas/límite de gasto.
 - [ ] Crear snapshot de Neon y ejecutar un simulacro de restauración en una
@@ -80,13 +80,13 @@ de reembolso pueden demorarse hasta 24 horas.
 | Ruta | Frecuencia UTC | Objetivo | Heartbeat |
 |---|---:|---|---|
 | `/api/cron/generate-recurring-bookings` | Diario 06:00 | Generar reservas fijas con 7 días de antelación | `HEARTBEAT_URL_RECURRING` |
-| `/api/cron/booking-reminders` | Diario 07:00 | Procesar recordatorios pendientes y cancelar checkouts impagados | `HEARTBEAT_URL_REMINDERS` |
-| `/api/cron/process-refunds` | Diario 08:00 | Reconciliar y reintentar reembolsos durables | `HEARTBEAT_URL_REFUNDS` |
+| `/api/cron/booking-reminders` | Diario 07:00 | Procesar recordatorios y limpiar checkouts históricos | `HEARTBEAT_URL_REMINDERS` |
+| `/api/cron/process-refunds` | Diario 08:00 | Reconciliar reembolsos históricos durables | `HEARTBEAT_URL_REFUNDS` |
 
 Los endpoints aceptan GET de Vercel Cron y POST manual, siempre protegidos por
 `CRON_SECRET`. Los recordatorios se reclaman de forma atómica para no duplicar
-avisos; la cancelación por impago vuelve a comprobar el estado justo antes de
-escribir. Los reembolsos usan una clave de idempotencia estable. En Hobby, una
+avisos. La limpieza de checkouts y los reembolsos solo cubren reservas online
+históricas; las nuevas reservas son presenciales. En Hobby, una
 operación urgente debe ejecutarse manualmente en lugar de esperar al siguiente
 cron diario.
 

@@ -16,7 +16,7 @@ identidad de quien factura.
 - `/privacidad`: distingue a Padel Club OS como responsable de sus datos propios y
   como encargado de los datos gestionados por cada club.
 - `/cookies`: inventario real de cookies y almacenamiento local actual.
-- `/pago-seguro`: separa suscripciones SaaS y cobros de reservas mediante Connect.
+- `/pago-seguro`: separa la suscripción SaaS de los cobros presenciales que gestiona cada club.
 - Registro y Checkout exigen aceptación expresa y guardan la versión aceptada en
   `LegalAcceptance`.
 - Checkout recopila razón social, domicilio y NIF/VAT ID cuando el país lo soporta.
@@ -133,22 +133,18 @@ https://sede.agenciatributaria.gob.es/Sede/iva/facturacion-registro/facturacion-
   el medio material de emisión, pero el responsable de la factura sigue siendo el
   empresario o profesional que presta el SaaS.
 
-## 6. Stripe Connect y facturas de reservas
+## 6. Facturas y cobros de reservas
 
-La plataforma no debe emitir como propia la factura del alquiler de pista. En el
-modelo actual de destination charges:
+La plataforma no procesa pagos de reservas. Todas las reservas nuevas se cobran
+directamente en el club y Padel Club OS solo registra su estado:
 
 - el club presta el servicio deportivo y fija sus condiciones;
 - el club debe emitir al jugador el documento fiscal que corresponda;
-- Padel Club OS factura al club la suscripción SaaS y, cuando proceda, su comisión;
-- Stripe Connect no decide por sí solo quién es el obligado tributario.
+- Padel Club OS factura al club únicamente la suscripción SaaS;
+- el club decide y gestiona el efectivo, TPV u otros medios presenciales que acepte.
 
-Antes de activar reservas LIVE, documentar en el onboarding del club que sus datos
-de Connect son los del prestador real y que acepta su responsabilidad por precios,
-cancelaciones, impuestos y facturación a jugadores.
-
-Referencia de Stripe sobre la necesidad de determinar primero qué entidad tiene la
-obligación fiscal en Connect: https://docs.stripe.com/tax/connect
+El onboarding debe recordar al club su responsabilidad sobre precios,
+cancelaciones, devoluciones, impuestos y facturación a jugadores.
 
 ## 7. RGPD operativo que las páginas no resuelven por sí solas
 

@@ -1,19 +1,17 @@
 # Identidad «Marcador» — estado de implementación
 
 Rediseño visual completo de PadelClub OS según `design_handoff_identidad_marcador/`
-(README + `tokens.padelclubos.json` como fuente de verdad). Se implementa en 5 fases,
-todas detrás de un feature flag, sin tocar lógica de negocio, APIs ni auth.
+(README + `tokens.padelclubos.json` como fuente de verdad). Se implementó en 5 fases
+sin modificar la lógica de negocio, APIs ni autenticación.
 
-## Feature flag
+## Activación
 
-- Variable: `NEXT_PUBLIC_TEMA_MARCADOR="true"` (build-time, ver `.env.example`).
-- Helper: `temaMarcadorActivo()` en `src/lib/feature-flags.ts`.
-- Efecto: `src/app/layout.tsx` añade la clase `theme-marcador` al `<body>` y cambia
-  las fuentes (Inter/Sora → Instrument Sans/Archivo reutilizando las variables
-  `--font-inter`/`--font-sora`, así Tailwind no cambia). Los tokens nuevos viven en
+- La identidad Marcador está activa de forma incondicional.
+- `src/app/layout.tsx` añade la clase `theme-marcador` al `<body>` y usa
+  Instrument Sans/Archivo. Los tokens viven en
   `globals.css` bajo `.theme-marcador` (claro) y `.dark .theme-marcador` (oscuro).
-- Con el flag apagado el aspecto es EXACTAMENTE el actual (cero cambios visuales).
-- Al terminar la fase 5 se retiran el flag, el tema antiguo y las fuentes Inter/Sora.
+- `temaMarcadorActivo()` se conserva temporalmente como helper de compatibilidad y
+  siempre devuelve `true`.
 
 ## Qué cambia con el flag encendido (fase 1)
 
@@ -43,8 +41,8 @@ Tras migrar una pantalla, fijar el avance con:
 ## Estado de fases
 
 - [x] **Fase 1 — Foundations (S)**: tokens en `globals.css`, fuentes autohospedadas
-  (next/font), lint anti colores crudos, flag `NEXT_PUBLIC_TEMA_MARCADOR`.
-  Gate pendiente de ejecutar al encender el flag: regresión visual manual en
+  (next/font) y lint anti colores crudos.
+  Gate pendiente: regresión visual manual en
   4 breakpoints (360/768/1024/1440) × 2 temas.
 - [x] **Fase 2 — Shell (M)**: `NavItem.group` + `agruparNavItems()` en `nav-items.ts`
   (Operación/Comunidad/Contenido/Negocio/Plataforma/Sistema, orden del prototipo 3a);
@@ -104,9 +102,9 @@ Tras migrar una pantalla, fijar el avance con:
   solos. Rankings/competiciones/socios/plataforma se apoyan en tokens y
   componentes core ya migrados.
 
-## Pendiente post-gate (tras validar visualmente con el flag encendido)
+## Pendiente post-gate
 
-1. Retirar flag + tema antiguo: eliminar ramas legacy de componentes, clases
+1. Retirar ramas legacy de componentes y clases
    `auth-*`/`landing-*` de globals.css (hoy solo neutralizadas), fuentes
    Inter/Sora, y bajar la baseline del ratchet migrando los ~518 usos crudos
    restantes (sobre todo marketing).
@@ -114,8 +112,7 @@ Tras migrar una pantalla, fijar el avance con:
    72px (3b), pantallas éxito/fallo 2d (celebración única 400ms, retención 10
    min), confirmación destructiva escribiendo el nombre (3e), banda tinta de
    plataforma (3e).
-3. Gate visual de fase 1 pendiente de ejecutar: 4 breakpoints × 2 temas con el
-   flag encendido (`NEXT_PUBLIC_TEMA_MARCADOR="true"` en `.env.local`).
+3. Gate visual de fase 1 pendiente de ejecutar: 4 breakpoints × 2 temas.
 
 ## Notas para las siguientes fases
 

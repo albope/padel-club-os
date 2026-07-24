@@ -1,7 +1,7 @@
 # Stripe: checklist de paso a LIVE y runbook
 
 Este documento no autoriza ni ejecuta el paso a LIVE. La activacion fiscal, la cuenta
-Stripe LIVE y Stripe Connect LIVE quedan pendientes hasta que exista el primer cliente
+Stripe LIVE para la suscripción SaaS queda pendiente hasta que exista el primer cliente
 de pago y el owner este dado de alta para facturar.
 
 ## 1. Precondiciones
@@ -73,31 +73,12 @@ Configurar solo en el entorno **Production**:
 No se necesita publishable key mientras se mantenga Stripe Hosted Checkout. Tras
 cambiar variables, redeploy y verificar `/api/health` antes de cualquier cobro.
 
-## 5. Stripe Connect LIVE (pendiente para el primer cliente)
+## 5. Pagos de reservas
 
-- [ ] No iniciar este bloque antes del alta fiscal del owner y la autorizacion para
-  cobrar al primer cliente.
-- [ ] Activar la plataforma Stripe Connect en LIVE y completar el perfil de
-  plataforma, datos de soporte, branding, cuenta bancaria y terminos de servicio.
-- [ ] La integracion actual crea cuentas Express con Accounts v1. Habilitar
-  explicitamente **Accounts v1 support** en LIVE o planificar y probar por separado
-  una migracion completa a Accounts v2; no mezclar ambas decisiones durante el
-  primer go-live.
-- [ ] Confirmar el modelo de destination charges y la responsabilidad por saldos
-  negativos, refunds y disputas de la plataforma.
-- [ ] Desde Padel Club OS, crear la cuenta Express del club real y dejar que su
-  representante complete el onboarding; nunca rellenarlo por el club.
-- [ ] No habilitar `bookingPaymentMode="online"` hasta que Stripe devuelva a la vez:
-  `details_submitted=true`, `charges_enabled=true` y `payouts_enabled=true`.
-- [ ] Ejecutar un cobro real de importe minimo autorizado y comprobar Checkout,
-  `Payment`, transferencia al club y `application_fee_amount` del 5 %.
-- [ ] Ejecutar un refund autorizado y comprobar la reversa del transfer y el estado
-  final en DB antes de abrir pagos al resto de clubes.
-
-En destination charges, Stripe carga las disputas a la plataforma. Referencia:
-[destination charges](https://docs.stripe.com/connect/destination-charges). Stripe
-permite continuar una integracion v1 si no necesita las funciones de Accounts v2:
-[guia de migracion gradual](https://docs.stripe.com/connect/accounts-v2/migrate-integration).
+Stripe Connect está retirado del producto. Las reservas nuevas se crean siempre con
+`paymentMethod="presential"` y el cobro lo gestiona directamente el club. Los
+campos, webhooks y reembolsos Connect se conservan temporalmente solo para
+reconciliar datos históricos. No deben configurarse cuentas Connect nuevas.
 
 ## 6. Stripe Tax y datos fiscales (codigo preparado; alta externa pendiente)
 
@@ -109,42 +90,9 @@ permite continuar una integracion v1 si no necesita las funciones de Accounts v2
 - [ ] Asignar `txcd_10103001` a los tres productos y `tax_behavior=exclusive` a sus prices.
 - [ ] Validar facturas y abonos en TEST; solo despues repetir en LIVE y activar
   `STRIPE_TAX_ENABLED=true` en Production.
-- [ ] Mantener separada la obligacion fiscal del SaaS de la de los clubes en Connect.
+- [ ] Mantener separada la obligación fiscal del SaaS de la de las reservas que cobra cada club.
 
 ## Runbook operativo
-
-### Disputa de una reserva
-
-1. Abrir la disputa en Stripe Dashboard y localizar el `PaymentIntent`.
-2. Buscar ese ID en `Payment.stripePaymentId`; recopilar reserva, jugador, pista,
-   fecha/hora, importe, confirmacion, politica de cancelacion y comunicaciones.
-3. Decidir aceptar o responder. Para responder, presentar una cronologia breve y
-   solo evidencia relevante; Stripe permite una unica entrega de evidencia.
-4. Vigilar el saldo de plataforma: en destination charges, importe y tasas de disputa
-   se cargan a la plataforma.
-5. Registrar la resolucion fuera de Stripe hasta que exista automatizacion de
-   `charge.dispute.*` en la aplicacion.
-
-Referencias: [responder disputas](https://docs.stripe.com/disputes/responding) y
-[buenas practicas de evidencia](https://docs.stripe.com/disputes/best-practices).
-
-### Refund manual de una reserva
-
-1. Preferir la cancelacion del jugador en la aplicacion: aplica la politica horaria,
-   cancela la reserva y sincroniza DB.
-2. Si hay que hacerlo manualmente, identificar el `PaymentIntent` correcto y crear
-   el refund con `reverse_transfer=true` para recuperar del club el importe
-   transferido. La politica actual usa `refund_application_fee=false`: la plataforma
-   devuelve al jugador el total y absorbe su comision del 5 %.
-3. Comprobar el evento `charge.refunded` 2xx y los estados:
-   `Payment.status="refunded"`, `Booking.paymentStatus="refunded"` y pagos por
-   jugador sincronizados.
-4. Si el webhook fallo, corregir la causa y reenviar el evento desde Workbench; no
-   crear un segundo refund.
-
-Stripe deja por defecto los fondos en la cuenta conectada; por eso la reversa del
-transfer es obligatoria para esta politica. Referencia: [refunds de destination
-charges](https://docs.stripe.com/connect/destination-charges#issue-refunds).
 
 ### Impago
 
@@ -157,14 +105,5 @@ charges](https://docs.stripe.com/connect/destination-charges#issue-refunds).
 4. Confirmar `invoice.paid`/`customer.subscription.updated` con 2xx y que DB vuelve a
    estado activo antes de dar el incidente por cerrado.
 
-**Reserva online**
-
-1. Checkout dispone de 15 minutos. El cron `booking-reminders` cancela reservas
-   `online + pending` antiguas, expira la Checkout Session y libera el slot. En
-   Vercel Hobby se ejecuta una vez al día, por lo que una reserva impagada puede
-   retener el slot hasta 24 horas; ejecutar el endpoint manualmente si urge.
-2. Revisar que el cron de Vercel responde 2xx y que `canceladasPorPago` aumenta.
-3. Si el cron fallo, invocarlo una vez con `Authorization: Bearer $CRON_SECRET` y
-   comprobar en Stripe que la sesion quedo `expired` y en DB la reserva `cancelled`.
-4. Si entra un pago despues de una cancelacion, el webhook emite refund con reversa
-   del transfer; verificarlo antes de intervenir manualmente.
+Las reservas presenciales pendientes no caducan por falta de pago online. El club
+debe registrar el cobro o aplicar su política de cancelación desde el panel.

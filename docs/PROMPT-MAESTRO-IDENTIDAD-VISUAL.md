@@ -45,7 +45,7 @@ El producto ya incluye, entre otras capacidades:
 - dashboard con KPIs, agenda, ocupación, ingresos y pagos pendientes;
 - reservas en calendario y grid por pista, reservas recurrentes y bloqueos;
 - pistas, tarifas por franja, socios, importación y exportación;
-- pagos online/presenciales y cobro por jugador;
+- cobros presenciales y control por jugador;
 - competiciones, partidas abiertas, ranking ELO y analítica;
 - noticias, comunicaciones push/email/in-app y blog;
 - perfil de jugador, directorio social, valoraciones y chat de partida;
@@ -454,4 +454,3 @@ Tu entrega final debe cerrar con:
 5. una checklist final de cumplimiento de todos los criterios de aceptación.
 
 ## FIN DEL PROMPT
-

@@ -16,8 +16,9 @@ const UpdatePlayerPaymentSchema = z.object({
 // PATCH: Marcar pago individual de jugador como pagado/pendiente o editar nombre
 export async function PATCH(
   req: Request,
-  { params }: { params: { bookingId: string; paymentId: string } }
+  props: { params: Promise<{ bookingId: string; paymentId: string }> }
 ) {
+  const params = await props.params;
   try {
     const auth = await requireAuth("booking-payments:update")
     if (isAuthError(auth)) return auth

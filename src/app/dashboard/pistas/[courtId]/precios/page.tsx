@@ -8,12 +8,13 @@ import { ArrowLeft } from "lucide-react"
 import CourtPricingForm from "@/components/pistas/CourtPricingForm"
 
 interface CourtPricingPageProps {
-  params: {
+  params: Promise<{
     courtId: string
-  }
+  }>
 }
 
-const CourtPricingPage = async ({ params }: CourtPricingPageProps) => {
+const CourtPricingPage = async (props: CourtPricingPageProps) => {
+  const params = await props.params;
   const session = await getServerSession(authOptions)
 
   if (!session?.user?.clubId) {

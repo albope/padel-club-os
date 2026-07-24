@@ -11,10 +11,8 @@ const limiter = crearRateLimiter({ maxRequests: 10, windowMs: 60 * 60 * 1000, pr
 const INVITATION_EXPIRY_MS = 48 * 60 * 60 * 1000
 
 // POST: Reenviar invitacion con token nuevo
-export async function POST(
-  req: Request,
-  { params }: { params: { invitationId: string } }
-) {
+export async function POST(req: Request, props: { params: Promise<{ invitationId: string }> }) {
+  const params = await props.params;
   try {
     const auth = await requireAuth("team:invite")
     if (isAuthError(auth)) return auth

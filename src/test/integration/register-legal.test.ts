@@ -9,7 +9,13 @@ vi.mock("@/lib/rate-limit", () => ({
   crearRateLimiter: () => ({ verificar: (...args: unknown[]) => mockVerificar(...args) }),
   obtenerIP: () => "127.0.0.1",
 }))
-vi.mock("@/lib/email", () => ({ enviarEmailBienvenidaAdmin: vi.fn().mockResolvedValue(undefined) }))
+vi.mock("@/lib/email", () => ({
+  enviarEmailBienvenidaAdmin: vi.fn().mockResolvedValue(undefined),
+  enviarEmailVerificacion: vi.fn().mockResolvedValue(undefined),
+}))
+vi.mock("@/lib/tokens", () => ({
+  crearTokenVerificacionEmail: vi.fn().mockResolvedValue("verification-token"),
+}))
 vi.mock("@/lib/logger", () => ({ logger: { error: vi.fn(), warn: vi.fn(), info: vi.fn() } }))
 vi.mock("bcrypt", () => ({ hash: vi.fn().mockResolvedValue("password-hash") }))
 
@@ -36,12 +42,14 @@ describe("Registro contractual de un club", () => {
       role: "CLUB_ADMIN",
     })
     mockDb.legalAcceptance.create.mockResolvedValue({ id: "acceptance-legal" })
+    mockDb.clubMembership.create.mockResolvedValue({ id: "membership-legal" })
   })
 
   it("guarda las versiones aceptadas junto con la cuenta", async () => {
     const response = await POST(crearRequest({
       body: {
         name: "Ana",
+        clubName: "Club Ana",
         email: "ana@club.test",
         password: "Password123!",
         legalAccepted: true,
@@ -66,6 +74,7 @@ describe("Registro contractual de un club", () => {
     const response = await POST(crearRequest({
       body: {
         name: "Ana",
+        clubName: "Club Ana",
         email: "ana@club.test",
         password: "Password123!",
         legalAccepted: false,

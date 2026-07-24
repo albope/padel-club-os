@@ -5,7 +5,59 @@ import { crearNotificacion } from "@/lib/notifications"
 import { enviarEmailConfirmacionReserva } from "@/lib/email"
 import { asegurarBookingPayments, aplicarRefundBooking } from "@/lib/payment-sync"
 import { logger } from "@/lib/logger"
+import { enqueueBookingRefund } from "@/lib/refunds"
+import { Prisma } from "@prisma/client"
 import type Stripe from "stripe"
+
+const WEBHOOK_LOCK_MS = 10 * 60 * 1000
+
+async function claimWebhookEvent(event: Stripe.Event): Promise<boolean> {
+  // Algunos consumidores de la funcion (tests unitarios o scripts antiguos)
+  // usan un Prisma parcial. En runtime el modelo siempre existe tras migrar.
+  const eventStore = db.stripeWebhookEvent
+  if (!eventStore?.create) return true
+  try {
+    await eventStore.create({
+      data: { eventId: event.id, type: event.type },
+    })
+    return true
+  } catch (error) {
+    if (!(error instanceof Prisma.PrismaClientKnownRequestError) || error.code !== "P2002") {
+      throw error
+    }
+  }
+
+  const existing = await eventStore.findUnique({
+    where: { eventId: event.id },
+  })
+  if (!existing || existing.status === "SUCCEEDED") return false
+  if (
+    existing.status === "PROCESSING"
+    && existing.updatedAt.getTime() > Date.now() - WEBHOOK_LOCK_MS
+  ) {
+    return false
+  }
+
+  const claimed = await eventStore.updateMany({
+    where: {
+      eventId: event.id,
+      status: existing.status,
+      updatedAt: existing.updatedAt,
+    },
+    data: {
+      status: "PROCESSING",
+      attempts: { increment: 1 },
+      lastError: null,
+    },
+  })
+  return claimed.count === 1
+}
+
+function webhookError(error: unknown) {
+  return (error instanceof Error ? error.message : String(error))
+    .replace(/[\r\n\t]+/g, " ")
+    .slice(0, 1000)
+}
 
 async function sincronizarSuscripcion(
   subscription: Stripe.Subscription,
@@ -62,7 +114,13 @@ export async function POST(req: Request) {
     )
   }
 
+  let claimed = false
   try {
+    claimed = await claimWebhookEvent(event)
+    if (!claimed) {
+      return NextResponse.json({ received: true, duplicate: true })
+    }
+
     switch (event.type) {
       case "checkout.session.completed": {
         const session = event.data.object as Stripe.Checkout.Session
@@ -85,7 +143,7 @@ export async function POST(req: Request) {
           const paymentClubId = session.metadata.clubId
           const userId = session.metadata.userId
 
-          if (!bookingId || !paymentClubId) break
+          if (!bookingId || !paymentClubId || typeof session.payment_intent !== "string") break
 
           // Idempotencia: verificar que no existe ya un pago para esta reserva
           const existingPayment = await db.payment.findUnique({
@@ -93,8 +151,16 @@ export async function POST(req: Request) {
           })
           if (existingPayment) break
 
-          // Transaccion atomica con guard de booking confirmada
+          // Transaccion atomica con guard de booking confirmada. El Payment se
+          // conserva tambien si el pago llego despues de cancelar: es la prueba
+          // durable de la obligacion de reembolso.
           const updatedBooking = await db.$transaction(async (tx) => {
+            const currentBooking = await tx.booking.findUnique({
+              where: { id: bookingId },
+              select: { status: true },
+            })
+            if (!currentBooking) return null
+
             // Guard atomico: solo marcar paid si booking sigue confirmada
             const { count } = await tx.booking.updateMany({
               where: { id: bookingId, status: "confirmed" },
@@ -103,17 +169,6 @@ export async function POST(req: Request) {
                 checkoutSessionId: null,
                 checkoutSessionExpiresAt: null,
                 checkoutLockUntil: null,
-              },
-            })
-
-            if (count === 0) return null // Booking cancelada o no encontrada
-
-            // Leer booking actualizado para email/notificacion
-            const booking = await tx.booking.findUnique({
-              where: { id: bookingId },
-              include: {
-                court: { select: { name: true } },
-                user: { select: { email: true, name: true, club: { select: { name: true, slug: true } } } },
               },
             })
 
@@ -131,6 +186,17 @@ export async function POST(req: Request) {
               },
             })
 
+            if (count === 0) return null // Booking cancelada
+
+            // Leer booking actualizado para email/notificacion
+            const booking = await tx.booking.findUnique({
+              where: { id: bookingId },
+              include: {
+                court: { select: { name: true } },
+                user: { select: { email: true, name: true, club: { select: { name: true, slug: true } } } },
+              },
+            })
+
             // Asegurar que existan BookingPayments (pueden faltar por fire-and-forget)
             await asegurarBookingPayments(tx, bookingId)
 
@@ -145,24 +211,18 @@ export async function POST(req: Request) {
 
           // Si booking estaba cancelada, emitir refund automatico
           if (!updatedBooking) {
-            if (session.payment_intent) {
-              stripe.refunds.create({
-                payment_intent: session.payment_intent as string,
-                reverse_transfer: true,
-                refund_application_fee: false,
-              }).catch((err) => {
-                logger.error("STRIPE_WEBHOOK_REFUND", "Error emitiendo refund para booking cancelada", { bookingId }, err)
-              })
-            }
-            logger.warn("STRIPE_WEBHOOK", "Pago recibido para reserva cancelada, refund emitido", { bookingId })
+            await enqueueBookingRefund(bookingId, "Pago recibido tras cancelar la reserva")
+            logger.warn("STRIPE_WEBHOOK", "Pago recibido para reserva cancelada; reembolso encolado", { bookingId })
             break
           }
 
           logger.info("STRIPE_BOOKING_PAYMENT", "Pago de reserva confirmado", { bookingId, amount: (session.amount_total ?? 0) / 100 })
 
-          // Notificacion y email de confirmacion (fire-and-forget)
+          // Completar los intentos antes de confirmar el webhook para que el
+          // runtime no interrumpa trabajo pendiente.
+          const communicationTasks: Promise<unknown>[] = []
           if (userId) {
-            crearNotificacion({
+            communicationTasks.push(crearNotificacion({
               tipo: "booking_confirmed",
               titulo: "Pago confirmado",
               mensaje: `Tu pago para la reserva en ${updatedBooking.court.name} ha sido confirmado.`,
@@ -170,11 +230,11 @@ export async function POST(req: Request) {
               clubId: paymentClubId,
               metadata: { bookingId },
               url: "/reservar",
-            }).catch(() => {})
+            }))
           }
 
           if (updatedBooking.user?.email) {
-            enviarEmailConfirmacionReserva({
+            communicationTasks.push(enviarEmailConfirmacionReserva({
               email: updatedBooking.user.email,
               nombre: updatedBooking.user.name || "Jugador",
               pistaNombre: updatedBooking.court.name,
@@ -184,8 +244,9 @@ export async function POST(req: Request) {
               estadoPago: "paid",
               clubNombre: updatedBooking.user.club?.name || "",
               clubSlug: updatedBooking.user.club?.slug || "",
-            }).catch(() => {})
+            }))
           }
+          await Promise.allSettled(communicationTasks)
         }
 
         break
@@ -225,8 +286,9 @@ export async function POST(req: Request) {
         if (!club) break
 
         // Crear registro de pago
-        await db.payment.create({
-          data: {
+        await db.payment.upsert({
+          where: { stripePaymentId: invoice.id },
+          create: {
             amount: (invoice.amount_paid ?? 0) / 100, // Stripe usa centimos
             currency: invoice.currency?.toUpperCase() ?? "EUR",
             status: "succeeded",
@@ -234,6 +296,7 @@ export async function POST(req: Request) {
             stripePaymentId: invoice.id,
             clubId: club.id,
           },
+          update: {},
         })
         break
       }
@@ -273,6 +336,16 @@ export async function POST(req: Request) {
           if (payment.bookingId) {
             await aplicarRefundBooking(tx, payment.bookingId)
           }
+          await tx.refundOperation.updateMany({
+            where: { paymentId: payment.id, status: { not: "SUCCEEDED" } },
+            data: {
+              status: "SUCCEEDED",
+              stripeRefundId: charge.refunds?.data[0]?.id,
+              completedAt: new Date(),
+              lockedAt: null,
+              lastError: null,
+            },
+          })
         })
 
         logger.info("STRIPE_REFUND", "Reembolso de reserva procesado", { paymentId: payment.id, bookingId: payment.bookingId })
@@ -288,12 +361,14 @@ export async function POST(req: Request) {
         if (!club) break
 
         // Notificar a todos los admins del club
-        const admins = await db.user.findMany({
+        const admins = await db.clubMembership.findMany({
           where: {
             clubId: club.id,
+            status: "ACTIVE",
             role: { in: ["SUPER_ADMIN", "CLUB_ADMIN"] },
+            user: { isActive: true },
           },
-          select: { id: true },
+          select: { userId: true },
         })
 
         for (const admin of admins) {
@@ -301,7 +376,7 @@ export async function POST(req: Request) {
             tipo: "subscription_trial_ending",
             titulo: "Tu prueba gratuita termina pronto",
             mensaje: "Quedan 3 dias de prueba gratuita. Elige un plan para seguir usando Padel Club OS sin interrupciones.",
-            userId: admin.id,
+            userId: admin.userId,
             clubId: club.id,
             url: "/dashboard/facturacion",
           })
@@ -310,8 +385,24 @@ export async function POST(req: Request) {
       }
     }
 
+    if (db.stripeWebhookEvent?.update) {
+      await db.stripeWebhookEvent.update({
+        where: { eventId: event.id },
+        data: { status: "SUCCEEDED", processedAt: new Date(), lastError: null },
+      })
+    }
     return NextResponse.json({ received: true })
   } catch (error) {
+    if (claimed && db.stripeWebhookEvent?.updateMany) {
+      try {
+        await db.stripeWebhookEvent.updateMany({
+          where: { eventId: event.id, status: "PROCESSING" },
+          data: { status: "FAILED", lastError: webhookError(error) },
+        })
+      } catch {
+        // El error original es el que debe gobernar el reintento de Stripe.
+      }
+    }
     logger.error("STRIPE_WEBHOOK_HANDLER", "Error procesando evento webhook", { ruta: "/api/stripe/webhook" }, error)
     return NextResponse.json(
       { error: "Error procesando webhook" },

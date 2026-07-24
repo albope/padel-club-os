@@ -1,18 +1,21 @@
 import { db } from "@/lib/db";
 import { notFound } from "next/navigation";
 import ClubLayout from "@/components/club/ClubLayout";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
 
 export const revalidate = 3600 // 1h
 
 interface ClubLayoutProps {
   children: React.ReactNode;
-  params: { slug: string };
+  params: Promise<{ slug: string }>;
 }
 
-export async function generateMetadata({ params }: { params: { slug: string } }) {
+export async function generateMetadata(props: { params: Promise<{ slug: string }> }) {
+  const params = await props.params;
   const club = await db.club.findUnique({
     where: { slug: params.slug },
-    select: { name: true, description: true, logoUrl: true },
+    select: { name: true, description: true, logoUrl: true, isPublished: true },
   });
 
   if (!club) return { title: "Club no encontrado" };
@@ -36,10 +39,17 @@ export async function generateMetadata({ params }: { params: { slug: string } })
     alternates: {
       canonical: `/club/${params.slug}`,
     },
+    ...(!club.isPublished ? { robots: { index: false, follow: false } } : {}),
   };
 }
 
-export default async function ClubSlugLayout({ children, params }: ClubLayoutProps) {
+export default async function ClubSlugLayout(props: ClubLayoutProps) {
+  const params = await props.params;
+
+  const {
+    children
+  } = props;
+
   const club = await db.club.findUnique({
     where: { slug: params.slug },
     select: {
@@ -53,10 +63,21 @@ export default async function ClubSlugLayout({ children, params }: ClubLayoutPro
       facebookUrl: true,
       enableOpenMatches: true,
       enablePlayerBooking: true,
+      isPublished: true,
     },
   });
 
   if (!club) notFound();
+  if (!club.isPublished) {
+    const session = await getServerSession(authOptions)
+    const puedePrevisualizar = session?.user?.role === "SUPER_ADMIN"
+      || (
+        session?.user?.clubId === club.id
+        && Boolean(session.user.role)
+        && ["CLUB_ADMIN", "STAFF"].includes(session.user.role!)
+      )
+    if (!puedePrevisualizar) notFound()
+  }
 
   return (
     <div

@@ -101,8 +101,9 @@ export async function POST(req: Request) {
       logger.error("DEMO_EMAIL", "Error al enviar email de solicitud de demo", { ruta: "/api/demo" }, emailError)
     }
 
-    // Auto-respuesta al solicitante (fire-and-forget, no bloquea la respuesta)
-    enviarEmailConfirmacionSolicitudDemo({ nombre, email, clubNombre }).catch((emailError) => {
+    // Completar el intento antes de responder: una funcion serverless puede
+    // finalizar trabajo no esperado en cuanto devuelve la respuesta.
+    await enviarEmailConfirmacionSolicitudDemo({ nombre, email, clubNombre }).catch((emailError) => {
       logger.error("DEMO_EMAIL", "Error al enviar auto-respuesta de demo", { ruta: "/api/demo" }, emailError)
     })
 

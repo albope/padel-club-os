@@ -3,253 +3,105 @@
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import {
-  CalendarCheck2,
-  Trophy,
   BarChart3,
-  Shield,
-  Star,
-  CheckCircle,
+  CalendarCheck2,
+  Check,
+  ShieldCheck,
+  Trophy,
 } from 'lucide-react';
 import { LogoIcon } from '@/components/ui/logo-icon';
-
-/* ─── Props ──────────────────────────────────────────────────────────────── */
 
 interface AuthBrandingPanelProps {
   modo: 'registro' | 'login';
 }
 
-/* ─── Componente ─────────────────────────────────────────────────────────── */
-
+/**
+ * Panel de acceso «Marcador».
+ *
+ * Es una cabecera de producto compacta, no una segunda landing: tinta, marca
+ * verde, geometría de pista y una única lista de capacidades.
+ */
 export default function AuthBrandingPanel({ modo }: AuthBrandingPanelProps) {
   const t = useTranslations('authBranding');
 
-  const beneficios = [
-    {
-      icono: CalendarCheck2,
-      titulo: t('realTimeBookings'),
-      descripcion: t('realTimeBookingsDesc'),
-    },
-    {
-      icono: Trophy,
-      titulo: t('leaguesTournaments'),
-      descripcion: t('leaguesTournamentsDesc'),
-    },
-    {
-      icono: BarChart3,
-      titulo: t('clubAnalytics'),
-      descripcion: t('clubAnalyticsDesc'),
-    },
-    {
-      icono: Shield,
-      titulo: t('multiRoleSecure'),
-      descripcion: t('multiRoleSecureDesc'),
-    },
+  const capacidades = [
+    { icono: CalendarCheck2, texto: t('realTimeBookings') },
+    { icono: Trophy, texto: t('leaguesTournaments') },
+    { icono: BarChart3, texto: t('clubAnalytics') },
+    { icono: ShieldCheck, texto: t('multiRoleSecure') },
   ];
 
   const garantias = [t('noLockIn'), t('support247'), t('gdprCompliant')];
 
   return (
-    <div className="hidden lg:flex lg:w-[52%] xl:w-[55%] relative overflow-hidden flex-col">
-
-      {/* Fondo con gradient animado — claro y luminoso */}
-      <div className="absolute inset-0 auth-gradient-bg" />
-
-      {/* Capa de ruido/textura muy sutil para dar profundidad */}
+    <aside className="relative hidden min-h-screen w-[50%] overflow-hidden border-r border-sidebar-border bg-sidebar text-sidebar-primary-foreground lg:flex xl:w-[53%]">
       <div
         aria-hidden="true"
-        className="absolute inset-0 opacity-[0.018]"
-        style={{
-          backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E")`,
-          backgroundRepeat: 'repeat',
-          backgroundSize: '200px 200px',
-        }}
-      />
+        className="pointer-events-none absolute -right-24 top-1/2 h-[560px] w-[392px] -translate-y-1/2 rounded-[48px] border border-sidebar-border/80 opacity-60"
+      >
+        <div className="absolute inset-x-0 top-1/2 border-t border-sidebar-border" />
+        <div className="absolute inset-y-[22%] left-1/2 border-l border-sidebar-border" />
+        <div className="absolute inset-x-0 top-[22%] border-t border-sidebar-border/70" />
+        <div className="absolute inset-x-0 bottom-[22%] border-t border-sidebar-border/70" />
+      </div>
 
-      {/* Grid de puntos sutil — azul muy tenue */}
-      <div
-        aria-hidden="true"
-        className="absolute inset-0 opacity-[0.35]"
-        style={{
-          backgroundImage: 'radial-gradient(circle, rgba(32,106,245,0.12) 1px, transparent 1px)',
-          backgroundSize: '28px 28px',
-        }}
-      />
+      <div className="relative z-10 flex min-h-screen w-full flex-col px-10 py-8 xl:px-14 xl:py-10">
+        <Link href="/" className="inline-flex w-fit items-center gap-2.5">
+          <LogoIcon
+            tamano="lg"
+            className="text-sidebar-primary-foreground"
+            claseRelleno="fill-sidebar-primary"
+          />
+          <span className="font-display text-lg font-bold tracking-tight text-sidebar-primary-foreground">
+            PadelClub OS
+          </span>
+        </Link>
 
-      {/* Orbes de luz suave — azul/cyan */}
-      <div
-        aria-hidden="true"
-        className="auth-orb auth-float-1 w-[480px] h-[480px] -top-24 -right-28"
-        style={{ background: 'radial-gradient(circle, rgba(107,188,226,0.38) 0%, transparent 60%)' }}
-      />
-      <div
-        aria-hidden="true"
-        className="auth-orb auth-float-2 w-[380px] h-[380px] -bottom-20 -left-20"
-        style={{ background: 'radial-gradient(circle, rgba(32,106,245,0.22) 0%, transparent 60%)' }}
-      />
-      <div
-        aria-hidden="true"
-        className="auth-orb auth-float-3 w-[260px] h-[260px] top-[42%] left-[28%]"
-        style={{ background: 'radial-gradient(circle, rgba(147,197,253,0.28) 0%, transparent 60%)' }}
-      />
-
-      {/* Contenido principal del panel */}
-      <div className="relative z-10 flex flex-col h-full p-10 xl:p-14">
-
-        {/* Logo — texto oscuro sobre fondo claro */}
-        <div className="auth-fade-up-1 mb-8">
-          <Link href="/" className="inline-flex items-center gap-2.5 group">
-            <LogoIcon tamano="lg" className="shadow-sm group-hover:shadow-md transition-shadow duration-200 border border-blue-500/20" />
-            <span className="text-[17px] font-bold tracking-tight text-slate-800 dark:text-slate-100">
-              Padel Club OS
-            </span>
-          </Link>
-        </div>
-
-        {/* Contenido central — empujado al fondo */}
-        <div className="mt-auto">
-
-          {/* Badge de modo */}
-          <div className="auth-fade-up-2 mb-6">
-            <span
-              className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold tracking-wider uppercase"
-              style={{
-                background: 'rgba(32,106,245,0.09)',
-                border: '1px solid rgba(32,106,245,0.16)',
-                color: 'hsl(217,75%,45%)',
-              }}
-            >
-              <Star className="w-3 h-3 flex-shrink-0" style={{ fill: '#f59e0b', color: '#f59e0b' }} />
-              {modo === 'registro' ? t('trialBadge') : t('smartManagement')}
-            </span>
+        <div className="my-auto max-w-[570px] py-12">
+          <div className="mb-5 flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-sidebar-primary">
+            <span className="h-2 w-2 rounded-[2px] bg-sidebar-primary" />
+            {modo === 'registro' ? t('trialBadge') : t('managementPortal')}
           </div>
 
-          {/* Titular principal — texto oscuro */}
-          <h1
-            className="auth-fade-up-2 font-bold leading-[1.08] tracking-tight text-slate-900 dark:text-slate-50"
-            style={{ fontSize: 'clamp(2rem, 3.5vw, 3rem)' }}
-          >
-            {modo === 'registro' ? (
-              <>
-                {t('platformTitle')}{' '}
-                <span
-                  style={{
-                    background: 'linear-gradient(92deg, hsl(217,91%,50%) 0%, hsl(197,85%,48%) 55%, hsl(180,75%,45%) 100%)',
-                    WebkitBackgroundClip: 'text',
-                    WebkitTextFillColor: 'transparent',
-                    backgroundClip: 'text',
-                    display: 'block',
-                  }}
-                >
-                  {t('platformHighlight')}
-                </span>
-              </>
-            ) : (
-              <>
-                {t('clubControl').split(' ').slice(0, -2).join(' ')}{' '}
-                <span
-                  style={{
-                    background: 'linear-gradient(92deg, hsl(217,91%,50%) 0%, hsl(197,85%,48%) 55%, hsl(180,75%,45%) 100%)',
-                    WebkitBackgroundClip: 'text',
-                    WebkitTextFillColor: 'transparent',
-                    backgroundClip: 'text',
-                    display: 'block',
-                  }}
-                >
-                  {t('clubControl').split(' ').slice(-2).join(' ')}
-                </span>
-              </>
-            )}
+          <h1 className="font-display max-w-[520px] text-4xl font-bold leading-[1.04] tracking-[-0.035em] text-sidebar-primary-foreground xl:text-5xl">
+            {modo === 'registro'
+              ? `${t('platformTitle')} ${t('platformHighlight')}`
+              : t('clubControl')}
           </h1>
 
-          <p className="auth-fade-up-3 mt-4 text-base text-slate-500 dark:text-slate-400 leading-relaxed max-w-xs">
-            {modo === 'registro'
-              ? t('registerSubtitle')
-              : t('loginSubtitle')}
+          <p className="mt-5 max-w-md text-base leading-relaxed text-sidebar-foreground">
+            {modo === 'registro' ? t('registerSubtitle') : t('loginSubtitle')}
           </p>
 
-          {/* Lista de beneficios */}
-          <div className="mt-8 space-y-3">
-            {beneficios.map((item, i) => {
-              const Icono = item.icono;
-              return (
-                <div
-                  key={item.titulo}
-                  className="auth-slide-right flex items-start gap-3.5"
-                  style={{ animationDelay: `${0.28 + i * 0.07}s` }}
-                >
-                  <div
-                    className="flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center mt-0.5"
-                    style={{
-                      background: 'rgba(32,106,245,0.09)',
-                      border: '1px solid rgba(32,106,245,0.14)',
-                    }}
-                  >
-                    <Icono className="w-3.5 h-3.5" style={{ color: 'hsl(217,75%,50%)' }} />
-                  </div>
-                  <div className="min-w-0">
-                    <p className="text-sm font-semibold text-slate-800 dark:text-slate-100 leading-snug">
-                      {item.titulo}
-                    </p>
-                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 leading-relaxed">
-                      {item.descripcion}
-                    </p>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-
-          {/* Separador */}
-          <div
-            className="auth-fade-up-6 mt-10"
-            style={{ borderTop: '1px solid rgba(32,106,245,0.10)' }}
-          />
-
-          {/* Early adopter */}
-          <div className="auth-fade-up-6 mt-6">
-            <div
-              className="rounded-xl p-5"
-              style={{
-                background: 'rgba(255,255,255,0.82)',
-                border: '1px solid rgba(32,106,245,0.10)',
-                boxShadow: '0 2px 12px rgba(32,106,245,0.08), 0 1px 3px rgba(0,0,0,0.06)',
-                backdropFilter: 'blur(8px)',
-              }}
-            >
-              <div className="flex items-center gap-2.5 mb-3">
-                <div
-                  className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
-                  style={{
-                    background: 'linear-gradient(135deg, hsl(217,91%,52%) 0%, hsl(197,85%,48%) 100%)',
-                  }}
-                >
-                  <Star className="w-4 h-4 text-white" />
-                </div>
-                <p className="text-sm font-semibold text-slate-800 dark:text-slate-100">
-                  {t('earlyAccess')}
-                </p>
-              </div>
-              <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed">
-                {t('earlyAccessDesc')}
-              </p>
-            </div>
-          </div>
-
-          {/* Garantias */}
-          <div className="auth-fade-up-6 mt-5 flex flex-wrap gap-x-4 gap-y-2">
-            {garantias.map((item) => (
-              <div key={item} className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400">
-                <CheckCircle
-                  className="w-3.5 h-3.5 flex-shrink-0"
-                  style={{ color: 'hsl(150,65%,42%)' }}
-                />
-                <span>{item}</span>
+          <div className="mt-10 grid max-w-lg grid-cols-2 overflow-hidden rounded-[var(--radius-module)] border border-sidebar-border bg-sidebar-border">
+            {capacidades.map(({ icono: Icono, texto }) => (
+              <div
+                key={texto}
+                className="flex min-h-20 items-center gap-3 bg-sidebar px-4 py-4"
+              >
+                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[var(--radius-control)] bg-sidebar-accent text-sidebar-primary">
+                  <Icono className="h-[18px] w-[18px]" strokeWidth={1.75} />
+                </span>
+                <span className="text-sm font-semibold leading-snug text-sidebar-primary-foreground">
+                  {texto}
+                </span>
               </div>
             ))}
           </div>
+        </div>
 
+        <div className="flex flex-wrap gap-x-5 gap-y-2 border-t border-sidebar-border pt-5">
+          {garantias.map((garantia) => (
+            <span
+              key={garantia}
+              className="inline-flex items-center gap-1.5 text-xs text-sidebar-foreground"
+            >
+              <Check className="h-3.5 w-3.5 text-sidebar-primary" strokeWidth={2} />
+              {garantia}
+            </span>
+          ))}
         </div>
       </div>
-    </div>
+    </aside>
   );
 }

@@ -26,14 +26,23 @@ export async function GET() {
         _count: {
           select: {
             courts: true,
-            admins: { where: { role: "PLAYER" } },
+            memberships: { where: { role: "PLAYER", status: "ACTIVE" } },
             bookings: { where: { startTime: { gte: hace30dias } } },
           },
         },
       },
     })
 
-    return NextResponse.json({ clubs })
+    return NextResponse.json({
+      clubs: clubs.map((club) => ({
+        ...club,
+        _count: {
+          courts: club._count.courts,
+          members: club._count.memberships,
+          bookings: club._count.bookings,
+        },
+      })),
+    })
   } catch (error) {
     logger.error(TAG, "Error al listar clubes", {}, error)
     return NextResponse.json({ error: "Error interno" }, { status: 500 })

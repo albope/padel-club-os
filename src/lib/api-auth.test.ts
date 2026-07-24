@@ -152,7 +152,7 @@ describe("requireAuth", () => {
     }
   })
 
-  it("no verifica suscripcion para PLAYER aunque requireSubscription:true", async () => {
+  it("bloquea mutaciones de PLAYER cuando la suscripcion del club esta inactiva", async () => {
     mockGetServerSession.mockResolvedValue(
       crearSesion({
         role: "PLAYER",
@@ -162,6 +162,54 @@ describe("requireAuth", () => {
 
     // PLAYER tiene permiso bookings:create
     const result = await requireAuth("bookings:create", { requireSubscription: true })
+    expect(result).toBeInstanceOf(NextResponse)
+    if (result instanceof NextResponse) {
+      expect(result.status).toBe(403)
+      const body = await result.json()
+      expect(body.code).toBe("SUBSCRIPTION_INACTIVE")
+    }
+  })
+
+  it("bloquea cualquier sesion marcada como invalidada", async () => {
+    mockGetServerSession.mockResolvedValue(
+      crearSesion({ authInvalid: true })
+    )
+
+    const result = await requireAuth("bookings:read")
+    expect(result).toBeInstanceOf(NextResponse)
+    if (result instanceof NextResponse) {
+      expect(result.status).toBe(401)
+      const body = await result.json()
+      expect(body.code).toBe("SESSION_INVALIDATED")
+    }
+  })
+
+  it("bloquea escrituras durante una impersonacion de solo lectura", async () => {
+    mockGetServerSession.mockResolvedValue(
+      crearSesion({
+        impersonationId: "imp-1",
+        impersonationReadOnly: true,
+      })
+    )
+
+    const result = await requireAuth("bookings:create")
+    expect(result).toBeInstanceOf(NextResponse)
+    if (result instanceof NextResponse) {
+      expect(result.status).toBe(403)
+      const body = await result.json()
+      expect(body.code).toBe("IMPERSONATION_READ_ONLY")
+    }
+  })
+
+  it("permite lecturas durante una impersonacion de solo lectura", async () => {
+    mockGetServerSession.mockResolvedValue(
+      crearSesion({
+        impersonationId: "imp-1",
+        impersonationReadOnly: true,
+      })
+    )
+
+    const result = await requireAuth("bookings:read")
     expect(result).not.toBeInstanceOf(NextResponse)
   })
 })

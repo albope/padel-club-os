@@ -6,13 +6,14 @@ import { canUseOnlinePayments, getSubscriptionInfo } from "@/lib/subscription";
 import { logger } from "@/lib/logger";
 import { registrarAuditoria } from "@/lib/audit";
 import * as z from "zod";
+import { esZonaHorariaValida } from "@/lib/timezone";
 
 const urlOpcional = z.string().url("URL no valida.").max(2000).optional().or(z.literal("")).or(z.literal(null))
 
 const ClubUpdateSchema = z.object({
   name: z.string().min(1, "El nombre es requerido.").max(100, "El nombre no puede superar 100 caracteres.").optional(),
-  openingTime: z.string().regex(/^\d{2}:\d{2}$/, "Formato de hora invalido (HH:MM).").optional(),
-  closingTime: z.string().regex(/^\d{2}:\d{2}$/, "Formato de hora invalido (HH:MM).").optional(),
+  openingTime: z.string().regex(/^(?:[01]\d|2[0-3]):[0-5]\d$/, "Formato de hora invalido (HH:MM).").optional(),
+  closingTime: z.string().regex(/^(?:[01]\d|2[0-3]):[0-5]\d$/, "Formato de hora invalido (HH:MM).").optional(),
   description: z.string().max(1000, "La descripcion no puede superar 1000 caracteres.").optional().or(z.literal("")).or(z.literal(null)),
   phone: z.string().max(20, "El telefono no puede superar 20 caracteres.").optional().or(z.literal("")).or(z.literal(null)),
   email: z.string().email("Email no valido.").max(255).optional().or(z.literal("")).or(z.literal(null)),
@@ -27,7 +28,13 @@ const ClubUpdateSchema = z.object({
   enablePlayerBooking: z.boolean().optional(),
   bookingPaymentMode: z.enum(["online", "presential", "both"], { errorMap: () => ({ message: "Modo de pago no valido." }) }).optional(),
   bookingDuration: z.number().int().refine(v => [60, 90, 120].includes(v), "Duracion debe ser 60, 90 o 120 minutos.").optional().nullable(),
-})
+  timezone: z.string().max(80).refine(esZonaHorariaValida, "Zona horaria no valida.").optional(),
+  registrationMode: z.enum(["OPEN", "APPROVAL", "INVITE_ONLY", "CLOSED"]).optional(),
+  isPublished: z.boolean().optional(),
+}).refine(
+  (data) => !data.openingTime || !data.closingTime || data.openingTime < data.closingTime,
+  { message: "La hora de cierre debe ser posterior a la de apertura.", path: ["closingTime"] },
+)
 
 // GET: Obtener datos del club
 export async function GET() {
@@ -62,7 +69,55 @@ export async function PATCH(req: Request) {
       maxAdvanceBooking, cancellationHours,
       enableOpenMatches, enablePlayerBooking,
       bookingPaymentMode, bookingDuration,
+      timezone, registrationMode, isPublished,
     } = result.data;
+
+    if (openingTime || closingTime) {
+      const currentHours = await db.club.findUnique({
+        where: { id: auth.session.user.clubId },
+        select: { openingTime: true, closingTime: true },
+      })
+      const nextOpening = openingTime ?? currentHours?.openingTime ?? "09:00"
+      const nextClosing = closingTime ?? currentHours?.closingTime ?? "23:00"
+      if (nextOpening >= nextClosing) {
+        return NextResponse.json(
+          { error: "La hora de cierre debe ser posterior a la de apertura." },
+          { status: 400 },
+        )
+      }
+    }
+
+    if (isPublished === true) {
+      const [clubActual, pistas] = await Promise.all([
+        db.club.findUnique({
+          where: { id: auth.session.user.clubId },
+          select: { name: true },
+        }),
+        db.court.findMany({
+          where: { clubId: auth.session.user.clubId },
+          select: {
+            id: true,
+            name: true,
+            pricings: { select: { id: true }, take: 1 },
+          },
+        }),
+      ])
+      if (!clubActual?.name || pistas.length === 0) {
+        return NextResponse.json(
+          { error: "Antes de publicar, configura el nombre y al menos una pista." },
+          { status: 409 },
+        )
+      }
+      const sinTarifa = pistas.find((pista) => pista.pricings.length === 0)
+      if (enablePlayerBooking !== false && sinTarifa) {
+        return NextResponse.json(
+          {
+            error: `Configura al menos una tarifa para ${sinTarifa.name} antes de publicar reservas.`,
+          },
+          { status: 409 },
+        )
+      }
+    }
 
     // Validar que el club puede usar pagos online antes de permitir el cambio
     if (bookingPaymentMode && bookingPaymentMode !== "presential") {
@@ -98,6 +153,8 @@ export async function PATCH(req: Request) {
         maxAdvanceBooking, cancellationHours,
         enableOpenMatches, enablePlayerBooking,
         bookingPaymentMode, bookingDuration,
+        timezone, registrationMode, isPublished,
+        ...(isPublished === true ? { onboardingCompletedAt: new Date() } : {}),
       },
     });
 

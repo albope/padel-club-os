@@ -10,6 +10,7 @@ import { cn } from '@/lib/utils';
 import { toast } from '@/hooks/use-toast';
 import { calcularPrecioTotal, type BandaPrecio } from '@/lib/pricing-client';
 import { temaMarcadorActivo } from '@/lib/feature-flags';
+import { formatearFechaLocal } from '@/lib/fechas';
 import ConfirmacionReserva from './ConfirmacionReserva';
 
 interface Pista {
@@ -88,8 +89,7 @@ export default function GridReservas({ club, pistas, sesionUserId, slug, fechaIn
 
   const [fecha, setFecha] = useState(() => {
     if (fechaInicial) return fechaInicial;
-    const hoy = new Date();
-    return hoy.toISOString().split('T')[0];
+    return formatearFechaLocal(new Date());
   });
   const [bloques, setBloques] = useState<Bloque[]>([]);
   const [bandasPrecio, setBandasPrecio] = useState<Record<string, BandaPrecio[]>>({});
@@ -105,7 +105,7 @@ export default function GridReservas({ club, pistas, sesionUserId, slug, fechaIn
   const [waitlistMap, setWaitlistMap] = useState<Map<string, string>>(new Map());
   const [waitlistLoading, setWaitlistLoading] = useState<Set<string>>(new Set());
 
-  const hoy = useMemo(() => new Date().toISOString().split('T')[0], []);
+  const hoy = useMemo(() => formatearFechaLocal(new Date()), []);
   const franjas = useMemo(() => generarFranjas(openingTime, closingTime), [openingTime, closingTime]);
   const totalFilas = franjas.length;
   const temaMarcador = temaMarcadorActivo();
@@ -117,7 +117,7 @@ export default function GridReservas({ club, pistas, sesionUserId, slug, fechaIn
       const d = new Date(`${hoy}T12:00:00`);
       d.setDate(d.getDate() + i);
       return {
-        iso: d.toISOString().split('T')[0],
+        iso: formatearFechaLocal(d),
         diaSemana: d.toLocaleDateString(localeCode, { weekday: 'short' }).replace('.', ''),
         diaMes: d.getDate(),
       };
@@ -220,7 +220,7 @@ export default function GridReservas({ club, pistas, sesionUserId, slug, fechaIn
   const moverFecha = (dias: number) => {
     const d = new Date(`${fecha}T12:00:00`);
     d.setDate(d.getDate() + dias);
-    setFecha(d.toISOString().split('T')[0]);
+    setFecha(formatearFechaLocal(d));
   };
 
   const esPropia = (bloque: Bloque): boolean => bloque.esPropia;
@@ -323,14 +323,18 @@ export default function GridReservas({ club, pistas, sesionUserId, slug, fechaIn
           <span className="font-semibold capitalize text-sm sm:text-base">
             {fechaFormateada}
           </span>
-          {fecha !== hoy && (
+          {fecha === hoy ? (
+            <span className="inline-flex h-7 items-center rounded-[var(--radius-control)] border border-primary/30 bg-primary/5 px-2.5 text-xs font-semibold text-primary">
+              {t('today')}
+            </span>
+          ) : (
             <Button
               variant="outline"
               size="sm"
-              className="text-xs h-7"
+              className="h-7 text-xs"
               onClick={() => setFecha(hoy)}
             >
-              {t('today')}
+              {t('backToToday')}
             </Button>
           )}
         </div>

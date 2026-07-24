@@ -4,7 +4,8 @@ import ClubHome from "@/components/club/ClubHome";
 
 export const revalidate = 1800 // 30min
 
-export default async function ClubHomePage({ params }: { params: { slug: string } }) {
+export default async function ClubHomePage(props: { params: Promise<{ slug: string }> }) {
+  const params = await props.params;
   const club = await db.club.findUnique({
     where: { slug: params.slug },
     select: {

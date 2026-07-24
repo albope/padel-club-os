@@ -42,7 +42,7 @@ const securityHeaders = [
       "default-src 'self'",
       `script-src 'self' 'unsafe-inline'${process.env.NODE_ENV === 'development' ? " 'unsafe-eval'" : ''} https://browser.sentry-cdn.com`,
       "style-src 'self' 'unsafe-inline'",
-      "img-src 'self' data: blob: https://ui-avatars.com https://*.public.blob.vercel-storage.com https:",
+      "img-src 'self' data: blob: https://*.public.blob.vercel-storage.com https:",
       "font-src 'self'",
       "connect-src 'self' https://*.vercel-storage.com https://api.stripe.com https://*.ingest.sentry.io",
       "frame-src 'none'",
@@ -57,16 +57,13 @@ const securityHeaders = [
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  experimental: {
-    instrumentationHook: true,
+  // El lint se ejecuta como gate independiente antes del build. Next 15 intenta
+  // volver a invocarlo con opciones incompatibles con la configuracion flat.
+  eslint: {
+    ignoreDuringBuilds: true,
   },
   images: {
     remotePatterns: [
-      {
-        protocol: 'https',
-        hostname: 'ui-avatars.com',
-        pathname: '/api/**',
-      },
       {
         protocol: 'https',
         hostname: '*.public.blob.vercel-storage.com',

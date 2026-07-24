@@ -90,10 +90,8 @@ async function autoGenerarPagos(bookingId: string, clubId: string) {
 }
 
 // GET: Obtener desglose de pagos por jugador de una reserva
-export async function GET(
-  req: Request,
-  { params }: { params: { bookingId: string } }
-) {
+export async function GET(req: Request, props: { params: Promise<{ bookingId: string }> }) {
+  const params = await props.params;
   try {
     const auth = await requireAuth("booking-payments:read")
     if (isAuthError(auth)) return auth
@@ -147,10 +145,8 @@ export async function GET(
 }
 
 // POST: Regenerar desglose de pagos (cambiar numPlayers)
-export async function POST(
-  req: Request,
-  { params }: { params: { bookingId: string } }
-) {
+export async function POST(req: Request, props: { params: Promise<{ bookingId: string }> }) {
+  const params = await props.params;
   try {
     const auth = await requireAuth("booking-payments:update")
     if (isAuthError(auth)) return auth

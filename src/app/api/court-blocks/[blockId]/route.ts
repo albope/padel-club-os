@@ -21,10 +21,8 @@ const ActualizarBloqueoSchema = z.object({
 }, { message: "La hora de inicio debe ser anterior a la hora de fin" })
 
 // GET: Detalle de un bloqueo
-export async function GET(
-  req: Request,
-  { params }: { params: { blockId: string } }
-) {
+export async function GET(req: Request, props: { params: Promise<{ blockId: string }> }) {
+  const params = await props.params;
   try {
     const auth = await requireAuth("court-blocks:read")
     if (isAuthError(auth)) return auth
@@ -49,10 +47,8 @@ export async function GET(
 }
 
 // PATCH: Actualizar bloqueo (misma politica de conflictos que POST)
-export async function PATCH(
-  req: Request,
-  { params }: { params: { blockId: string } }
-) {
+export async function PATCH(req: Request, props: { params: Promise<{ blockId: string }> }) {
+  const params = await props.params;
   try {
     const auth = await requireAuth("court-blocks:update")
     if (isAuthError(auth)) return auth
@@ -156,10 +152,8 @@ export async function PATCH(
 }
 
 // DELETE: Eliminar bloqueo (hard delete)
-export async function DELETE(
-  req: Request,
-  { params }: { params: { blockId: string } }
-) {
+export async function DELETE(req: Request, props: { params: Promise<{ blockId: string }> }) {
+  const params = await props.params;
   try {
     const auth = await requireAuth("court-blocks:delete")
     if (isAuthError(auth)) return auth

@@ -4,10 +4,8 @@ import { NextResponse } from "next/server"
 import { logger } from "@/lib/logger"
 
 // PATCH: Marcar una notificacion como leida
-export async function PATCH(
-  req: Request,
-  { params }: { params: { notificationId: string } }
-) {
+export async function PATCH(req: Request, props: { params: Promise<{ notificationId: string }> }) {
+  const params = await props.params;
   try {
     const auth = await requireAuth("notifications:update")
     if (isAuthError(auth)) return auth
@@ -36,10 +34,8 @@ export async function PATCH(
 }
 
 // DELETE: Eliminar una notificacion
-export async function DELETE(
-  req: Request,
-  { params }: { params: { notificationId: string } }
-) {
+export async function DELETE(req: Request, props: { params: Promise<{ notificationId: string }> }) {
+  const params = await props.params;
   try {
     const auth = await requireAuth("notifications:update")
     if (isAuthError(auth)) return auth

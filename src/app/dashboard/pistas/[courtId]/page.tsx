@@ -9,12 +9,13 @@ import { ArrowLeft, Euro } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 interface EditCourtPageProps {
-  params: {
+  params: Promise<{
     courtId: string;
-  };
+  }>;
 }
 
-const EditCourtPage = async ({ params }: EditCourtPageProps) => {
+const EditCourtPage = async (props: EditCourtPageProps) => {
+  const params = await props.params;
   const session = await getServerSession(authOptions);
 
   if (!session?.user?.clubId) {

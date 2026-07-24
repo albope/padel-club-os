@@ -31,9 +31,9 @@ export function crearParams<T extends Record<string, string>>(obj: T): { params:
   return { params: Promise.resolve(obj) }
 }
 
-/** Crea params como objeto plano (para routes que acceden directo, ej: open-matches/[matchId]) */
-export function crearParamsPlano<T extends Record<string, string>>(obj: T): { params: T } {
-  return { params: obj }
+/** Crea el contexto asincrono de params exigido por Route Handlers en Next 15. */
+export function crearParamsPlano<T extends Record<string, string>>(obj: T): { params: Promise<T> } {
+  return { params: Promise.resolve(obj) }
 }
 
 /** Extrae el JSON de un Response */

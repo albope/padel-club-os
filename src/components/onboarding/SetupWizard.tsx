@@ -132,7 +132,8 @@ const SetupWizard: React.FC<SetupWizardProps> = ({ club, existingCourts }) => {
         }
       }
 
-      // Aplicar a todas las pistas en paralelo
+      // Aplicar a todas las pistas en paralelo y comprobar tambien respuestas
+      // HTTP no exitosas (fetch no las convierte en promesas rechazadas).
       const resultados = await Promise.allSettled(
         pistas.map(pista =>
           fetch(`/api/courts/${pista.id}/pricing`, {
@@ -143,15 +144,32 @@ const SetupWizard: React.FC<SetupWizardProps> = ({ club, existingCourts }) => {
         )
       )
 
-      const fallos = resultados.filter(r => r.status === 'rejected').length
+      const fallos = resultados.filter(
+        (resultado) => resultado.status === 'rejected' || !resultado.value.ok
+      ).length
       if (fallos > 0) {
         toast({ title: "Aviso", description: `Precios guardados parcialmente. ${fallos} pista(s) con error.`, variant: "destructive" })
+        return
       } else {
         toast({ title: "Precios configurados", description: `${precio}€/hora aplicado a ${pistas.length} pista(s).` })
       }
+
+      const publicar = await fetch('/api/club', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ isPublished: true, registrationMode: 'APPROVAL' }),
+      })
+      if (!publicar.ok) {
+        const data = await publicar.json().catch(() => ({}))
+        throw new Error(data.error || 'No se pudo publicar el portal.')
+      }
       avanzar()
-    } catch {
-      toast({ title: "Error", description: "No se pudieron guardar los precios.", variant: "destructive" })
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "No se pudieron guardar los precios.",
+        variant: "destructive",
+      })
     } finally {
       setIsLoading(false)
     }

@@ -11,6 +11,7 @@ const mockEnviarEmailCancelacion = vi.fn().mockResolvedValue(undefined)
 const mockLimpiarWaitlist = vi.fn().mockResolvedValue(undefined)
 const mockLiberarSlot = vi.fn().mockResolvedValue(undefined)
 const mockStripeRefunds = { create: vi.fn().mockResolvedValue({}) }
+const mockEnqueueRefund = vi.fn().mockResolvedValue({ status: "not_needed" })
 
 vi.mock("@/lib/db", () => ({ db: mockDb }))
 vi.mock("@/lib/api-auth", () => ({
@@ -37,6 +38,9 @@ vi.mock("@/lib/waitlist", () => ({
 }))
 vi.mock("@/lib/stripe", () => ({
   stripe: { refunds: { create: (...args: unknown[]) => mockStripeRefunds.create(...args) } },
+}))
+vi.mock("@/lib/refunds", () => ({
+  enqueueBookingRefund: (...args: unknown[]) => mockEnqueueRefund(...args),
 }))
 vi.mock("@/lib/payment-sync", () => ({
   generarDatosPagoPorJugador: vi.fn().mockReturnValue([
@@ -386,6 +390,7 @@ describe("Flujo de reserva de jugador - DELETE (Cancelacion)", () => {
 
   it("procesa reembolso si reserva pagada con Stripe", async () => {
     mockDb.payment.findUnique.mockResolvedValue(crearPagoMock())
+    mockEnqueueRefund.mockResolvedValue({ status: "succeeded" })
 
     const response = await DELETE(crearRequest({
       method: "DELETE",
@@ -393,23 +398,18 @@ describe("Flujo de reserva de jugador - DELETE (Cancelacion)", () => {
     }))
 
     expect(response.status).toBe(200)
-    expect(mockStripeRefunds.create).toHaveBeenCalledWith(
-      expect.objectContaining({
-        payment_intent: "pi_test_123",
-        reverse_transfer: true,
-        refund_application_fee: false,
-      })
+    expect(mockEnqueueRefund).toHaveBeenCalledWith(
+      "booking-1",
+      "Cancelado por el jugador",
     )
-    expect(mockDb.payment.update).toHaveBeenCalledWith(
-      expect.objectContaining({
-        data: { status: "refunded" },
-      })
-    )
+    const body = await response.json()
+    expect(body.refundStatus).toBe("succeeded")
+    expect(mockStripeRefunds.create).not.toHaveBeenCalled()
   })
 
   it("error en reembolso no bloquea cancelacion", async () => {
     mockDb.payment.findUnique.mockResolvedValue(crearPagoMock())
-    mockStripeRefunds.create.mockRejectedValue(new Error("Stripe error"))
+    mockEnqueueRefund.mockRejectedValue(new Error("Queue error"))
 
     const response = await DELETE(crearRequest({
       method: "DELETE",
@@ -419,6 +419,8 @@ describe("Flujo de reserva de jugador - DELETE (Cancelacion)", () => {
     // La cancelacion sigue adelante
     expect(response.status).toBe(200)
     expect(mockDb.booking.update).toHaveBeenCalled()
+    const body = await response.json()
+    expect(body.refundStatus).toBe("pending")
   })
 
   it("llama a liberarSlotYNotificar al cancelar", async () => {

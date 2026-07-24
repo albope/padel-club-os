@@ -3,10 +3,8 @@ import { NextResponse } from "next/server"
 import { logger } from "@/lib/logger"
 
 // GET: Obtener precios de una pista para un dia concreto (API publica)
-export async function GET(
-  req: Request,
-  { params }: { params: { slug: string } }
-) {
+export async function GET(req: Request, props: { params: Promise<{ slug: string }> }) {
+  const params = await props.params;
   try {
     const { searchParams } = new URL(req.url)
     const courtId = searchParams.get("courtId")

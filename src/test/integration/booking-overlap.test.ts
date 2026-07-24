@@ -50,13 +50,17 @@ describe("Deteccion de solapamiento de reservas", () => {
     mockRequireAuth.mockResolvedValue(crearSesionAdminMock())
     // Default: pista existe
     mockDb.court.findFirst.mockResolvedValue(crearPistaMock())
+    mockDb.clubMembership.findUnique.mockResolvedValue({ status: "ACTIVE" })
     // Default: club existe
     mockDb.club.findUnique.mockResolvedValue(crearClubMock())
     // Default: booking creado ok
     mockDb.booking.create.mockResolvedValue(crearReservaMock())
     // Default: usuario encontrado para emails
     mockDb.user.findUnique.mockResolvedValue({ email: "test@test.com", name: "Test", club: { name: "Club", slug: "club" } })
-    mockDb.user.findMany.mockResolvedValue([{ id: "user-1" }, { id: "user-2" }])
+    mockDb.clubMembership.findMany.mockResolvedValue([
+      { userId: "user-1" },
+      { userId: "user-2" },
+    ])
   })
 
   it("rechaza dos reservas en la misma pista y mismo horario (admin)", async () => {
@@ -80,8 +84,8 @@ describe("Deteccion de solapamiento de reservas", () => {
     const response = await adminBookingPOST(crearRequest({
       body: {
         courtId: "court-1",
-        startTime: manana(11, 0).toISOString(),
-        endTime: manana(12, 0).toISOString(),
+        startTime: manana(11, 30).toISOString(),
+        endTime: manana(13, 0).toISOString(),
         userId: "user-1",
       },
     }))
@@ -99,7 +103,7 @@ describe("Deteccion de solapamiento de reservas", () => {
       body: {
         courtId: "court-1",
         startTime: manana(11, 0).toISOString(),
-        endTime: manana(12, 0).toISOString(),
+        endTime: manana(12, 30).toISOString(),
         userId: "user-1",
       },
     }))
@@ -172,7 +176,7 @@ describe("Deteccion de solapamiento de reservas", () => {
         body: {
           courtId: "court-1",
           startTime: manana(10, 0).toISOString(),
-          endTime: manana(12, 0).toISOString(),
+          endTime: manana(11, 30).toISOString(),
         },
       }),
       crearParamsPlano({ bookingId: "booking-1" })

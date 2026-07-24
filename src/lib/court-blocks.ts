@@ -3,7 +3,7 @@ import { logger } from "@/lib/logger"
 import { crearNotificacion } from "@/lib/notifications"
 import { enviarEmailCancelacionReserva } from "@/lib/email"
 import { stripe } from "@/lib/stripe"
-import { aplicarRefundBooking } from "@/lib/payment-sync"
+import { enqueueBookingRefund } from "@/lib/refunds"
 import type { CourtBlock, CourtBlockReason } from "@prisma/client"
 
 // --- verificarBloqueo ---
@@ -249,24 +249,9 @@ async function procesarPostCancelacion(
   // 3. Refund si pago online
   if (booking.payment?.stripePaymentId && booking.payment.status === "succeeded") {
     try {
-      await stripe.refunds.create({
-        payment_intent: booking.payment.stripePaymentId,
-        refund_application_fee: false,
-      })
-      await db.$transaction(async (tx) => {
-        await tx.payment.update({
-          where: { id: booking.payment!.id },
-          data: { status: "refunded" },
-        })
-        await aplicarRefundBooking(tx, booking.id)
-      })
-      logger.info("COURT_BLOCK_REFUND", "Reembolso procesado por bloqueo", {
-        bookingId: booking.id,
-        paymentId: booking.payment.id,
-        amount: booking.payment.amount,
-      })
+      await enqueueBookingRefund(booking.id, cancelReason)
     } catch (refundError) {
-      logger.error("COURT_BLOCK_REFUND", "Error al procesar reembolso por bloqueo", {
+      logger.error("COURT_BLOCK_REFUND_QUEUE", "No se pudo registrar el reembolso inmediatamente", {
         bookingId: booking.id,
         paymentId: booking.payment.id,
       }, refundError)

@@ -8,6 +8,7 @@ import { limpiarWaitlistAlReservar } from "@/lib/waitlist";
 import { verificarBloqueo } from "@/lib/court-blocks";
 import { registrarAuditoria } from "@/lib/audit";
 import * as z from "zod";
+import { respuestaErrorReserva, validarRangoReserva } from "@/lib/booking-domain";
 
 const BookingCreateSchema = z.object({
   courtId: z.string().min(1, "El ID de pista es requerido."),
@@ -59,9 +60,44 @@ export async function POST(req: Request) {
     // Validar que la pista pertenece al club del admin
     const court = await db.court.findFirst({
       where: { id: courtId, clubId: auth.session.user.clubId },
+      include: {
+        club: {
+          select: {
+            timezone: true,
+            openingTime: true,
+            closingTime: true,
+            bookingDuration: true,
+            maxAdvanceBooking: true,
+          },
+        },
+      },
     });
     if (!court) {
       return new NextResponse("Pista no encontrada en este club.", { status: 404 });
+    }
+    validarRangoReserva({
+      startTime: newStartTime,
+      endTime: newEndTime,
+      policy: court.club,
+      requireFuture: true,
+    })
+
+    if (userId) {
+      const membership = await db.clubMembership.findUnique({
+        where: {
+          userId_clubId: {
+            userId,
+            clubId: auth.session.user.clubId,
+          },
+        },
+        select: { status: true },
+      })
+      if (membership?.status !== "ACTIVE") {
+        return NextResponse.json(
+          { error: "El socio seleccionado no pertenece activamente a este club." },
+          { status: 400 },
+        )
+      }
     }
 
     const overlappingBooking = await db.booking.findFirst({
@@ -124,6 +160,13 @@ export async function POST(req: Request) {
 
     return NextResponse.json(newBooking, { status: 201 });
   } catch (error) {
+    const domainError = respuestaErrorReserva(error)
+    if (domainError) {
+      return NextResponse.json(
+        { error: domainError.message, code: domainError.code },
+        { status: domainError.status },
+      )
+    }
     logger.error("BOOKING_CREATE", "Error al crear reserva", { ruta: "/api/bookings" }, error);
     return new NextResponse("Internal Server Error", { status: 500 });
   }

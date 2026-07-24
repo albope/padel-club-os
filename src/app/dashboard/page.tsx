@@ -5,21 +5,34 @@ import DashboardClient from '@/components/dashboard/DashboardClient';
 import { User } from 'next-auth';
 import { db } from '@/lib/db';
 import { getLocale } from 'next-intl/server';
+import { instanteDesdeZonaClub, partesEnZonaClub } from '@/lib/timezone';
 
 const getDashboardData = async (clubId: string) => {
   try {
-    const startOfDay = new Date();
-    startOfDay.setHours(0, 0, 0, 0);
-    const endOfDay = new Date();
-    endOfDay.setHours(23, 59, 59, 999);
+    const now = new Date()
+    const clock = await db.club.findUnique({
+      where: { id: clubId },
+      select: { timezone: true },
+    })
+    const timezone = clock?.timezone || 'Europe/Madrid'
+    const localNow = partesEnZonaClub(now, timezone)
+    const startOfDay = instanteDesdeZonaClub(
+      localNow.year, localNow.month, localNow.day, 0, 0, timezone,
+    )
+    const startOfTomorrow = instanteDesdeZonaClub(
+      localNow.year, localNow.month, localNow.day + 1, 0, 0, timezone,
+    )
+    const endOfDay = new Date(startOfTomorrow.getTime() - 1)
 
     // Rango de 7 dias para grafico de ingresos
-    const sieteDiasAtras = new Date();
-    sieteDiasAtras.setHours(0, 0, 0, 0);
-    sieteDiasAtras.setDate(sieteDiasAtras.getDate() - 6);
+    const sieteDiasAtras = instanteDesdeZonaClub(
+      localNow.year, localNow.month, localNow.day - 6, 0, 0, timezone,
+    )
 
     // Inicio del mes para ingresos mensuales
-    const inicioMes = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
+    const inicioMes = instanteDesdeZonaClub(
+      localNow.year, localNow.month, 1, 0, 0, timezone,
+    )
 
     const [
       upcomingBookings,
@@ -37,7 +50,7 @@ const getDashboardData = async (clubId: string) => {
     ] = await Promise.all([
       // --- INICIO DE LA MODIFICACIÓN ---
       db.booking.findMany({
-        where: { clubId, startTime: { gte: new Date() } },
+        where: { clubId, status: 'confirmed', startTime: { gte: now } },
         orderBy: { startTime: 'asc' },
         // Usamos 'select' para controlar explícitamente los datos que traemos
         select: {
@@ -60,14 +73,14 @@ const getDashboardData = async (clubId: string) => {
       }),
       // --- FIN DE LA MODIFICACIÓN ---
       db.booking.findMany({
-        where: { clubId, startTime: { gte: startOfDay, lte: endOfDay } },
+        where: { clubId, status: 'confirmed', startTime: { gte: startOfDay, lte: endOfDay } },
         include: {
           court: { select: { name: true } },
           user: { select: { name: true } },
         },
         orderBy: { startTime: 'asc' },
       }),
-      db.user.count({ where: { clubId } }),
+      db.clubMembership.count({ where: { clubId, status: 'ACTIVE', role: 'PLAYER' } }),
       db.competition.count({ where: { clubId } }),
       db.club.findUnique({
         where: { id: clubId },
@@ -90,23 +103,23 @@ const getDashboardData = async (clubId: string) => {
         orderBy: { name: 'asc' },
       }),
       db.user.findMany({
-        where: { clubId },
+        where: { memberships: { some: { clubId, status: 'ACTIVE' } } },
         orderBy: { name: 'asc' },
       }),
       // Queries para onboarding
       db.courtPricing.count({ where: { clubId } }),
-      db.user.count({ where: { clubId, role: "PLAYER" } }),
+      db.clubMembership.count({ where: { clubId, role: "PLAYER", status: "ACTIVE" } }),
       // Queries de ingresos
       db.booking.findMany({
-        where: { clubId, startTime: { gte: sieteDiasAtras }, cancelledAt: null },
+        where: { clubId, status: 'confirmed', startTime: { gte: sieteDiasAtras }, cancelledAt: null },
         select: { startTime: true, totalPrice: true, paymentStatus: true },
       }),
       db.booking.aggregate({
-        where: { clubId, startTime: { gte: inicioMes }, cancelledAt: null, paymentStatus: 'paid' },
+        where: { clubId, status: 'confirmed', startTime: { gte: inicioMes }, cancelledAt: null, paymentStatus: 'paid' },
         _sum: { totalPrice: true },
       }),
       db.booking.count({
-        where: { clubId, cancelledAt: null, paymentStatus: 'pending', startTime: { lte: new Date() } },
+        where: { clubId, status: 'confirmed', cancelledAt: null, paymentStatus: 'pending', startTime: { lte: now } },
       }),
     ]);
 
@@ -185,11 +198,12 @@ const getDashboardData = async (clubId: string) => {
 
     const ingresosSemana = [];
     for (let i = 6; i >= 0; i--) {
-      const dia = new Date();
-      dia.setHours(0, 0, 0, 0);
-      dia.setDate(dia.getDate() - i);
-      const siguienteDia = new Date(dia);
-      siguienteDia.setDate(siguienteDia.getDate() + 1);
+      const dia = instanteDesdeZonaClub(
+        localNow.year, localNow.month, localNow.day - i, 0, 0, timezone,
+      )
+      const siguienteDia = instanteDesdeZonaClub(
+        localNow.year, localNow.month, localNow.day - i + 1, 0, 0, timezone,
+      )
 
       const reservasDelDia = reservasIngresos7d.filter(
         r => r.startTime >= dia && r.startTime < siguienteDia
@@ -203,7 +217,11 @@ const getDashboardData = async (clubId: string) => {
         .filter(r => r.paymentStatus === 'pending')
         .reduce((sum, r) => sum + (r.totalPrice || 0), 0);
 
-      const fecha = dia.toLocaleDateString(localeCode, { weekday: 'short', day: 'numeric' });
+      const fecha = dia.toLocaleDateString(localeCode, {
+        weekday: 'short',
+        day: 'numeric',
+        timeZone: timezone,
+      });
       ingresosSemana.push({ fecha, cobrado, pendiente });
     }
 

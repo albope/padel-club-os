@@ -5,10 +5,12 @@ import Image from "next/image"
 import { Newspaper } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
 import { getLocale } from "next-intl/server"
+import { DEFAULT_IMAGES } from "@/lib/default-images"
 
 export const revalidate = 1800 // 30min
 
-export default async function ClubNewsPage({ params }: { params: { slug: string } }) {
+export default async function ClubNewsPage(props: { params: Promise<{ slug: string }> }) {
+  const params = await props.params;
   const locale = await getLocale()
   const localeCode = locale === 'es' ? 'es-ES' : 'en-GB'
   const club = await db.club.findUnique({
@@ -37,17 +39,15 @@ export default async function ClubNewsPage({ params }: { params: { slug: string 
             <Link key={item.id} href={`/club/${params.slug}/noticias/${item.id}`}>
               <div className="club-card overflow-hidden">
                 <div className="p-4">
-                  {item.imageUrl && (
-                    <div className="relative w-full h-48 mb-4">
-                      <Image
-                        src={item.imageUrl}
-                        alt={item.title}
-                        fill
-                        className="object-cover rounded-xl"
-                        sizes="(max-width: 768px) 100vw, 640px"
-                      />
-                    </div>
-                  )}
+                  <div className="relative w-full h-48 mb-4">
+                    <Image
+                      src={item.imageUrl || DEFAULT_IMAGES.news}
+                      alt={item.imageUrl ? item.title : "Material de padel"}
+                      fill
+                      className="object-cover rounded-xl"
+                      sizes="(max-width: 768px) 100vw, 640px"
+                    />
+                  </div>
                   <h2 className="font-display font-bold text-foreground">{item.title}</h2>
                   <p className="text-sm text-muted-foreground mt-1 line-clamp-3">
                     {item.content}

@@ -557,6 +557,48 @@ export async function enviarEmailBienvenidaJugador({
   })
 }
 
+interface EnviarEmailVerificacionParams {
+  email: string
+  nombre?: string | null
+  token: string
+  next?: string
+}
+
+export async function enviarEmailVerificacion({
+  email,
+  nombre,
+  token,
+  next = "/login",
+}: EnviarEmailVerificacionParams) {
+  const resend = getResend()
+  const nombreSeguro = escaparHtml(nombre || "Hola")
+  const nextSeguro = next.startsWith("/") && !next.startsWith("//") ? next : "/login"
+  const verificationUrl = `${EMAIL_BRAND.siteUrl}/api/auth/verify-email?token=${encodeURIComponent(token)}&next=${encodeURIComponent(nextSeguro)}`
+
+  const contenido = `
+    <p style="${estiloParrafo}">${nombreSeguro},</p>
+    <p style="${estiloParrafo}">
+      Confirma que esta direccion de correo te pertenece para proteger tu cuenta
+      y habilitar el acceso. El enlace caduca en 24 horas y solo puede utilizarse una vez.
+    </p>
+    <p style="${estiloParrafo}">
+      Si no has creado esta cuenta, puedes ignorar este mensaje.
+    </p>
+  `
+
+  await resend.emails.send({
+    from: EMAIL_FROM,
+    to: email,
+    subject: `Verifica tu email - ${EMAIL_BRAND.nombre}`,
+    html: plantillaEmail({
+      titulo: "Verifica tu correo electronico",
+      preheader: "Confirma tu email para activar el acceso a tu cuenta.",
+      contenido,
+      boton: { texto: "Verificar mi email", url: verificationUrl },
+    }),
+  })
+}
+
 // --- Email de confirmacion de reserva ---
 
 interface EnviarEmailConfirmacionReservaParams {

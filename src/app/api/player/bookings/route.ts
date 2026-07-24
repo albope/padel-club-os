@@ -4,14 +4,16 @@ import { NextResponse } from "next/server";
 import { calcularPrecioReserva } from "@/lib/pricing";
 import { crearNotificacion } from "@/lib/notifications";
 import { enviarEmailConfirmacionReserva, enviarEmailCancelacionReserva } from "@/lib/email";
-import { generarDatosPagoPorJugador, aplicarRefundBooking } from "@/lib/payment-sync";
+import { generarDatosPagoPorJugador } from "@/lib/payment-sync";
 import { stripe } from "@/lib/stripe";
+import { enqueueBookingRefund } from "@/lib/refunds";
 import { logger } from "@/lib/logger";
 import { validarBody } from "@/lib/validation";
 import { liberarSlotYNotificar, limpiarWaitlistAlReservar } from "@/lib/waitlist";
 import { verificarBloqueo } from "@/lib/court-blocks";
 import { registrarAuditoria } from "@/lib/audit";
 import * as z from "zod";
+import { respuestaErrorReserva, validarRangoReserva } from "@/lib/booking-domain";
 
 const PlayerBookingCreateSchema = z.object({
   courtId: z.string().min(1, "El ID de pista es requerido."),
@@ -67,6 +69,9 @@ export async function POST(req: Request) {
         bookingPaymentMode: true,
         stripeConnectOnboarded: true,
         slug: true,
+        name: true,
+        timezone: true,
+        bookingDuration: true,
       },
     });
 
@@ -80,31 +85,31 @@ export async function POST(req: Request) {
     const newStartTime = new Date(startTime);
     const newEndTime = new Date(endTime);
     const now = new Date();
+    validarRangoReserva({
+      startTime: newStartTime,
+      endTime: newEndTime,
+      policy: club,
+      now,
+      requireFuture: true,
+    })
 
-    // Verificar que no sea en el pasado
-    if (newStartTime < now) {
+    // Comprobar propiedad antes de consultar disponibilidad evita filtrar si
+    // una pista de otro club esta ocupada.
+    const court = await db.court.findFirst({
+      where: { id: courtId, clubId: auth.session.user.clubId },
+    });
+    if (!court) {
       return NextResponse.json(
-        { error: "No puedes reservar en el pasado." },
-        { status: 400 }
+        { error: "Pista no encontrada." },
+        { status: 404 }
       );
-    }
-
-    // Verificar ventana maxima de reserva anticipada
-    if (club.maxAdvanceBooking) {
-      const maxDate = new Date();
-      maxDate.setDate(maxDate.getDate() + club.maxAdvanceBooking);
-      if (newStartTime > maxDate) {
-        return NextResponse.json(
-          { error: `Solo puedes reservar con ${club.maxAdvanceBooking} dias de antelacion.` },
-          { status: 400 }
-        );
-      }
     }
 
     // Verificar solapamiento
     const overlapping = await db.booking.findFirst({
       where: {
         courtId,
+        clubId: auth.session.user.clubId,
         status: { not: "cancelled" },
         AND: [
           { startTime: { lt: newEndTime } },
@@ -129,18 +134,17 @@ export async function POST(req: Request) {
       );
     }
 
-    // Verificar que la pista pertenece al club
-    const court = await db.court.findFirst({
-      where: { id: courtId, clubId: auth.session.user.clubId },
-    });
-    if (!court) {
-      return NextResponse.json(
-        { error: "Pista no encontrada." },
-        { status: 404 }
-      );
-    }
-
     const totalPrice = await calcularPrecioReserva(courtId, auth.session.user.clubId, newStartTime, newEndTime);
+    if (totalPrice <= 0) {
+      return NextResponse.json(
+        {
+          error:
+            "Este horario no tiene una tarifa completa configurada. Contacta con el club.",
+          code: "PRICE_NOT_CONFIGURED",
+        },
+        { status: 409 },
+      )
+    }
 
     // Determinar metodo y estado de pago segun configuracion del club
     let paymentMethod: string
@@ -189,7 +193,7 @@ export async function POST(req: Request) {
     })
 
     // Limpiar lista de espera del slot
-    limpiarWaitlistAlReservar({ courtId, startTime: newStartTime, userId: auth.session.user.id }).catch(() => {})
+    await limpiarWaitlistAlReservar({ courtId, startTime: newStartTime, userId: auth.session.user.id })
 
     registrarAuditoria({
       recurso: "booking",
@@ -202,7 +206,7 @@ export async function POST(req: Request) {
     })
 
     // Notificar al jugador de la confirmacion
-    crearNotificacion({
+    await crearNotificacion({
       tipo: "booking_confirmed",
       titulo: "Reserva confirmada",
       mensaje: `Tu reserva en ${court.name} para el ${newStartTime.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' })} a las ${newStartTime.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })} ha sido confirmada.`,
@@ -210,7 +214,7 @@ export async function POST(req: Request) {
       clubId: auth.session.user.clubId,
       metadata: { bookingId: booking.id },
       url: "/reservar",
-    }).catch(() => {})
+    })
 
     // Email de confirmacion: solo enviar ahora si NO requiere pago online
     // Para pagos online, el email se envia desde el webhook tras confirmar el pago
@@ -220,7 +224,7 @@ export async function POST(req: Request) {
         select: { email: true, name: true, club: { select: { name: true, slug: true } } },
       })
       if (datosEmailConfirmacion?.email) {
-        enviarEmailConfirmacionReserva({
+        await enviarEmailConfirmacionReserva({
           email: datosEmailConfirmacion.email,
           nombre: datosEmailConfirmacion.name || "Jugador",
           pistaNombre: court.name,
@@ -228,14 +232,23 @@ export async function POST(req: Request) {
           fechaHoraFin: newEndTime,
           precioTotal: totalPrice,
           estadoPago: booking.paymentStatus || "pending",
-          clubNombre: datosEmailConfirmacion.club?.name || "",
-          clubSlug: datosEmailConfirmacion.club?.slug || "",
-        }).catch(() => {})
+          clubNombre: club.name || "",
+          clubSlug: club.slug || "",
+        }).catch((emailError) => {
+          logger.error("BOOKING_CONFIRMATION_EMAIL", "No se pudo enviar la confirmacion", { bookingId: booking.id }, emailError)
+        })
       }
     }
 
     return NextResponse.json({ ...booking, requiresPayment }, { status: 201 });
   } catch (error) {
+    const domainError = respuestaErrorReserva(error)
+    if (domainError) {
+      return NextResponse.json(
+        { error: domainError.message, code: domainError.code },
+        { status: domainError.status },
+      )
+    }
     logger.error("CREATE_PLAYER_BOOKING", "Error creando reserva de jugador", { ruta: "/api/player/bookings", metodo: "POST" }, error);
     return new NextResponse("Internal Server Error", { status: 500 });
   }
@@ -244,7 +257,7 @@ export async function POST(req: Request) {
 // DELETE: Cancelar una reserva propia
 export async function DELETE(req: Request) {
   try {
-    const auth = await requireAuth("bookings:read");
+    const auth = await requireAuth("bookings:cancel-own");
     if (isAuthError(auth)) return auth;
 
     const { searchParams } = new URL(req.url);
@@ -321,36 +334,14 @@ export async function DELETE(req: Request) {
       },
     });
 
-    // Reembolso automatico si la reserva fue pagada online
-    const payment = await db.payment.findUnique({
-      where: { bookingId },
-      select: { id: true, stripePaymentId: true, status: true, amount: true },
-    })
-
-    if (payment?.stripePaymentId && payment.status === "succeeded") {
-      try {
-        await stripe.refunds.create({
-          payment_intent: payment.stripePaymentId,
-          reverse_transfer: true, // recuperar del club el importe transferido
-          refund_application_fee: false, // la plataforma absorbe la comision perdida
-        })
-        // Sincronizar estados: Payment + Booking.paymentStatus + BookingPayments
-        await db.$transaction(async (tx) => {
-          await tx.payment.update({
-            where: { id: payment.id },
-            data: { status: "refunded" },
-          })
-          await aplicarRefundBooking(tx, bookingId)
-        })
-        logger.info("BOOKING_REFUND", "Reembolso procesado por cancelacion", {
-          bookingId,
-          paymentId: payment.id,
-          amount: payment.amount,
-        })
-      } catch (refundError) {
-        // Loguear error pero no bloquear la cancelacion
-        logger.error("BOOKING_REFUND", "Error al procesar reembolso", { bookingId, paymentId: payment.id }, refundError)
-      }
+    // Registrar la obligacion antes de invocar Stripe. Si el proveedor no
+    // responde, el cron reintenta con la misma clave de idempotencia.
+    let refundStatus: "not_needed" | "already_refunded" | "pending" | "succeeded" | "failed" = "not_needed"
+    try {
+      refundStatus = (await enqueueBookingRefund(bookingId, "Cancelado por el jugador")).status
+    } catch (refundError) {
+      refundStatus = "pending"
+      logger.error("BOOKING_REFUND_QUEUE", "No se pudo registrar el reembolso inmediatamente", { bookingId }, refundError)
     }
 
     registrarAuditoria({
@@ -364,7 +355,7 @@ export async function DELETE(req: Request) {
     })
 
     // Notificar al jugador de la cancelacion
-    crearNotificacion({
+    await crearNotificacion({
       tipo: "booking_cancelled",
       titulo: "Reserva cancelada",
       mensaje: "Tu reserva ha sido cancelada correctamente.",
@@ -372,7 +363,7 @@ export async function DELETE(req: Request) {
       clubId: auth.session.user.clubId,
       metadata: { bookingId },
       url: "/reservar",
-    }).catch(() => {})
+    })
 
     // Enviar email de cancelacion (no bloquear si falla)
     const datosEmailCancelacion = await db.user.findUnique({
@@ -380,7 +371,7 @@ export async function DELETE(req: Request) {
       select: { email: true, name: true, club: { select: { name: true, slug: true } } },
     })
     if (datosEmailCancelacion?.email) {
-      enviarEmailCancelacionReserva({
+      await enviarEmailCancelacionReserva({
         email: datosEmailCancelacion.email,
         nombre: datosEmailCancelacion.name || "Jugador",
         pistaNombre: reserva.court?.name || "Pista",
@@ -388,11 +379,13 @@ export async function DELETE(req: Request) {
         precioTotal: reserva.totalPrice,
         clubNombre: datosEmailCancelacion.club?.name || "",
         clubSlug: datosEmailCancelacion.club?.slug || "",
-      }).catch(() => {})
+      }).catch((emailError) => {
+        logger.error("BOOKING_CANCELLATION_EMAIL", "No se pudo enviar la cancelacion", { bookingId }, emailError)
+      })
     }
 
     // Notificar lista de espera del slot liberado
-    liberarSlotYNotificar({
+    await liberarSlotYNotificar({
       courtId: reserva.courtId,
       startTime: reserva.startTime,
       endTime: reserva.endTime,
@@ -400,9 +393,14 @@ export async function DELETE(req: Request) {
       clubSlug: club?.slug || "",
       clubNombre: club?.name || "",
       pistaNombre: reserva.court?.name || "Pista",
-    }).catch(() => {})
+    })
 
-    return NextResponse.json({ message: "Reserva cancelada correctamente." });
+    return NextResponse.json({
+      message: refundStatus === "failed" || refundStatus === "pending"
+        ? "Reserva cancelada. El reembolso esta pendiente de confirmacion."
+        : "Reserva cancelada correctamente.",
+      refundStatus,
+    });
   } catch (error) {
     logger.error("CANCEL_PLAYER_BOOKING", "Error cancelando reserva de jugador", { ruta: "/api/player/bookings", metodo: "DELETE" }, error);
     return new NextResponse("Internal Server Error", { status: 500 });

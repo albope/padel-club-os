@@ -14,6 +14,10 @@ const mockCrearNotificacion = vi.fn().mockResolvedValue(undefined)
 const mockEnviarEmailConfirmacion = vi.fn().mockResolvedValue(undefined)
 const mockAsegurarBookingPayments = vi.fn().mockResolvedValue(4)
 const mockStripeRefunds = { create: vi.fn().mockResolvedValue({}) }
+const mockEnqueueBookingRefund = vi.fn().mockResolvedValue({
+  status: "succeeded",
+  operationId: "refund-op-1",
+})
 
 vi.mock("@/lib/db", () => ({ db: mockDb }))
 vi.mock("@/lib/stripe", () => ({
@@ -29,6 +33,9 @@ vi.mock("@/lib/email", () => ({
 }))
 vi.mock("@/lib/payment-sync", () => ({
   asegurarBookingPayments: (...args: unknown[]) => mockAsegurarBookingPayments(...args),
+}))
+vi.mock("@/lib/refunds", () => ({
+  enqueueBookingRefund: (...args: unknown[]) => mockEnqueueBookingRefund(...args),
 }))
 vi.mock("@/lib/logger", () => ({
   logger: { info: vi.fn(), error: vi.fn(), warn: vi.fn() },
@@ -52,6 +59,10 @@ describe("Webhook idempotencia - checkout.session.completed duplicado", () => {
   beforeEach(() => {
     vi.clearAllMocks()
     process.env.STRIPE_WEBHOOK_SECRET = "whsec_test"
+    mockEnqueueBookingRefund.mockResolvedValue({
+      status: "succeeded",
+      operationId: "refund-op-1",
+    })
   })
 
   it("segundo envio del mismo evento no crea pago duplicado (payment ya existe)", async () => {
@@ -99,6 +110,10 @@ describe("Webhook - auto-refund si booking fue cancelada", () => {
   beforeEach(() => {
     vi.clearAllMocks()
     process.env.STRIPE_WEBHOOK_SECRET = "whsec_test"
+    mockEnqueueBookingRefund.mockResolvedValue({
+      status: "succeeded",
+      operationId: "refund-op-1",
+    })
   })
 
   it("emite refund automatico si booking.updateMany devuelve count=0 (cancelada)", async () => {
@@ -111,21 +126,19 @@ describe("Webhook - auto-refund si booking fue cancelada", () => {
     mockDb.payment.findUnique.mockResolvedValue(null)
     // Guard atomico: booking ya no esta "confirmed" → count=0
     mockDb.booking.updateMany.mockResolvedValue({ count: 0 })
-    mockDb.booking.findUnique.mockResolvedValue(null) // $transaction devuelve null
+    mockDb.booking.findUnique.mockResolvedValue({ status: "cancelled" })
+    mockDb.payment.create.mockResolvedValue(crearPagoMock())
 
     const response = await POST(crearWebhookRequest())
 
     expect(response.status).toBe(200)
-    // Debe emitir refund
-    expect(mockStripeRefunds.create).toHaveBeenCalledWith(
-      expect.objectContaining({
-        payment_intent: "pi_to_refund",
-        reverse_transfer: true,
-        refund_application_fee: false,
-      })
+    // Debe registrar el reembolso durable
+    expect(mockEnqueueBookingRefund).toHaveBeenCalledWith(
+      "b-cancelled",
+      "Pago recibido tras cancelar la reserva",
     )
-    // No debe crear Payment ni enviar notificacion
-    expect(mockDb.payment.create).not.toHaveBeenCalled()
+    // Conserva el Payment como prueba de la obligacion y no confirma la reserva
+    expect(mockDb.payment.create).toHaveBeenCalled()
     expect(mockCrearNotificacion).not.toHaveBeenCalled()
     expect(mockEnviarEmailConfirmacion).not.toHaveBeenCalled()
   })
@@ -139,11 +152,15 @@ describe("Webhook - auto-refund si booking fue cancelada", () => {
     }))
     mockDb.payment.findUnique.mockResolvedValue(null)
     mockDb.booking.updateMany.mockResolvedValue({ count: 0 })
-    mockDb.booking.findUnique.mockResolvedValue(null)
-    mockStripeRefunds.create.mockRejectedValue(new Error("Refund failed"))
+    mockDb.booking.findUnique.mockResolvedValue({ status: "cancelled" })
+    mockDb.payment.create.mockResolvedValue(crearPagoMock())
+    mockEnqueueBookingRefund.mockResolvedValue({
+      status: "failed",
+      operationId: "refund-op-failed",
+    })
 
     const response = await POST(crearWebhookRequest())
-    // Webhook sigue respondiendo 200 (fire-and-forget)
+    // El fallo queda persistido en la cola y el evento se procesa correctamente.
     expect(response.status).toBe(200)
   })
 

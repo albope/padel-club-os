@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@100,400..800;112,500..800&family=Instrument+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/lucide@0.417.0/dist/umd/lucide.min.js"></script>
+<style>
+body { margin:0; background:#EFECE6; font-family:'Instrument Sans',system-ui,sans-serif; color:#1C1A17; }
+a { color:#157A54; text-decoration:none; } a:hover { color:#0E5C3F; }
+</style>
+</helmet>
+<div style="max-width:1240px;margin:0 auto;padding:56px 40px 96px;display:grid;gap:56px;align-content:start">
+
+  <div style="display:grid;gap:12px">
+    <div style="display:flex;align-items:center;gap:10px;font-size:12px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:#8A8377"><span style="width:28px;height:2px;background:#157A54"></span>PadelClub OS · Bloque F y cierre</div>
+    <h1 style="font-family:'Archivo',sans-serif;font-stretch:112%;font-weight:750;font-size:44px;line-height:1.05;letter-spacing:-0.02em;margin:0">Handoff, adopción y cierre</h1>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;font-size:12.5px;font-weight:600">
+      <a href="Estado Actual — Recreación.dc.html" style="background:#fff;border:1px solid #DDD7CC;border-radius:99px;padding:7px 14px">↗ Estado actual (antes)</a>
+      <a href="Diagnóstico y Territorios.dc.html" style="background:#fff;border:1px solid #DDD7CC;border-radius:99px;padding:7px 14px">↗ A–B · Diagnóstico y territorios</a>
+      <a href="Brand Kit y Design System.dc.html" style="background:#fff;border:1px solid #DDD7CC;border-radius:99px;padding:7px 14px">↗ C–D · Brand kit y design system</a>
+      <a href="Hi-Fi Jugador.dc.html" style="background:#fff;border:1px solid #DDD7CC;border-radius:99px;padding:7px 14px">↗ E · Hi-fi jugador</a>
+      <a href="Hi-Fi Admin y Plataforma.dc.html" style="background:#fff;border:1px solid #DDD7CC;border-radius:99px;padding:7px 14px">↗ E · Hi-fi admin y plataforma</a>
+      <span style="background:#1C1A17;color:#F6F3ED;border-radius:99px;padding:7px 14px;font-family:'JetBrains Mono',monospace;font-size:11.5px">tokens.padelclubos.json</span>
+    </div>
+  </div>
+
+  <!-- Mapeo -->
+  <div style="display:grid;gap:20px">
+    <h2 style="font-family:'Archivo',sans-serif;font-stretch:112%;font-weight:700;font-size:13px;letter-spacing:0.16em;text-transform:uppercase;margin:0;color:#157A54">F1 · Mapeo componente actual → propuesto</h2>
+    <div style="background:#fff;border:1px solid #DDD7CC;border-radius:12px;overflow:hidden">
+      <div style="display:grid;grid-template-columns:1.4fr 2fr 0.7fr 0.6fr;padding:10px 20px;background:#FDFCFA;border-bottom:1px solid #E7E2D8;font-size:10.5px;font-weight:700;letter-spacing:0.07em;text-transform:uppercase;color:#8A8377"><span>Componente actual</span><span>Cambio propuesto</span><span>Breaking visual</span><span>Talla</span></div>
+      <sc-for list="{{ mapeo }}" as="m" hint-placeholder-count="10">
+        <div style="display:grid;grid-template-columns:1.4fr 2fr 0.7fr 0.6fr;padding:11px 20px;border-bottom:1px solid #EFECE6;font-size:13px;align-items:start">
+          <code style="font-family:'JetBrains Mono',monospace;font-size:11.5px;color:#3C382F;padding-right:12px">{{ m.actual }}</code>
+          <span style="color:#3C382F;line-height:1.5;padding-right:12px">{{ m.cambio }}</span>
+          <span style="font-size:11px;font-weight:700;color:{{ m.brColor }}">{{ m.breaking }}</span>
+          <span style="font-family:'Archivo';font-weight:700;font-size:13px;color:#157A54">{{ m.talla }}</span>
+        </div>
+      </sc-for>
+    </div>
+  </div>
+
+  <!-- Fases + QA + riesgos -->
+  <div style="display:grid;gap:20px">
+    <h2 style="font-family:'Archivo',sans-serif;font-stretch:112%;font-weight:700;font-size:13px;letter-spacing:0.16em;text-transform:uppercase;margin:0;color:#157A54">F2 · Plan de migración incremental</h2>
+    <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:12px">
+      <sc-for list="{{ fases }}" as="f" hint-placeholder-count="5">
+        <div style="background:#fff;border:1px solid #DDD7CC;border-top:3px solid #157A54;border-radius:10px;padding:18px;display:grid;gap:8px;align-content:start">
+          <div style="display:flex;align-items:center;gap:8px"><span style="font-family:'Archivo';font-stretch:112%;font-weight:750;font-size:18px;color:#157A54">{{ f.n }}</span><span style="margin-left:auto;font-family:'Archivo';font-weight:700;font-size:12px;background:#F0F7F3;color:#0E5C3F;border-radius:5px;padding:2px 8px">{{ f.talla }}</span></div>
+          <p style="margin:0;font-size:13.5px;font-weight:700;line-height:1.35">{{ f.nombre }}</p>
+          <p style="margin:0;font-size:12px;color:#5C564C;line-height:1.55">{{ f.desc }}</p>
+          <p style="margin:0;font-size:11px;color:#8A8377;line-height:1.5;border-top:1px solid #EFECE6;padding-top:8px"><strong style="color:#3C382F">Sale con:</strong> {{ f.gate }}</p>
+        </div>
+      </sc-for>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
+      <div style="background:#fff;border:1px solid #DDD7CC;border-radius:10px;padding:22px">
+        <p style="margin:0 0 10px;font-weight:700;font-size:13px;letter-spacing:0.08em;text-transform:uppercase;color:#8A8377">QA visual y accesible (por fase)</p>
+        <ul style="margin:0;padding-left:18px;font-size:13px;line-height:1.8;color:#3C382F">
+          <li>Contraste automatizado (axe/pa11y) en CI sobre las rutas migradas — 0 errores AA</li>
+          <li>Captura de regresión visual (Playwright ya presente) a 360/768/1024/1440, claro y oscuro, ES y EN</li>
+          <li>Teclado: orden de foco, foco visible en todo control, escape en overlays</li>
+          <li>Zoom 200% sin pérdida de contenido ni scroll horizontal</li>
+          <li>Grid de reservas: estados distinguibles en escala de grises (test de daltonismo simulado)</li>
+          <li>Tenant: suite de 12 colores extremos (amarillo, negro, blanco, neón) sin fallo de contraste</li>
+        </ul>
+      </div>
+      <div style="background:#fff;border:1px solid #DDD7CC;border-radius:10px;padding:22px">
+        <p style="margin:0 0 10px;font-weight:700;font-size:13px;letter-spacing:0.08em;text-transform:uppercase;color:#B3402E">Riesgos y mitigaciones</p>
+        <ul style="margin:0;padding-left:18px;font-size:13px;line-height:1.8;color:#3C382F">
+          <li><strong>Clubes en producción notan el cambio</strong> → migración por fases detrás de flag por club; email previo con antes/después</li>
+          <li><strong>Colores de tenant guardados rompen el motor nuevo</strong> → script de migración que recalcula escala y marca los que requieren revisión</li>
+          <li><strong>Deriva de estilos durante la transición</strong> → lint que prohíbe clases Tailwind de color crudas (green-100…) en <code>src/components</code></li>
+          <li><strong>Archivo/Instrument aumentan el peso</strong> → subsets latinos autohospedados (~90 KB total, sustituyen a Inter+Sora)</li>
+          <li><strong>El verde marca se confunde con éxito</strong> → regla de sistema: éxito siempre con icono y fondo tinted; marca nunca en mensajes de estado</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- CIERRE -->
+  <div style="display:grid;gap:20px">
+    <h2 style="font-family:'Archivo',sans-serif;font-stretch:112%;font-weight:700;font-size:13px;letter-spacing:0.16em;text-transform:uppercase;margin:0;color:#157A54">Cierre · identidad ganadora en una vista</h2>
+    <div style="background:#1C1A17;border-radius:16px;padding:36px;color:#F6F3ED;display:grid;grid-template-columns:1fr 1fr;gap:36px;align-items:center">
+      <div style="display:grid;gap:18px">
+        <div style="display:flex;align-items:center;gap:12px">
+          <svg width="44" height="44" viewBox="0 0 48 48"><rect x="4" y="10" width="40" height="28" rx="7" fill="none" stroke="#F6F3ED" stroke-width="3"></rect><rect x="10" y="16" width="13" height="16" rx="3" fill="#6FBF9C"></rect></svg>
+          <span style="font-family:'Archivo';font-stretch:112%;font-weight:750;font-size:28px;letter-spacing:-0.02em">PadelClub<span style="display:inline-flex;align-items:center;background:#157A54;border-radius:7px;padding:1px 8px;margin-left:7px;font-size:22px">OS</span></span>
+        </div>
+        <p style="margin:0;font-family:'Archivo';font-stretch:112%;font-weight:700;font-size:19px;line-height:1.35">«Cada franja cuenta» — el slot del marcador como gesto visual, tinta y arena mediterráneas, verde pista profundo, cifras tabulares.</p>
+        <div style="display:flex;gap:4px">
+          <span style="flex:1;height:26px;border-radius:4px;background:#157A54"></span><span style="flex:1;height:26px;border-radius:4px;background:#2FA075"></span><span style="flex:1;height:26px;border-radius:4px;background:repeating-linear-gradient(45deg,#37322A 0 4px,#1E1B17 4px 8px)"></span><span style="flex:1;height:26px;border-radius:4px;border:1px dashed #6B655A"></span><span style="flex:1;height:26px;border-radius:4px;background:#6FBF9C"></span><span style="flex:1;height:26px;border-radius:4px;border:1px dashed #6B655A"></span><span style="flex:1;height:26px;border-radius:4px;background:#E7E2D8"></span>
+        </div>
+      </div>
+      <div style="display:grid;gap:9px">
+        <sc-for list="{{ decisiones }}" as="d" hint-placeholder-count="5">
+          <div style="display:grid;grid-template-columns:22px 1fr;gap:10px;border-top:1px solid rgba(246,243,237,0.12);padding-top:9px">
+            <span style="font-family:'Archivo';font-weight:750;font-size:13px;color:#6FBF9C">{{ d.n }}</span>
+            <p style="margin:0;font-size:13px;line-height:1.5;color:#C4BDB0"><strong style="color:#F6F3ED">{{ d.t }}</strong> {{ d.b }}</p>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
+      <div style="background:#fff;border:1px solid #DDD7CC;border-radius:10px;padding:22px">
+        <p style="margin:0 0 10px;font-weight:700;font-size:13px;letter-spacing:0.08em;text-transform:uppercase;color:#8A8377">Los 5 cambios de mayor impacto vs. hoy</p>
+        <ol style="margin:0;padding-left:20px;font-size:13.5px;line-height:1.85;color:#3C382F">
+          <li>Grid de reservas accesible: patrón+icono+texto, celdas 44px, precio visible — el flujo nº1 del jugador</li>
+          <li>Motor de tenant con escala tonal y <code>on-primary</code> calculado — la personalización deja de ser frágil</li>
+          <li>Sidebar tinta agrupada por dominio (5 grupos vs. 18 items planos) — velocidad de escaneo diaria</li>
+          <li>Cifras tabulares Archivo en KPIs, precios y calendarios — legibilidad de datos densos</li>
+          <li>Modo oscuro diseñado con 3 capas de superficie — turnos de noche reales en recepción</li>
+        </ol>
+      </div>
+      <div style="background:#fff;border:1px solid #DDD7CC;border-radius:10px;padding:22px">
+        <p style="margin:0 0 10px;font-weight:700;font-size:13px;letter-spacing:0.08em;text-transform:uppercase;color:#8A8377">Próximos pasos exactos</p>
+        <ol style="margin:0;padding-left:20px;font-size:13.5px;line-height:1.85;color:#3C382F">
+          <li>Validar dirección con 2–3 clubes piloto usando estas pantallas (esta semana)</li>
+          <li>Fase 1: PR de foundations — <code>globals.css</code> + <code>tailwind.config.ts</code> + fuentes autohospedadas, detrás de flag</li>
+          <li>Implementar <code>lib/tenant-theme.ts</code> (escala OKLCH + on-primary) con la suite de 12 colores</li>
+          <li>Fase 2: shell admin (sidebar agrupada + header) y shell jugador</li>
+          <li>Fases 3–5 según tabla F2; regresión visual en CI desde la fase 1</li>
+        </ol>
+      </div>
+    </div>
+
+    <!-- Checklist -->
+    <div style="background:#fff;border:1px solid #DDD7CC;border-radius:12px;padding:26px;display:grid;gap:4px">
+      <p style="margin:0 0 12px;font-weight:700;font-size:15px">Checklist de criterios de aceptación</p>
+      <sc-for list="{{ checklist }}" as="c" hint-placeholder-count="12">
+        <div style="display:grid;grid-template-columns:26px 1fr auto;gap:12px;align-items:start;border-bottom:1px solid #EFECE6;padding:9px 0">
+          <span style="width:20px;height:20px;border-radius:6px;background:#E9F4E6;border:1px solid #C8E4C3;display:grid;place-items:center"><i data-lucide="check" style="width:13px;height:13px;color:#2E6A29"></i></span>
+          <p style="margin:0;font-size:13.5px;line-height:1.5;color:#3C382F"><strong>{{ c.t }}</strong> — {{ c.b }}</p>
+          <span style="font-size:11px;font-weight:600;color:#8A8377;white-space:nowrap">{{ c.ref }}</span>
+        </div>
+      </sc-for>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  componentDidMount() { if (window.lucide) window.lucide.createIcons(); }
+  componentDidUpdate() { if (window.lucide) window.lucide.createIcons(); }
+  renderVals() {
+    const mapeo = [
+      {actual:'globals.css (:root/.dark)', cambio:'Sustituir valores shadcn por tokens Marcador; añadir --surface-raised, --status-*, --tenant-*, --dataviz-*. Mismos nombres → cero refactor de componentes.', breaking:'Sí (global)', brColor:'#B3402E', talla:'S'},
+      {actual:'layout.tsx (fonts Inter/Sora)', cambio:'Cargar Archivo + Instrument Sans autohospedadas; mapear --font-inter/--font-sora a las nuevas para no tocar tailwind.config.', breaking:'Sí (tipografía)', brColor:'#B3402E', talla:'S'},
+      {actual:'ui/button.tsx · badge.tsx · card.tsx', cambio:'Mantener API cva; ajustar radios (6/10px), pesos y el variant de estado con icono obligatorio en badge.', breaking:'Menor', brColor:'#C7871E', talla:'S'},
+      {actual:'layout/Sidebar.tsx + nav-items.ts', cambio:'Añadir campo group a NavItem; render agrupado sobre fondo tinta con barra activa verde. Rail de iconos a 1024px.', breaking:'Sí (shell)', brColor:'#B3402E', talla:'M'},
+      {actual:'layout/Header.tsx', cambio:'Header 56px sin blur; búsqueda ⌘K visible como input; acción primaria contextual a la derecha.', breaking:'Menor', brColor:'#C7871E', talla:'S'},
+      {actual:'club/ClubLayout.tsx (hex crudo)', cambio:'Nueva lib tenant-theme.ts: escala OKLCH 50–900 + on-primary; ClubLayout consume variables --tenant-* en vez de style inline.', breaking:'Sí (tenant)', brColor:'#B3402E', talla:'M'},
+      {actual:'club/GridReservas.tsx', cambio:'Celdas 44px, estados por patrón+icono+texto, precio en celda libre, selección de rango, barra resumen sticky. Misma API de datos.', breaking:'Sí (flujo clave)', brColor:'#B3402E', talla:'L'},
+      {actual:'dashboard/DashboardClient.tsx', cambio:'KPI block con tendencia, banda de ocupación por franja (nuevo), pendientes con acción Cobrar. AgendaDelDia → lista densa 40px.', breaking:'Sí', brColor:'#B3402E', talla:'M'},
+      {actual:'IngresosSemana.tsx (Recharts)', cambio:'Mantener Recharts; paleta dataViz.*, pendiente con trama (patternUnits), leyenda con texto.', breaking:'Menor', brColor:'#C7871E', talla:'S'},
+      {actual:'ClubHome.tsx', cambio:'Hero con próxima reserva (tinta), CTA única tenant, accesos secundarios neutros; retirar icon-circles con degradado y border-left.', breaking:'Sí', brColor:'#B3402E', talla:'M'},
+      {actual:'auth-* / landing-* (globals.css)', cambio:'Retirar orbes, gradientes animados, shimmer y dot patterns; login sobrio con motivo de slots estático.', breaking:'Sí (marketing)', brColor:'#B3402E', talla:'S'},
+      {actual:'ui/logo-icon.tsx', cambio:'Nuevo isotipo «celda de marcador» + chip OS; favicon y maskable regenerados.', breaking:'Sí (marca)', brColor:'#B3402E', talla:'S'},
+    ];
+    const fases = [
+      {n:'01', talla:'S', nombre:'Foundations', desc:'Tokens en globals.css, fuentes, radios, sombras, lint anti-colores-crudos. Flag por club.', gate:'regresión visual verde en 4 breakpoints × 2 temas'},
+      {n:'02', talla:'M', nombre:'Shell y navegación', desc:'Sidebar agrupada, header, bottom-nav, shell del portal jugador y banda de plataforma.', gate:'teclado + foco auditados; nav validada con 2 clubes'},
+      {n:'03', talla:'M', nombre:'Componentes core', desc:'Button, badge de estado, inputs, tabla, KPI, toasts, modal/sheet sobre Radix existente.', gate:'inventario shadcn migrado; 0 clases de color crudas'},
+      {n:'04', talla:'L', nombre:'Flujos críticos', desc:'Grid de reservas (jugador y admin), pago, motor de tenant con preview en Ajustes.', gate:'suite de 12 tenants extremos; test daltonismo del grid'},
+      {n:'05', talla:'M', nombre:'Resto de módulos', desc:'Competiciones, rankings, socios, analíticas, comunicación, plataforma, marketing y emails.', gate:'checklist de aceptación completa; retirar flag'},
+    ];
+    const decisiones = [
+      {n:'01', t:'El slot como firma.', b:'El mismo módulo visual es marca, celda de calendario, plaza de partida y barra de ocupación — identidad que trabaja, no decora.'},
+      {n:'02', t:'Neutros cálidos + verde pista.', b:'Se abandona el azul SaaS; el sector no lo tiene y deja todo el espacio emocional al color de cada club.'},
+      {n:'03', t:'El azul pasa a ser solo información.', b:'Los semánticos quedan libres de la marca: imposible confundir estado con identidad.'},
+      {n:'04', t:'Cifras tabulares como voz.', b:'Archivo SemiExpanded en KPIs, precios y horas: la precisión del marcador es el tono de la marca.'},
+      {n:'05', t:'Tenant por motor, no por hex.', b:'Escala tonal generada y on-primary calculado: cualquier club, siempre accesible, en claro y oscuro.'},
+    ];
+    const checklist = [
+      {t:'Reconocible sin logotipo', b:'slot + arena/tinta + verde pista + Archivo tabular no existen en ningún competidor ni plantilla', ref:'C1–C3'},
+      {t:'Familia, no plantilla repetida', b:'plataforma (banda tinta densa), admin (operativo claro), jugador (móvil cálido con tenant) comparten tokens y gesto', ref:'3a·3e·2a'},
+      {t:'Admin más rápido en datos densos', b:'filas 40px, banda de ocupación de un vistazo, pendientes con acción directa, cifras tabulares', ref:'3a–3c'},
+      {t:'Jugador móvil genuino', b:'diseñado a 390 primero: touch 44px, bottom-nav, jerarquía de una mano', ref:'2a–2i'},
+      {t:'Marca de club convive sin romper nada', b:'motor tenant con escala y advertencias; caso amarillo demostrado', ref:'D1·3d'},
+      {t:'Calendarios, tablas y precios más claros', b:'estados con patrón+icono+texto vs. rojo/verde 9px actual; precio en celda', ref:'2b·3b'},
+      {t:'Claro, oscuro, responsive, ES/EN', b:'oscuro con 3 capas diseñadas; rail 1024; expansión EN prevista con truncados definidos', ref:'3f·3b'},
+      {t:'Sin modas ni clichés de pádel', b:'cero gradientes decorativos, orbes, neón o palas; la referencia deportiva es abstracta (el marcador)', ref:'B·C'},
+      {t:'Estados especificados', b:'hover/foco/disabled/error/vacío/carga/offline/trial demostrados en especímenes y pantallas', ref:'D3·2d·2i'},
+      {t:'Implementable con el stack actual', b:'mismos nombres de variables HSL, Radix/shadcn intactos, Recharts y Lucide conservados; migración por 5 fases con flag', ref:'F1–F2'},
+      {t:'Accesibilidad con decisiones concretas', b:'ratios publicados, on-primary calculado, patrón+icono+texto, QA automatizado en CI', ref:'C2·F2'},
+      {t:'La dirección ganadora supera al estado actual', b:'8,80 vs. 4,6 de media auditada; matriz ponderada y argumento publicados', ref:'A–B'},
+    ];
+    return { mapeo, fases, decisiones, checklist };
+  }
+}
+</script>
+</body>
+</html>

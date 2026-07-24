@@ -18,9 +18,14 @@ export async function calcularPrecioReserva(
   startTime: Date,
   endTime: Date
 ): Promise<number> {
-  const dayOfWeek = diaSemanaEnZonaClub(startTime) // 0=Domingo, 6=Sabado
-  const startDecimal = horaDecimalEnZonaClub(startTime)
-  const endDecimal = horaDecimalEnZonaClub(endTime)
+  const club = await db.club.findUnique({
+    where: { id: clubId },
+    select: { timezone: true },
+  })
+  const timezone = club?.timezone || "Europe/Madrid"
+  const dayOfWeek = diaSemanaEnZonaClub(startTime, timezone) // 0=Domingo, 6=Sabado
+  const startDecimal = horaDecimalEnZonaClub(startTime, timezone)
+  const endDecimal = horaDecimalEnZonaClub(endTime, timezone)
 
   // Obtener todas las bandas de precio del dia para esta pista
   const bandas = await db.courtPricing.findMany({

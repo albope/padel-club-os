@@ -12,10 +12,8 @@ const CompetitionUpdateSchema = z.object({
 })
 
 // PATCH: Actualizar estado de una competicion
-export async function PATCH(
-  req: Request,
-  { params }: { params: { competitionId: string } }
-) {
+export async function PATCH(req: Request, props: { params: Promise<{ competitionId: string }> }) {
+  const params = await props.params;
   try {
     const auth = await requireAuth("competitions:update")
     if (isAuthError(auth)) return auth
@@ -38,10 +36,8 @@ export async function PATCH(
 }
 
 // DELETE: Eliminar una competicion y todos sus datos asociados
-export async function DELETE(
-  req: Request,
-  { params }: { params: { competitionId: string } }
-) {
+export async function DELETE(req: Request, props: { params: Promise<{ competitionId: string }> }) {
+  const params = await props.params;
   try {
     const auth = await requireAuth("competitions:delete")
     if (isAuthError(auth)) return auth

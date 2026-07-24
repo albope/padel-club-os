@@ -3,7 +3,7 @@
 import React, { useState, useMemo } from 'react';
 import { User } from '@prisma/client';
 import { useTranslations } from 'next-intl';
-import { Pencil, Search, ChevronLeft, ChevronRight, Users, UserX } from 'lucide-react';
+import { Pencil, Search, ChevronLeft, ChevronRight, Users, UserX, UserCheck } from 'lucide-react';
 import { temaMarcadorActivo } from '@/lib/feature-flags';
 import Link from 'next/link';
 import SocioDetailModal from './SocioDetailModal';
@@ -16,12 +16,15 @@ import { Separator } from '@/components/ui/separator';
 import { cn } from '@/lib/utils';
 import Image from 'next/image';
 import EmptyState from '@/components/onboarding/EmptyState';
+import { useToast } from '@/hooks/use-toast';
 
 type SocioWithStats = User & {
   _count: {
     bookings: number;
   };
   bookings: { id: string }[];
+  membershipId: string;
+  membershipStatus: 'ACTIVE' | 'PENDING' | 'SUSPENDED' | 'REVOKED';
 };
 
 interface SociosClientProps {
@@ -31,23 +34,26 @@ interface SociosClientProps {
 const SociosClient: React.FC<SociosClientProps> = ({ initialSocios }) => {
   const t = useTranslations('socios');
   const tc = useTranslations('common');
+  const { toast } = useToast();
+  const [socios, setSocios] = useState(initialSocios);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedSocio, setSelectedSocio] = useState<SocioWithStats | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'inactive'>('all');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'pending' | 'inactive'>('all');
   const [currentPage, setCurrentPage] = useState(1);
   const sociosPerPage = 10;
 
   const filteredSocios = useMemo(() => {
-    return initialSocios.filter(socio => {
+    return socios.filter(socio => {
       const matchesSearch = socio.name?.toLowerCase().includes(searchTerm.toLowerCase());
       const matchesStatus =
         statusFilter === 'all' ||
-        (statusFilter === 'active' && socio.isActive !== false) ||
+        (statusFilter === 'active' && socio.membershipStatus === 'ACTIVE') ||
+        (statusFilter === 'pending' && socio.membershipStatus === 'PENDING') ||
         (statusFilter === 'inactive' && socio.isActive === false);
       return matchesSearch && matchesStatus;
     });
-  }, [initialSocios, searchTerm, statusFilter]);
+  }, [socios, searchTerm, statusFilter]);
 
   const currentSocios = useMemo(() => {
     const indexOfLastSocio = currentPage * sociosPerPage;
@@ -65,6 +71,36 @@ const SociosClient: React.FC<SociosClientProps> = ({ initialSocios }) => {
   const handleCloseModal = () => {
     setIsModalOpen(false);
     setSelectedSocio(null);
+  };
+
+  const actualizarMembresia = async (
+    socio: SocioWithStats,
+    status: 'ACTIVE' | 'SUSPENDED',
+  ) => {
+    const response = await fetch(`/api/memberships/${socio.membershipId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status }),
+    });
+
+    if (!response.ok) {
+      const data = await response.json().catch(() => ({}));
+      toast({
+        title: 'No se pudo actualizar el acceso',
+        description: data.error || 'Inténtalo de nuevo.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    setSocios((actuales) => actuales.map((item) => (
+      item.membershipId === socio.membershipId
+        ? { ...item, membershipStatus: status, isActive: status === 'ACTIVE' }
+        : item
+    )));
+    toast({
+      title: status === 'ACTIVE' ? 'Jugador aprobado' : 'Acceso suspendido',
+    });
   };
 
   if (initialSocios.length === 0 && !searchTerm) {
@@ -106,6 +142,7 @@ const SociosClient: React.FC<SociosClientProps> = ({ initialSocios }) => {
         {([
           { key: 'all', label: t('all') },
           { key: 'active', label: t('active') },
+          { key: 'pending', label: 'Pendientes' },
           { key: 'inactive', label: t('inactive') },
         ] as const).map(({ key, label }) => (
           <Button
@@ -129,7 +166,7 @@ const SociosClient: React.FC<SociosClientProps> = ({ initialSocios }) => {
                   <li
                     className={cn(
                       "group flex items-center justify-between py-3 px-2 -mx-2 rounded-lg transition-colors hover:bg-muted",
-                      !socio.isActive && "opacity-50"
+                      socio.membershipStatus === 'SUSPENDED' && "opacity-50"
                     )}
                   >
                     <button
@@ -147,7 +184,7 @@ const SociosClient: React.FC<SociosClientProps> = ({ initialSocios }) => {
                       />
                       <div className="flex items-center gap-2">
                         <p className="font-semibold text-foreground">{socio.name}</p>
-                        {!socio.isActive && (
+                        {socio.membershipStatus === 'SUSPENDED' && (
                           // «Marcador» 3c: estado con icono + texto, neutro (no es un error)
                           temaMarcadorActivo() ? (
                             <Badge variant="secondary">
@@ -160,8 +197,22 @@ const SociosClient: React.FC<SociosClientProps> = ({ initialSocios }) => {
                           </Badge>
                           )
                         )}
+                        {socio.membershipStatus === 'PENDING' && (
+                          <Badge variant="outline">Pendiente de aprobación</Badge>
+                        )}
                       </div>
                     </button>
+                    {socio.membershipStatus === 'PENDING' && (
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="outline"
+                        onClick={() => actualizarMembresia(socio, 'ACTIVE')}
+                      >
+                        <UserCheck className="mr-1.5 h-4 w-4" />
+                        Aprobar
+                      </Button>
+                    )}
                     <Link
                       href={`/dashboard/socios/${socio.id}`}
                       className="p-2 text-muted-foreground opacity-0 group-hover:opacity-100 hover:text-foreground rounded-full hover:bg-muted transition-all"

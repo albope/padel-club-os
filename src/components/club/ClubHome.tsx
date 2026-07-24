@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { imagenConFallback } from '@/lib/default-images';
 
 interface ClubHomeProps {
   club: {
@@ -42,14 +43,15 @@ export default function ClubHome({ club, openMatches, competitions, news }: Club
   const localeCode = locale === 'en' ? 'en-GB' : 'es-ES';
   const basePath = `/club/${params.slug}`;
   const color = club.primaryColor || '#4f46e5';
+  const bannerUrl = imagenConFallback(club.bannerUrl, 'clubHero');
 
   return (
     <div className="space-y-8">
       {/* Hero */}
-      {club.bannerUrl ? (
+      {bannerUrl ? (
         <div className="relative rounded-2xl overflow-hidden h-56 sm:h-72 flex items-end shadow-xl">
           <Image
-            src={club.bannerUrl}
+            src={bannerUrl}
             alt=""
             fill
             priority

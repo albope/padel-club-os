@@ -12,10 +12,8 @@ const CourtUpdateSchema = z.object({
 })
 
 // PATCH: Actualizar una pista
-export async function PATCH(
-  req: Request,
-  { params }: { params: { courtId: string } }
-) {
+export async function PATCH(req: Request, props: { params: Promise<{ courtId: string }> }) {
+  const params = await props.params;
   try {
     const auth = await requireAuth("courts:update")
     if (isAuthError(auth)) return auth
@@ -52,10 +50,8 @@ export async function PATCH(
 }
 
 // DELETE: Eliminar una pista
-export async function DELETE(
-  req: Request,
-  { params }: { params: { courtId: string } }
-) {
+export async function DELETE(req: Request, props: { params: Promise<{ courtId: string }> }) {
+  const params = await props.params;
   try {
     const auth = await requireAuth("courts:delete")
     if (isAuthError(auth)) return auth

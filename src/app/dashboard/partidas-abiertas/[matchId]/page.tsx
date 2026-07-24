@@ -9,7 +9,8 @@ import AddPartidaForm from '@/components/partidas-abiertas/AddPartidaForm';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 
-const EditPartidaPage = async ({ params }: { params: { matchId: string }}) => {
+const EditPartidaPage = async (props: { params: Promise<{ matchId: string }>}) => {
+  const params = await props.params;
   const session = await getServerSession(authOptions);
   if (!session?.user?.clubId) redirect('/login');
 

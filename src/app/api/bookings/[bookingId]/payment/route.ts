@@ -5,10 +5,8 @@ import { logger } from "@/lib/logger"
 import { NextResponse } from "next/server"
 
 // PATCH: Marcar pago de reserva como cobrado (todos los jugadores a la vez)
-export async function PATCH(
-  req: Request,
-  { params }: { params: { bookingId: string } }
-) {
+export async function PATCH(req: Request, props: { params: Promise<{ bookingId: string }> }) {
+  const params = await props.params;
   try {
     const auth = await requireAuth("bookings:update")
     if (isAuthError(auth)) return auth

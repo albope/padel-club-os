@@ -8,16 +8,33 @@
 
 export const ZONA_CLUB = "Europe/Madrid"
 
-const DTF_ZONA_CLUB = new Intl.DateTimeFormat("en-US", {
-  timeZone: ZONA_CLUB,
-  year: "numeric",
-  month: "2-digit",
-  day: "2-digit",
-  hour: "2-digit",
-  minute: "2-digit",
-  second: "2-digit",
-  hour12: false,
-})
+const FORMATTERS = new Map<string, Intl.DateTimeFormat>()
+
+function formatter(zona: string): Intl.DateTimeFormat {
+  const existente = FORMATTERS.get(zona)
+  if (existente) return existente
+  const nuevo = new Intl.DateTimeFormat("en-US", {
+    timeZone: zona,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: false,
+  })
+  FORMATTERS.set(zona, nuevo)
+  return nuevo
+}
+
+export function esZonaHorariaValida(zona: string): boolean {
+  try {
+    formatter(zona).format(new Date())
+    return true
+  } catch {
+    return false
+  }
+}
 
 export interface PartesFechaClub {
   year: number
@@ -29,9 +46,12 @@ export interface PartesFechaClub {
 }
 
 /** Componentes de fecha/hora de un instante, vistos desde la zona del club */
-export function partesEnZonaClub(instante: Date): PartesFechaClub {
+export function partesEnZonaClub(
+  instante: Date,
+  zona = ZONA_CLUB,
+): PartesFechaClub {
   const map: Record<string, number> = {}
-  for (const p of DTF_ZONA_CLUB.formatToParts(instante)) {
+  for (const p of formatter(zona).formatToParts(instante)) {
     if (p.type !== "literal") map[p.type] = parseInt(p.value, 10)
   }
   if (map.hour === 24) map.hour = 0
@@ -46,14 +66,14 @@ export function partesEnZonaClub(instante: Date): PartesFechaClub {
 }
 
 /** Hora decimal (ej. 18.5 = 18:30) de un instante en la zona del club */
-export function horaDecimalEnZonaClub(instante: Date): number {
-  const p = partesEnZonaClub(instante)
+export function horaDecimalEnZonaClub(instante: Date, zona = ZONA_CLUB): number {
+  const p = partesEnZonaClub(instante, zona)
   return p.hour + p.minute / 60
 }
 
 /** Dia de la semana (0=domingo ... 6=sabado) de un instante en la zona del club */
-export function diaSemanaEnZonaClub(instante: Date): number {
-  const p = partesEnZonaClub(instante)
+export function diaSemanaEnZonaClub(instante: Date, zona = ZONA_CLUB): number {
+  const p = partesEnZonaClub(instante, zona)
   return new Date(Date.UTC(p.year, p.month - 1, p.day)).getUTCDay()
 }
 
@@ -67,17 +87,18 @@ export function instanteDesdeZonaClub(
   month: number,
   day: number,
   hour = 0,
-  minute = 0
+  minute = 0,
+  zona = ZONA_CLUB,
 ): Date {
   const guess = Date.UTC(year, month - 1, day, hour, minute)
-  const p = partesEnZonaClub(new Date(guess))
+  const p = partesEnZonaClub(new Date(guess), zona)
   const mostradoComoUTC = Date.UTC(p.year, p.month - 1, p.day, p.hour, p.minute, p.second)
   const offset = mostradoComoUTC - guess // diferencia zona club-UTC (1h CET / 2h CEST)
   return new Date(guess - offset)
 }
 
 /** Instante de las 00:00 en la zona del club para una fecha "YYYY-MM-DD" */
-export function inicioDiaEnZonaClub(fechaISO: string): Date {
+export function inicioDiaEnZonaClub(fechaISO: string, zona = ZONA_CLUB): Date {
   const [year, month, day] = fechaISO.split("-").map((n) => parseInt(n, 10))
-  return instanteDesdeZonaClub(year, month, day, 0, 0)
+  return instanteDesdeZonaClub(year, month, day, 0, 0, zona)
 }

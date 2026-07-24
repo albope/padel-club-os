@@ -7,10 +7,8 @@ import { borrarClubDemo } from "@/lib/demo-club"
 
 const TAG = "PLATFORM_DEMO_CLUBS"
 
-export async function DELETE(
-  _req: Request,
-  { params }: { params: { clubId: string } }
-) {
+export async function DELETE(_req: Request, props: { params: Promise<{ clubId: string }> }) {
+  const params = await props.params;
   try {
     const auth = await requireAuth("platform:manage")
     if (isAuthError(auth)) return auth

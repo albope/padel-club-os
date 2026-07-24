@@ -113,11 +113,21 @@ const ReservasContainer: React.FC<ReservasContainerProps> = ({ initialBookings, 
           {/* Controles de navegación de día (solo para vista de parrilla) */}
           {view === 'grid' && (
             <div className="flex items-center gap-2 bg-muted rounded-lg p-1">
-                <button onClick={handlePrevDay} className="p-1.5 rounded-md hover:bg-accent">
+                <button
+                  type="button"
+                  onClick={handlePrevDay}
+                  className="p-1.5 rounded-md hover:bg-accent"
+                  aria-label="Día anterior"
+                >
                     <ChevronLeft className="h-5 w-5" />
                 </button>
                 <span className="font-semibold text-center w-32">{formatDisplayDate(currentDate)}</span>
-                <button onClick={handleNextDay} className="p-1.5 rounded-md hover:bg-accent">
+                <button
+                  type="button"
+                  onClick={handleNextDay}
+                  className="p-1.5 rounded-md hover:bg-accent"
+                  aria-label="Día siguiente"
+                >
                     <ChevronRight className="h-5 w-5" />
                 </button>
             </div>

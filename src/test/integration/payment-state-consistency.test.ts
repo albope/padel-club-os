@@ -19,6 +19,7 @@ const mockLimpiarWaitlist = vi.fn().mockResolvedValue(undefined)
 const mockStripeRefunds = { create: vi.fn().mockResolvedValue({}) }
 const mockStripeCheckoutExpire = vi.fn().mockResolvedValue({})
 const mockAplicarRefundBooking = vi.fn().mockResolvedValue(true)
+const mockEnqueueRefund = vi.fn().mockResolvedValue({ status: "not_needed" })
 
 vi.mock("@/lib/db", () => ({ db: mockDb }))
 vi.mock("@/lib/api-auth", () => ({
@@ -59,6 +60,9 @@ vi.mock("@/lib/payment-sync", async () => {
     aplicarRefundBooking: (...args: unknown[]) => mockAplicarRefundBooking(...args),
   }
 })
+vi.mock("@/lib/refunds", () => ({
+  enqueueBookingRefund: (...args: unknown[]) => mockEnqueueRefund(...args),
+}))
 vi.mock("@/lib/logger", () => ({
   logger: { info: vi.fn(), error: vi.fn(), warn: vi.fn() },
 }))
@@ -77,7 +81,7 @@ describe("Cancelacion jugador: sincronizacion de estados con refund", () => {
     mockDb.user.findUnique.mockResolvedValue({ email: "j@t.com", name: "J", club: { name: "C", slug: "c" } })
   })
 
-  it("con refund exitoso: llama aplicarRefundBooking en transaccion", async () => {
+  it("con refund exitoso: delega en la cola duradera", async () => {
     mockDb.booking.findFirst.mockResolvedValue(crearReservaMock({
       paymentStatus: "paid",
       paymentMethod: "online",
@@ -88,6 +92,7 @@ describe("Cancelacion jugador: sincronizacion de estados con refund", () => {
       status: "succeeded",
     }))
     mockDb.payment.update.mockResolvedValue({})
+    mockEnqueueRefund.mockResolvedValue({ status: "succeeded" })
 
     const response = await DELETE(crearRequest({
       method: "DELETE",
@@ -95,12 +100,12 @@ describe("Cancelacion jugador: sincronizacion de estados con refund", () => {
     }))
 
     expect(response.status).toBe(200)
-    expect(mockStripeRefunds.create).toHaveBeenCalled()
-    // aplicarRefundBooking llama dentro de $transaction
-    expect(mockAplicarRefundBooking).toHaveBeenCalled()
+    expect(mockEnqueueRefund).toHaveBeenCalledWith("booking-1", "Cancelado por el jugador")
+    expect(mockStripeRefunds.create).not.toHaveBeenCalled()
+    expect(mockAplicarRefundBooking).not.toHaveBeenCalled()
   })
 
-  it("sin pago online: NO llama aplicarRefundBooking (freeze)", async () => {
+  it("sin pago online: la cola decide que no necesita reembolso", async () => {
     mockDb.booking.findFirst.mockResolvedValue(crearReservaMock({
       paymentStatus: "pending",
       paymentMethod: "presential",
@@ -113,11 +118,12 @@ describe("Cancelacion jugador: sincronizacion de estados con refund", () => {
       url: "http://localhost/api/player/bookings?bookingId=booking-1",
     }))
 
+    expect(mockEnqueueRefund).toHaveBeenCalledWith("booking-1", "Cancelado por el jugador")
     expect(mockStripeRefunds.create).not.toHaveBeenCalled()
     expect(mockAplicarRefundBooking).not.toHaveBeenCalled()
   })
 
-  it("refund falla en Stripe: no sincroniza pero cancelacion sigue OK", async () => {
+  it("si no se puede registrar la obligacion, la cancelacion sigue y queda pendiente", async () => {
     mockDb.booking.findFirst.mockResolvedValue(crearReservaMock({
       paymentStatus: "paid",
       paymentMethod: "online",
@@ -127,7 +133,7 @@ describe("Cancelacion jugador: sincronizacion de estados con refund", () => {
       stripePaymentId: "pi_fail",
       status: "succeeded",
     }))
-    mockStripeRefunds.create.mockRejectedValue(new Error("Stripe down"))
+    mockEnqueueRefund.mockRejectedValue(new Error("Database unavailable"))
 
     const response = await DELETE(crearRequest({
       method: "DELETE",
@@ -135,7 +141,8 @@ describe("Cancelacion jugador: sincronizacion de estados con refund", () => {
     }))
 
     expect(response.status).toBe(200)
-    // Refund fallo -> no se llamo a la transaccion de sync
+    const body = await response.json()
+    expect(body.refundStatus).toBe("pending")
     expect(mockAplicarRefundBooking).not.toHaveBeenCalled()
     // Pero booking se cancelo
     expect(mockDb.booking.update).toHaveBeenCalledWith(
@@ -145,7 +152,7 @@ describe("Cancelacion jugador: sincronizacion de estados con refund", () => {
     )
   })
 
-  it("Payment ya refunded: no intenta refund ni sync", async () => {
+  it("Payment ya refunded: la cola devuelve already_refunded sin duplicar Stripe", async () => {
     mockDb.booking.findFirst.mockResolvedValue(crearReservaMock({
       paymentStatus: "paid",
       paymentMethod: "online",
@@ -155,6 +162,7 @@ describe("Cancelacion jugador: sincronizacion de estados con refund", () => {
       stripePaymentId: "pi_done",
       status: "refunded",
     }))
+    mockEnqueueRefund.mockResolvedValue({ status: "already_refunded" })
 
     const response = await DELETE(crearRequest({
       method: "DELETE",
@@ -162,6 +170,7 @@ describe("Cancelacion jugador: sincronizacion de estados con refund", () => {
     }))
 
     expect(response.status).toBe(200)
+    expect(mockEnqueueRefund).toHaveBeenCalled()
     expect(mockStripeRefunds.create).not.toHaveBeenCalled()
     expect(mockAplicarRefundBooking).not.toHaveBeenCalled()
   })

@@ -57,14 +57,27 @@ export async function POST(req: Request) {
     for (const reserva of reservas) {
       if (!reserva.userId) continue
 
+      const claimedAt = new Date()
       try {
+        // Reclamar el recordatorio de forma atomica evita duplicados si dos
+        // invocaciones del cron se solapan.
+        const claim = await db.booking.updateMany({
+          where: {
+            id: reserva.id,
+            status: "confirmed",
+            reminderSentAt: null,
+          },
+          data: { reminderSentAt: claimedAt },
+        })
+        if (claim.count === 0) continue
+
         const hora = reserva.startTime.toLocaleTimeString("es-ES", {
           hour: "2-digit",
           minute: "2-digit",
           timeZone: "Europe/Madrid",
         })
 
-        await crearNotificacion({
+        const notificacion = await crearNotificacion({
           tipo: "booking_reminder",
           titulo: "Recordatorio de reserva",
           mensaje: `Tu reserva en ${reserva.court.name} es hoy a las ${hora}. ¡No llegues tarde!`,
@@ -73,29 +86,34 @@ export async function POST(req: Request) {
           metadata: { bookingId: reserva.id },
           url: `/club/${reserva.club.slug}/reservar`,
         })
+        if (!notificacion) {
+          throw new Error("No se pudo crear la notificacion de recordatorio")
+        }
 
         // Enviar email de recordatorio
         if (reserva.user?.email) {
-          enviarEmailRecordatorioReserva({
-            email: reserva.user.email,
-            nombre: reserva.user.name || "Jugador",
-            pistaNombre: reserva.court.name,
-            fechaHoraInicio: reserva.startTime,
-            clubNombre: reserva.club.name,
-            clubSlug: reserva.club.slug,
-          }).catch((err) => {
+          try {
+            await enviarEmailRecordatorioReserva({
+              email: reserva.user.email,
+              nombre: reserva.user.name || "Jugador",
+              pistaNombre: reserva.court.name,
+              fechaHoraInicio: reserva.startTime,
+              clubNombre: reserva.club.name,
+              clubSlug: reserva.club.slug,
+            })
+          } catch (err) {
             logger.error("BOOKING_REMINDER_EMAIL", "Error enviando email de recordatorio", { ruta: "/api/cron/booking-reminders", reservaId: reserva.id }, err)
-          })
+          }
         }
-
-        // Marcar como recordatorio enviado
-        await db.booking.update({
-          where: { id: reserva.id },
-          data: { reminderSentAt: new Date() },
-        })
 
         enviados++
       } catch (error) {
+        // Si el envio principal falla, liberar solo nuestra reclamacion para
+        // que una ejecucion posterior pueda reintentarlo.
+        await db.booking.updateMany({
+          where: { id: reserva.id, reminderSentAt: claimedAt },
+          data: { reminderSentAt: null },
+        }).catch(() => {})
         logger.error("BOOKING_REMINDER", "Error procesando recordatorio", { ruta: "/api/cron/booking-reminders", reservaId: reserva.id }, error)
         errores++
       }
@@ -139,8 +157,16 @@ export async function POST(req: Request) {
           }
         }
 
-        await db.booking.update({
-          where: { id: reserva.id },
+        // Confirmar de forma atomica que sigue impagada. Un webhook de Stripe
+        // puede haber completado el pago desde que se construyo la lista.
+        const cancelacion = await db.booking.updateMany({
+          where: {
+            id: reserva.id,
+            status: "confirmed",
+            paymentStatus: "pending",
+            paymentMethod: "online",
+            payment: null,
+          },
           data: {
             status: "cancelled",
             cancelledAt: new Date(),
@@ -150,6 +176,7 @@ export async function POST(req: Request) {
             checkoutLockUntil: null,
           },
         })
+        if (cancelacion.count === 0) continue
         canceladas++
 
         registrarAuditoria({
@@ -165,7 +192,7 @@ export async function POST(req: Request) {
         })
 
         // Notificar lista de espera del slot liberado
-        liberarSlotYNotificar({
+        await liberarSlotYNotificar({
           courtId: reserva.courtId,
           startTime: reserva.startTime,
           endTime: reserva.endTime,
@@ -173,7 +200,7 @@ export async function POST(req: Request) {
           clubSlug: reserva.club?.slug || "",
           clubNombre: reserva.club?.name || "",
           pistaNombre: reserva.court?.name || "Pista",
-        }).catch(() => {})
+        })
       } catch (cancelError) {
         logger.error("BOOKING_AUTO_CANCEL", "Error cancelando reserva expirada", { reservaId: reserva.id }, cancelError)
       }

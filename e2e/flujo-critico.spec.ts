@@ -1,55 +1,71 @@
 import { test, expect } from "@playwright/test"
+import { PrismaClient } from "@prisma/client"
 
 // E2E del flujo critico comercial:
 //   Admin: registro de club -> wizard de configuracion -> reserva desde el grid
 //   Jugador: registro en el portal -> login -> reserva desde el grid publico
 //
-// Corre contra el dev server local (DB = rama dev de Neon, ver playwright.config.ts).
-// Cada ejecucion crea un club nuevo con sufijo unico; no limpia datos (la rama dev
-// se puede resetear desde Neon con "reset from parent").
+// En CI corre contra PostgreSQL efimero. En local usa exclusivamente la base de
+// desarrollo configurada y limpia todos los datos creados al terminar.
 
 const ts = Date.now()
 const adminName = `E2E Admin ${ts}`
+const clubName = `E2E Club ${ts}`
 const adminEmail = `e2e-admin-${ts}@e2e.test`
 const playerEmail = `e2e-jugador-${ts}@e2e.test`
 const password = "e2ePassword123"
 
-// El registro crea el club "{name}'s Club" y el slug se deriva con slugify:
-// "E2E Admin {ts}'s Club" -> "e2e-admin-{ts}-s-club"
-const clubSlug = `e2e-admin-${ts}-s-club`
+const clubSlug = `e2e-club-${ts}`
 
 const PISTA_ADMIN = "Pista Central"
 const PISTA_JUGADOR = "Pista Anexa"
 
-// El grid admin muestra slots por hora en punta (09:00-22:00). Elegimos el
-// primer slot con al menos 2h de margen para que nunca sea pasado. La misma
-// hora en punta existe como franja en el grid del jugador (pasos de 30 min).
-// La hora se calcula en Europe/Madrid: el runner de CI corre en UTC pero la
-// app muestra y valida horas de pared del club.
-function slotFuturo(): string {
-  const horaMadrid = parseInt(
-    new Intl.DateTimeFormat("en-US", {
-      timeZone: "Europe/Madrid",
-      hour: "2-digit",
-      hour12: false,
-    }).format(new Date()),
-    10
-  )
-  const hora = Math.max(9, Math.min(20, (horaMadrid === 24 ? 0 : horaMadrid) + 2))
-  return `${String(hora).padStart(2, "0")}:00`
-}
-const slot = slotFuturo()
+// Siempre se usa mañana, por lo que la prueba no depende de la hora del runner.
+const slot = "10:00"
+const prisma = new PrismaClient()
 
 test.describe.serial("Flujo critico: alta de club, configuracion y reservas", () => {
+  test.afterAll(async () => {
+    const club = await prisma.club.findUnique({
+      where: { slug: clubSlug },
+      select: {
+        id: true,
+        memberships: { select: { userId: true } },
+      },
+    })
+    if (club) {
+      const userIds = club.memberships.map((membership) => membership.userId)
+      await prisma.$transaction(async (tx) => {
+        await tx.legalAcceptance.deleteMany({ where: { clubId: club.id } })
+        await tx.user.updateMany({
+          where: { id: { in: userIds } },
+          data: { clubId: null },
+        })
+        await tx.club.delete({ where: { id: club.id } })
+        await tx.user.deleteMany({ where: { id: { in: userIds } } })
+      })
+    }
+    await prisma.$disconnect()
+  })
+
   test("admin: registro, wizard de configuracion y reserva en el grid", async ({ page }) => {
     // --- Registro del club ---
     await page.goto("/register")
+    await page.getByRole("button", { name: "Entendido" }).click()
     await page.locator("#name").fill(adminName)
+    await page.locator("#clubName").fill(clubName)
     await page.locator("#email").fill(adminEmail)
     await page.locator("#password").fill(password)
     await page.getByRole("checkbox", { name: /condiciones/i }).check()
     await page.getByRole("button", { name: "Crear cuenta gratis" }).click()
-    await page.waitForURL("**/login", { timeout: 30_000 })
+    await page.waitForURL("**/login**", { timeout: 30_000 })
+
+    // Simula el clic en el enlace enviado por email; el transporte de correo se
+    // prueba por separado y no debe volver frágil el journey de navegador.
+    await prisma.user.update({
+      where: { email: adminEmail },
+      data: { emailVerified: new Date() },
+    })
 
     // --- Login ---
     await page.locator("#email").fill(adminEmail)
@@ -67,7 +83,7 @@ test.describe.serial("Flujo critico: alta de club, configuracion y reservas", ()
     await page.getByRole("button", { name: "Siguiente" }).click()
 
     // Paso 2: crear dos pistas (el input se vacia tras crear cada una)
-    await expect(page.getByText("Pistas de tu club")).toBeVisible()
+    await expect(page.getByText("Pistas de tu club")).toBeVisible({ timeout: 30_000 })
     await page.locator("#courtName").fill(PISTA_ADMIN)
     await page.getByRole("button", { name: "Añadir pista" }).click()
     await expect(page.locator("#courtName")).toHaveValue("", { timeout: 15_000 })
@@ -90,6 +106,7 @@ test.describe.serial("Flujo critico: alta de club, configuracion y reservas", ()
     // --- Crear una reserva desde el grid de reservas ---
     await page.goto("/dashboard/reservas")
     await expect(page.getByText("Calendario de Reservas")).toBeVisible({ timeout: 20_000 })
+    await page.getByRole("button", { name: "Día siguiente" }).click()
 
     await page
       .getByRole("button", { name: `Crear reserva a las ${slot} en ${PISTA_ADMIN}` })
@@ -121,10 +138,28 @@ test.describe.serial("Flujo critico: alta de club, configuracion y reservas", ()
     await page.locator("#name").fill("E2E Jugador")
     await page.locator("#email").fill(playerEmail)
     await page.locator("#password").fill(password)
+    await page.getByRole("checkbox", { name: /política de privacidad/i }).check()
     await page.getByRole("button", { name: "Crear cuenta" }).click()
-    await page.waitForURL(`**/club/${clubSlug}/login`, { timeout: 30_000 })
+    await expect(
+      page.getByText(/^(Solicitud enviada|Cuenta creada)$/i),
+    ).toBeVisible({ timeout: 30_000 })
+
+    // Simula verificación de email + aprobación por el club (modo APPROVAL).
+    const club = await prisma.club.findUniqueOrThrow({ where: { slug: clubSlug } })
+    const player = await prisma.user.findUniqueOrThrow({ where: { email: playerEmail } })
+    await prisma.$transaction([
+      prisma.user.update({
+        where: { id: player.id },
+        data: { emailVerified: new Date(), clubId: club.id },
+      }),
+      prisma.clubMembership.update({
+        where: { userId_clubId: { userId: player.id, clubId: club.id } },
+        data: { status: "ACTIVE", approvedAt: new Date() },
+      }),
+    ])
 
     // --- Login de jugador ---
+    await page.goto(`/club/${clubSlug}/login`)
     await page.locator("#email").fill(playerEmail)
     await page.locator("#password").fill(password)
     await page.getByRole("button", { name: "Iniciar sesión" }).click()
@@ -133,6 +168,10 @@ test.describe.serial("Flujo critico: alta de club, configuracion y reservas", ()
     // --- Reservar pista desde el grid publico ---
     await page.goto(`/club/${clubSlug}/reservar`)
     await expect(page.getByRole("heading", { name: /Reservar pista/i })).toBeVisible({ timeout: 20_000 })
+    await expect(page.getByText("Hoy", { exact: true })).toBeVisible()
+    await expect(page.getByRole("button", { name: "Volver a hoy" })).toHaveCount(0)
+    await page.getByRole("button", { name: "Día siguiente" }).click()
+    await expect(page.getByRole("button", { name: "Volver a hoy" })).toBeVisible()
 
     // Mismo horario que el admin pero en la otra pista (sin solape)
     await page
@@ -147,5 +186,26 @@ test.describe.serial("Flujo critico: alta de club, configuracion y reservas", ()
     await expect(
       page.getByRole("heading", { name: "Reserva confirmada!", level: 3 })
     ).toBeVisible({ timeout: 20_000 })
+  })
+
+  test("calidad basica: portal movil, imagenes y cabeceras de seguridad", async ({ page, request }) => {
+    const response = await request.get(`/club/${clubSlug}`)
+    expect(response.ok()).toBeTruthy()
+    expect(response.headers()["x-content-type-options"]).toBe("nosniff")
+    expect(response.headers()["content-security-policy"]).toContain("default-src 'self'")
+
+    await page.setViewportSize({ width: 360, height: 800 })
+    await page.goto(`/club/${clubSlug}`)
+    await expect(page.locator("main")).toBeVisible()
+    const hasHorizontalOverflow = await page.evaluate(
+      () => document.documentElement.scrollWidth > window.innerWidth + 1,
+    )
+    expect(hasHorizontalOverflow).toBe(false)
+
+    const brokenVisibleImages = await page.locator("img:visible").evaluateAll((images) =>
+      images.filter((image) => !(image as HTMLImageElement).complete
+        || (image as HTMLImageElement).naturalWidth === 0).length
+    )
+    expect(brokenVisibleImages).toBe(0)
   })
 })

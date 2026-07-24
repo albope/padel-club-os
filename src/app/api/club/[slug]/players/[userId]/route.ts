@@ -5,10 +5,8 @@ import { eloANivel } from "@/lib/elo"
 import { logger } from "@/lib/logger"
 
 // GET: Perfil publico de un jugador del club (requiere auth + mismo club)
-export async function GET(
-  req: Request,
-  { params }: { params: { slug: string; userId: string } }
-) {
+export async function GET(req: Request, props: { params: Promise<{ slug: string; userId: string }> }) {
+  const params = await props.params;
   try {
     const auth = await requireAuth("players:read")
     if (isAuthError(auth)) return auth
@@ -28,42 +26,47 @@ export async function GET(
     }
 
     // Buscar jugador activo en este club
-    const jugador = await db.user.findFirst({
+    const membership = await db.clubMembership.findFirst({
       where: {
-        id: params.userId,
+        userId: params.userId,
         clubId: club.id,
         role: "PLAYER",
-        isActive: true,
+        status: "ACTIVE",
       },
       select: {
-        id: true,
-        name: true,
-        image: true,
-        level: true,
-        position: true,
-        playerStats: {
-          where: { clubId: club.id },
+        user: {
           select: {
-            eloRating: true,
-            matchesPlayed: true,
-            matchesWon: true,
-            setsWon: true,
-            setsLost: true,
-            gamesWon: true,
-            gamesLost: true,
-            winStreak: true,
-            bestWinStreak: true,
-            averageRating: true,
-            totalRatings: true,
+            id: true,
+            name: true,
+            image: true,
+            level: true,
+            position: true,
+            playerStats: {
+              where: { clubId: club.id },
+              select: {
+                eloRating: true,
+                matchesPlayed: true,
+                matchesWon: true,
+                setsWon: true,
+                setsLost: true,
+                gamesWon: true,
+                gamesLost: true,
+                winStreak: true,
+                bestWinStreak: true,
+                averageRating: true,
+                totalRatings: true,
+              },
+            },
           },
         },
       },
     })
 
-    if (!jugador) {
+    if (!membership) {
       return NextResponse.json({ error: "Jugador no encontrado." }, { status: 404 })
     }
 
+    const jugador = membership.user
     const stats = jugador.playerStats[0]
 
     // Valoraciones recientes (ultimas 5)

@@ -236,8 +236,9 @@ async function revertirPlayerStats(
 // PATCH: Actualizar o eliminar resultado de un partido
 export async function PATCH(
   req: Request,
-  { params }: { params: { competitionId: string; matchId: string } }
+  props: { params: Promise<{ competitionId: string; matchId: string }> }
 ) {
+  const params = await props.params;
   try {
     const auth = await requireAuth("competitions:update")
     if (isAuthError(auth)) return auth

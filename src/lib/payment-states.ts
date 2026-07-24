@@ -13,8 +13,10 @@
 // TIPOS DE ESTADO
 // =============================================================================
 
-export type BookingPaymentStatus = "pending" | "paid" | "refunded" | "exempt"
-export type PaymentStatus = "pending" | "succeeded" | "failed" | "refunded"
+export type BookingPaymentStatus =
+  | "pending" | "paid" | "refunded" | "exempt" | "refund_pending" | "refund_failed"
+export type PaymentStatus =
+  | "pending" | "succeeded" | "failed" | "refunded" | "refund_pending" | "refund_failed"
 export type BookingPaymentItemStatus = "pending" | "paid" | "refunded"
 
 // =============================================================================
@@ -29,8 +31,10 @@ export type BookingPaymentItemStatus = "pending" | "paid" | "refunded"
  *   exempt   -> (inmutable, nunca cambia)
  */
 const BOOKING_TRANSITIONS: Record<string, readonly string[]> = {
-  pending: ["paid", "refunded"],
-  paid: ["refunded"],
+  pending: ["paid", "refund_pending", "refunded"],
+  paid: ["refund_pending", "refunded"],
+  refund_pending: ["refund_failed", "refunded"],
+  refund_failed: ["refund_pending", "refunded"],
   refunded: [],
   exempt: [],
 }
@@ -44,7 +48,9 @@ const BOOKING_TRANSITIONS: Record<string, readonly string[]> = {
  */
 const PAYMENT_TRANSITIONS: Record<string, readonly string[]> = {
   pending: ["succeeded", "failed"],
-  succeeded: ["refunded"],
+  succeeded: ["refund_pending", "refunded"],
+  refund_pending: ["refund_failed", "refunded"],
+  refund_failed: ["refund_pending", "refunded"],
   failed: [],
   refunded: [],
 }
@@ -96,7 +102,7 @@ export function canTransitionBookingPayment(
 /** Devuelve true si el booking esta en un estado terminal de pago (no se puede cobrar) */
 export function isBookingPaymentTerminal(status: string | null | undefined): boolean {
   const s = status || "pending"
-  return s === "refunded" || s === "exempt"
+  return s === "refunded" || s === "exempt" || s === "refund_pending" || s === "refund_failed"
 }
 
 /** Devuelve true si el booking esta cancelado o su pago es terminal */

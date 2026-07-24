@@ -69,6 +69,9 @@ const AuthForm: React.FC<AuthFormProps> = ({ isRegister = false }) => {
       .min(1, t('passwordRequired'))
       .min(8, t('passwordMinLength')),
     name: z.string().optional(),
+    clubName: isRegister
+      ? z.string().min(2, t('clubNameRequired'))
+      : z.string().optional(),
     legalAccepted: isRegister
       ? z.boolean().refine((accepted) => accepted, t('legalRequired'))
       : z.boolean().optional(),
@@ -76,7 +79,7 @@ const AuthForm: React.FC<AuthFormProps> = ({ isRegister = false }) => {
 
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
-    defaultValues: { email: '', password: '', name: '', legalAccepted: false },
+    defaultValues: { email: '', password: '', name: '', clubName: '', legalAccepted: false },
   });
 
   const fortaleza = useMemo(() => evaluarPassword(passwordValue), [passwordValue]);
@@ -95,10 +98,10 @@ const AuthForm: React.FC<AuthFormProps> = ({ isRegister = false }) => {
           body: JSON.stringify(values),
         });
         if (response.ok) {
-          router.push('/login');
+          router.push('/login?registered=1');
         } else {
           const data = await response.json();
-          setError(data.message || t('serverError'));
+          setError(data.error || data.message || t('serverError'));
         }
       } catch {
         setError(t('serverError'));
@@ -142,26 +145,55 @@ const AuthForm: React.FC<AuthFormProps> = ({ isRegister = false }) => {
 
         {/* Campo nombre (solo registro) */}
         {isRegister && (
-          <div className="space-y-1.5 auth-fade-up-4">
-            <Label htmlFor="name" className="text-[13px] font-medium text-foreground/80">
-              {t('name')}
-            </Label>
-            <div className="auth-input-glow rounded-lg">
-              <Input
-                id="name"
-                type="text"
-                {...form.register('name')}
-                aria-required="true"
-                placeholder={t('yourName')}
-                className={cn(
-                  'h-10 text-sm',
-                  'bg-muted/40 border-border/70',
-                  'focus-visible:ring-primary/20 focus-visible:border-primary/50',
-                  'placeholder:text-muted-foreground/50 transition-all duration-150'
-                )}
-              />
+          <>
+            <div className="space-y-1.5 auth-fade-up-4">
+              <Label htmlFor="name" className="text-[13px] font-medium text-foreground/80">
+                {t('name')}
+              </Label>
+              <div className="auth-input-glow rounded-lg">
+                <Input
+                  id="name"
+                  type="text"
+                  {...form.register('name')}
+                  aria-required="true"
+                  placeholder={t('yourName')}
+                  className={cn(
+                    'h-10 text-sm',
+                    'bg-muted/40 border-border/70',
+                    'focus-visible:ring-primary/20 focus-visible:border-primary/50',
+                    'placeholder:text-muted-foreground/50 transition-all duration-150'
+                  )}
+                />
+              </div>
             </div>
-          </div>
+            <div className="space-y-1.5 auth-fade-up-4">
+              <Label htmlFor="clubName" className="text-[13px] font-medium text-foreground/80">
+                {t('clubName')}
+              </Label>
+              <div className="auth-input-glow rounded-lg">
+                <Input
+                  id="clubName"
+                  type="text"
+                  {...form.register('clubName')}
+                  aria-required="true"
+                  aria-invalid={!!form.formState.errors.clubName}
+                  placeholder={t('clubNamePlaceholder')}
+                  className={cn(
+                    'h-10 text-sm',
+                    'bg-muted/40 border-border/70',
+                    'focus-visible:ring-primary/20 focus-visible:border-primary/50',
+                    'placeholder:text-muted-foreground/50 transition-all duration-150',
+                    form.formState.errors.clubName && 'border-destructive/50'
+                  )}
+                />
+              </div>
+              {form.formState.errors.clubName && (
+                <p role="alert" className="text-xs text-destructive">
+                  {form.formState.errors.clubName.message}
+                </p>
+              )}
+            </div>
+          </>
         )}
 
         {/* Campo email */}

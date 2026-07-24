@@ -41,6 +41,7 @@ export default function ClubLoginPage() {
       redirect: false,
       email: values.email,
       password: values.password,
+      clubSlug: slug,
     });
 
     setIsLoading(false);

@@ -12,10 +12,8 @@ const NewsUpdateSchema = z.object({
 })
 
 // GET: Obtener una noticia por ID
-export async function GET(
-  req: Request,
-  { params }: { params: { newsId: string } }
-) {
+export async function GET(req: Request, props: { params: Promise<{ newsId: string }> }) {
+  const params = await props.params;
   try {
     const auth = await requireAuth("news:read")
     if (isAuthError(auth)) return auth
@@ -39,10 +37,8 @@ export async function GET(
 }
 
 // PATCH: Actualizar noticia
-export async function PATCH(
-  req: Request,
-  { params }: { params: { newsId: string } }
-) {
+export async function PATCH(req: Request, props: { params: Promise<{ newsId: string }> }) {
+  const params = await props.params;
   try {
     const auth = await requireAuth("news:update")
     if (isAuthError(auth)) return auth
@@ -74,10 +70,8 @@ export async function PATCH(
 }
 
 // DELETE: Eliminar noticia
-export async function DELETE(
-  req: Request,
-  { params }: { params: { newsId: string } }
-) {
+export async function DELETE(req: Request, props: { params: Promise<{ newsId: string }> }) {
+  const params = await props.params;
   try {
     const auth = await requireAuth("news:delete")
     if (isAuthError(auth)) return auth

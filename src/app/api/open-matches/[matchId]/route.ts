@@ -8,6 +8,7 @@ import { liberarSlotYNotificar, limpiarWaitlistAlReservar } from "@/lib/waitlist
 import { verificarBloqueo } from "@/lib/court-blocks";
 import { logger } from "@/lib/logger";
 import * as z from "zod";
+import { respuestaErrorReserva, validarRangoReserva } from "@/lib/booking-domain";
 
 const OpenMatchUpdateSchema = z.object({
   courtId: z.string().min(1, "El ID de pista es requerido."),
@@ -22,10 +23,8 @@ const OpenMatchUpdateSchema = z.object({
 )
 
 // PATCH: Modificar una partida abierta
-export async function PATCH(
-  req: Request,
-  { params }: { params: { matchId: string } }
-) {
+export async function PATCH(req: Request, props: { params: Promise<{ matchId: string }> }) {
+  const params = await props.params;
   try {
     const auth = await requireAuth("open-matches:update")
     if (isAuthError(auth)) return auth
@@ -55,7 +54,18 @@ export async function PATCH(
     // Verificar pista pertenece al club y obtener duracion
     const [pista, club] = await Promise.all([
       db.court.findFirst({ where: { id: courtId, clubId }, select: { id: true, name: true } }),
-      db.club.findUnique({ where: { id: clubId }, select: { bookingDuration: true, slug: true, name: true } }),
+      db.club.findUnique({
+        where: { id: clubId },
+        select: {
+          bookingDuration: true,
+          slug: true,
+          name: true,
+          timezone: true,
+          openingTime: true,
+          closingTime: true,
+          maxAdvanceBooking: true,
+        },
+      }),
     ]);
 
     if (!pista) {
@@ -63,9 +73,14 @@ export async function PATCH(
     }
 
     // Verificar que todos los jugadores existen y pertenecen al club
-    const jugadores = await db.user.findMany({
-      where: { id: { in: playerIds }, clubId },
-      select: { id: true },
+    const jugadores = await db.clubMembership.findMany({
+      where: {
+        userId: { in: playerIds },
+        clubId,
+        role: "PLAYER",
+        status: "ACTIVE",
+      },
+      select: { userId: true },
     });
     if (jugadores.length !== playerIds.length) {
       return new NextResponse("Uno o mas jugadores no son validos o no pertenecen al club.", { status: 400 });
@@ -74,11 +89,21 @@ export async function PATCH(
     const startTime = new Date(matchTime);
     const duracionMinutos = club?.bookingDuration || 90;
     const endTime = new Date(startTime.getTime() + duracionMinutos * 60 * 1000);
+    if (!club) {
+      return NextResponse.json({ error: "Club no encontrado." }, { status: 404 })
+    }
+    validarRangoReserva({
+      startTime,
+      endTime,
+      policy: club,
+      requireFuture: true,
+    })
 
     // Overlap check excluyendo el booking actual de esta partida
     const overlapping = await db.booking.findFirst({
       where: {
         courtId,
+        clubId,
         status: { not: "cancelled" },
         id: { not: openMatch.bookingId },
         AND: [
@@ -166,16 +191,21 @@ export async function PATCH(
 
     return NextResponse.json({ message: "Partida actualizada" });
   } catch (error) {
+    const domainError = respuestaErrorReserva(error)
+    if (domainError) {
+      return NextResponse.json(
+        { error: domainError.message, code: domainError.code },
+        { status: domainError.status },
+      )
+    }
     logger.error("OPEN_MATCH_UPDATE", "Error al actualizar partida abierta", {}, error);
     return new NextResponse("Internal Server Error", { status: 500 });
   }
 }
 
 // DELETE: Eliminar una partida abierta
-export async function DELETE(
-  req: Request,
-  { params }: { params: { matchId: string } }
-) {
+export async function DELETE(req: Request, props: { params: Promise<{ matchId: string }> }) {
+  const params = await props.params;
   try {
     const auth = await requireAuth("open-matches:delete")
     if (isAuthError(auth)) return auth

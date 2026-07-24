@@ -20,10 +20,8 @@ const CourtPricingSchema = z.object({
 })
 
 // GET: Obtener reglas de precio de una pista
-export async function GET(
-  req: Request,
-  { params }: { params: { courtId: string } }
-) {
+export async function GET(req: Request, props: { params: Promise<{ courtId: string }> }) {
+  const params = await props.params;
   try {
     const auth = await requireAuth("court-pricing:read")
     if (isAuthError(auth)) return auth
@@ -58,10 +56,8 @@ export async function GET(
 }
 
 // POST: Crear/actualizar reglas de precio de una pista
-export async function POST(
-  req: Request,
-  { params }: { params: { courtId: string } }
-) {
+export async function POST(req: Request, props: { params: Promise<{ courtId: string }> }) {
+  const params = await props.params;
   try {
     const auth = await requireAuth("court-pricing:update")
     if (isAuthError(auth)) return auth

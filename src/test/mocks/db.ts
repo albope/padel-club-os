@@ -18,6 +18,17 @@ export const mockDb = {
     create: vi.fn(),
     update: vi.fn(),
   },
+  clubMembership: {
+    count: vi.fn(),
+    findMany: vi.fn(),
+    findFirst: vi.fn(),
+    findUnique: vi.fn(),
+    create: vi.fn(),
+    createMany: vi.fn(),
+    update: vi.fn(),
+    updateMany: vi.fn(),
+    upsert: vi.fn(),
+  },
   court: {
     count: vi.fn(),
     findFirst: vi.fn(),
@@ -31,6 +42,15 @@ export const mockDb = {
   legalAcceptance: {
     create: vi.fn(),
     findFirst: vi.fn(),
+  },
+  bugReport: {
+    create: vi.fn(),
+    findMany: vi.fn(),
+    findUnique: vi.fn(),
+    update: vi.fn(),
+  },
+  auditLog: {
+    create: vi.fn().mockResolvedValue({}),
   },
   notification: {
     create: vi.fn(),
@@ -50,9 +70,27 @@ export const mockDb = {
   },
   payment: {
     create: vi.fn(),
+    upsert: vi.fn(),
     findFirst: vi.fn(),
     findUnique: vi.fn(),
     update: vi.fn(),
+    updateMany: vi.fn(),
+  },
+  refundOperation: {
+    create: vi.fn(),
+    findFirst: vi.fn(),
+    findMany: vi.fn(),
+    findUnique: vi.fn(),
+    update: vi.fn(),
+    updateMany: vi.fn(),
+    upsert: vi.fn(),
+    count: vi.fn(),
+  },
+  stripeWebhookEvent: {
+    create: vi.fn(),
+    findUnique: vi.fn(),
+    update: vi.fn(),
+    updateMany: vi.fn(),
   },
   bookingPayment: {
     createMany: vi.fn(),
@@ -66,6 +104,7 @@ export const mockDb = {
   openMatch: {
     create: vi.fn(),
     findFirst: vi.fn(),
+    findMany: vi.fn(),
     findUnique: vi.fn(),
     update: vi.fn(),
     delete: vi.fn(),
@@ -93,6 +132,7 @@ export const mockDb = {
     updateMany: vi.fn(),
     delete: vi.fn(),
   },
+  $queryRaw: vi.fn().mockResolvedValue([]),
   // Soporta ambos patrones:
   // Callback: db.$transaction(async (prisma) => {...})
   // Array: db.$transaction([op1, op2])

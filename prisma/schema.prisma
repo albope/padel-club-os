@@ -11,68 +11,107 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum ClubRegistrationMode {
+  OPEN
+  APPROVAL
+  INVITE_ONLY
+  CLOSED
+}
+
+enum MembershipStatus {
+  ACTIVE
+  PENDING
+  SUSPENDED
+  REVOKED
+}
+
+enum BugReportStatus {
+  NEW
+  TRIAGED
+  IN_PROGRESS
+  RESOLVED
+  CLOSED
+}
+
+enum BugReportCategory {
+  BUG
+  UX
+  PERFORMANCE
+  DATA
+  SUGGESTION
+  OTHER
+}
+
 // --- CENTRAL MODEL: THE CLUB ---
 model Club {
-  id               String    @id @default(cuid())
+  id               String  @id @default(cuid())
   name             String
-  slug             String    @unique
+  slug             String  @unique
   address          String?
   logoUrl          String?
-  openingTime      String?   @default("09:00")
-  closingTime      String?   @default("23:00")
-  subscriptionTier String    @default("starter")
-  stripeCustomerId String?   @unique
+  openingTime      String? @default("09:00")
+  closingTime      String? @default("23:00")
+  subscriptionTier String  @default("starter")
+  stripeCustomerId String? @unique
 
   // Configuracion del portal publico
-  description       String?
-  phone             String?
-  email             String?
-  primaryColor      String?  @default("#4f46e5")
-  bannerUrl         String?
-  instagramUrl      String?
-  facebookUrl       String?
-  maxAdvanceBooking Int?     @default(7)     // dias de antelacion para reservar
-  cancellationHours Int?     @default(2)     // horas antes para cancelar
-  enableOpenMatches Boolean  @default(true)
-  enablePlayerBooking Boolean @default(true)
-  bookingDuration   Int?     @default(90)    // duracion de reserva en minutos (60, 90, 120)
+  description           String?
+  phone                 String?
+  email                 String?
+  primaryColor          String?              @default("#4f46e5")
+  bannerUrl             String?
+  instagramUrl          String?
+  facebookUrl           String?
+  maxAdvanceBooking     Int?                 @default(7) // dias de antelacion para reservar
+  cancellationHours     Int?                 @default(2) // horas antes para cancelar
+  enableOpenMatches     Boolean              @default(true)
+  enablePlayerBooking   Boolean              @default(true)
+  bookingDuration       Int?                 @default(90) // duracion de reserva en minutos (60, 90, 120)
+  timezone              String               @default("Europe/Madrid")
+  registrationMode      ClubRegistrationMode @default(APPROVAL)
+  isPublished           Boolean              @default(false)
+  onboardingCompletedAt DateTime?
 
   // Stripe - Suscripcion SaaS
-  stripeSubscriptionId    String?
-  subscriptionStatus      String?   @default("trialing")
-  trialEndsAt             DateTime?
+  stripeSubscriptionId String?
+  subscriptionStatus   String?   @default("trialing")
+  trialEndsAt          DateTime?
 
   // Stripe Connect - Pagos de reservas (preparado para fase D)
-  stripeConnectAccountId  String?
-  stripeConnectOnboarded  Boolean  @default(false)
+  stripeConnectAccountId String?
+  stripeConnectOnboarded Boolean @default(false)
 
   // Modo de pago de reservas: "online" | "presential" | "both"
-  bookingPaymentMode      String?  @default("presential")
+  bookingPaymentMode String? @default("presential")
 
   // Club demo generado desde el backoffice (borrable, sin datos reales)
-  esDemo                  Boolean  @default(false)
+  esDemo Boolean @default(false)
 
   // Relationships
-  admins        User[]
-  courts        Court[]
-  bookings      Booking[]
-  competitions  Competition[]
-  openMatches   OpenMatch[]
-  news          News[]
-  payments      Payment[]
-  courtPricings CourtPricing[]
-  playerStats   PlayerStats[]
-  notifications Notification[]
-  broadcasts    Broadcast[]
-  recurringBookings RecurringBooking[]
-  bookingPayments   BookingPayment[]
-  chatMessages      ChatMessage[]
-  playerRatings     PlayerRating[]
-  bookingWaitlists  BookingWaitlist[]
-  courtBlocks       CourtBlock[]
-  auditLogs         AuditLog[]
-  adminInvitations  AdminInvitation[]
-  legalAcceptances  LegalAcceptance[]
+  admins                User[]
+  courts                Court[]
+  bookings              Booking[]
+  competitions          Competition[]
+  openMatches           OpenMatch[]
+  news                  News[]
+  payments              Payment[]
+  courtPricings         CourtPricing[]
+  playerStats           PlayerStats[]
+  notifications         Notification[]
+  broadcasts            Broadcast[]
+  recurringBookings     RecurringBooking[]
+  bookingPayments       BookingPayment[]
+  chatMessages          ChatMessage[]
+  playerRatings         PlayerRating[]
+  bookingWaitlists      BookingWaitlist[]
+  courtBlocks           CourtBlock[]
+  auditLogs             AuditLog[]
+  adminInvitations      AdminInvitation[]
+  legalAcceptances      LegalAcceptance[]
+  memberships           ClubMembership[]
+  bugReports            BugReport[]
+  impersonationSessions ImpersonationSession[]
+  refundOperations      RefundOperation[]
 }
 
 // --- USER ROLES ---
@@ -85,50 +124,123 @@ enum UserRole {
 
 // --- USER AND AUTHENTICATION MODELS ---
 model User {
-  id            String    @id @default(cuid())
-  name          String?
-  email         String?   @unique
-  password      String?
-  phone         String?
-  emailVerified DateTime?
-  image         String?
-  position      String?
-  level         String?
-  birthDate     DateTime?
-  role          UserRole  @default(PLAYER)
-  isActive      Boolean   @default(true)
-  mustResetPassword Boolean @default(false)
-  adminNotes    String?   @db.Text
+  id                String    @id @default(cuid())
+  name              String?
+  email             String?   @unique
+  password          String?
+  phone             String?
+  emailVerified     DateTime?
+  image             String?
+  position          String?
+  level             String?
+  birthDate         DateTime?
+  role              UserRole  @default(PLAYER)
+  isActive          Boolean   @default(true)
+  sessionVersion    Int       @default(0)
+  mustResetPassword Boolean   @default(false)
+  adminNotes        String?   @db.Text
 
-  clubId        String?
-  club          Club?     @relation(fields: [clubId], references: [id])
-  
-  accounts      Account[]
-  sessions      Session[]
-  
-  teamsAsPlayer1 Team[]    @relation("Player1OfTeams")
-  teamsAsPlayer2 Team[]    @relation("Player2OfTeams")
-  bookings      Booking[]
-  openMatches   OpenMatchPlayer[]
-  payments      Payment[]
-  playerStats   PlayerStats[]
-  notifications     Notification[]
-  pushSubscriptions PushSubscription[]
-  cookieConsents    CookieConsent[]
-  broadcastsSent    Broadcast[]     @relation("BroadcastsSent")
-  recurringBookingsAssigned RecurringBooking[] @relation("RecurringBookingsAssigned")
-  bookingPaymentsAsPlayer   BookingPayment[] @relation("BookingPaymentsAsPlayer")
-  bookingPaymentsCollected  BookingPayment[] @relation("BookingPaymentsCollected")
-  ratingsGiven     PlayerRating[] @relation("RatingsGiven")
-  ratingsReceived  PlayerRating[] @relation("RatingsReceived")
-  chatMessages     ChatMessage[]
-  bookingWaitlists BookingWaitlist[]
-  courtBlocksCreated CourtBlock[] @relation("CourtBlocksCreated")
-  invitationsSent    AdminInvitation[] @relation("InvitationsSent")
-  legalAcceptances   LegalAcceptance[]
+  clubId String?
+  club   Club?   @relation(fields: [clubId], references: [id])
+
+  accounts Account[]
+  sessions Session[]
+
+  teamsAsPlayer1            Team[]                 @relation("Player1OfTeams")
+  teamsAsPlayer2            Team[]                 @relation("Player2OfTeams")
+  bookings                  Booking[]
+  openMatches               OpenMatchPlayer[]
+  payments                  Payment[]
+  playerStats               PlayerStats[]
+  notifications             Notification[]
+  pushSubscriptions         PushSubscription[]
+  cookieConsents            CookieConsent[]
+  broadcastsSent            Broadcast[]            @relation("BroadcastsSent")
+  recurringBookingsAssigned RecurringBooking[]     @relation("RecurringBookingsAssigned")
+  bookingPaymentsAsPlayer   BookingPayment[]       @relation("BookingPaymentsAsPlayer")
+  bookingPaymentsCollected  BookingPayment[]       @relation("BookingPaymentsCollected")
+  ratingsGiven              PlayerRating[]         @relation("RatingsGiven")
+  ratingsReceived           PlayerRating[]         @relation("RatingsReceived")
+  chatMessages              ChatMessage[]
+  bookingWaitlists          BookingWaitlist[]
+  courtBlocksCreated        CourtBlock[]           @relation("CourtBlocksCreated")
+  invitationsSent           AdminInvitation[]      @relation("InvitationsSent")
+  legalAcceptances          LegalAcceptance[]
+  memberships               ClubMembership[]
+  bugReports                BugReport[]
+  impersonationsStarted     ImpersonationSession[] @relation("ImpersonationActor")
+  impersonationsReceived    ImpersonationSession[] @relation("ImpersonationSubject")
 
   @@index([clubId])
   @@index([clubId, role])
+}
+
+// Pertenencia por club. User.clubId/role se mantienen temporalmente como
+// pertenencia primaria para compatibilidad durante la migracion.
+model ClubMembership {
+  id           String           @id @default(cuid())
+  userId       String
+  user         User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  clubId       String
+  club         Club             @relation(fields: [clubId], references: [id], onDelete: Cascade)
+  role         UserRole         @default(PLAYER)
+  status       MembershipStatus @default(ACTIVE)
+  joinedAt     DateTime         @default(now())
+  approvedAt   DateTime?
+  approvedById String?
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+
+  @@unique([userId, clubId])
+  @@index([clubId, status, role])
+  @@index([userId, status])
+}
+
+// Sesiones delegadas de soporte. El token se guarda unicamente como hash.
+model ImpersonationSession {
+  id        String    @id @default(cuid())
+  tokenHash String    @unique
+  actorId   String
+  actor     User      @relation("ImpersonationActor", fields: [actorId], references: [id], onDelete: Cascade)
+  subjectId String
+  subject   User      @relation("ImpersonationSubject", fields: [subjectId], references: [id], onDelete: Cascade)
+  clubId    String
+  club      Club      @relation(fields: [clubId], references: [id], onDelete: Cascade)
+  reason    String    @db.VarChar(300)
+  readOnly  Boolean   @default(true)
+  expiresAt DateTime
+  endedAt   DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([actorId, createdAt])
+  @@index([subjectId, createdAt])
+  @@index([clubId, createdAt])
+  @@index([expiresAt, endedAt])
+}
+
+// Feedback contextual enviado desde el dashboard o el portal de jugadores.
+model BugReport {
+  id            String            @id @default(cuid())
+  category      BugReportCategory @default(BUG)
+  status        BugReportStatus   @default(NEW)
+  title         String            @db.VarChar(160)
+  description   String            @db.Text
+  pageUrl       String?           @db.VarChar(1000)
+  userAgent     String?           @db.VarChar(1000)
+  viewport      String?           @db.VarChar(50)
+  metadata      Json?
+  attachmentUrl String?
+  userId        String
+  user          User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  clubId        String
+  club          Club              @relation(fields: [clubId], references: [id], onDelete: Cascade)
+  resolvedAt    DateTime?
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+
+  @@index([clubId, status, createdAt])
+  @@index([status, createdAt])
+  @@index([userId, createdAt])
 }
 
 // --- NextAuth Models ---
@@ -146,6 +258,7 @@ model Account {
   id_token          String? @db.Text
   session_state     String?
   user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
   @@unique([provider, providerAccountId])
 }
 
@@ -161,13 +274,14 @@ model VerificationToken {
   identifier String
   token      String   @unique
   expires    DateTime
+
   @@unique([identifier, token])
 }
 
 model PasswordResetToken {
   id        String   @id @default(cuid())
   email     String
-  token     String   @unique  // SHA-256 hash del token original
+  token     String   @unique // SHA-256 hash del token original
   expires   DateTime
   createdAt DateTime @default(now())
 
@@ -176,17 +290,17 @@ model PasswordResetToken {
 
 // --- INVITACIONES DE EQUIPO (ADMIN/STAFF) ---
 model AdminInvitation {
-  id          String    @id @default(cuid())
-  email       String
-  role        UserRole  // CLUB_ADMIN o STAFF
-  token       String    @unique  // SHA-256 hash del token original
-  expires     DateTime
-  createdAt   DateTime  @default(now())
+  id        String   @id @default(cuid())
+  email     String
+  role      UserRole // CLUB_ADMIN o STAFF
+  token     String   @unique // SHA-256 hash del token original
+  expires   DateTime
+  createdAt DateTime @default(now())
 
   invitedById String
-  invitedBy   User      @relation("InvitationsSent", fields: [invitedById], references: [id])
+  invitedBy   User   @relation("InvitationsSent", fields: [invitedById], references: [id])
   clubId      String
-  club        Club      @relation(fields: [clubId], references: [id], onDelete: Cascade)
+  club        Club   @relation(fields: [clubId], references: [id], onDelete: Cascade)
 
   @@unique([email, clubId])
   @@index([clubId])
@@ -194,14 +308,14 @@ model AdminInvitation {
 
 // --- BOOKING AND COURTS MODULE ---
 model Court {
-  id       String    @id @default(cuid())
-  name     String
-  type     String    @default("Indoor")
-  clubId   String
-  club     Club      @relation(fields: [clubId], references: [id], onDelete: Cascade)
-  bookings Booking[]
-  openMatches OpenMatch[]
-  pricings CourtPricing[]
+  id                String             @id @default(cuid())
+  name              String
+  type              String             @default("Indoor")
+  clubId            String
+  club              Club               @relation(fields: [clubId], references: [id], onDelete: Cascade)
+  bookings          Booking[]
+  openMatches       OpenMatch[]
+  pricings          CourtPricing[]
   recurringBookings RecurringBooking[]
   bookingWaitlists  BookingWaitlist[]
   courtBlocks       CourtBlock[]
@@ -221,24 +335,25 @@ model Booking {
   guestName  String?
   clubId     String
   club       Club     @relation(fields: [clubId], references: [id], onDelete: Cascade)
-  
-  status        String     @default("confirmed")
-  paymentStatus String?    @default("pending") // "pending" | "paid" | "exempt"
-  paymentMethod String?    // "online" | "presential" | "exempt"
-  cancelledAt     DateTime?
-  cancelReason    String?
-  reminderSentAt  DateTime?
-  numPlayers      Int?       @default(4) // 2, 3 o 4 jugadores
-  createdAt       DateTime   @default(now())
+
+  status         String    @default("confirmed")
+  paymentStatus  String?   @default("pending") // "pending" | "paid" | "exempt"
+  paymentMethod  String? // "online" | "presential" | "exempt"
+  cancelledAt    DateTime?
+  cancelReason   String?
+  reminderSentAt DateTime?
+  numPlayers     Int?      @default(4) // 2, 3 o 4 jugadores
+  createdAt      DateTime  @default(now())
 
   // Checkout Session tracking (idempotencia + expiracion)
   checkoutSessionId        String?
   checkoutSessionExpiresAt DateTime?
   checkoutLockUntil        DateTime?
 
-  openMatch       OpenMatch?
-  payment         Payment?
-  bookingPayments BookingPayment[]
+  openMatch        OpenMatch?
+  payment          Payment?
+  bookingPayments  BookingPayment[]
+  refundOperations RefundOperation[]
 
   recurringBookingId String?
   recurringBooking   RecurringBooking? @relation(fields: [recurringBookingId], references: [id], onDelete: SetNull)
@@ -265,55 +380,56 @@ enum CompetitionStatus {
 }
 
 model Competition {
-  id        String   @id @default(cuid())
-  name      String
-  clubId    String
-  club      Club     @relation(fields: [clubId], references: [id], onDelete: Cascade)
-  format    CompetitionFormat @default(LEAGUE)
-  rounds    Int      @default(1)
-  status    CompetitionStatus @default(ACTIVE) // <-- AÑADIR ESTA LÍNEA
-  groupSize Int?
+  id                     String            @id @default(cuid())
+  name                   String
+  clubId                 String
+  club                   Club              @relation(fields: [clubId], references: [id], onDelete: Cascade)
+  format                 CompetitionFormat @default(LEAGUE)
+  rounds                 Int               @default(1)
+  status                 CompetitionStatus @default(ACTIVE) // <-- AÑADIR ESTA LÍNEA
+  groupSize              Int?
   teamsPerGroupToAdvance Int?
-  teams     Team[]
-  matches   Match[]
+  teams                  Team[]
+  matches                Match[]
 
   @@index([clubId])
 }
 
 model Team {
-  id          String @id @default(cuid())
-  name        String
-  player1Id   String
-  player1     User   @relation("Player1OfTeams", fields: [player1Id], references: [id], onDelete: Cascade)
-  player2Id   String
-  player2     User   @relation("Player2OfTeams", fields: [player2Id], references: [id], onDelete: Cascade)
-  competitionId String
-  competition Competition @relation(fields: [competitionId], references: [id], onDelete: Cascade)
-  group       String?
-  points      Int @default(0)
-  played      Int @default(0)
-  won         Int @default(0)
-  lost        Int @default(0)
-  setsFor     Int @default(0)
-  setsAgainst Int @default(0)
-  gamesFor    Int @default(0)
-  gamesAgainst Int @default(0)
-  matchesAsTeam1 Match[] @relation("MatchesAsTeam1")
-  matchesAsTeam2 Match[] @relation("MatchesAsTeam2")
+  id             String      @id @default(cuid())
+  name           String
+  player1Id      String
+  player1        User        @relation("Player1OfTeams", fields: [player1Id], references: [id], onDelete: Cascade)
+  player2Id      String
+  player2        User        @relation("Player2OfTeams", fields: [player2Id], references: [id], onDelete: Cascade)
+  competitionId  String
+  competition    Competition @relation(fields: [competitionId], references: [id], onDelete: Cascade)
+  group          String?
+  points         Int         @default(0)
+  played         Int         @default(0)
+  won            Int         @default(0)
+  lost           Int         @default(0)
+  setsFor        Int         @default(0)
+  setsAgainst    Int         @default(0)
+  gamesFor       Int         @default(0)
+  gamesAgainst   Int         @default(0)
+  matchesAsTeam1 Match[]     @relation("MatchesAsTeam1")
+  matchesAsTeam2 Match[]     @relation("MatchesAsTeam2")
+
   @@unique([competitionId, player1Id, player2Id])
 }
 
 model Match {
-  id        String    @id @default(cuid())
-  result    String?
-  matchDate DateTime?
-  roundNumber Int
-  roundName   String?
-  winnerId    String?
-  team1Id   String?
-  team1     Team?      @relation("MatchesAsTeam1", fields: [team1Id], references: [id], onDelete: NoAction)
-  team2Id   String?
-  team2     Team?      @relation("MatchesAsTeam2", fields: [team2Id], references: [id], onDelete: NoAction)
+  id            String      @id @default(cuid())
+  result        String?
+  matchDate     DateTime?
+  roundNumber   Int
+  roundName     String?
+  winnerId      String?
+  team1Id       String?
+  team1         Team?       @relation("MatchesAsTeam1", fields: [team1Id], references: [id], onDelete: NoAction)
+  team2Id       String?
+  team2         Team?       @relation("MatchesAsTeam2", fields: [team2Id], references: [id], onDelete: NoAction)
   competitionId String
   competition   Competition @relation(fields: [competitionId], references: [id], onDelete: Cascade)
 }
@@ -328,20 +444,20 @@ enum OpenMatchStatus {
 }
 
 model OpenMatch {
-  id        String   @id @default(cuid())
-  createdAt DateTime @default(now())
+  id        String          @id @default(cuid())
+  createdAt DateTime        @default(now())
   matchTime DateTime
   status    OpenMatchStatus @default(OPEN)
   levelMin  Float?
   levelMax  Float?
-  
-  clubId    String
-  club      Club     @relation(fields: [clubId], references: [id], onDelete: Cascade)
-  
-  courtId   String
-  court     Court    @relation(fields: [courtId], references: [id])
-  
-  players   OpenMatchPlayer[]
+
+  clubId String
+  club   Club   @relation(fields: [clubId], references: [id], onDelete: Cascade)
+
+  courtId String
+  court   Court  @relation(fields: [courtId], references: [id])
+
+  players      OpenMatchPlayer[]
   chatMessages ChatMessage[]
   ratings      PlayerRating[]
 
@@ -356,10 +472,10 @@ model OpenMatchPlayer {
   openMatchId String
   openMatch   OpenMatch @relation(fields: [openMatchId], references: [id], onDelete: Cascade)
 
-  userId      String
-  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  createdAt   DateTime  @default(now())
+  createdAt DateTime @default(now())
 
   @@id([openMatchId, userId])
 }
@@ -382,26 +498,72 @@ model News {
 
 // --- PAGOS ---
 model Payment {
-  id              String   @id @default(cuid())
+  id              String  @id @default(cuid())
   amount          Float
-  currency        String   @default("EUR")
-  status          String   // "succeeded" | "pending" | "failed" | "refunded"
-  type            String   // "booking" | "subscription"
-  stripePaymentId String?  @unique
+  currency        String  @default("EUR")
+  status          String // "succeeded" | "pending" | "failed" | "refunded"
+  type            String // "booking" | "subscription"
+  stripePaymentId String? @unique
 
-  bookingId       String?  @unique
-  booking         Booking? @relation(fields: [bookingId], references: [id])
+  bookingId String?  @unique
+  booking   Booking? @relation(fields: [bookingId], references: [id])
 
-  userId          String?
-  user            User?    @relation(fields: [userId], references: [id])
+  userId String?
+  user   User?   @relation(fields: [userId], references: [id])
 
-  clubId          String
-  club            Club     @relation(fields: [clubId], references: [id], onDelete: Cascade)
+  clubId String
+  club   Club   @relation(fields: [clubId], references: [id], onDelete: Cascade)
 
-  createdAt       DateTime @default(now())
+  createdAt        DateTime          @default(now())
+  refundOperations RefundOperation[]
 
   @@index([clubId])
   @@index([userId])
+}
+
+// Cola durable de reembolsos. Stripe se invoca con idempotencyKey y los
+// estados contables solo se cierran cuando el proveedor confirma el refund.
+model RefundOperation {
+  id                    String    @id @default(cuid())
+  paymentId             String
+  payment               Payment   @relation(fields: [paymentId], references: [id], onDelete: Cascade)
+  bookingId             String
+  booking               Booking   @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  clubId                String
+  club                  Club      @relation(fields: [clubId], references: [id], onDelete: Cascade)
+  stripePaymentIntentId String
+  stripeRefundId        String?   @unique
+  idempotencyKey        String    @unique
+  reason                String    @db.VarChar(300)
+  status                String    @default("PENDING")
+  attempts              Int       @default(0)
+  nextAttemptAt         DateTime  @default(now())
+  lockedAt              DateTime?
+  lastError             String?   @db.VarChar(1000)
+  completedAt           DateTime?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  @@unique([paymentId])
+  @@index([status, nextAttemptAt])
+  @@index([clubId, createdAt])
+  @@index([bookingId])
+}
+
+// Registro de entrega de webhooks para que los reintentos de Stripe sean
+// idempotentes incluso si llegan en paralelo o tras una respuesta 5xx.
+model StripeWebhookEvent {
+  id          String    @id @default(cuid())
+  eventId     String    @unique
+  type        String
+  status      String    @default("PROCESSING")
+  attempts    Int       @default(1)
+  lastError   String?   @db.VarChar(1000)
+  processedAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([status, updatedAt])
 }
 
 // --- RANKING / ESTADISTICAS DE JUGADOR ---
@@ -420,7 +582,7 @@ model PlayerStats {
   gamesLost     Int      @default(0)
   winStreak     Int      @default(0)
   bestWinStreak Int      @default(0)
-  averageRating Float?   // promedio estrellas recibidas (null = sin valoraciones)
+  averageRating Float? // promedio estrellas recibidas (null = sin valoraciones)
   totalRatings  Int      @default(0)
   updatedAt     DateTime @updatedAt
 
@@ -434,9 +596,9 @@ model CourtPricing {
   id        String @id @default(cuid())
   courtId   String
   court     Court  @relation(fields: [courtId], references: [id], onDelete: Cascade)
-  dayOfWeek Int    // 0=Domingo, 6=Sabado
-  startHour Int    // 0-23
-  endHour   Int    // 0-23
+  dayOfWeek Int // 0=Domingo, 6=Sabado
+  startHour Int // 0-23
+  endHour   Int // 0-23
   price     Float
   clubId    String
   club      Club   @relation(fields: [clubId], references: [id], onDelete: Cascade)
@@ -489,11 +651,11 @@ model BlogPost {
 // --- NOTIFICACIONES ---
 model Notification {
   id        String   @id @default(cuid())
-  type      String   // booking_confirmed, booking_cancelled, booking_reminder, open_match_created, open_match_full, open_match_joined, news_published
+  type      String // booking_confirmed, booking_cancelled, booking_reminder, open_match_created, open_match_full, open_match_joined, news_published
   title     String
   message   String
   read      Boolean  @default(false)
-  metadata  Json?    // { bookingId?, openMatchId?, newsId?, url? }
+  metadata  Json? // { bookingId?, openMatchId?, newsId?, url? }
   userId    String
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   clubId    String
@@ -519,8 +681,8 @@ model PushSubscription {
 // --- REGISTRO DE CONSENTIMIENTO RGPD ---
 model CookieConsent {
   id        String   @id @default(cuid())
-  tipo      String   // "all" | "essential"
-  ip        String?  // IP anonimizada (ultimo octeto → xxx)
+  tipo      String // "all" | "essential"
+  ip        String? // IP anonimizada (ultimo octeto → xxx)
   userAgent String?
   userId    String?
   user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
@@ -531,28 +693,28 @@ model CookieConsent {
 
 // --- RESERVAS RECURRENTES (CLASES FIJAS) ---
 model RecurringBooking {
-  id          String    @id @default(cuid())
-  description String?   // "Clase Juan y Maria - Lunes 10:00"
-  dayOfWeek   Int       // 0=Domingo ... 6=Sabado (mismo formato que CourtPricing)
-  startHour   Int       // 0-23
-  startMinute Int       @default(0) // 0 o 30
-  endHour     Int       // 0-23
-  endMinute   Int       @default(0)
-  isActive    Boolean   @default(true)
-  startsAt    DateTime  // Desde cuando genera reservas
-  endsAt      DateTime  // Hasta cuando genera reservas
+  id          String   @id @default(cuid())
+  description String? // "Clase Juan y Maria - Lunes 10:00"
+  dayOfWeek   Int // 0=Domingo ... 6=Sabado (mismo formato que CourtPricing)
+  startHour   Int // 0-23
+  startMinute Int      @default(0) // 0 o 30
+  endHour     Int // 0-23
+  endMinute   Int      @default(0)
+  isActive    Boolean  @default(true)
+  startsAt    DateTime // Desde cuando genera reservas
+  endsAt      DateTime // Hasta cuando genera reservas
 
-  courtId     String
-  court       Court     @relation(fields: [courtId], references: [id], onDelete: Cascade)
-  userId      String?
-  user        User?     @relation("RecurringBookingsAssigned", fields: [userId], references: [id])
-  guestName   String?
-  clubId      String
-  club        Club      @relation(fields: [clubId], references: [id], onDelete: Cascade)
+  courtId   String
+  court     Court   @relation(fields: [courtId], references: [id], onDelete: Cascade)
+  userId    String?
+  user      User?   @relation("RecurringBookingsAssigned", fields: [userId], references: [id])
+  guestName String?
+  clubId    String
+  club      Club    @relation(fields: [clubId], references: [id], onDelete: Cascade)
 
-  bookings    Booking[] // Reservas generadas por esta recurrencia
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  bookings  Booking[] // Reservas generadas por esta recurrencia
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
 
   @@index([clubId])
   @@index([clubId, isActive])
@@ -560,19 +722,19 @@ model RecurringBooking {
 
 // --- COMUNICACIONES MASIVAS ---
 model Broadcast {
-  id             String   @id @default(cuid())
+  id             String @id @default(cuid())
   title          String
-  message        String   @db.Text
-  channels       String   // "push" | "email" | "push+email"
-  segment        String   // "all" | "active" | "inactive" | "level:X"
+  message        String @db.Text
+  channels       String // "push" | "email" | "push+email"
+  segment        String // "all" | "active" | "inactive" | "level:X"
   recipientCount Int
-  status         String   @default("sending") // "sending" | "sent" | "failed"
+  status         String @default("sending") // "sending" | "sent" | "failed"
 
-  sentById       String
-  sentBy         User     @relation("BroadcastsSent", fields: [sentById], references: [id])
-  clubId         String
-  club           Club     @relation(fields: [clubId], references: [id], onDelete: Cascade)
-  createdAt      DateTime @default(now())
+  sentById  String
+  sentBy    User     @relation("BroadcastsSent", fields: [sentById], references: [id])
+  clubId    String
+  club      Club     @relation(fields: [clubId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
 
   @@index([clubId])
 }
@@ -584,8 +746,8 @@ model BookingPayment {
   booking       Booking   @relation(fields: [bookingId], references: [id], onDelete: Cascade)
   userId        String?
   user          User?     @relation("BookingPaymentsAsPlayer", fields: [userId], references: [id], onDelete: SetNull)
-  guestName     String?   // Para jugadores no registrados
-  amount        Float     // totalPrice / numPlayers
+  guestName     String? // Para jugadores no registrados
+  amount        Float // totalPrice / numPlayers
   status        String    @default("pending") // "pending" | "paid"
   paidAt        DateTime?
   collectedById String?
@@ -607,7 +769,7 @@ model PlayerRating {
   rated       User      @relation("RatingsReceived", fields: [ratedId], references: [id], onDelete: Cascade)
   openMatchId String
   openMatch   OpenMatch @relation(fields: [openMatchId], references: [id], onDelete: Cascade)
-  stars       Int       // 1-5
+  stars       Int // 1-5
   comment     String?   @db.VarChar(280)
   clubId      String
   club        Club      @relation(fields: [clubId], references: [id], onDelete: Cascade)
@@ -637,18 +799,18 @@ model ChatMessage {
 
 // --- LISTA DE ESPERA DE RESERVAS ---
 model BookingWaitlist {
-  id        String    @id @default(cuid())
-  courtId   String
-  court     Court     @relation(fields: [courtId], references: [id], onDelete: Cascade)
-  userId    String
-  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  clubId    String
-  club      Club      @relation(fields: [clubId], references: [id], onDelete: Cascade)
-  startTime DateTime  // Inicio exacto del slot (misma timezone que Booking.startTime)
-  endTime   DateTime  // Fin exacto del slot
-  status    String    @default("active") // active | notified | fulfilled | expired
+  id         String    @id @default(cuid())
+  courtId    String
+  court      Court     @relation(fields: [courtId], references: [id], onDelete: Cascade)
+  userId     String
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  clubId     String
+  club       Club      @relation(fields: [clubId], references: [id], onDelete: Cascade)
+  startTime  DateTime // Inicio exacto del slot (misma timezone que Booking.startTime)
+  endTime    DateTime // Fin exacto del slot
+  status     String    @default("active") // active | notified | fulfilled | expired
   notifiedAt DateTime?
-  createdAt DateTime  @default(now())
+  createdAt  DateTime  @default(now())
 
   @@unique([courtId, startTime, userId])
   @@index([courtId, startTime, status])
@@ -669,7 +831,7 @@ model CourtBlock {
   note        String?          @db.VarChar(300)
   startTime   DateTime
   endTime     DateTime
-  courtId     String?          // null = TODAS las pistas del club
+  courtId     String? // null = TODAS las pistas del club
   court       Court?           @relation(fields: [courtId], references: [id], onDelete: Cascade)
   clubId      String
   club        Club             @relation(fields: [clubId], references: [id], onDelete: Cascade)
@@ -684,18 +846,18 @@ model CourtBlock {
 
 // --- AUDIT LOG ---
 model AuditLog {
-  id         String   @id @default(cuid())
-  recurso    String   // "booking" | "court" | "user" | "club" | "recurring-booking" | "broadcast"
-  accion     String   // "crear" | "cancelar" | "actualizar" | "eliminar" | "importar" | "enviar"
-  entidadId  String?
-  detalles   Json?    // datos whitelisteados por accion
-  userId     String?  // null para acciones de cron/sistema
-  userName   String?  // denormalizado para consultas sin JOIN
-  origen     String   @default("usuario") // "usuario" | "sistema" | "cron"
-  clubId     String?  // nullable para sobrevivir a eliminacion de club
-  club       Club?    @relation(fields: [clubId], references: [id], onDelete: SetNull)
-  clubName   String?  // denormalizado si clubId queda null
-  createdAt  DateTime @default(now())
+  id        String   @id @default(cuid())
+  recurso   String // "booking" | "court" | "user" | "club" | "recurring-booking" | "broadcast"
+  accion    String // "crear" | "cancelar" | "actualizar" | "eliminar" | "importar" | "enviar"
+  entidadId String?
+  detalles  Json? // datos whitelisteados por accion
+  userId    String? // null para acciones de cron/sistema
+  userName  String? // denormalizado para consultas sin JOIN
+  origen    String   @default("usuario") // "usuario" | "sistema" | "cron"
+  clubId    String? // nullable para sobrevivir a eliminacion de club
+  club      Club?    @relation(fields: [clubId], references: [id], onDelete: SetNull)
+  clubName  String? // denormalizado si clubId queda null
+  createdAt DateTime @default(now())
 
   @@index([clubId, createdAt])
   @@index([clubId, recurso, createdAt])
@@ -704,15 +866,15 @@ model AuditLog {
 
 // --- EVIDENCIA DE ACEPTACION CONTRACTUAL ---
 model LegalAcceptance {
-  id               String   @id @default(cuid())
-  audience         String   // "CLUB" | "PLAYER"
-  termsVersion     String
-  dpaVersion       String?
-  privacyVersion   String
-  acceptedByEmail  String
-  acceptedByName   String?
-  clubName         String
-  acceptedAt       DateTime @default(now())
+  id              String   @id @default(cuid())
+  audience        String // "CLUB" | "PLAYER"
+  termsVersion    String
+  dpaVersion      String?
+  privacyVersion  String
+  acceptedByEmail String
+  acceptedByName  String?
+  clubName        String
+  acceptedAt      DateTime @default(now())
 
   // Las referencias son opcionales para conservar la evidencia si se elimina la cuenta o el club.
   userId String?

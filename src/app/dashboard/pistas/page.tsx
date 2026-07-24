@@ -3,9 +3,10 @@ import { db } from '@/lib/db';
 import { authOptions } from '@/lib/auth';
 import { getServerSession } from 'next-auth';
 import { redirect } from 'next/navigation';
-import { Fence, PlusCircle, Pencil, Upload } from 'lucide-react';
+import { PlusCircle, Pencil, Upload } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
+import { PadelCourtIcon } from '@/components/ui/padel-court-icon';
 import EmptyState from '@/components/onboarding/EmptyState';
 
 const PistasPage = async () => {
@@ -51,7 +52,7 @@ const PistasPage = async () => {
                 <li key={court.id} className="flex items-center justify-between py-4">
                   <div className="flex items-center gap-4">
                     <div className="p-3 bg-muted rounded-lg">
-                      <Fence className="h-6 w-6 text-primary" />
+                      <PadelCourtIcon className="h-6 w-6 text-primary" />
                     </div>
                     <div>
                       <p className="font-semibold">{court.name}</p>
@@ -69,7 +70,7 @@ const PistasPage = async () => {
             </ul>
           ) : (
             <EmptyState
-              icon={Fence}
+              icon={PadelCourtIcon}
               title="Sin pistas configuradas"
               description="Añade las pistas de tu club para empezar a gestionar reservas."
               actionLabel="Añadir primera pista"

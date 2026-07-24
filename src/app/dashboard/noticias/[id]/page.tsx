@@ -10,10 +10,11 @@ import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 
 interface EditNoticiaPageProps {
-  params: { id: string }
+  params: Promise<{ id: string }>
 }
 
-const EditNoticiaPage = async ({ params }: EditNoticiaPageProps) => {
+const EditNoticiaPage = async (props: EditNoticiaPageProps) => {
+  const params = await props.params;
   const session = await getServerSession(authOptions)
   if (!session?.user?.clubId) redirect('/login')
 

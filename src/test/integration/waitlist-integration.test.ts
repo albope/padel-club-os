@@ -64,6 +64,7 @@ describe("Contrato de waitlist cross-route", () => {
   beforeEach(() => {
     vi.clearAllMocks()
     mockDb.booking.update.mockResolvedValue(crearReservaMock({ status: "cancelled" }))
+    mockDb.booking.updateMany.mockResolvedValue({ count: 1 })
     mockDb.payment.findUnique.mockResolvedValue(null)
     mockDb.user.findUnique.mockResolvedValue({ email: "j@test.com", name: "J", club: { name: "C", slug: "c" } })
     mockDb.bookingPayment.createMany.mockResolvedValue({ count: 4 })
@@ -196,7 +197,7 @@ describe("Contrato de waitlist cross-route", () => {
     mockDb.court.findFirst.mockResolvedValue(crearPistaMock())
     mockDb.club.findUnique.mockResolvedValue(crearClubMock())
     mockDb.booking.findFirst.mockResolvedValue(null)
-    mockDb.user.findMany.mockResolvedValue([{ id: "u1" }, { id: "u2" }])
+    mockDb.clubMembership.findMany.mockResolvedValue([{ userId: "u1" }, { userId: "u2" }])
     mockDb.$transaction.mockImplementation(async (cb: unknown) => {
       if (typeof cb === "function") return (cb as (db: typeof mockDb) => Promise<unknown>)(mockDb)
       return cb
@@ -222,7 +223,7 @@ describe("Contrato de waitlist cross-route", () => {
     mockDb.court.findFirst.mockResolvedValue(crearPistaMock({ id: "court-2" }))
     mockDb.club.findUnique.mockResolvedValue(crearClubMock())
     mockDb.booking.findFirst.mockResolvedValue(null) // sin overlap
-    mockDb.user.findMany.mockResolvedValue([{ id: "u1" }, { id: "u2" }])
+    mockDb.clubMembership.findMany.mockResolvedValue([{ userId: "u1" }, { userId: "u2" }])
     mockDb.$transaction.mockImplementation(async (cb: unknown) => {
       if (typeof cb === "function") return (cb as (db: typeof mockDb) => Promise<unknown>)(mockDb)
       return cb

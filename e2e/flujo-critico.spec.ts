@@ -110,10 +110,13 @@ test.describe.serial("Flujo critico: alta de club, configuracion y reservas", ()
 
     // --- Crear una reserva desde el grid de reservas ---
     await page.goto("/dashboard/reservas")
-    await expect(page.getByText("Calendario de Reservas")).toBeVisible({ timeout: 20_000 })
-    await page.getByRole("button", { name: "Día siguiente" }).click()
+    const reservasAdmin = page.locator("#contenido-principal")
+    await expect(
+      reservasAdmin.getByRole("heading", { name: "Calendario de Reservas", exact: true }),
+    ).toBeVisible({ timeout: 20_000 })
+    await reservasAdmin.getByRole("button", { name: "Día siguiente" }).click()
 
-    await page
+    await reservasAdmin
       .getByRole("button", { name: `Crear reserva a las ${slot} en ${PISTA_ADMIN}` })
       .click()
 
@@ -132,21 +135,22 @@ test.describe.serial("Flujo critico: alta de club, configuracion y reservas", ()
 
     // La reserva aparece en el grid
     await expect(
-      page.getByRole("button", { name: /Ver reserva de Invitado E2E/ })
+      reservasAdmin.getByRole("button", { name: /Ver reserva de Invitado E2E/ })
     ).toBeVisible({ timeout: 20_000 })
   })
 
   test("jugador: registro en el portal, login y reserva en el grid publico", async ({ page }) => {
     // --- Registro de jugador ---
     await page.goto(`/club/${clubSlug}/registro`)
-    await expect(page.locator("#name")).toBeVisible({ timeout: 20_000 })
-    await page.locator("#name").fill("E2E Jugador")
-    await page.locator("#email").fill(playerEmail)
-    await page.locator("#password").fill(password)
-    await page.getByRole("checkbox", { name: /política de privacidad/i }).check()
-    await page.getByRole("button", { name: "Crear cuenta" }).click()
+    const registroJugador = page.locator("main:visible")
+    await expect(registroJugador.locator("#name")).toBeVisible({ timeout: 20_000 })
+    await registroJugador.locator("#name").fill("E2E Jugador")
+    await registroJugador.locator("#email").fill(playerEmail)
+    await registroJugador.locator("#password").fill(password)
+    await registroJugador.getByRole("checkbox", { name: /política de privacidad/i }).check()
+    await registroJugador.getByRole("button", { name: "Crear cuenta" }).click()
     await expect(
-      page.getByText(/^(Solicitud enviada|Cuenta creada)$/i),
+      registroJugador.getByText(/^(Solicitud enviada|Cuenta creada)$/i),
     ).toBeVisible({ timeout: 30_000 })
 
     // Simula verificación de email + aprobación por el club (modo APPROVAL).
@@ -165,21 +169,27 @@ test.describe.serial("Flujo critico: alta de club, configuracion y reservas", ()
 
     // --- Login de jugador ---
     await page.goto(`/club/${clubSlug}/login`)
-    await page.locator("#email").fill(playerEmail)
-    await page.locator("#password").fill(password)
-    await page.getByRole("button", { name: "Iniciar sesión" }).click()
+    const loginJugador = page.locator("main:visible")
+    await loginJugador.locator("#email").fill(playerEmail)
+    await loginJugador.locator("#password").fill(password)
+    await loginJugador.getByRole("button", { name: "Iniciar sesión" }).click()
     await page.waitForURL(`**/club/${clubSlug}`, { timeout: 30_000 })
 
     // --- Reservar pista desde el grid publico ---
     await page.goto(`/club/${clubSlug}/reservar`)
-    await expect(page.getByRole("heading", { name: /Reservar pista/i })).toBeVisible({ timeout: 20_000 })
-    await expect(page.getByText("Hoy", { exact: true })).toBeVisible()
-    await expect(page.getByRole("button", { name: "Volver a hoy" })).toHaveCount(0)
-    await page.getByRole("button", { name: "Día siguiente" }).click()
-    await expect(page.getByRole("button", { name: "Volver a hoy" })).toBeVisible()
+    const reservasJugador = page.locator("main:visible")
+    await expect(
+      reservasJugador.getByRole("heading", { name: /Reservar pista/i }),
+    ).toBeVisible({ timeout: 20_000 })
+    await expect(reservasJugador.getByText("Hoy", { exact: true })).toBeVisible()
+    await expect(reservasJugador.getByRole("button", { name: "Volver a hoy" })).toHaveCount(0)
+    await reservasJugador.getByRole("button", { name: "Día siguiente" }).click()
+    await expect(
+      reservasJugador.getByRole("button", { name: "Volver a hoy" }),
+    ).toBeVisible()
 
     // Mismo horario que el admin pero en la otra pista (sin solape)
-    await page
+    await reservasJugador
       .getByRole("button", { name: new RegExp(`^Reservar ${PISTA_JUGADOR} a las ${slot}`) })
       .click()
 
@@ -201,7 +211,7 @@ test.describe.serial("Flujo critico: alta de club, configuracion y reservas", ()
 
     await page.setViewportSize({ width: 360, height: 800 })
     await page.goto(`/club/${clubSlug}`)
-    await expect(page.locator("main")).toBeVisible()
+    await expect(page.locator("main:visible")).toBeVisible()
     const hasHorizontalOverflow = await page.evaluate(
       () => document.documentElement.scrollWidth > window.innerWidth + 1,
     )

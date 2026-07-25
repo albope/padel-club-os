@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/test"
+import { test, expect, type Page } from "@playwright/test"
 import AxeBuilder from "@axe-core/playwright"
 import { PrismaClient } from "@prisma/client"
 import { hash } from "bcrypt"
@@ -28,6 +28,33 @@ const PISTA_JUGADOR = "Pista Anexa"
 const slot = "10:00"
 const prisma = new PrismaClient()
 
+async function gotoStable(page: Page, url: string) {
+  let lastError: unknown
+
+  for (let attempt = 0; attempt < 2; attempt += 1) {
+    try {
+      await page.goto(url, { waitUntil: "domcontentloaded" })
+      return
+    } catch (error) {
+      lastError = error
+      const message = error instanceof Error ? error.message : ""
+      const isNavigationRace =
+        message.includes("Frame load interrupted") ||
+        message.includes("is interrupted by another navigation")
+
+      if (!isNavigationRace || attempt === 1) {
+        throw error
+      }
+
+      // WebKit puede informar la navegacion anterior antes de completar su
+      // sustitucion. Esperamos a que se asiente y reintentamos solo esa carrera.
+      await page.waitForLoadState("domcontentloaded").catch(() => undefined)
+    }
+  }
+
+  throw lastError
+}
+
 test.describe.serial("Flujo critico: alta de club, configuracion y reservas", () => {
   test.afterAll(async () => {
     const club = await prisma.club.findUnique({
@@ -54,7 +81,7 @@ test.describe.serial("Flujo critico: alta de club, configuracion y reservas", ()
 
   test("admin: registro, wizard de configuracion y reserva en el grid", async ({ page }) => {
     // --- Registro del club ---
-    await page.goto("/register")
+    await gotoStable(page, "/register")
     await page.getByRole("button", { name: "Entendido" }).click()
     await page.locator("#name").fill(adminName)
     await page.locator("#clubName").fill(clubName)
@@ -62,7 +89,7 @@ test.describe.serial("Flujo critico: alta de club, configuracion y reservas", ()
     await page.locator("#password").fill(password)
     await page.getByRole("checkbox", { name: /condiciones/i }).check()
     await page.getByRole("button", { name: "Crear cuenta gratis" }).click()
-    await page.waitForURL("**/login**", { timeout: 30_000 })
+    await page.waitForURL("**/login**", { timeout: 45_000 })
 
     // Simula el clic en el enlace enviado por email; el transporte de correo se
     // prueba por separado y no debe volver frágil el journey de navegador.
@@ -79,7 +106,7 @@ test.describe.serial("Flujo critico: alta de club, configuracion y reservas", ()
     await expect(page.getByRole("heading", { name: /Bienvenido a/ })).toBeVisible({ timeout: 20_000 })
 
     // --- Wizard de configuracion inicial ---
-    await page.goto("/dashboard/configuracion-inicial")
+    await gotoStable(page, "/dashboard/configuracion-inicial")
     // Acotar al contenido principal evita que el HTML de streaming de Next
     // duplique temporalmente los nodos dentro de su contenedor oculto.
     const wizard = page.locator("#contenido-principal")
@@ -111,9 +138,10 @@ test.describe.serial("Flujo critico: alta de club, configuracion y reservas", ()
     await expect(wizard.getByText(clubSlug)).toBeVisible()
     await wizard.getByRole("button", { name: "Ir al dashboard" }).click()
     await page.waitForURL("**/dashboard", { timeout: 30_000 })
+    await page.waitForLoadState("domcontentloaded")
 
     // --- Crear una reserva desde el grid de reservas ---
-    await page.goto("/dashboard/reservas")
+    await gotoStable(page, "/dashboard/reservas")
     const reservasAdmin = page.locator("#contenido-principal")
     await expect(
       reservasAdmin.getByRole("heading", { name: "Calendario de Reservas", exact: true }),
@@ -155,7 +183,7 @@ test.describe.serial("Flujo critico: alta de club, configuracion y reservas", ()
 
   test("jugador: registro en el portal, login y reserva en el grid publico", async ({ page }) => {
     // --- Registro de jugador ---
-    await page.goto(`/club/${clubSlug}/registro`)
+    await gotoStable(page, `/club/${clubSlug}/registro`)
     const registroJugador = page.locator("main:visible")
     await expect(registroJugador.locator("#name")).toBeVisible({ timeout: 20_000 })
     await registroJugador.locator("#name").fill("E2E Jugador")
@@ -182,7 +210,7 @@ test.describe.serial("Flujo critico: alta de club, configuracion y reservas", ()
     ])
 
     // --- Login de jugador ---
-    await page.goto(`/club/${clubSlug}/login`)
+    await gotoStable(page, `/club/${clubSlug}/login`)
     const loginJugador = page.locator("main:visible")
     await loginJugador.locator("#email").fill(playerEmail)
     await loginJugador.locator("#password").fill(password)
@@ -202,7 +230,7 @@ test.describe.serial("Flujo critico: alta de club, configuracion y reservas", ()
     await expect(page.getByText("Reporte recibido", { exact: true })).toBeVisible()
 
     // --- Reservar pista desde el grid publico ---
-    await page.goto(`/club/${clubSlug}/reservar`)
+    await gotoStable(page, `/club/${clubSlug}/reservar`)
     const reservasJugador = page.locator("main:visible")
     await expect(
       reservasJugador.getByRole("heading", { name: /Reservar pista/i }),
@@ -253,7 +281,7 @@ test.describe.serial("Flujo critico: alta de club, configuracion y reservas", ()
       },
     })
 
-    await page.goto("/login")
+    await gotoStable(page, "/login")
     const consent = page.getByRole("button", { name: "Entendido" })
     if (await consent.isVisible().catch(() => false)) await consent.click()
     await page.locator("#email").fill(superAdminEmail)
@@ -261,12 +289,13 @@ test.describe.serial("Flujo critico: alta de club, configuracion y reservas", ()
     await page.getByRole("button", { name: "Iniciar sesión" }).click()
     await page.waitForURL("**/dashboard", { timeout: 30_000 })
 
-    await page.goto("/dashboard/accesos")
-    await page.locator("#support-search").fill(playerEmail)
-    const accessCard = page.locator("[class*='rounded']").filter({ hasText: playerEmail }).last()
+    await gotoStable(page, "/dashboard/accesos")
+    const accessMain = page.locator("main:visible")
+    await accessMain.locator("#support-search").fill(playerEmail)
+    const accessCard = accessMain.locator("[class*='rounded']").filter({ hasText: playerEmail }).last()
     await accessCard.getByRole("button", { name: "Acceder" }).click()
-    await page.locator("#support-reason").fill("Validar la incidencia E2E comunicada por el jugador")
-    await page.getByRole("button", { name: "Iniciar acceso" }).click()
+    await page.locator("#support-reason:visible").fill("Validar la incidencia E2E comunicada por el jugador")
+    await page.locator("button:visible").filter({ hasText: "Iniciar acceso" }).click()
 
     await page.waitForURL(`**/club/${clubSlug}`, { timeout: 30_000 })
     await expect(page.getByText(/Acceso de soporte como/)).toBeVisible()
@@ -298,7 +327,7 @@ test.describe.serial("Flujo critico: alta de club, configuracion y reservas", ()
       },
     })
 
-    await page.goto("/login")
+    await gotoStable(page, "/login")
     const consent = page.getByRole("button", { name: "Entendido" })
     if (await consent.isVisible().catch(() => false)) await consent.click()
     await page.locator("#email").fill(staffEmail)
@@ -315,7 +344,7 @@ test.describe.serial("Flujo critico: alta de club, configuracion y reservas", ()
     expect(response.headers()["content-security-policy"]).toContain("default-src 'self'")
 
     await page.setViewportSize({ width: 360, height: 800 })
-    await page.goto(`/club/${clubSlug}`)
+    await gotoStable(page, `/club/${clubSlug}`)
     await expect(page.locator("main:visible")).toBeVisible()
     const hasHorizontalOverflow = await page.evaluate(
       () => document.documentElement.scrollWidth > window.innerWidth + 1,

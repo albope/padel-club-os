@@ -27,8 +27,8 @@ jobs:
       DATABASE_URL: "postgresql://postgres:postgres@localhost:5432/padel_club_os_test"
       AUTH_SECRET: "ci-secret-not-real"
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
         with:
           node-version: 20.19.0
           cache: npm
@@ -67,8 +67,8 @@ jobs:
       NEXT_PUBLIC_APP_URL: "http://localhost:3000"
       RATE_LIMIT_BACKEND: "memory"
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
         with:
           node-version: 20.19.0
           cache: npm

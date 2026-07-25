@@ -119,7 +119,6 @@ const AuthForm: React.FC<AuthFormProps> = ({ isRegister = false }) => {
         setError(t('invalidCredentials'));
       } else {
         router.push('/dashboard');
-        router.refresh();
       }
     }
   };

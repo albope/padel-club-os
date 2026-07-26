@@ -3,6 +3,21 @@
 Checklist práctico para vender, dar de alta, acompañar y dar de baja a los dos
 primeros clubes sin depender de conocimiento informal.
 
+## Estrategia de lanzamiento ligero
+
+Para salir rápido sin crear dos sistemas de cobro:
+
+1. demo y piloto inicial sin cargo mientras se valida el encaje;
+2. alta censal y criterio fiscal confirmados antes del primer cobro;
+3. suscripción SaaS exclusivamente mensual mediante Stripe Checkout;
+4. sin permanencia, anualidades, descuentos manuales ni cobros de reservas;
+5. alta, restauración demo, emails, crons y seguimiento operados desde la
+   plataforma siempre que exista automatización segura.
+
+Una transferencia o factura manual puede resolver una excepción puntual, pero no
+debe convertirse en otro flujo del producto. La fuente de verdad de las
+suscripciones de pago será Stripe cuando se active LIVE.
+
 ## 1. Antes de enviar una demo
 
 - Confirmar que `/api/health` responde 200 y `/api/ready` responde 200.
@@ -129,3 +144,9 @@ Antes del primer cobro se necesitan nombre legal, NIF, domicilio fiscal y email
 del prestador en producción. La persona física debe confirmar con AEAT, Seguridad
 Social o una asesoría el alta y el tratamiento de IVA/IRPF. La aplicación y esta
 checklist no sustituyen esa validación.
+
+El Aviso legal necesita un domicilio accesible públicamente. Si no se desea
+publicar el domicilio particular, debe obtenerse antes del cobro un domicilio
+profesional o servicio de domiciliación válido y configurar
+`LEGAL_PUBLIC_ADDRESS`. El domicilio privado no se guarda en Git ni se reutiliza
+automáticamente como dirección pública.

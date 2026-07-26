@@ -25,6 +25,11 @@ de pago y el owner este dado de alta para facturar.
 - [ ] Crear tres productos/precios recurrentes mensuales en EUR:
   Starter 19 EUR, Pro 49 EUR y Enterprise 99 EUR.
 - [ ] Guardar los tres IDs LIVE; no reutilizar los IDs de TEST.
+
+No se publican precios anuales ni se crean Price IDs anuales durante el
+lanzamiento inicial. Mantener una sola periodicidad reduce configuración,
+soporte, conciliación y posibles discrepancias entre landing y Checkout.
+
 - [ ] En **Settings > Billing > Customer portal** de Stripe LIVE:
   - habilitar cambio de plan (`Switch plan`);
   - ofrecer exactamente los tres productos/precios LIVE;

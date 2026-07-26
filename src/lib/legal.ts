@@ -24,7 +24,10 @@ export function getLegalProvider(): LegalProvider {
     : null
   const legalName = optionalEnv("LEGAL_NAME")
   const taxId = optionalEnv("LEGAL_TAX_ID")
-  const address = optionalEnv("LEGAL_ADDRESS")
+  // Esta variable se muestra en el Aviso legal. Debe contener únicamente un
+  // domicilio apto para publicación, nunca una dirección privada introducida
+  // como dato interno de facturación.
+  const address = optionalEnv("LEGAL_PUBLIC_ADDRESS")
   const registry = optionalEnv("LEGAL_REGISTRY_DETAILS")
   const email = optionalEnv("LEGAL_EMAIL") || process.env.CONTACT_EMAIL?.trim() || "contacto@padelclubos.com"
   const website = process.env.NEXT_PUBLIC_APP_URL?.trim() || "https://padelclubos.com"

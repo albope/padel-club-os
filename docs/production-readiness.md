@@ -1,6 +1,6 @@
 # Auditoría y hoja de ejecución production-ready
 
-Estado auditado a 2026-07-24. Este documento es la memoria operativa de lo
+Estado auditado a 2026-07-26. Este documento es la memoria operativa de lo
 implementado y de lo que depende de cuentas o decisiones externas.
 
 ## Criterio de salida
@@ -124,14 +124,17 @@ crítico terminan en verde. Un lanzamiento comercial exige además:
 
 Estos puntos no se pueden completar desde el repositorio ni deben inventarse:
 
-- [ ] Datos reales del prestador persona física: nombre y apellidos, NIF,
-  domicilio y email.
+- [x] Nombre, NIF y email del prestador persona física recibidos y configurados
+  como secretos de entorno, sin incorporarlos al repositorio.
+- [ ] `LEGAL_PUBLIC_ADDRESS` apto para mostrarse en el Aviso legal. El domicilio
+  particular comunicado no se almacena ni se publica.
 - [ ] Alta censal y situación en Seguridad Social confirmadas antes de iniciar
   la actividad comercial.
 - [ ] Tratamiento de IVA/IRPF, facturas y registros confirmado con asesoría;
   entonces `TAX_HANDLING_CONFIRMED=true`.
-- [ ] Stripe Live: cuenta verificada, productos/prices, webhook, impuestos y
-  prueba controlada.
+- [x] Landing y condiciones alineadas con una periodicidad exclusivamente mensual.
+- [ ] Stripe Live mensual: cuenta verificada, productos/prices, webhook,
+  impuestos y prueba controlada.
 - [ ] Resend: dominio/remitente verificado.
 - [ ] Vercel Blob, VAPID y Sentry configurados con claves reales.
 - [ ] Vercel Pro activo antes de depender de crons frecuentes para la operación

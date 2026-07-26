@@ -28,7 +28,7 @@ const required = [
   'LEGAL_ENTITY_TYPE',
   'LEGAL_NAME',
   'LEGAL_TAX_ID',
-  'LEGAL_ADDRESS',
+  'LEGAL_PUBLIC_ADDRESS',
   'LEGAL_EMAIL',
   'STRIPE_TAX_ENABLED',
   'TAX_HANDLING_CONFIRMED',
@@ -122,7 +122,7 @@ if ((process.env.LEGAL_TAX_ID || '').trim().length < 6) {
 }
 
 const placeholderPattern = /(?:tudominio|tu nombre|pendiente|completar|xxx|example)/i
-for (const key of ['LEGAL_NAME', 'LEGAL_TAX_ID', 'LEGAL_ADDRESS', 'LEGAL_EMAIL', 'CONTACT_EMAIL']) {
+for (const key of ['LEGAL_NAME', 'LEGAL_TAX_ID', 'LEGAL_PUBLIC_ADDRESS', 'LEGAL_EMAIL', 'CONTACT_EMAIL']) {
   if (placeholderPattern.test(process.env[key] || '')) {
     errors.push(`${key} contiene un valor de ejemplo`)
   }

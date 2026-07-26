@@ -57,7 +57,8 @@ Referencias oficiales:
 - [ ] Configurar en Vercel Production y Preview, según corresponda:
   - `LEGAL_NAME`
   - `LEGAL_TAX_ID`
-  - `LEGAL_ADDRESS`
+  - `LEGAL_PUBLIC_ADDRESS` (se muestra en el Aviso legal; no usar aquí un
+    domicilio privado que no se quiera publicar)
   - `LEGAL_REGISTRY_DETAILS` (solo si corresponde)
   - `LEGAL_EMAIL`
 - [ ] Hacer redeploy y comprobar que `/aviso-legal`, `/privacidad`, `/terminos` y el
@@ -65,7 +66,7 @@ Referencias oficiales:
 - [ ] Revisar que la entidad, domicilio y NIF coinciden exactamente en Stripe, en
   las páginas legales y en el alta fiscal.
 - [ ] Aplicar todas las migraciones hasta
-  `20260723030000_durable_refunds` antes de desplegar.
+  `20260725000000_presential_bookings_and_database_rate_limit` antes de desplegar.
 - [ ] Establecer `TAX_HANDLING_CONFIRMED=true` solo después de confirmar alta,
   facturación e impuestos con el criterio real que se vaya a usar.
 

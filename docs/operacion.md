@@ -25,8 +25,9 @@ recordatorios y las tareas históricas de reembolso pueden demorarse hasta 24 ho
 ## Puesta en marcha inicial
 
 - [ ] Completar todas las variables de `.env.example` en Production.
-- [ ] Establecer `LEGAL_ENTITY_TYPE=individual` y los datos reales del
-  prestador: nombre y apellidos, NIF, domicilio y email.
+- [ ] Establecer `LEGAL_ENTITY_TYPE=individual`, los datos reales del
+  prestador (nombre, NIF y email) y un `LEGAL_PUBLIC_ADDRESS` apto para aparecer
+  en el Aviso legal.
 - [ ] Confirmar con asesoría el alta censal, Seguridad Social, IVA/IRPF,
   facturación y conservación de registros; después establecer
   `TAX_HANDLING_CONFIRMED=true`.

@@ -53,6 +53,7 @@ interface PlayerStatsResponse {
 interface LeaderboardProps {
   rankings: RankingEntry[];
   slug: string;
+  clubId: string;
 }
 
 const MEDAL_COLORS = [
@@ -87,10 +88,12 @@ function StatCard({ titulo, valor, subtitulo, icono: Icono }: {
   );
 }
 
-export default function Leaderboard({ rankings, slug }: LeaderboardProps) {
+export default function Leaderboard({ rankings, slug, clubId }: LeaderboardProps) {
   const { data: session } = useSession();
   const t = useTranslations('leaderboard');
-  const currentUserId = session?.user?.id;
+  const canSeePersonalStats =
+    session?.user?.role === 'PLAYER' && session.user.clubId === clubId;
+  const currentUserId = canSeePersonalStats ? session.user.id : undefined;
   const [myStats, setMyStats] = useState<PlayerStatsResponse | null>(null);
   const [loadingStats, setLoadingStats] = useState(false);
   const [activeTab, setActiveTab] = useState('ranking');

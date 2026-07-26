@@ -1223,6 +1223,44 @@ export async function enviarEmailConfirmacionSolicitudDemo({
   })
 }
 
+interface EnviarEmailRespuestaLeadParams {
+  email: string
+  asunto: string
+  mensaje: string
+}
+
+/**
+ * Respuesta manual a una solicitud comercial enviada desde el panel.
+ * El contenido se trata siempre como texto plano para evitar inyectar HTML
+ * procedente del formulario de respuesta.
+ */
+export async function enviarEmailRespuestaLead({
+  email,
+  asunto,
+  mensaje,
+}: EnviarEmailRespuestaLeadParams): Promise<void> {
+  const resend = getResend()
+  const contenido = `
+    <div style="font-size:15px;color:${EMAIL_BRAND.colorTexto};line-height:1.7;white-space:pre-wrap;">${escaparHtml(mensaje)}</div>
+  `
+
+  const { error } = await resend.emails.send({
+    from: EMAIL_FROM,
+    to: email,
+    replyTo: process.env.CONTACT_EMAIL || "contacto@padelclubos.com",
+    subject: asunto,
+    html: plantillaEmail({
+      titulo: escaparHtml(asunto),
+      preheader: escaparHtml(asunto),
+      contenido,
+    }),
+  })
+
+  if (error) {
+    throw new Error(`No se pudo enviar la respuesta al lead: ${error.message}`)
+  }
+}
+
 // =============================================================================
 // INVITACION DE EQUIPO (ADMIN/STAFF)
 // =============================================================================

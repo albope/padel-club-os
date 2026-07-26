@@ -1,18 +1,27 @@
 import { db } from "@/lib/db";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { eloANivel } from "@/lib/elo";
 import Leaderboard from "@/components/club/Leaderboard";
-
-export const revalidate = 1800 // 30min
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
 
 export default async function ClubRankingsPage(props: { params: Promise<{ slug: string }> }) {
   const params = await props.params;
+  const session = await getServerSession(authOptions);
   const club = await db.club.findUnique({
     where: { slug: params.slug },
     select: { id: true },
   });
 
   if (!club) notFound();
+
+  if (
+    !session?.user
+    || session.user.role !== "PLAYER"
+    || session.user.clubId !== club.id
+  ) {
+    redirect(`/club/${params.slug}/login`);
+  }
 
   const rankings = await db.playerStats.findMany({
     where: { clubId: club.id, matchesPlayed: { gt: 0 } },
@@ -50,7 +59,11 @@ export default async function ClubRankingsPage(props: { params: Promise<{ slug: 
         <p className="text-muted-foreground mt-1">Clasificación del club</p>
         <div className="club-accent-line mt-3" />
       </div>
-      <Leaderboard rankings={JSON.parse(JSON.stringify(data))} slug={params.slug} />
+      <Leaderboard
+        rankings={JSON.parse(JSON.stringify(data))}
+        slug={params.slug}
+        clubId={club.id}
+      />
     </div>
   );
 }

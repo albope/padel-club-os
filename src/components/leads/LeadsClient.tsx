@@ -4,9 +4,20 @@ import { useMemo, useState } from 'react'
 import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Textarea } from '@/components/ui/textarea'
 import EmptyState from '@/components/onboarding/EmptyState'
-import { Inbox, Mail, MailOpen } from 'lucide-react'
+import { Inbox, Loader2, Mail, MailOpen, Send } from 'lucide-react'
 import { toast } from '@/hooks/use-toast'
 
 export interface LeadItem {
@@ -50,6 +61,10 @@ export default function LeadsClient({ initialLeads }: LeadsClientProps) {
   const [leads, setLeads] = useState(initialLeads)
   const [filtro, setFiltro] = useState<FiltroTipo>('todas')
   const [loadingId, setLoadingId] = useState<string | null>(null)
+  const [replyLead, setReplyLead] = useState<LeadItem | null>(null)
+  const [replySubject, setReplySubject] = useState('')
+  const [replyMessage, setReplyMessage] = useState('')
+  const [sendingReply, setSendingReply] = useState(false)
 
   const filtradas = useMemo(() => {
     switch (filtro) {
@@ -80,6 +95,59 @@ export default function LeadsClient({ initialLeads }: LeadsClientProps) {
       toast({ title: 'Error', description: 'No se pudo actualizar la solicitud.', variant: 'destructive' })
     } finally {
       setLoadingId(null)
+    }
+  }
+
+  const openReply = (lead: LeadItem) => {
+    const firstName = lead.nombre.trim().split(/\s+/)[0] || lead.nombre
+    setReplyLead(lead)
+    setReplySubject(`Re: ${lead.asunto || 'Tu solicitud en Padel Club OS'}`)
+    setReplyMessage(`Hola ${firstName},\n\n`)
+  }
+
+  const closeReply = () => {
+    if (sendingReply) return
+    setReplyLead(null)
+    setReplySubject('')
+    setReplyMessage('')
+  }
+
+  const sendReply = async () => {
+    if (!replyLead || !replySubject.trim() || !replyMessage.trim()) return
+
+    setSendingReply(true)
+    try {
+      const response = await fetch(`/api/leads/${replyLead.id}/reply`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          asunto: replySubject.trim(),
+          mensaje: replyMessage.trim(),
+        }),
+      })
+      const data = await response.json().catch(() => null)
+      if (!response.ok) {
+        throw new Error(data?.error || 'No se pudo enviar el email.')
+      }
+
+      setLeads(prev => prev.map(lead => (
+        lead.id === replyLead.id ? { ...lead, leido: true } : lead
+      )))
+      toast({
+        title: 'Email enviado',
+        description: `La respuesta se ha enviado a ${replyLead.email}.`,
+      })
+      setReplyLead(null)
+      setReplySubject('')
+      setReplyMessage('')
+    } catch (error) {
+      toast({
+        title: 'No se pudo enviar',
+        description: error instanceof Error ? error.message : 'Inténtalo de nuevo.',
+        variant: 'destructive',
+      })
+    } finally {
+      setSendingReply(false)
     }
   }
 
@@ -185,11 +253,9 @@ export default function LeadsClient({ initialLeads }: LeadsClientProps) {
                 )}
 
                 <div className="mt-3">
-                  <Button size="sm" asChild>
-                    <a href={`mailto:${lead.email}?subject=Re: ${encodeURIComponent(lead.asunto || 'Tu solicitud en Padel Club OS')}`}>
-                      <Mail className="h-4 w-4" aria-hidden="true" />
-                      Responder por email
-                    </a>
+                  <Button size="sm" onClick={() => openReply(lead)}>
+                    <Mail className="h-4 w-4" aria-hidden="true" />
+                    Responder por email
                   </Button>
                 </div>
               </Card>
@@ -197,6 +263,65 @@ export default function LeadsClient({ initialLeads }: LeadsClientProps) {
           })}
         </div>
       )}
+
+      <Dialog open={replyLead !== null} onOpenChange={(open) => !open && closeReply()}>
+        <DialogContent className="sm:max-w-xl">
+          <DialogHeader>
+            <DialogTitle>Responder por email</DialogTitle>
+            <DialogDescription>
+              {replyLead
+                ? `La respuesta se enviará a ${replyLead.nombre} (${replyLead.email}).`
+                : 'Prepara la respuesta a esta solicitud.'}
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 py-2">
+            <div className="space-y-2">
+              <Label htmlFor="reply-subject">Asunto</Label>
+              <Input
+                id="reply-subject"
+                value={replySubject}
+                onChange={(event) => setReplySubject(event.target.value)}
+                maxLength={160}
+                disabled={sendingReply}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="reply-message">Mensaje</Label>
+              <Textarea
+                id="reply-message"
+                value={replyMessage}
+                onChange={(event) => setReplyMessage(event.target.value)}
+                rows={10}
+                maxLength={10_000}
+                disabled={sendingReply}
+                autoFocus
+              />
+              <p className="text-right text-xs text-muted-foreground">
+                {replyMessage.length}/10.000
+              </p>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button type="button" variant="outline" onClick={closeReply} disabled={sendingReply}>
+              Cancelar
+            </Button>
+            <Button
+              type="button"
+              onClick={sendReply}
+              disabled={sendingReply || !replySubject.trim() || !replyMessage.trim()}
+            >
+              {sendingReply ? (
+                <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+              ) : (
+                <Send className="h-4 w-4" aria-hidden="true" />
+              )}
+              {sendingReply ? 'Enviando...' : 'Enviar respuesta'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

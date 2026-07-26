@@ -49,6 +49,13 @@ export const mockDb = {
     findUnique: vi.fn(),
     update: vi.fn(),
   },
+  contactSubmission: {
+    findUnique: vi.fn(),
+    update: vi.fn(),
+  },
+  playerStats: {
+    findMany: vi.fn(),
+  },
   auditLog: {
     create: vi.fn().mockResolvedValue({}),
   },

@@ -6,6 +6,7 @@ import React from 'react';
 import { LogOut, User } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -29,6 +30,7 @@ import { urlAvatar } from '@/lib/avatar';
 const Header = () => {
   const { data: session, status } = useSession();
   const t = useTranslations('nav');
+  const roleT = useTranslations('roles');
   const user = session?.user;
   const temaMarcador = temaMarcadorActivo();
 
@@ -67,7 +69,13 @@ const Header = () => {
           {status === 'authenticated' && user && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="relative h-11 w-11 rounded-full p-0 overflow-hidden">
+                <Button
+                  variant="ghost"
+                  className="relative h-11 w-11 overflow-hidden rounded-full p-0"
+                  aria-label={`${user.name || user.email || 'Usuario'} · ${
+                    user.role ? roleT(user.role) : roleT('unknown')
+                  }`}
+                >
                   <Image
                     className="h-full w-full rounded-full object-cover"
                     src={user.image || urlAvatar(user.name || 'U', '6366f1')}
@@ -77,15 +85,26 @@ const Header = () => {
                   />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-56" align="end" forceMount>
+              <DropdownMenuContent className="w-72" align="end" forceMount>
                 <DropdownMenuLabel className="font-normal">
-                  <div className="flex flex-col space-y-1">
+                  <div className="flex min-w-0 flex-col space-y-1.5">
                     <p className="text-sm font-medium leading-none">
-                      {user.clubName || user.name}
+                      {user.name || user.email}
                     </p>
-                    <p className="text-xs leading-none text-muted-foreground">
+                    <p className="truncate text-xs leading-none text-muted-foreground">
                       {user.email}
                     </p>
+                    <div className="flex flex-wrap items-center gap-1.5 pt-1">
+                      <span className="text-xs text-muted-foreground">{roleT('profile')}:</span>
+                      <Badge variant="secondary" className="font-medium">
+                        {user.role ? roleT(user.role) : roleT('unknown')}
+                      </Badge>
+                    </div>
+                    {user.clubName && (
+                      <p className="line-clamp-2 pt-0.5 text-xs leading-snug text-muted-foreground">
+                        {roleT('club')}: {user.clubName}
+                      </p>
+                    )}
                   </div>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />

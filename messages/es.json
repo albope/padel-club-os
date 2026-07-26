@@ -53,6 +53,15 @@
     "grupoPlataforma": "Plataforma",
     "grupoSistema": "Sistema"
   },
+  "roles": {
+    "profile": "Perfil",
+    "club": "Club",
+    "SUPER_ADMIN": "Superadministrador",
+    "CLUB_ADMIN": "Administrador del club",
+    "STAFF": "Personal del club",
+    "PLAYER": "Jugador",
+    "unknown": "Perfil sin asignar"
+  },
   "search": {
     "label": "Buscar",
     "title": "Búsqueda global",

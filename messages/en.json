@@ -53,6 +53,15 @@
     "grupoPlataforma": "Platform",
     "grupoSistema": "System"
   },
+  "roles": {
+    "profile": "Role",
+    "club": "Club",
+    "SUPER_ADMIN": "Super administrator",
+    "CLUB_ADMIN": "Club administrator",
+    "STAFF": "Club staff",
+    "PLAYER": "Player",
+    "unknown": "Unassigned role"
+  },
   "search": {
     "label": "Search",
     "title": "Global search",

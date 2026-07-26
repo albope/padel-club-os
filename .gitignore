@@ -52,6 +52,7 @@ public/workbox-*.js.map
 
 # credenciales de prueba
 TEST-CREDENTIALS.md
+CREDENCIALES.local.html
 
 # playwright
 /test-results/

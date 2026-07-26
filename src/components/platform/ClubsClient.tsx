@@ -60,7 +60,6 @@ import {
   Loader2,
   MoreHorizontal,
   RefreshCw,
-  Sparkles,
   Trash2,
 } from 'lucide-react'
 
@@ -356,7 +355,7 @@ export default function ClubsClient({ initialClubs }: ClubsClientProps) {
           />
         </div>
         <Button onClick={() => setDemoDialogOpen(true)}>
-          <Sparkles className="h-4 w-4" aria-hidden="true" />
+          <Building2 className="h-4 w-4" aria-hidden="true" />
           Crear club demo
         </Button>
       </div>
@@ -594,7 +593,7 @@ export default function ClubsClient({ initialClubs }: ClubsClientProps) {
                     </>
                   ) : (
                     <>
-                      <Sparkles className="h-4 w-4" aria-hidden="true" />
+                      <Building2 className="h-4 w-4" aria-hidden="true" />
                       Crear demo
                     </>
                   )}

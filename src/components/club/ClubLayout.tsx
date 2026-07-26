@@ -62,6 +62,8 @@ export default function ClubLayout({ club, children }: ClubLayoutProps) {
   const t = useTranslations('club');
   const basePath = `/club/${club.slug}`;
   const color = club.primaryColor || '#4f46e5';
+  const isPlayerOfClub =
+    session?.user?.role === 'PLAYER' && session.user.clubId === club.id;
 
   const navItems = [
     { label: t('home'), href: basePath, icon: Home },
@@ -72,7 +74,9 @@ export default function ClubLayout({ club, children }: ClubLayoutProps) {
       ? [{ label: t('openMatches'), href: `${basePath}/partidas`, icon: Users }]
       : []),
     { label: t('competitions'), href: `${basePath}/competiciones`, icon: Trophy },
-    { label: t('rankings'), href: `${basePath}/rankings`, icon: Medal },
+    ...(isPlayerOfClub
+      ? [{ label: t('rankings'), href: `${basePath}/rankings`, icon: Medal }]
+      : []),
     { label: t('players'), href: `${basePath}/jugadores`, icon: Users2 },
     { label: t('news'), href: `${basePath}/noticias`, icon: Newspaper },
     { label: t('rates'), href: `${basePath}/tarifas`, icon: DollarSign },
@@ -92,7 +96,6 @@ export default function ClubLayout({ club, children }: ClubLayoutProps) {
     return pathname.startsWith(href);
   };
 
-  const isPlayerOfClub = session?.user?.clubId === club.id;
   const temaMarcador = temaMarcadorActivo();
 
   // «Marcador»: motor de tenant — escala OKLCH accesible en vez del hex crudo
@@ -161,21 +164,26 @@ export default function ClubLayout({ club, children }: ClubLayoutProps) {
 
         <div className="mx-auto max-w-5xl flex items-center justify-between h-14 px-4">
           {/* Logo + nombre */}
-          <Link href={basePath} className="flex items-center gap-2.5 group shrink-0">
+          <Link
+            href={basePath}
+            className="group flex min-w-0 max-w-[190px] shrink items-center gap-2.5 lg:max-w-[210px]"
+            title={club.name}
+            aria-label={`${t('home')}: ${club.name}`}
+          >
             <Image
               src={club.logoUrl || DEFAULT_IMAGES.clubHero}
               alt={club.logoUrl ? club.name : `Imagen de ${club.name}`}
               width={36}
               height={36}
               className={cn(
-                'h-9 w-9 object-cover',
+                'h-9 w-9 shrink-0 object-cover',
                 temaMarcador
                   ? 'rounded-[10px]'
                   : 'rounded-full ring-2 ring-offset-2 ring-offset-background'
               )}
               style={temaMarcador ? undefined : { borderColor: color, boxShadow: `0 0 0 2px ${color}` }}
             />
-            <span className="font-display font-bold text-foreground truncate max-w-[160px] hidden sm:inline tracking-tight">
+            <span className="hidden min-w-0 text-balance font-display text-sm font-bold leading-[1.05] tracking-tight text-foreground sm:line-clamp-2">
               {club.name}
             </span>
           </Link>

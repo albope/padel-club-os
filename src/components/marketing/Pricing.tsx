@@ -1,6 +1,5 @@
 "use client"
 
-import { useState } from "react"
 import Link from "next/link"
 import { useTranslations } from "next-intl"
 import { cn } from "@/lib/utils"
@@ -22,7 +21,6 @@ const comparativaKeys = [
 ] as const
 
 export default function Pricing() {
-  const [anual, setAnual] = useState(false)
   const t = useTranslations("marketing.pricing")
 
   return (
@@ -38,50 +36,12 @@ export default function Pricing() {
         <p className="max-w-[560px] text-[15px] leading-relaxed text-muted-foreground">
           {t("subtitle")}
         </p>
-
-        {/* Toggle mensual/anual */}
-        <div className="mt-2 flex items-center gap-3">
-          <div
-            className="inline-flex rounded-full border border-border bg-surface-raised p-[3px]"
-            role="group"
-            aria-label={t("billingToggle")}
-          >
-            <button
-              type="button"
-              onClick={() => setAnual(false)}
-              aria-pressed={!anual}
-              className={cn(
-                "rounded-full px-[18px] py-1.5 text-[13px] transition-colors",
-                !anual ? "bg-foreground font-bold text-background" : "font-semibold text-muted-foreground"
-              )}
-            >
-              {t("monthly")}
-            </button>
-            <button
-              type="button"
-              onClick={() => setAnual(true)}
-              aria-pressed={anual}
-              className={cn(
-                "rounded-full px-[18px] py-1.5 text-[13px] transition-colors",
-                anual ? "bg-foreground font-bold text-background" : "font-semibold text-muted-foreground"
-              )}
-            >
-              {t("annual")}
-            </button>
-          </div>
-          {anual && (
-            <span className="rounded-full border border-success-border bg-success-bg px-3 py-1 text-[11px] font-bold text-success-foreground">
-              {t("saveMonths")}
-            </span>
-          )}
-        </div>
       </div>
 
       {/* Pricing cards */}
       <div className="grid items-stretch gap-6 lg:grid-cols-3">
         {planKeys.map((plan) => {
           const precioMensual = Number(t(`${plan.key}.price`))
-          const precioAnual = Number(t(`${plan.key}.priceAnnual`))
           const features = Array.from({ length: plan.featureCount }, (_, j) =>
             t(`${plan.key}.feature${j + 1}`)
           )
@@ -115,21 +75,15 @@ export default function Pricing() {
               <div className="grid gap-1 [font-variant-numeric:tabular-nums]">
                 <div className="flex items-baseline gap-1.5">
                   <span className="font-display text-[42px] tracking-tight" style={{ fontWeight: 800 }}>
-                    {anual ? precioAnual : precioMensual}&euro;
+                    {precioMensual}&euro;
                   </span>
                   <span className={cn("text-[13px]", destacado ? "text-sidebar-foreground" : "text-muted-foreground")}>
                     {t("perMonth")}
                   </span>
                 </div>
-                {anual ? (
-                  <span className={cn("text-xs", destacado ? "text-sidebar-foreground" : "text-muted-foreground")}>
-                    {t("billedAnnually", { amount: precioAnual * 12 })}
-                  </span>
-                ) : (
-                  <span className={cn("text-xs", destacado ? "text-sidebar-foreground" : "text-muted-foreground")}>
-                    {t("trialIncluded")} &middot; {t("taxesExcluded")}
-                  </span>
-                )}
+                <span className={cn("text-xs", destacado ? "text-sidebar-foreground" : "text-muted-foreground")}>
+                  {t("trialIncluded")} &middot; {t("taxesExcluded")} &middot; {t("cancelAnytime")}
+                </span>
               </div>
 
               <div className="grid gap-2.5">

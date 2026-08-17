@@ -31,3 +31,32 @@ export function proximaFechaMismoDiaSemana(fechaOriginal: Date, hoy: Date = new 
   const objetivo = new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate() + dias, 12, 0, 0)
   return formatearFechaLocal(objetivo)
 }
+
+interface PreferenciaRepeticion {
+  fecha: string
+  pistaId: string
+  hora: string
+}
+
+/**
+ * Obtiene la siguiente fecha, pista y hora equivalentes para repetir una
+ * reserva desde el navegador. Si la hora de hoy ya ha pasado, salta una semana.
+ */
+export function crearPreferenciaRepeticion(
+  pistaId: string,
+  inicioOriginal: Date,
+  ahora: Date = new Date(),
+): PreferenciaRepeticion {
+  let fecha = proximaFechaMismoDiaSemana(inicioOriginal, ahora)
+  const hora = `${String(inicioOriginal.getHours()).padStart(2, "0")}:${String(inicioOriginal.getMinutes()).padStart(2, "0")}`
+  const minutosOriginales = inicioOriginal.getHours() * 60 + inicioOriginal.getMinutes()
+  const minutosActuales = ahora.getHours() * 60 + ahora.getMinutes()
+
+  if (fecha === formatearFechaLocal(ahora) && minutosOriginales <= minutosActuales) {
+    const semanaSiguiente = new Date(`${fecha}T12:00:00`)
+    semanaSiguiente.setDate(semanaSiguiente.getDate() + 7)
+    fecha = formatearFechaLocal(semanaSiguiente)
+  }
+
+  return { fecha, pistaId, hora }
+}

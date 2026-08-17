@@ -239,6 +239,8 @@
     "bookingErrorRetry": "The booking could not be created. Review the details and try again.",
     "connectionErrorRetry": "The server could not be reached. Try again without losing your selection.",
     "retryBooking": "Retry booking",
+    "repeatUnavailableTitle": "This booking cannot be repeated",
+    "repeatUnavailableDescription": "The original court or time is no longer available. Choose another slot.",
     "price": "Price",
     "loginToBook": "Sign in to book",
     "processing": "Processing...",

@@ -1,5 +1,10 @@
 import { describe, it, expect } from "vitest"
-import { formatearFechaLocal, esFechaISOValida, proximaFechaMismoDiaSemana } from "./fechas"
+import {
+  crearPreferenciaRepeticion,
+  esFechaISOValida,
+  formatearFechaLocal,
+  proximaFechaMismoDiaSemana,
+} from "./fechas"
 
 describe("formatearFechaLocal", () => {
   it("formatea con ceros a la izquierda", () => {
@@ -79,5 +84,32 @@ describe("proximaFechaMismoDiaSemana", () => {
     const original = new Date(2026, 6, 19) // domingo
     const hoy = new Date(2026, 6, 22) // miercoles
     expect(proximaFechaMismoDiaSemana(original, hoy)).toBe("2026-07-26")
+  })
+})
+
+describe("crearPreferenciaRepeticion", () => {
+  it("conserva pista y hora en el siguiente dia equivalente", () => {
+    const preferencia = crearPreferenciaRepeticion(
+      "pista-central",
+      new Date(2026, 6, 13, 18, 30),
+      new Date(2026, 6, 22, 12, 0),
+    )
+
+    expect(preferencia).toEqual({
+      fecha: "2026-07-27",
+      pistaId: "pista-central",
+      hora: "18:30",
+    })
+  })
+
+  it("salta una semana si hoy coincide pero la hora ya ha pasado", () => {
+    const preferencia = crearPreferenciaRepeticion(
+      "pista-central",
+      new Date(2026, 6, 15, 18, 30),
+      new Date(2026, 6, 22, 20, 0),
+    )
+
+    expect(preferencia.fecha).toBe("2026-07-29")
+    expect(preferencia.hora).toBe("18:30")
   })
 })

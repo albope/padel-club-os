@@ -19,7 +19,7 @@ afterEach(() => {
   vi.clearAllMocks()
 })
 
-function renderizarGrid() {
+function renderizarGrid(preseleccion?: { pistaInicialId: string; horaInicial: string }) {
   const fetchMock = vi.fn(async (input: string | URL | Request) => {
     const url = String(input)
     if (url.includes("/availability")) {
@@ -49,6 +49,8 @@ function renderizarGrid() {
         sesionUserId={null}
         slug="club-prueba"
         fechaInicial="2026-08-17"
+        pistaInicialId={preseleccion?.pistaInicialId}
+        horaInicial={preseleccion?.horaInicial}
       />
     </NextIntlClientProvider>,
   )
@@ -86,5 +88,15 @@ describe("GridReservas", () => {
     await waitFor(() => {
       expect(screen.queryByRole("region", { name: "Resumen de la selección" })).not.toBeInTheDocument()
     })
+  })
+
+  it("preselecciona la misma pista y hora al repetir una reserva", async () => {
+    renderizarGrid({ pistaInicialId: "pista-1", horaInicial: "10:00" })
+
+    const resumen = await screen.findByRole("region", { name: "Resumen de la selección" })
+    expect(resumen).toHaveTextContent("Pista Central · 10:00–11:30 · 24.00€")
+    expect(screen.getByRole("button", {
+      name: "Reservar Pista Central a las 10:00, 24€",
+    })).toHaveAttribute("aria-pressed", "true")
   })
 })

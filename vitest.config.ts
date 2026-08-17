@@ -10,6 +10,8 @@ export default defineConfig({
     setupFiles: ['./src/test/setup.ts'],
     include: ['src/**/*.{test,spec}.{ts,tsx}'],
     css: true,
+    // Evita saturar jsdom y los timers de Testing Library en equipos con muchos nucleos.
+    maxWorkers: 4,
   },
   resolve: {
     alias: {

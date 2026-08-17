@@ -13,17 +13,37 @@ interface Court {
   type: string;
 }
 
-// Lee ?fecha=YYYY-MM-DD de la URL; invalida o fuera de rango -> null (el grid usa hoy)
-function fechaDesdeQuery(maxAdvanceBooking: number): string | null {
-  const param = new URLSearchParams(window.location.search).get('fecha');
-  if (!param || !esFechaISOValida(param)) return null;
+interface ReservaInicial {
+  fecha: string | null;
+  pistaId: string | null;
+  hora: string | null;
+}
+
+// Lee la fecha y la preferencia opcional de repeticion. Los valores invalidos
+// no llegan al grid y este conserva su comportamiento normal.
+function reservaDesdeQuery(maxAdvanceBooking: number): ReservaInicial {
+  const params = new URLSearchParams(window.location.search);
+  const fecha = params.get('fecha');
+  if (!fecha || !esFechaISOValida(fecha)) {
+    return { fecha: null, pistaId: null, hora: null };
+  }
 
   const hoy = formatearFechaLocal(new Date());
   const limite = new Date();
   limite.setDate(limite.getDate() + maxAdvanceBooking);
-  if (param < hoy || param > formatearFechaLocal(limite)) return null;
+  if (fecha < hoy || fecha > formatearFechaLocal(limite)) {
+    return { fecha: null, pistaId: null, hora: null };
+  }
 
-  return param;
+  const pistaId = params.get('pista')?.trim() || null;
+  const hora = params.get('hora');
+  const horaValida = hora && /^(?:[01]\d|2[0-3]):(?:00|30)$/.test(hora) ? hora : null;
+
+  return {
+    fecha,
+    pistaId: pistaId && horaValida ? pistaId : null,
+    hora: pistaId ? horaValida : null,
+  };
 }
 
 export default function PlayerBookingPage() {
@@ -34,6 +54,8 @@ export default function PlayerBookingPage() {
   const [clubInfo, setClubInfo] = useState<any>(null);
   const [courts, setCourts] = useState<Court[]>([]);
   const [fechaInicial, setFechaInicial] = useState<string | null>(null);
+  const [pistaInicialId, setPistaInicialId] = useState<string | null>(null);
+  const [horaInicial, setHoraInicial] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -47,7 +69,10 @@ export default function PlayerBookingPage() {
         if (clubRes.ok) {
           const info = await clubRes.json();
           setClubInfo(info);
-          setFechaInicial(fechaDesdeQuery(info.maxAdvanceBooking ?? 7));
+          const reservaInicial = reservaDesdeQuery(info.maxAdvanceBooking ?? 7);
+          setFechaInicial(reservaInicial.fecha);
+          setPistaInicialId(reservaInicial.pistaId);
+          setHoraInicial(reservaInicial.hora);
         }
         if (courtsRes.ok) setCourts(await courtsRes.json());
       } catch {
@@ -97,6 +122,8 @@ export default function PlayerBookingPage() {
         sesionUserId={session?.user?.id ?? null}
         slug={slug}
         fechaInicial={fechaInicial}
+        pistaInicialId={pistaInicialId}
+        horaInicial={horaInicial}
       />
     </div>
   );

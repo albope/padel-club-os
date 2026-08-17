@@ -34,7 +34,7 @@ import {
 import { toast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { calcularPrecioTotal, type BandaPrecio } from '@/lib/pricing-client';
-import { proximaFechaMismoDiaSemana } from '@/lib/fechas';
+import { crearPreferenciaRepeticion } from '@/lib/fechas';
 import { useLocale, useTranslations } from 'next-intl';
 import BotonCompartir from '@/components/club/BotonCompartir';
 import { ValoracionesWidget } from '@/components/social/ValoracionesWidget';
@@ -52,6 +52,7 @@ interface UserProfile {
 
 interface Booking {
   id: string;
+  courtId: string;
   startTime: string;
   endTime: string;
   status: string;
@@ -526,8 +527,16 @@ export default function PlayerProfilePage() {
                           size="sm"
                           className="h-8 px-2 text-muted-foreground hover:text-primary"
                           onClick={() => {
-                            const fecha = proximaFechaMismoDiaSemana(new Date(booking.startTime));
-                            router.push(`/club/${slug}/reservar?fecha=${fecha}`);
+                            const preferencia = crearPreferenciaRepeticion(
+                              booking.courtId,
+                              new Date(booking.startTime),
+                            );
+                            const query = new URLSearchParams({
+                              fecha: preferencia.fecha,
+                              pista: preferencia.pistaId,
+                              hora: preferencia.hora,
+                            });
+                            router.push(`/club/${slug}/reservar?${query.toString()}`);
                           }}
                           aria-label={tRepeat('button')}
                           title={tRepeat('button')}

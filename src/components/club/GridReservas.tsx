@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTranslations, useLocale } from 'next-intl';
 import { ChevronLeft, ChevronRight, Loader2, Users, Bell, BellOff, Ban, Check } from 'lucide-react';
@@ -45,6 +45,8 @@ interface GridReservasProps {
   sesionUserId: string | null;
   slug: string;
   fechaInicial?: string | null;
+  pistaInicialId?: string | null;
+  horaInicial?: string | null;
 }
 
 // Genera franjas de 30 minutos entre apertura y cierre
@@ -81,7 +83,15 @@ function sumarMinutosAHora(hora: string, minutos: number): string {
   return `${String(horas).padStart(2, '0')}:${String(minutosRestantes).padStart(2, '0')}`;
 }
 
-export default function GridReservas({ club, pistas, sesionUserId, slug, fechaInicial }: GridReservasProps) {
+export default function GridReservas({
+  club,
+  pistas,
+  sesionUserId,
+  slug,
+  fechaInicial,
+  pistaInicialId,
+  horaInicial,
+}: GridReservasProps) {
   const router = useRouter();
   const t = useTranslations('booking');
   const tw = useTranslations('waitlist');
@@ -109,6 +119,7 @@ export default function GridReservas({ club, pistas, sesionUserId, slug, fechaIn
   // Lista de espera: Set de claves "courtId-startTimeISO" → waitlistId
   const [waitlistMap, setWaitlistMap] = useState<Map<string, string>>(new Map());
   const [waitlistLoading, setWaitlistLoading] = useState<Set<string>>(new Set());
+  const preseleccionAplicada = useRef(false);
 
   const hoy = useMemo(() => formatearFechaLocal(new Date()), []);
   const franjas = useMemo(() => generarFranjas(openingTime, closingTime), [openingTime, closingTime]);
@@ -241,16 +252,16 @@ export default function GridReservas({ club, pistas, sesionUserId, slug, fechaIn
   const esPropia = (bloque: Bloque): boolean => bloque.esPropia;
 
   // Verificar que un slot esta libre para la duracion completa
-  const slotLibre = (pistaId: string, filaIdx: number): boolean => {
+  const slotLibre = useCallback((pistaId: string, filaIdx: number): boolean => {
     const filasNecesarias = Math.ceil(duracion / 30);
     for (let f = filaIdx; f < filaIdx + filasNecesarias; f++) {
       if (f >= totalFilas) return false;
       if (celdasOcupadas.has(`${pistaId}-${f}`)) return false;
     }
     return true;
-  };
+  }, [celdasOcupadas, duracion, totalFilas]);
 
-  const handleClickSlot = (pista: Pista, franja: string, filaIdx: number) => {
+  const handleClickSlot = useCallback((pista: Pista, franja: string, filaIdx: number) => {
     if (!slotLibre(pista.id, filaIdx)) return;
 
     const bandas = bandasPrecio[pista.id] ?? [];
@@ -262,7 +273,25 @@ export default function GridReservas({ club, pistas, sesionUserId, slug, fechaIn
       precio: precioTotal,
     });
     if (!temaMarcador) setSheetOpen(true);
-  };
+  }, [bandasPrecio, duracion, slotLibre, temaMarcador]);
+
+  useEffect(() => {
+    if (preseleccionAplicada.current || isLoading || !pistaInicialId || !horaInicial) return;
+    preseleccionAplicada.current = true;
+
+    const pista = pistas.find((candidata) => candidata.id === pistaInicialId);
+    const filaIdx = franjas.indexOf(horaInicial);
+    if (!pista || filaIdx < 0 || !slotLibre(pista.id, filaIdx)) {
+      toast({
+        title: t('repeatUnavailableTitle'),
+        description: t('repeatUnavailableDescription'),
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    handleClickSlot(pista, horaInicial, filaIdx);
+  }, [franjas, handleClickSlot, horaInicial, isLoading, pistaInicialId, pistas, slotLibre, t]);
 
   const handlePartidaAbierta = (openMatchId: string) => {
     router.push(`/club/${slug}/partidas`);

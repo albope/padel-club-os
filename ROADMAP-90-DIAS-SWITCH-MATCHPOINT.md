@@ -15,7 +15,7 @@ El producto ya no esta en fase cero. Hoy el workspace ya cubre:
 - base de seguridad, RGPD, PWA e i18n,
 - CI/CD (lint + typecheck + test + build en PR),
 - rate limit distribuido (Upstash Redis con fallback local),
-- 597 tests (unitarios + integracion), 0 errores TS.
+- 600 tests (unitarios + integracion), 0 errores TS.
 
 El roadmap de 90 dias debe partir de esta base y no rehacer trabajo ya hecho.
 
@@ -43,6 +43,8 @@ Llegar a pilotos reales con una historia creible de migracion, operativa diaria 
   proteccion multi-tenant.
 - Horarios especiales y bloqueos de pista con motivos, conflictos y efecto en disponibilidad.
 - Audit log de acciones criticas con consulta por club y permisos dedicados.
+- Repeticion de reservas desde el historial conservando dia de la semana, pista y hora,
+  con validacion de disponibilidad antes de confirmar.
 
 ## Pendientes activos
 
@@ -58,7 +60,6 @@ Todo el bloque de migracion esta cerrado. Las 4 tareas originales estan resuelta
 
 | Tarea | Descripcion | Esfuerzo |
 |-------|-------------|----------|
-| Completar "Repetir reserva" | El boton actual abre el siguiente dia equivalente, pero todavia no preselecciona la misma pista y hora | S |
 | Gate visual del portal jugador | Validar los flujos principales en 4 breakpoints x 2 temas y corregir incidencias verificadas; requiere entorno con `DATABASE_URL` de la rama `dev` | S |
 
 ## Indicadores a mirar cada 2 semanas

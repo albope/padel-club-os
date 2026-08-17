@@ -239,6 +239,8 @@
     "bookingErrorRetry": "No se pudo crear la reserva. Revisa los datos e inténtalo de nuevo.",
     "connectionErrorRetry": "No hay conexión con el servidor. Inténtalo de nuevo sin perder tu selección.",
     "retryBooking": "Reintentar reserva",
+    "repeatUnavailableTitle": "No se puede repetir esta reserva",
+    "repeatUnavailableDescription": "La pista o la hora original ya no está disponible. Elige otra franja.",
     "price": "Precio",
     "loginToBook": "Iniciar sesión para reservar",
     "processing": "Procesando...",

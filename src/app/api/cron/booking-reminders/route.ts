@@ -5,16 +5,18 @@ import { liberarSlotYNotificar } from "@/lib/waitlist"
 import { logger } from "@/lib/logger"
 import { registrarAuditoria } from "@/lib/audit"
 import { pingHeartbeat } from "@/lib/heartbeat"
+import { esZonaHorariaValida, ZONA_CLUB } from "@/lib/timezone"
 import { NextResponse } from "next/server"
 
-// Tiempo de antelacion para enviar recordatorio (1 hora)
-const REMINDER_MINUTES = 60
+// La ventana de 24 horas funciona tanto con el cron diario de Vercel Hobby
+// como con una frecuencia mayor al activar Pro o un scheduler externo.
+const VENTANA_RECORDATORIO_HORAS = 24
 
 /**
  * POST /api/cron/booking-reminders
  *
  * Cron job que envia recordatorios de reservas proximas.
- * Busca reservas confirmadas que empiezan en la proxima hora
+ * Busca reservas confirmadas que empiezan en las proximas 24 horas
  * y que aun no tienen recordatorio enviado.
  *
  * Seguridad: protegido por CRON_SECRET (Vercel Cron o llamada manual).
@@ -30,9 +32,11 @@ export async function POST(req: Request) {
     }
 
     const ahora = new Date()
-    const limiteRecordatorio = new Date(ahora.getTime() + REMINDER_MINUTES * 60 * 1000)
+    const limiteRecordatorio = new Date(
+      ahora.getTime() + VENTANA_RECORDATORIO_HORAS * 60 * 60 * 1000
+    )
 
-    // Buscar reservas confirmadas que empiezan en la proxima hora,
+    // Buscar reservas confirmadas que empiezan en las proximas 24 horas,
     // que tienen usuario asignado y no se les ha enviado recordatorio
     const reservas = await db.booking.findMany({
       where: {
@@ -46,7 +50,7 @@ export async function POST(req: Request) {
       },
       include: {
         court: { select: { name: true } },
-        club: { select: { slug: true, name: true } },
+        club: { select: { slug: true, name: true, timezone: true } },
         user: { select: { email: true, name: true } },
       },
     })
@@ -71,16 +75,25 @@ export async function POST(req: Request) {
         })
         if (claim.count === 0) continue
 
+        const zonaClub = esZonaHorariaValida(reserva.club.timezone)
+          ? reserva.club.timezone
+          : ZONA_CLUB
+        const fecha = reserva.startTime.toLocaleDateString("es-ES", {
+          weekday: "long",
+          day: "numeric",
+          month: "long",
+          timeZone: zonaClub,
+        })
         const hora = reserva.startTime.toLocaleTimeString("es-ES", {
           hour: "2-digit",
           minute: "2-digit",
-          timeZone: "Europe/Madrid",
+          timeZone: zonaClub,
         })
 
         const notificacion = await crearNotificacion({
           tipo: "booking_reminder",
           titulo: "Recordatorio de reserva",
-          mensaje: `Tu reserva en ${reserva.court.name} es hoy a las ${hora}. ¡No llegues tarde!`,
+          mensaje: `Tu reserva en ${reserva.court.name} es ${fecha} a las ${hora}. ¡No llegues tarde!`,
           userId: reserva.userId,
           clubId: reserva.clubId,
           metadata: { bookingId: reserva.id },

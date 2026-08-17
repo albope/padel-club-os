@@ -1,6 +1,6 @@
-import { describe, it, expect, vi, beforeEach } from "vitest"
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest"
 import { mockDb } from "@/test/mocks/db"
-import { crearReservaMock, manana } from "@/test/factories"
+import { crearReservaMock } from "@/test/factories"
 import { extraerJson } from "@/test/helpers/api-route"
 
 // --- Mocks ---
@@ -38,10 +38,16 @@ function crearCronRequest(secret?: string) {
 describe("Cron de recordatorios y auto-cancelacion", () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    vi.useFakeTimers()
+    vi.setSystemTime(new Date("2026-08-17T05:00:00.000Z"))
     process.env.CRON_SECRET = "test-secret"
     // Default: sin reservas proximas ni expiradas
     mockDb.booking.findMany.mockResolvedValue([])
     mockDb.booking.updateMany.mockResolvedValue({ count: 1 })
+  })
+
+  afterEach(() => {
+    vi.useRealTimers()
   })
 
   it("rechaza sin CRON_SECRET → 401", async () => {
@@ -68,6 +74,40 @@ describe("Cron de recordatorios y auto-cancelacion", () => {
     expect(mockCrearNotificacion).toHaveBeenCalledWith(
       expect.objectContaining({
         tipo: "booking_reminder",
+      })
+    )
+  })
+
+  it("busca reservas de las proximas 24 horas", async () => {
+    await POST(crearCronRequest("test-secret"))
+
+    expect(mockDb.booking.findMany).toHaveBeenNthCalledWith(
+      1,
+      expect.objectContaining({
+        where: expect.objectContaining({
+          startTime: {
+            gt: new Date("2026-08-17T05:00:00.000Z"),
+            lte: new Date("2026-08-18T05:00:00.000Z"),
+          },
+        }),
+      })
+    )
+  })
+
+  it("indica la fecha local de la reserva en la notificacion", async () => {
+    const reservaManana = crearReservaMock({
+      userId: "user-1",
+      startTime: new Date("2026-08-18T10:00:00.000Z"),
+    })
+    mockDb.booking.findMany
+      .mockResolvedValueOnce([reservaManana])
+      .mockResolvedValueOnce([])
+
+    await POST(crearCronRequest("test-secret"))
+
+    expect(mockCrearNotificacion).toHaveBeenCalledWith(
+      expect.objectContaining({
+        mensaje: expect.stringContaining("martes, 18 de agosto a las 12:00"),
       })
     )
   })

@@ -789,6 +789,7 @@ export async function enviarEmailRecordatorioReserva({
   const nombreSeguro = escaparHtml(nombre)
   const pistaSegura = escaparHtml(pistaNombre)
   const clubSeguro = escaparHtml(clubNombre)
+  const fecha = formatearFecha(fechaHoraInicio)
   const hora = formatearHora(fechaHoraInicio)
   const reservasUrl = `${EMAIL_BRAND.siteUrl}/club/${escaparHtml(clubSlug)}/reservar`
 
@@ -797,10 +798,11 @@ export async function enviarEmailRecordatorioReserva({
       Hola ${nombreSeguro},
     </p>
     <p style="${estiloParrafo}">
-      &iexcl;Tu reserva en <strong>${clubSeguro}</strong> es dentro de 1 hora!
+      Tu reserva en <strong>${clubSeguro}</strong> es en las pr&oacute;ximas 24 horas.
     </p>
     ${cajaDetalle([
       { etiqueta: "Pista", valor: pistaSegura },
+      { etiqueta: "Fecha", valor: fecha },
       { etiqueta: "Hora", valor: hora },
     ])}
     <p style="${estiloParrafo}">
@@ -811,10 +813,10 @@ export async function enviarEmailRecordatorioReserva({
   await resend.emails.send({
     from: EMAIL_FROM,
     to: email,
-    subject: `Recordatorio: ${pistaNombre} hoy a las ${hora}`,
+    subject: `Recordatorio: ${pistaNombre} el ${fecha} a las ${hora}`,
     html: plantillaEmail({
       titulo: "Recordatorio de reserva",
-      preheader: `Tu reserva en ${pistaNombre} es hoy a las ${hora}. No llegues tarde!`,
+      preheader: `Tu reserva en ${pistaNombre} es el ${fecha} a las ${hora}.`,
       contenido,
       boton: { texto: "Ver mi reserva", url: reservasUrl },
     }),

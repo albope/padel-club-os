@@ -1,8 +1,12 @@
 import { describe, it, expect, vi } from "vitest"
 
 // Mock Resend para evitar inicializacion
+const mockEnviarEmail = vi.hoisted(() => vi.fn())
+
 vi.mock("resend", () => ({
-  Resend: vi.fn(),
+  Resend: vi.fn(() => ({
+    emails: { send: mockEnviarEmail },
+  })),
 }))
 
 import {
@@ -12,6 +16,7 @@ import {
   formatearHora,
   calcularDuracionMin,
   traducirEstadoPago,
+  enviarEmailRecordatorioReserva,
 } from "./email"
 
 describe("escaparHtml", () => {
@@ -125,5 +130,30 @@ describe("traducirEstadoPago", () => {
 
   it("retorna el valor original para estados desconocidos", () => {
     expect(traducirEstadoPago("unknown")).toBe("unknown")
+  })
+})
+
+describe("enviarEmailRecordatorioReserva", () => {
+  it("avisa de la reserva en las proximas 24 horas con fecha y hora local", async () => {
+    process.env.RESEND_API_KEY = "test-key"
+    mockEnviarEmail.mockResolvedValueOnce({ id: "email-1" })
+
+    await enviarEmailRecordatorioReserva({
+      email: "jugador@test.com",
+      nombre: "Jugador Test",
+      pistaNombre: "Pista Central",
+      fechaHoraInicio: new Date("2026-08-18T10:00:00.000Z"),
+      clubNombre: "Club Test",
+      clubSlug: "club-test",
+    })
+
+    expect(mockEnviarEmail).toHaveBeenCalledWith(
+      expect.objectContaining({
+        subject: expect.stringContaining(
+          "Pista Central el martes, 18 de agosto de 2026 a las 12:00"
+        ),
+        html: expect.stringMatching(/pr&oacute;ximas 24 horas[\s\S]*Fecha[\s\S]*martes, 18 de agosto de 2026/),
+      })
+    )
   })
 })

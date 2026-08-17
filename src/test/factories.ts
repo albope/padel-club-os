@@ -102,7 +102,7 @@ export function crearReservaMock(overrides: Record<string, unknown> = {}) {
     createdAt: new Date(),
     updatedAt: new Date(),
     court: { name: "Pista 1" },
-    club: { slug: "club-test", name: "Club Test" },
+    club: { slug: "club-test", name: "Club Test", timezone: "Europe/Madrid" },
     user: { email: "jugador@test.com", name: "Jugador Test", club: { name: "Club Test", slug: "club-test" } },
     payment: null,
     ...overrides,

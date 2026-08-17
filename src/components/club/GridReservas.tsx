@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTranslations, useLocale } from 'next-intl';
-import { ChevronLeft, ChevronRight, Loader2, Users, Bell, BellOff, Ban } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Loader2, Users, Bell, BellOff, Ban, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
@@ -74,6 +74,13 @@ function indiceFila(hora: string, aperturaMinutos: number): number {
   return Math.floor((horaAMinutos(hora) - aperturaMinutos) / 30);
 }
 
+function sumarMinutosAHora(hora: string, minutos: number): string {
+  const total = horaAMinutos(hora) + minutos;
+  const horas = Math.floor(total / 60) % 24;
+  const minutosRestantes = total % 60;
+  return `${String(horas).padStart(2, '0')}:${String(minutosRestantes).padStart(2, '0')}`;
+}
+
 export default function GridReservas({ club, pistas, sesionUserId, slug, fechaInicial }: GridReservasProps) {
   const router = useRouter();
   const t = useTranslations('booking');
@@ -107,6 +114,10 @@ export default function GridReservas({ club, pistas, sesionUserId, slug, fechaIn
   const franjas = useMemo(() => generarFranjas(openingTime, closingTime), [openingTime, closingTime]);
   const totalFilas = franjas.length;
   const temaMarcador = temaMarcadorActivo();
+  const filasSeleccionadas = Math.ceil(duracion / 30);
+  const filaInicioSeleccionada = slotSeleccionado
+    ? indiceFila(slotSeleccionado.horaInicio, aperturaMinutos)
+    : null;
 
   // <<Marcador>> 2b: chips de dia (proximos 7 dias)
   const proximosDias = useMemo(() => {
@@ -218,7 +229,13 @@ export default function GridReservas({ club, pistas, sesionUserId, slug, fechaIn
   const moverFecha = (dias: number) => {
     const d = new Date(`${fecha}T12:00:00`);
     d.setDate(d.getDate() + dias);
-    setFecha(formatearFechaLocal(d));
+    cambiarFecha(formatearFechaLocal(d));
+  };
+
+  const cambiarFecha = (nuevaFecha: string) => {
+    setFecha(nuevaFecha);
+    setSlotSeleccionado(null);
+    setSheetOpen(false);
   };
 
   const esPropia = (bloque: Bloque): boolean => bloque.esPropia;
@@ -244,7 +261,7 @@ export default function GridReservas({ club, pistas, sesionUserId, slug, fechaIn
       horaInicio: franja,
       precio: precioTotal,
     });
-    setSheetOpen(true);
+    if (!temaMarcador) setSheetOpen(true);
   };
 
   const handlePartidaAbierta = (openMatchId: string) => {
@@ -330,7 +347,7 @@ export default function GridReservas({ club, pistas, sesionUserId, slug, fechaIn
               variant="outline"
               size="sm"
               className="h-7 text-xs"
-              onClick={() => setFecha(hoy)}
+              onClick={() => cambiarFecha(hoy)}
             >
               {t('backToToday')}
             </Button>
@@ -350,7 +367,7 @@ export default function GridReservas({ club, pistas, sesionUserId, slug, fechaIn
               <button
                 type="button"
                 key={dia.iso}
-                onClick={() => setFecha(dia.iso)}
+                onClick={() => cambiarFecha(dia.iso)}
                 aria-pressed={seleccionado}
                 className={cn(
                   'flex flex-col items-center justify-center min-w-[52px] h-14 rounded-[10px] border text-xs transition-colors shrink-0',
@@ -451,6 +468,12 @@ export default function GridReservas({ club, pistas, sesionUserId, slug, fechaIn
                     const celdaKey = `${pista.id}-${filaIdx}`;
                     const bloqueInicial = bloquesIniciales.get(celdaKey);
                     const estaOcupada = celdasOcupadas.has(celdaKey);
+                    const esParteSeleccion = temaMarcador
+                      && slotSeleccionado?.pista.id === pista.id
+                      && filaInicioSeleccionada !== null
+                      && filaIdx >= filaInicioSeleccionada
+                      && filaIdx < filaInicioSeleccionada + filasSeleccionadas;
+                    const esInicioSeleccionado = esParteSeleccion && filaIdx === filaInicioSeleccionada;
 
                     // Si hay un bloque que empieza aqui, renderizar el bloque
                     if (bloqueInicial) {
@@ -603,7 +626,10 @@ export default function GridReservas({ club, pistas, sesionUserId, slug, fechaIn
                       ? calcularPrecioTotal(bandasPrecio[pista.id] ?? [], franja, duracion)
                       : null;
                     const contenidoPrecio = precioTotal !== null && precioTotal > 0 ? (
-                      <span className="text-[9px] text-muted-foreground/60 pl-0.5">
+                      <span className={cn(
+                        'text-[9px] pl-0.5',
+                        esParteSeleccion ? 'text-background' : 'text-muted-foreground/60',
+                      )}>
                         {precioTotal % 1 === 0 ? precioTotal : precioTotal.toFixed(2)}€
                       </span>
                     ) : null;
@@ -621,10 +647,13 @@ export default function GridReservas({ club, pistas, sesionUserId, slug, fechaIn
                                   'w-full text-left border-r border-b border-border/20 transition-colors cursor-pointer hover:bg-primary/5 active:bg-primary/10',
                                   esHoraEnPunto && 'border-t border-t-border/40',
                                 ),
+                            esParteSeleccion && 'border-solid border-foreground bg-foreground text-background hover:border-foreground hover:bg-foreground',
                           )}
                           onClick={() => handleClickSlot(pista, franja, filaIdx)}
+                          aria-pressed={esInicioSeleccionado}
                           aria-label={`Reservar ${pista.name} a las ${franja}${precioTotal ? `, ${precioTotal}€` : ''}`}
                         >
+                          {esInicioSeleccionado && <Check className="mr-0.5 h-3 w-3" aria-hidden="true" />}
                           {contenidoPrecio}
                         </button>
                       );
@@ -637,6 +666,7 @@ export default function GridReservas({ club, pistas, sesionUserId, slug, fechaIn
                         className={cn(
                           'border-r border-b border-border/20 transition-colors',
                           esHoraEnPunto && 'border-t border-t-border/40',
+                          esParteSeleccion && 'border-foreground bg-foreground',
                         )}
                       >
                         {contenidoPrecio}
@@ -650,10 +680,40 @@ export default function GridReservas({ club, pistas, sesionUserId, slug, fechaIn
         </div>
       )}
 
+      {temaMarcador && slotSeleccionado && (
+        <div
+          className="sticky bottom-[calc(4rem+env(safe-area-inset-bottom))] z-30 flex items-center gap-3 rounded-[14px] bg-foreground p-3.5 text-background shadow-xl md:bottom-4"
+          role="region"
+          aria-label={t('selectionSummary')}
+        >
+          <div className="min-w-0 flex-1">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-background/60">
+              {t('selection')}
+            </p>
+            <p className="truncate text-sm font-semibold tabular-nums">
+              {slotSeleccionado.pista.name} · {slotSeleccionado.horaInicio}–{sumarMinutosAHora(slotSeleccionado.horaInicio, duracion)}
+              {slotSeleccionado.precio !== null && slotSeleccionado.precio > 0 && (
+                <> · <span className="text-base font-bold">{slotSeleccionado.precio.toFixed(2)}€</span></>
+              )}
+            </p>
+          </div>
+          <Button
+            type="button"
+            className="btn-tenant h-11 shrink-0 px-5"
+            onClick={() => setSheetOpen(true)}
+          >
+            {t('continue')}
+          </Button>
+        </div>
+      )}
+
       {/* Sheet de confirmacion */}
       <ConfirmacionReserva
         open={sheetOpen}
-        onOpenChange={setSheetOpen}
+        onOpenChange={(open) => {
+          setSheetOpen(open);
+          if (!open) setSlotSeleccionado(null);
+        }}
         pista={slotSeleccionado?.pista ?? null}
         fecha={fecha}
         horaInicio={slotSeleccionado?.horaInicio ?? ''}

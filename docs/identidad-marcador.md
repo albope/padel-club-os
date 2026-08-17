@@ -80,12 +80,13 @@ Tras migrar una pantalla, fijar el avance con:
   GridReservas jugador (2b): filas 44px, chips de día (7 días), libre = borde
   punteado + precio, ocupada = trama diagonal `.celda-ocupada` (sin rojo), tuya =
   tinta, abierta = borde verde 1.5px, bloqueo = superficie secundaria + ban;
-  campana waitlist en warning. CourtGridView admin (3b): bloques con borde
+  campana waitlist en warning; selección expandida a la duración y barra resumen
+  sticky antes de continuar a la confirmación. CourtGridView admin (3b): bloques con borde
   izquierdo 3px por estado + icono (pagada = success + check, pendiente =
   warning + reloj + `.trama-warning`, partida = primary + users, bloqueo =
   border-strong + lock), slot libre punteado. Estado nunca solo por color
   (icono + texto + trama = requisito daltonismo). **Pendiente de fase 4** (anotado
-  para fase 5): barra resumen sticky del flujo 2b, drawer de creación 392px y
+  para fase 5): drawer de creación 392px y
   rail 72px del 3b, pantallas de éxito/fallo 2d con celebración única y
   retención 10 min (hoy son toasts funcionales).
 - [x] **Fase 5 — Resto (M)**: neutralización CSS del legado bajo el flag (orbes
@@ -108,8 +109,8 @@ Tras migrar una pantalla, fijar el avance con:
    `auth-*`/`landing-*` de globals.css (hoy solo neutralizadas), fuentes
    Inter/Sora, y bajar la baseline del ratchet migrando los ~518 usos crudos
    restantes (sobre todo marketing).
-2. Flujos aplazados: barra resumen sticky (2b), drawer creación 392px + rail
-   72px (3b), pantallas éxito/fallo 2d (celebración única 400ms, retención 10
+2. Flujos aplazados: drawer creación 392px + rail 72px (3b), pantallas
+   éxito/fallo 2d (celebración única 400ms, retención 10
    min), confirmación destructiva escribiendo el nombre (3e), banda tinta de
    plataforma (3e).
 3. Gate visual de fase 1 pendiente de ejecutar: 4 breakpoints × 2 temas.

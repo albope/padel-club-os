@@ -1,10 +1,11 @@
 'use client';
 
 import React from 'react';
-import { Edit } from 'lucide-react';
+import { Edit, Trophy } from 'lucide-react';
 import { type MatchWithTeams } from '@/types/competition.types';
 import { Card } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
+import { obtenerCampeonEliminatoria } from '@/lib/competition-winner';
 
 interface MatchListViewProps {
   matches: MatchWithTeams[];
@@ -77,6 +78,7 @@ const MatchCard: React.FC<{ match: MatchWithTeams; onMatchClick: (match: MatchWi
 };
 
 const MatchListView: React.FC<MatchListViewProps> = ({ matches, onMatchClick }) => {
+  const campeon = obtenerCampeonEliminatoria(matches);
   const rounds = matches.reduce((acc, match) => {
     const round = match.roundNumber;
     if (!acc[round]) acc[round] = [];
@@ -85,21 +87,37 @@ const MatchListView: React.FC<MatchListViewProps> = ({ matches, onMatchClick }) 
   }, {} as Record<number, MatchWithTeams[]>);
 
   return (
-    <div className="flex gap-8 overflow-x-auto pb-4 -mx-6 px-6">
-      {Object.entries(rounds)
-        .sort(([a], [b]) => Number(a) - Number(b))
-        .map(([roundNumber, roundMatches]) => (
-          <div key={roundNumber} className="flex flex-col gap-6 flex-shrink-0 w-72">
-            <h3 className="text-2xl font-bold text-primary text-center">
-              {roundMatches[0]?.roundName || `Ronda ${roundNumber}`}
-            </h3>
-            <div className="space-y-6">
-              {roundMatches.map((match) => (
-                <MatchCard key={match.id} match={match} onMatchClick={onMatchClick} />
-              ))}
+    <div className="space-y-6">
+      {campeon && (
+        <Card className="border-primary/40 bg-primary/5 p-5" role="status">
+          <div className="flex items-center gap-4">
+            <div className="rounded-full bg-primary/10 p-3 text-primary">
+              <Trophy className="h-6 w-6" aria-hidden="true" />
+            </div>
+            <div>
+              <p className="text-sm font-medium text-muted-foreground">Equipo campeón</p>
+              <p className="text-xl font-bold text-foreground">{campeon.name}</p>
             </div>
           </div>
-        ))}
+        </Card>
+      )}
+
+      <div className="flex gap-8 overflow-x-auto pb-4 -mx-6 px-6">
+        {Object.entries(rounds)
+          .sort(([a], [b]) => Number(a) - Number(b))
+          .map(([roundNumber, roundMatches]) => (
+            <div key={roundNumber} className="flex flex-col gap-6 flex-shrink-0 w-72">
+              <h3 className="text-2xl font-bold text-primary text-center">
+                {roundMatches[0]?.roundName || `Ronda ${roundNumber}`}
+              </h3>
+              <div className="space-y-6">
+                {roundMatches.map((match) => (
+                  <MatchCard key={match.id} match={match} onMatchClick={onMatchClick} />
+                ))}
+              </div>
+            </div>
+          ))}
+      </div>
     </div>
   );
 };

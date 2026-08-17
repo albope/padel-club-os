@@ -2,7 +2,8 @@ import { db } from "@/lib/db";
 import { notFound } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
+import { Trophy } from "lucide-react";
+import { obtenerCampeonEliminatoria } from "@/lib/competition-winner";
 
 const formatLabel: Record<string, string> = {
   LEAGUE: "Liga",
@@ -44,6 +45,10 @@ export default async function ClubCompetitionDetailPage(
 
   if (!competition) notFound();
 
+  const campeon = competition.format === "KNOCKOUT"
+    ? obtenerCampeonEliminatoria(competition.matches)
+    : null;
+
   // Agrupar partidos por ronda
   const matchesByRound: Record<string, typeof competition.matches> = {};
   for (const match of competition.matches) {
@@ -65,6 +70,20 @@ export default async function ClubCompetitionDetailPage(
           </div>
         </div>
       </div>
+
+      {campeon && (
+        <Card className="border-primary/40 bg-primary/5">
+          <CardContent className="flex items-center gap-4 p-5">
+            <div className="rounded-full bg-primary/10 p-3 text-primary">
+              <Trophy className="h-6 w-6" aria-hidden="true" />
+            </div>
+            <div>
+              <p className="text-sm font-medium text-muted-foreground">Equipo campeón</p>
+              <p className="text-xl font-bold text-foreground">{campeon.name}</p>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Clasificacion (para ligas y grupos) */}
       {(competition.format === 'LEAGUE' || competition.format === 'GROUP_AND_KNOCKOUT') && (

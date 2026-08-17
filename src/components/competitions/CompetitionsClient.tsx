@@ -131,11 +131,14 @@ const CompetitionsClient: React.FC<CompetitionsClientProps> = ({ initialCompetit
                   <li className="group flex flex-col sm:flex-row items-start sm:items-center justify-between py-4">
                     <Link href={`/dashboard/competitions/${competition.id}`} className="flex-grow">
                       <div className="flex items-center gap-4">
-                        <div className="p-3 bg-muted rounded-lg"><Trophy className="h-6 w-6 text-yellow-500" /></div>
+                        <div className="p-3 bg-muted rounded-lg"><Trophy className="h-6 w-6 text-primary" /></div>
                         <div>
                           <p className="font-semibold text-foreground group-hover:text-primary">{competition.name}</p>
                           <div className="flex items-center gap-4 text-sm text-muted-foreground mt-1">
                             <Badge variant="secondary">{formatToText(competition.format)}</Badge>
+                            <Badge variant={competition.status === CompetitionStatus.ACTIVE ? 'default' : 'secondary'}>
+                              {competition.status === CompetitionStatus.ACTIVE ? 'En curso' : 'Finalizada'}
+                            </Badge>
                             <span className="flex items-center gap-1.5"><Users className="h-4 w-4" /> {competition._count.teams} Equipos</span>
                           </div>
                         </div>
@@ -147,7 +150,7 @@ const CompetitionsClient: React.FC<CompetitionsClientProps> = ({ initialCompetit
                       ) : (
                         <>
                           {filter === 'ACTIVE' && (
-                            <Button variant="outline" size="sm" className="text-green-600 border-green-600/30 hover:bg-green-500/10" onClick={() => handleFinish(competition.id)}>
+                            <Button variant="outline" size="sm" className="border-primary/30 text-primary hover:bg-primary/10" onClick={() => handleFinish(competition.id)}>
                               Finalizar
                             </Button>
                           )}

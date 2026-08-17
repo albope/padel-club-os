@@ -15,7 +15,7 @@ El producto ya no esta en fase cero. Hoy el workspace ya cubre:
 - base de seguridad, RGPD, PWA e i18n,
 - CI/CD (lint + typecheck + test + build en PR),
 - rate limit distribuido (Upstash Redis con fallback local),
-- 602 tests (unitarios + integracion), 0 errores TS.
+- 603 tests (unitarios + integracion), 0 errores TS.
 
 El roadmap de 90 dias debe partir de esta base y no rehacer trabajo ya hecho.
 

@@ -28,27 +28,27 @@ const Sidebar = () => {
   };
 
   if (temaMarcadorActivo()) {
-    // Sidebar «Marcador»: tinta, 264px, agrupada por dominio (prototipo 3a/3f)
+    // Sidebar «Marcador»: rail intermedio de 72px y panel completo de 264px.
     return (
-      <aside className="w-[264px] border-r border-sidebar-border bg-sidebar text-sidebar-foreground flex-col hidden md:flex">
-        <div className="h-14 flex items-center gap-2.5 border-b border-sidebar-border px-4">
+      <aside className="hidden w-[72px] shrink-0 flex-col border-r border-sidebar-border bg-sidebar text-sidebar-foreground md:flex xl:w-[264px]">
+        <div className="flex h-14 items-center justify-center border-b border-sidebar-border xl:justify-start xl:gap-2.5 xl:px-4">
           <LogoIcon
             tamano="md"
             className="text-sidebar-primary-foreground"
             claseRelleno="fill-sidebar-primary"
           />
-          <span className="font-display text-lg font-bold tracking-tight text-sidebar-primary-foreground">
+          <span className="hidden font-display text-lg font-bold tracking-tight text-sidebar-primary-foreground xl:inline">
             PadelClub OS
           </span>
         </div>
 
         <nav
           aria-label={t('nav.mainNav')}
-          className="flex-grow overflow-y-auto px-3 py-4 space-y-5"
+          className="flex-grow space-y-3 overflow-y-auto px-2 py-4 xl:space-y-5 xl:px-3"
         >
           {agruparNavItems(filteredNavItems).map((grupo) => (
             <div key={grupo.key}>
-              <p className="px-2.5 mb-1.5 text-[11px] font-semibold uppercase tracking-[0.08em] text-sidebar-foreground/60">
+              <p className="mb-1.5 hidden px-2.5 text-[11px] font-semibold uppercase tracking-[0.08em] text-sidebar-foreground/60 xl:block">
                 {t(grupo.labelKey)}
               </p>
               <ul className="space-y-0.5">
@@ -58,16 +58,18 @@ const Sidebar = () => {
                     <li key={item.nameKey}>
                       <Link
                         href={item.href}
+                        aria-label={t(item.nameKey)}
                         aria-current={active ? 'page' : undefined}
+                        title={t(item.nameKey)}
                         className={cn(
-                          'flex items-center gap-2.5 px-2.5 py-2 rounded-[7px] border-l-[3px] text-[13px] transition-colors',
+                          'flex items-center justify-center rounded-[7px] border-l-[3px] px-2 py-2 text-[13px] transition-colors xl:justify-start xl:gap-2.5 xl:px-2.5',
                           active
                             ? 'border-sidebar-primary bg-sidebar-accent text-sidebar-accent-foreground font-semibold'
                             : 'border-transparent font-medium hover:bg-sidebar-accent/60 hover:text-sidebar-accent-foreground'
                         )}
                       >
-                        <item.icon className="h-4 w-4 shrink-0" strokeWidth={1.75} />
-                        {t(item.nameKey)}
+                        <item.icon className="h-5 w-5 shrink-0 xl:h-4 xl:w-4" strokeWidth={1.75} />
+                        <span className="hidden xl:inline">{t(item.nameKey)}</span>
                       </Link>
                     </li>
                   );

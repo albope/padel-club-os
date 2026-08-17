@@ -86,8 +86,9 @@ Tras migrar una pantalla, fijar el avance con:
   warning + reloj + `.trama-warning`, partida = primary + users, bloqueo =
   border-strong + lock), slot libre punteado. Estado nunca solo por color
   (icono + texto + trama = requisito daltonismo). **Pendiente de fase 4** (anotado
-  para fase 5): drawer de creación 392px y
-  rail 72px del 3b. ConfirmacionReserva cubre éxito y fallo recuperable 2d con
+  para fase 5): rail 72px del 3b. La creación ya usa un drawer derecho de 392px;
+  la edición conserva el diálogo centrado. ConfirmacionReserva cubre éxito y fallo
+  recuperable 2d con
   celebración única; la retención de pago de 10 min dejó de aplicar al retirar
   el checkout de reservas y pasar a cobro presencial.
 - [x] **Fase 5 — Resto (M)**: neutralización CSS del legado bajo el flag (orbes
@@ -110,8 +111,8 @@ Tras migrar una pantalla, fijar el avance con:
    `auth-*`/`landing-*` de globals.css (hoy solo neutralizadas), fuentes
    Inter/Sora, y bajar la baseline del ratchet migrando los ~518 usos crudos
    restantes (sobre todo marketing).
-2. Flujos aplazados: drawer creación 392px + rail 72px (3b) y banda tinta de
-   plataforma (3e). El borrado y la restauración destructiva de clubes demo ya
+2. Flujos aplazados: rail 72px (3b) y banda tinta de plataforma (3e). El borrado
+   y la restauración destructiva de clubes demo ya
    exigen escribir el nombre exacto del club.
 3. Gate visual de fase 1 pendiente de ejecutar: 4 breakpoints × 2 temas.
 

@@ -10,6 +10,7 @@ import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { BookingWithDetails } from './CalendarView';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -177,16 +178,8 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, selectedIn
     setShowUserList(false);
   };
 
-  return (
-    <>
-      <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-        <DialogContent className="sm:max-w-lg">
-          <DialogHeader>
-            <DialogTitle>{isEditMode ? t('editBooking') : t('newBooking')}</DialogTitle>
-            <DialogDescription>{t('newBookingDesc')}</DialogDescription>
-          </DialogHeader>
-
-          <form onSubmit={form.handleSubmit(handleFormSubmit)} className="space-y-4">
+  const formulario = (
+    <form onSubmit={form.handleSubmit(handleFormSubmit)} className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="md:col-span-1 space-y-2">
                 <Label htmlFor="startDate">{t('date')}</Label>
@@ -330,9 +323,32 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, selectedIn
                 </Button>
               </div>
             </div>
-          </form>
-        </DialogContent>
-      </Dialog>
+    </form>
+  );
+
+  return (
+    <>
+      {isEditMode ? (
+        <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+          <DialogContent className="sm:max-w-lg">
+            <DialogHeader>
+              <DialogTitle>{t('editBooking')}</DialogTitle>
+              <DialogDescription>{t('newBookingDesc')}</DialogDescription>
+            </DialogHeader>
+            {formulario}
+          </DialogContent>
+        </Dialog>
+      ) : (
+        <Sheet open={isOpen} onOpenChange={(open) => !open && onClose()}>
+          <SheetContent side="right" className="w-full overflow-y-auto sm:max-w-[392px]">
+            <SheetHeader>
+              <SheetTitle>{t('newBooking')}</SheetTitle>
+              <SheetDescription>{t('newBookingDesc')}</SheetDescription>
+            </SheetHeader>
+            {formulario}
+          </SheetContent>
+        </Sheet>
+      )}
 
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>

@@ -56,6 +56,16 @@ export const mockDb = {
   playerStats: {
     findMany: vi.fn(),
   },
+  competition: {
+    findFirst: vi.fn(),
+  },
+  team: {
+    findFirst: vi.fn(),
+    findMany: vi.fn(),
+    create: vi.fn(),
+    update: vi.fn(),
+    delete: vi.fn(),
+  },
   auditLog: {
     create: vi.fn().mockResolvedValue({}),
   },

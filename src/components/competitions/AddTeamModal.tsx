@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -35,14 +35,25 @@ interface AddTeamModalProps {
   onClose: () => void;
   competitionId: string;
   users: User[];
+  teams: Team[];
   teamToEdit?: Team | null;
 }
 
-const AddTeamModal: React.FC<AddTeamModalProps> = ({ isOpen, onClose, competitionId, users, teamToEdit }) => {
+const AddTeamModal: React.FC<AddTeamModalProps> = ({ isOpen, onClose, competitionId, users, teams, teamToEdit }) => {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const isEditMode = !!teamToEdit;
+
+  const equipoPorJugador = useMemo(() => {
+    const resultado = new Map<string, string>();
+    for (const team of teams) {
+      if (team.id === teamToEdit?.id) continue;
+      resultado.set(team.player1Id, team.name);
+      resultado.set(team.player2Id, team.name);
+    }
+    return resultado;
+  }, [teams, teamToEdit?.id]);
 
   const form = useForm<TeamFormValues>({
     resolver: zodResolver(TeamSchema),
@@ -80,13 +91,21 @@ const AddTeamModal: React.FC<AddTeamModalProps> = ({ isOpen, onClose, competitio
       });
 
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ message: 'Error desconocido en el servidor.' }));
-        throw new Error(errorData.message || `No se pudo ${isEditMode ? 'actualizar' : 'anadir'} el equipo.`);
+        const errorData = await response.json().catch(() => null) as {
+          error?: unknown;
+          message?: unknown;
+        } | null;
+        const mensajeServidor = typeof errorData?.error === 'string'
+          ? errorData.error
+          : typeof errorData?.message === 'string'
+            ? errorData.message
+            : null;
+        throw new Error(mensajeServidor || `No se pudo ${isEditMode ? 'actualizar' : 'añadir'} el equipo.`);
       }
       onClose();
       router.refresh();
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'No se pudo guardar el equipo.');
     } finally {
       setIsLoading(false);
     }
@@ -98,7 +117,7 @@ const AddTeamModal: React.FC<AddTeamModalProps> = ({ isOpen, onClose, competitio
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>{isEditMode ? 'Editar Equipo' : 'Anadir Nuevo Equipo'}</DialogTitle>
+          <DialogTitle>{isEditMode ? 'Editar Equipo' : 'Añadir Nuevo Equipo'}</DialogTitle>
           <DialogDescription>Introduce el nombre del equipo y selecciona los dos jugadores.</DialogDescription>
         </DialogHeader>
         <form onSubmit={form.handleSubmit(handleFormSubmit)} className="space-y-4">
@@ -124,7 +143,14 @@ const AddTeamModal: React.FC<AddTeamModalProps> = ({ isOpen, onClose, competitio
               className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
             >
               <option value="">Selecciona un socio</option>
-              {users.map(user => <option key={user.id} value={user.id}>{user.name}</option>)}
+              {users.map(user => {
+                const equipoInscrito = equipoPorJugador.get(user.id);
+                return (
+                  <option key={user.id} value={user.id} disabled={!!equipoInscrito}>
+                    {user.name}{equipoInscrito ? ` — Ya inscrito en ${equipoInscrito}` : ''}
+                  </option>
+                );
+              })}
             </select>
             {form.formState.errors.player1Id && <p id="player1Id-error" role="alert" className="text-sm text-destructive">{form.formState.errors.player1Id.message}</p>}
           </div>
@@ -139,11 +165,18 @@ const AddTeamModal: React.FC<AddTeamModalProps> = ({ isOpen, onClose, competitio
               className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
             >
               <option value="">Selecciona un socio</option>
-              {users.map(user => <option key={user.id} value={user.id}>{user.name}</option>)}
+              {users.map(user => {
+                const equipoInscrito = equipoPorJugador.get(user.id);
+                return (
+                  <option key={user.id} value={user.id} disabled={!!equipoInscrito}>
+                    {user.name}{equipoInscrito ? ` — Ya inscrito en ${equipoInscrito}` : ''}
+                  </option>
+                );
+              })}
             </select>
             {form.formState.errors.player2Id && <p id="player2Id-error" role="alert" className="text-sm text-destructive">{form.formState.errors.player2Id.message}</p>}
           </div>
-          {error && <p className="text-sm text-destructive">{error}</p>}
+          {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
           <DialogFooter className="flex justify-between items-center pt-4">
             {isEditMode && (
               <Button type="button" variant="ghost" onClick={onDelete} disabled={isLoading} className="text-destructive hover:text-destructive">
@@ -154,7 +187,7 @@ const AddTeamModal: React.FC<AddTeamModalProps> = ({ isOpen, onClose, competitio
               <Button type="button" variant="outline" onClick={onClose}>Cancelar</Button>
               <Button type="submit" disabled={isLoading}>
                 {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                {isEditMode ? 'Guardar Cambios' : 'Anadir Equipo'}
+                {isEditMode ? 'Guardar Cambios' : 'Añadir Equipo'}
               </Button>
             </div>
           </DialogFooter>

@@ -191,7 +191,7 @@ const CompetitionDetailClient: React.FC<CompetitionDetailClientProps> = ({ compe
 
   return (
     <>
-      <AddTeamModal isOpen={isTeamModalOpen} onClose={() => setIsTeamModalOpen(false)} competitionId={competition.id} users={users} teamToEdit={editingTeam} />
+      <AddTeamModal isOpen={isTeamModalOpen} onClose={() => setIsTeamModalOpen(false)} competitionId={competition.id} users={users} teams={competition.teams} teamToEdit={editingTeam} />
       {editingMatch && <AddResultModal isOpen={isResultModalOpen} onClose={() => setIsResultModalOpen(false)} match={editingMatch} />}
 
       <Card className="lg:col-span-1 self-start">

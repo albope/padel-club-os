@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { useTranslations, useLocale } from 'next-intl';
-import { CalendarDays, CalendarPlus, Clock, MapPin, Loader2, CheckCircle2 } from 'lucide-react';
+import { CalendarDays, CalendarPlus, Clock, MapPin, Loader2, CheckCircle2, CircleAlert, RotateCcw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Sheet,
@@ -14,7 +14,6 @@ import {
   SheetDescription,
 } from '@/components/ui/sheet';
 import { Separator } from '@/components/ui/separator';
-import { toast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { temaMarcadorActivo } from '@/lib/feature-flags';
 import BotonCompartir from '@/components/club/BotonCompartir';
@@ -50,6 +49,7 @@ export default function ConfirmacionReserva({
   const localeCode = locale === 'en' ? 'en-GB' : 'es-ES';
   const [isBooking, setIsBooking] = useState(false);
   const [reservaExitosa, setReservaExitosa] = useState(false);
+  const [errorReserva, setErrorReserva] = useState<string | null>(null);
 
   // «Marcador»: la CTA primaria del jugador es superficie de tenant (h-12 tactil)
   const claseCtaTenant = temaMarcadorActivo() ? 'btn-tenant h-12' : undefined;
@@ -105,6 +105,7 @@ export default function ConfirmacionReserva({
     }
 
     setIsBooking(true);
+    setErrorReserva(null);
     try {
       const res = await fetch('/api/player/bookings', {
         method: 'POST',
@@ -118,22 +119,15 @@ export default function ConfirmacionReserva({
 
       if (res.ok) {
         // La reserva queda confirmada y se cobra presencialmente en el club.
+        setErrorReserva(null);
         setReservaExitosa(true);
         onReservaConfirmada();
       } else {
-        const data = await res.json();
-        toast({
-          title: "Error",
-          description: data.error || "No se pudo crear la reserva.",
-          variant: "destructive",
-        });
+        const data = await res.json().catch(() => null);
+        setErrorReserva(data?.error || t('bookingErrorRetry'));
       }
     } catch {
-      toast({
-        title: "Error",
-        description: "Error de conexión.",
-        variant: "destructive",
-      });
+      setErrorReserva(t('connectionErrorRetry'));
     } finally {
       setIsBooking(false);
     }
@@ -141,7 +135,10 @@ export default function ConfirmacionReserva({
 
   return (
     <Sheet open={open} onOpenChange={(value) => {
-      if (!value) setReservaExitosa(false);
+      if (!value) {
+        setReservaExitosa(false);
+        setErrorReserva(null);
+      }
       onOpenChange(value);
     }}>
       <SheetContent side="bottom" className="rounded-t-xl max-h-[80vh]">
@@ -153,7 +150,9 @@ export default function ConfirmacionReserva({
             </SheetHeader>
             <div className="space-y-4 mt-4">
               <div className="flex flex-col items-center text-center gap-2">
-                <CheckCircle2 className="h-12 w-12 text-green-500" />
+                <div className="flex h-16 w-16 items-center justify-center rounded-full border border-success-border bg-success-bg">
+                  <CheckCircle2 className="h-10 w-10 text-success-foreground animate-in zoom-in duration-[400ms] motion-reduce:animate-none" />
+                </div>
                 <h3 className="text-lg font-semibold">{tShare('bookingConfirmed')}</h3>
                 <p className="text-sm text-muted-foreground">{tShare('bookingConfirmedDesc')}</p>
               </div>
@@ -246,6 +245,19 @@ export default function ConfirmacionReserva({
 
           <Separator />
 
+          {errorReserva && (
+            <div
+              role="alert"
+              className="flex items-start gap-3 rounded-lg border border-destructive/30 bg-destructive/10 p-3 text-destructive"
+            >
+              <CircleAlert className="mt-0.5 h-5 w-5 shrink-0" aria-hidden="true" />
+              <div>
+                <p className="text-sm font-semibold">{t('bookingFailed')}</p>
+                <p className="mt-0.5 text-sm">{errorReserva}</p>
+              </div>
+            </div>
+          )}
+
           {!session?.user ? (
             <Button
               className={cn('w-full', claseCtaTenant)}
@@ -266,8 +278,17 @@ export default function ConfirmacionReserva({
                 </>
               ) : (
                 <>
-                  <CheckCircle2 className="h-4 w-4 mr-2" />
-                  {t('confirmBooking')}
+                  {errorReserva ? (
+                    <>
+                      <RotateCcw className="h-4 w-4 mr-2" />
+                      {t('retryBooking')}
+                    </>
+                  ) : (
+                    <>
+                      <CheckCircle2 className="h-4 w-4 mr-2" />
+                      {t('confirmBooking')}
+                    </>
+                  )}
                 </>
               )}
             </Button>

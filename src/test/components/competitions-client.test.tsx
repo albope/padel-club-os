@@ -1,5 +1,4 @@
-import { render, screen } from "@testing-library/react"
-import userEvent from "@testing-library/user-event"
+import { fireEvent, render, screen } from "@testing-library/react"
 import type { ComponentProps } from "react"
 import { CompetitionFormat, CompetitionStatus } from "@prisma/client"
 import { describe, expect, it, vi } from "vitest"
@@ -38,13 +37,13 @@ const competitions = [
 
 describe("CompetitionsClient", () => {
   it("identifica el estado de las competiciones en la vista principal", async () => {
-    const user = userEvent.setup()
     render(<CompetitionsClient initialCompetitions={competitions} />)
 
     expect(screen.getByText("Torneo de agosto")).toBeInTheDocument()
     expect(screen.getByText("En curso", { selector: "div" })).toBeInTheDocument()
 
-    await user.click(screen.getByRole("tab", { name: "Finalizadas" }))
+    const tabFinalizadas = screen.getByRole("tab", { name: "Finalizadas" })
+    fireEvent.mouseDown(tabFinalizadas, { button: 0, ctrlKey: false })
 
     expect(screen.getByText("Torneo de julio")).toBeInTheDocument()
     expect(screen.getByText("Finalizada", { selector: "div" })).toBeInTheDocument()

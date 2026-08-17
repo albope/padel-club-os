@@ -110,8 +110,9 @@ Tras migrar una pantalla, fijar el avance con:
    `auth-*`/`landing-*` de globals.css (hoy solo neutralizadas), fuentes
    Inter/Sora, y bajar la baseline del ratchet migrando los ~518 usos crudos
    restantes (sobre todo marketing).
-2. Flujos aplazados: drawer creación 392px + rail 72px (3b), confirmación
-   destructiva escribiendo el nombre (3e) y banda tinta de plataforma (3e).
+2. Flujos aplazados: drawer creación 392px + rail 72px (3b) y banda tinta de
+   plataforma (3e). El borrado y la restauración destructiva de clubes demo ya
+   exigen escribir el nombre exacto del club.
 3. Gate visual de fase 1 pendiente de ejecutar: 4 breakpoints × 2 temas.
 
 ## Notas para las siguientes fases

@@ -1,5 +1,4 @@
-import { render, screen } from "@testing-library/react"
-import userEvent from "@testing-library/user-event"
+import { fireEvent, render, screen } from "@testing-library/react"
 import type { Team, User } from "@prisma/client"
 import { afterEach, describe, expect, it, vi } from "vitest"
 import AddTeamModal from "@/components/competitions/AddTeamModal"
@@ -56,8 +55,6 @@ describe("AddTeamModal", () => {
       }),
     })
     vi.stubGlobal("fetch", fetchMock)
-    const user = userEvent.setup()
-
     render(
       <AddTeamModal
         isOpen
@@ -68,10 +65,16 @@ describe("AddTeamModal", () => {
       />
     )
 
-    await user.type(screen.getByLabelText("Nombre del Equipo"), "Los Globos")
-    await user.selectOptions(screen.getByLabelText("Jugador 1"), "jugador-1")
-    await user.selectOptions(screen.getByLabelText("Jugador 2"), "jugador-2")
-    await user.click(screen.getByRole("button", { name: "Añadir Equipo" }))
+    fireEvent.change(screen.getByLabelText("Nombre del Equipo"), {
+      target: { value: "Los Globos" },
+    })
+    fireEvent.change(screen.getByLabelText("Jugador 1"), {
+      target: { value: "jugador-1" },
+    })
+    fireEvent.change(screen.getByLabelText("Jugador 2"), {
+      target: { value: "jugador-2" },
+    })
+    fireEvent.click(screen.getByRole("button", { name: "Añadir Equipo" }))
 
     expect(await screen.findByRole("alert")).toHaveTextContent(
       "Ya inscrito en esta competición: Ana (Las Bandejas)."

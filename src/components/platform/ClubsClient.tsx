@@ -161,8 +161,10 @@ export default function ClubsClient({ initialClubs }: ClubsClientProps) {
     title: string
     description: string
     actionLabel: string
+    confirmationName: string | null
     action: () => Promise<void>
-  }>({ open: false, title: '', description: '', actionLabel: '', action: async () => {} })
+  }>({ open: false, title: '', description: '', actionLabel: '', confirmationName: null, action: async () => {} })
+  const [confirmacionEscrita, setConfirmacionEscrita] = useState('')
 
   const filtrados = useMemo(() => {
     const q = busqueda.trim().toLowerCase()
@@ -205,11 +207,13 @@ export default function ClubsClient({ initialClubs }: ClubsClientProps) {
   }
 
   const eliminarDemo = (club: ClubItem) => {
+    setConfirmacionEscrita('')
     setConfirmDialog({
       open: true,
       title: 'Eliminar club demo',
       description: `¿Seguro que quieres eliminar "${club.name}" (${club.slug}) y todos sus datos y usuarios demo? Esta acción no se puede deshacer.`,
       actionLabel: 'Eliminar',
+      confirmationName: club.name,
       action: async () => {
         setLoadingId(club.id)
         try {
@@ -236,11 +240,13 @@ export default function ClubsClient({ initialClubs }: ClubsClientProps) {
   }
 
   const restaurarDemo = (club: ClubItem) => {
+    setConfirmacionEscrita('')
     setConfirmDialog({
       open: true,
       title: 'Restaurar club demo',
       description: `Se borrarán los cambios realizados en "${club.name}" y se generarán datos y credenciales nuevas. Guarda las nuevas credenciales al terminar.`,
       actionLabel: 'Restaurar',
+      confirmationName: club.name,
       action: async () => {
         setLoadingId(club.id)
         try {
@@ -667,13 +673,30 @@ export default function ClubsClient({ initialClubs }: ClubsClientProps) {
       {/* AlertDialog de confirmacion */}
       <AlertDialog
         open={confirmDialog.open}
-        onOpenChange={(open) => setConfirmDialog((prev) => ({ ...prev, open }))}
+        onOpenChange={(open) => {
+          setConfirmDialog((prev) => ({ ...prev, open }))
+          if (!open) setConfirmacionEscrita('')
+        }}
       >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>{confirmDialog.title}</AlertDialogTitle>
             <AlertDialogDescription>{confirmDialog.description}</AlertDialogDescription>
           </AlertDialogHeader>
+          {confirmDialog.confirmationName && (
+            <div className="space-y-2">
+              <Label htmlFor="confirmacion-nombre">
+                Escribe <strong>{confirmDialog.confirmationName}</strong> para confirmar
+              </Label>
+              <Input
+                id="confirmacion-nombre"
+                value={confirmacionEscrita}
+                onChange={(event) => setConfirmacionEscrita(event.target.value)}
+                autoComplete="off"
+                autoFocus
+              />
+            </div>
+          )}
           <AlertDialogFooter>
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
             <AlertDialogAction
@@ -681,6 +704,10 @@ export default function ClubsClient({ initialClubs }: ClubsClientProps) {
                 ? 'bg-destructive text-destructive-foreground hover:bg-destructive/90'
                 : undefined}
               onClick={() => confirmDialog.action()}
+              disabled={Boolean(
+                confirmDialog.confirmationName
+                && confirmacionEscrita.trim() !== confirmDialog.confirmationName
+              )}
             >
               {confirmDialog.actionLabel}
             </AlertDialogAction>

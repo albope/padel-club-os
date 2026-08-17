@@ -1,7 +1,7 @@
 # Roadmap 90 Dias
 
-Fecha de referencia: 2026-03-05
-Ultima actualizacion: 2026-03-06
+Fecha de referencia original: 2026-03-05
+Ultima actualizacion: 2026-08-17
 
 ## Punto de partida real
 El producto ya no esta en fase cero. Hoy el workspace ya cubre:
@@ -9,13 +9,13 @@ El producto ya no esta en fase cero. Hoy el workspace ya cubre:
 - dashboard multi-tenant para club,
 - portal jugador con reservas, partidas, rankings, noticias y perfil,
 - pricing configurable por pista y duracion,
-- pagos SaaS con Stripe y pagos online de reservas,
+- pagos SaaS con Stripe y cobro de reservas en el club,
 - pagos por jugador, recurrentes, recordatorios y waitlist,
 - competiciones, rankings ELO, analiticas y notificaciones,
 - base de seguridad, RGPD, PWA e i18n,
 - CI/CD (lint + typecheck + test + build en PR),
 - rate limit distribuido (Upstash Redis con fallback local),
-- 467 tests (unitarios + integracion), 0 errores TS.
+- 597 tests (unitarios + integracion), 0 errores TS.
 
 El roadmap de 90 dias debe partir de esta base y no rehacer trabajo ya hecho.
 
@@ -39,6 +39,10 @@ Llegar a pilotos reales con una historia creible de migracion, operativa diaria 
 - Wizard de migracion en /dashboard/migracion (4 pasos: config club, pistas, socios, reservas).
 - Material comercial: landing /cambiar-desde-matchpoint, comparativa /comparativa/matchpoint, pagina demo con lead capture + email transaccional.
 - Cache en auth JWT (subscriptionStatus y trialEndsAt en token, refresco controlado).
+- Multi-admin con invitaciones por email para administradores y staff, limites por plan y
+  proteccion multi-tenant.
+- Horarios especiales y bloqueos de pista con motivos, conflictos y efecto en disponibilidad.
+- Audit log de acciones criticas con consulta por club y permisos dedicados.
 
 ## Pendientes activos
 
@@ -50,20 +54,12 @@ Todo el bloque de migracion esta cerrado. Las 4 tareas originales estan resuelta
 - Importacion reservas: API /api/bookings/import + ImportReservasClient.
 - Material comercial: landing switch, comparativa, demo con lead capture.
 
-### Bloque 2: Operativa diaria (31-60 dias)
-
-| Tarea | Descripcion | Esfuerzo |
-|-------|-------------|----------|
-| Multi-admin con invitacion | Flujo invitar admin/staff por email, limites por plan | M |
-| Horarios especiales y bloqueos | Modelo + UI para cierres temporales, festivos, mantenimiento pistas | M |
-| Audit log basico | Registro de acciones criticas (crear/cancelar reserva, modificar config, importar) | M |
-
 ### Bloque 3: Diferenciacion jugador (61-90 dias)
 
 | Tarea | Descripcion | Esfuerzo |
 |-------|-------------|----------|
-| Repetir reserva | Boton "reservar igual" en historial (misma pista, hora, dia semana) | S |
-| Pulido UX portal jugador | Mejoras de flujo, micro-interacciones, branding por club | M |
+| Completar "Repetir reserva" | El boton actual abre el siguiente dia equivalente, pero todavia no preselecciona la misma pista y hora | S |
+| Gate visual del portal jugador | Validar los flujos principales en 4 breakpoints x 2 temas y corregir incidencias verificadas; requiere entorno con `DATABASE_URL` de la rama `dev` | S |
 
 ## Indicadores a mirar cada 2 semanas
 - Demos de switch realizadas.

@@ -24,7 +24,7 @@ interface MemberGrowthProps {
 
 export default function MemberGrowth({
   data,
-  title = "Crecimiento de Socios",
+  title = "Altas acumuladas de socios activos",
 }: MemberGrowthProps) {
   return (
     <Card>
@@ -66,7 +66,7 @@ export default function MemberGrowth({
                 stroke="hsl(var(--primary))"
                 strokeWidth={2}
                 fill="url(#colorSocios)"
-                name="Socios"
+                name="Socios activos"
               />
             </AreaChart>
           </ResponsiveContainer>

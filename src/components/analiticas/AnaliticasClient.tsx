@@ -29,7 +29,12 @@ interface AnaliticasClientProps {
   statsData: StatData[]
   bookingTrends: Array<{ fecha: string; reservas: number }>
   memberGrowth: Array<{ mes: string; socios: number }>
-  courtUtilization: Array<{ pista: string; utilizacion: number }>
+  courtUtilization: Array<{
+    pista: string
+    utilizacion: number
+    horasReservadas: number
+    horasDisponibles: number
+  }>
   peakHours: Array<{ dia: string; hora: number; reservas: number }>
 }
 

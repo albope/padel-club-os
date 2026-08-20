@@ -17,6 +17,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 interface CourtUtilizationData {
   pista: string
   utilizacion: number // porcentaje 0-100
+  horasReservadas: number
+  horasDisponibles: number
 }
 
 interface CourtUtilizationProps {
@@ -73,9 +75,15 @@ export default function CourtUtilization({
                   borderRadius: '8px',
                   color: 'hsl(var(--foreground))',
                 }}
-                formatter={(value) => [`${value}%`, 'Utilizacion']}
+                formatter={(value, _name, item) => {
+                  const payload = item.payload as CourtUtilizationData
+                  return [
+                    `${value}% · ${payload.horasReservadas} h de ${payload.horasDisponibles} h`,
+                    'Ocupacion real',
+                  ]
+                }}
               />
-              <Bar dataKey="utilizacion" radius={[0, 4, 4, 0]} name="Utilizacion">
+              <Bar dataKey="utilizacion" radius={[0, 4, 4, 0]} name="Ocupacion real">
                 {data.map((entry, index) => (
                   <Cell key={index} fill={getBarColor(entry.utilizacion)} />
                 ))}

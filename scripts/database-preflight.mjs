@@ -1,6 +1,8 @@
 import { readFileSync } from "node:fs"
 import { PrismaClient } from "@prisma/client"
 
+import { clasificarEstadoPreflight } from "./database-preflight-state.mjs"
+
 function cargarEnvLocal() {
   try {
     const contenido = readFileSync(".env", "utf8")
@@ -95,26 +97,45 @@ try {
         WHERE table_name = 'Booking'
         ORDER BY CASE WHEN table_schema = 'public' THEN 0 ELSE 1 END
         LIMIT 1
-      ) AS "bookingSchema"
+      ) AS "bookingSchema",
+      (
+        SELECT COUNT(*)::int
+        FROM information_schema.tables
+        WHERE table_schema = 'public'
+          AND table_type = 'BASE TABLE'
+      ) AS "publicTableCount"
   `)
-  console.log(JSON.stringify({ contexto: contexto[0] }, null, 2))
+  const estado = clasificarEstadoPreflight(contexto[0])
+  console.log(JSON.stringify({ contexto: contexto[0], estado }, null, 2))
 
-  const resultado = {}
-  for (const [nombre, sql] of Object.entries(consultas)) {
-    const filas = await db.$queryRawUnsafe(sql)
-    resultado[nombre] = Number(filas[0]?.count ?? 0)
-  }
-
-  console.log(JSON.stringify(resultado, null, 2))
-
-  const totalProblemas = Object.values(resultado).reduce((total, valor) => total + valor, 0)
-  if (totalProblemas > 0) {
-    throw new Error(
-      `Preflight bloqueado: hay ${totalProblemas} inconsistencias que deben sanearse antes de migrar`,
+  if (estado === "vacio") {
+    console.log(
+      "Base sin esquema de aplicación: se omite el preflight previo a la primera migración.",
     )
-  }
+  } else {
+    if (estado === "parcial") {
+      throw new Error(
+        "Preflight bloqueado: el esquema no está vacío y no contiene Booking en public; revisa si existe una migración parcial",
+      )
+    }
 
-  console.log("Preflight de datos superado.")
+    const resultado = {}
+    for (const [nombre, sql] of Object.entries(consultas)) {
+      const filas = await db.$queryRawUnsafe(sql)
+      resultado[nombre] = Number(filas[0]?.count ?? 0)
+    }
+
+    console.log(JSON.stringify(resultado, null, 2))
+
+    const totalProblemas = Object.values(resultado).reduce((total, valor) => total + valor, 0)
+    if (totalProblemas > 0) {
+      throw new Error(
+        `Preflight bloqueado: hay ${totalProblemas} inconsistencias que deben sanearse antes de migrar`,
+      )
+    }
+
+    console.log("Preflight de datos superado.")
+  }
 } finally {
   await db.$disconnect()
 }

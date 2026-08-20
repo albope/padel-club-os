@@ -1,9 +1,9 @@
 # Supabase Pro: arranque limpio y salida a producción
 
 Decisión adoptada el 20 de agosto de 2026: PostgreSQL de producción se alojará
-en un único proyecto de Supabase Pro y arrancará desde cero con un club demo.
-No se migrarán datos de Neon ni se contratarán Neon Launch o el complemento IPv4
-de Supabase.
+en un proyecto propio dentro de una organización Supabase Pro compartida con
+otro proyecto Micro. Arrancará desde cero con un club demo. No se migrarán datos
+de Neon ni se contratarán Neon Launch o el complemento IPv4 de Supabase.
 
 La aplicación seguirá usando Prisma y PostgreSQL. No usará Supabase Auth, Storage
 ni Data API. Esta última debe quedar desactivada para que las tablas de Prisma no
@@ -17,10 +17,14 @@ Referencias oficiales:
 
 ## Coste y alcance aceptados
 
-- Supabase Pro incluye créditos mensuales suficientes para un proyecto Micro.
-- Un segundo proyecto Micro dentro de la organización Pro añade consumo de
-  cómputo. Producción será el único proyecto de esa organización.
-- Desarrollo usará PostgreSQL local o un proyecto gratuito en otra organización.
+- La organización Pro contendrá dos proyectos Micro activos, el que ya requiere
+  Pro y Padel Club OS. El coste de referencia es 35 USD al mes antes de impuestos:
+  25 USD del plan, 20 USD de cómputo y 10 USD de crédito mensual.
+- Un tercer MVP permanecerá en una organización Free. Se acepta que Supabase lo
+  pause tras una semana sin actividad y que el cliente financie su paso a Pro si
+  necesita disponibilidad continua.
+- Desarrollo de Padel Club OS usará PostgreSQL local y no añadirá otro proyecto
+  de pago a la organización.
 - Las copias diarias incluidas conservan los últimos siete días. No se activa
   PITR en el lanzamiento, por lo que se acepta un RPO de hasta 24 horas.
 - Supabase Pro debe mantenerse mientras aloje producción. La contratación por
@@ -28,8 +32,9 @@ Referencias oficiales:
 
 ## 1. Crear y asegurar el proyecto
 
-- [ ] Crear una organización Pro y un único proyecto de producción en una región
-  de la Unión Europea próxima a Vercel.
+- [ ] Pasar a Pro la organización que alojará los dos proyectos Micro y crear en
+  ella el proyecto de Padel Club OS en una región de la Unión Europea próxima a
+  Vercel.
 - [ ] Guardar la contraseña de la base en el gestor de contraseñas. No compartirla
   por chat, tickets, documentación ni Git.
 - [ ] Activar MFA para las cuentas con acceso a Supabase.

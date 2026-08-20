@@ -8,7 +8,7 @@ que `npm run production:preflight`, la migración y `/api/ready` estén en verde
 | Servicio | Uso | Condición de lanzamiento |
 |---|---|---|
 | Vercel Hobby | Hosting, funciones y tres crons diarios | Válido para demo y arranque limitado; revisar manualmente impagos y reembolsos urgentes |
-| Supabase Pro PostgreSQL | Datos multi-tenant | Un proyecto Micro de producción, Data API desactivada y copias verificadas |
+| Supabase Pro PostgreSQL | Datos multi-tenant | Proyecto Micro en una organización Pro con dos proyectos, Data API desactivada y copias verificadas |
 | Stripe Live | Suscripciones SaaS | Productos, prices, webhook y tratamiento fiscal verificados |
 | Resend | Emails transaccionales | Dominio verificado y remitente probado |
 | Vercel Blob | Imágenes subidas por clubes | Store enlazado y token Read/Write |

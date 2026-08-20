@@ -13,7 +13,10 @@ externa como terminada sin comprobarla en el servicio correspondiente.
 - [x] Las subidas de plan serán inmediatas y cobrarán la diferencia proporcional.
 - [x] Las bajadas se aplicarán en la siguiente renovación mensual.
 - [x] Las reservas se cobrarán presencialmente en el club. No se reactivará Stripe Connect.
-- [x] Producción arrancará limpia en un único proyecto Supabase Pro, sin migrar Neon.
+- [x] Producción arrancará limpia en un proyecto propio dentro de una organización
+  Supabase Pro compartida con otro proyecto Micro, sin migrar Neon.
+- [x] Un tercer MVP permanecerá en una organización Free y se acepta que Supabase
+  lo pause si no registra actividad durante una semana.
 - [x] Prisma usará Supavisor compartido y no necesita el complemento IPv4 de Supabase.
 
 ## Puerta A: código preparado
@@ -33,7 +36,8 @@ externa como terminada sin comprobarla en el servicio correspondiente.
 
 Seguir `docs/supabase-go-live.md`. Estas tareas requieren acceso de Alberto a Supabase.
 
-- [ ] Contratar Supabase Pro y crear un único proyecto vacío en una región de la UE.
+- [ ] Pasar a Pro la organización elegida y crear en ella el proyecto vacío de
+  Padel Club OS en una región de la UE.
 - [ ] Activar MFA, guardar las contraseñas en el gestor y desactivar Data API.
 - [ ] Crear el usuario `prisma` y obtener `DATABASE_URL` y `DIRECT_URL` de Supavisor.
 - [ ] Aplicar migraciones, preflight y seed contra el proyecto nuevo.

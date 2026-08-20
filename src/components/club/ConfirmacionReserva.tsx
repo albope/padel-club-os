@@ -151,7 +151,7 @@ export default function ConfirmacionReserva({
             <div className="space-y-4 mt-4">
               <div className="flex flex-col items-center text-center gap-2">
                 <div className="flex h-16 w-16 items-center justify-center rounded-full border border-success-border bg-success-bg">
-                  <CheckCircle2 className="h-10 w-10 text-success-foreground animate-in zoom-in duration-[400ms] motion-reduce:animate-none" />
+                  <CheckCircle2 className="h-10 w-10 text-success-foreground animate-in zoom-in duration-500 motion-reduce:animate-none" />
                 </div>
                 <h3 className="text-lg font-semibold">{tShare('bookingConfirmed')}</h3>
                 <p className="text-sm text-muted-foreground">{tShare('bookingConfirmedDesc')}</p>

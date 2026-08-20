@@ -95,8 +95,8 @@ describe("Checkout de suscripcion Stripe", () => {
     }))
     expect(mockDb.legalAcceptance.create).toHaveBeenCalledWith({
       data: expect.objectContaining({
-        termsVersion: "2026-07-22",
-        dpaVersion: "2026-07-22",
+        termsVersion: "2026-08-20",
+        dpaVersion: "2026-08-20",
         clubId: "club-1",
       }),
     })

@@ -33,10 +33,11 @@ export function getLegalProvider(): LegalProvider {
   const website = process.env.NEXT_PUBLIC_APP_URL?.trim() || "https://padelclubos.com"
 
   const incompleteFields = [
-    !entityType && "tipo de titular",
+    entityType !== "company" && "sociedad emisora",
     !legalName && "nombre o razón social",
-    !taxId && "NIF/CIF",
+    !taxId && "NIF",
     !address && "domicilio",
+    entityType === "company" && !registry && "datos del Registro Mercantil",
   ].filter((field): field is string => Boolean(field))
 
   return {

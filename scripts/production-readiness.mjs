@@ -14,6 +14,7 @@ const required = [
   'STRIPE_PRICE_STARTER_MONTHLY',
   'STRIPE_PRICE_PRO_MONTHLY',
   'STRIPE_PRICE_ENTERPRISE_MONTHLY',
+  'STRIPE_PORTAL_CONFIGURATION_ID',
   'RESEND_API_KEY',
   'CONTACT_EMAIL',
   'NEXT_PUBLIC_VAPID_PUBLIC_KEY',
@@ -30,6 +31,7 @@ const required = [
   'LEGAL_NAME',
   'LEGAL_TAX_ID',
   'LEGAL_PUBLIC_ADDRESS',
+  'LEGAL_REGISTRY_DETAILS',
   'LEGAL_EMAIL',
   'STRIPE_TAX_ENABLED',
   'TAX_HANDLING_CONFIRMED',
@@ -89,6 +91,9 @@ if (rateLimitBackend === 'upstash') {
 if (!['individual', 'company'].includes(process.env.LEGAL_ENTITY_TYPE || '')) {
   errors.push('LEGAL_ENTITY_TYPE debe ser individual o company')
 }
+if (process.env.LEGAL_ENTITY_TYPE !== 'company') {
+  errors.push('LEGAL_ENTITY_TYPE debe ser company para el lanzamiento actual')
+}
 if ((process.env.AUTH_SECRET || '').length < 32) {
   errors.push('AUTH_SECRET debe tener al menos 32 caracteres')
 }
@@ -110,6 +115,7 @@ requirePrefix('STRIPE_WEBHOOK_SECRET', 'whsec_')
 requirePrefix('STRIPE_PRICE_STARTER_MONTHLY', 'price_')
 requirePrefix('STRIPE_PRICE_PRO_MONTHLY', 'price_')
 requirePrefix('STRIPE_PRICE_ENTERPRISE_MONTHLY', 'price_')
+requirePrefix('STRIPE_PORTAL_CONFIGURATION_ID', 'bpc_')
 requirePrefix('RESEND_API_KEY', 're_')
 requirePrefix('BLOB_READ_WRITE_TOKEN', 'vercel_blob_rw_')
 requireEmail('CONTACT_EMAIL')
@@ -123,7 +129,14 @@ if ((process.env.LEGAL_TAX_ID || '').trim().length < 6) {
 }
 
 const placeholderPattern = /(?:tudominio|tu nombre|pendiente|completar|xxx|example)/i
-for (const key of ['LEGAL_NAME', 'LEGAL_TAX_ID', 'LEGAL_PUBLIC_ADDRESS', 'LEGAL_EMAIL', 'CONTACT_EMAIL']) {
+for (const key of [
+  'LEGAL_NAME',
+  'LEGAL_TAX_ID',
+  'LEGAL_PUBLIC_ADDRESS',
+  'LEGAL_REGISTRY_DETAILS',
+  'LEGAL_EMAIL',
+  'CONTACT_EMAIL',
+]) {
   if (placeholderPattern.test(process.env[key] || '')) {
     errors.push(`${key} contiene un valor de ejemplo`)
   }

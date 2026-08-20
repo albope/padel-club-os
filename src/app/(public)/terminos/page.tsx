@@ -58,7 +58,7 @@ export default function TerminosPage() {
         <p className="mt-3">
           El Cliente puede corregir sus datos antes de confirmar y actualizar posteriormente sus datos fiscales y
           medio de pago en el portal de facturación. El contrato se formaliza en español. El Proveedor registra la
-          fecha y versión de los documentos aceptados; el Cliente puede guardar o imprimir estas páginas desde su navegador.
+          fecha y versión de los documentos aceptados. El Cliente puede guardar o imprimir estas páginas desde su navegador.
         </p>
       </section>
 
@@ -78,7 +78,18 @@ export default function TerminosPage() {
           <li>Las funcionalidades y límites son los publicados para el plan seleccionado en el momento de contratar.</li>
           <li>Los precios publicados son netos y no incluyen IVA u otros tributos, salvo indicación expresa.</li>
           <li>La suscripción se factura por periodos mensuales anticipados y se renueva automáticamente.</li>
-          <li>Stripe procesa el pago y genera la documentación de facturación con los datos facilitados por el Cliente.</li>
+          <li>
+            Una subida de plan se aplica inmediatamente y se cobra la diferencia proporcional correspondiente al
+            tiempo restante del periodo mensual.
+          </li>
+          <li>
+            Una bajada de plan se programa para la siguiente renovación. El Cliente conserva hasta entonces el plan
+            ya pagado y no se genera devolución por ese cambio.
+          </li>
+          <li>
+            Stripe procesa el pago y facilita la emisión y descarga de la factura con los datos proporcionados por el
+            Cliente. El Proveedor sigue siendo responsable de su exactitud y cumplimiento fiscal.
+          </li>
         </ul>
         <p className="mt-3">
           Antes de una subida de precio aplicable a una renovación, el Proveedor lo comunicará con antelación razonable.
@@ -90,9 +101,10 @@ export default function TerminosPage() {
         <h2>6. Duración, renovación y cancelación</h2>
         <p className="mt-3">
           El contrato comienza cuando el Cliente acepta estas condiciones y continúa mientras exista una prueba o
-          suscripción activa. El Cliente puede cancelar desde el portal de facturación; la cancelación ordinaria surte
+          suscripción activa. El Cliente puede cancelar desde el portal de facturación. La cancelación ordinaria surte
           efecto al final del periodo ya pagado. Salvo obligación legal o incumplimiento del Proveedor, no se reembolsan
-          periodos parciales ni importes correspondientes a tiempo no utilizado.
+          periodos parciales ni importes correspondientes a tiempo no utilizado. Esta regla no impide cobrar la
+          diferencia proporcional cuando el Cliente solicita una subida inmediata de plan.
         </p>
       </section>
 
@@ -100,10 +112,10 @@ export default function TerminosPage() {
         <h2>7. Uso permitido y obligaciones del Cliente</h2>
         <p className="mt-3">El Cliente se obliga a:</p>
         <ul className="mt-3 list-disc space-y-2 pl-6">
-          <li>usar el servicio de forma lícita y únicamente para su actividad;</li>
-          <li>no introducir malware, eludir límites, realizar pruebas intrusivas no autorizadas ni revender accesos;</li>
-          <li>no cargar datos que no necesite o para los que carezca de base jurídica;</li>
-          <li>informar a jugadores y personal sobre sus tratamientos y atender sus derechos como responsable;</li>
+          <li>usar el servicio de forma lícita y únicamente para su actividad.</li>
+          <li>no introducir malware, eludir límites, realizar pruebas intrusivas no autorizadas ni revender accesos.</li>
+          <li>no cargar datos que no necesite o para los que carezca de base jurídica.</li>
+          <li>informar a jugadores y personal sobre sus tratamientos y atender sus derechos como responsable.</li>
           <li>no utilizar campos libres para categorías especiales de datos salvo acuerdo escrito y medidas específicas.</li>
         </ul>
       </section>

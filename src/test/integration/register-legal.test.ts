@@ -60,9 +60,9 @@ describe("Registro contractual de un club", () => {
     expect(mockDb.legalAcceptance.create).toHaveBeenCalledWith({
       data: expect.objectContaining({
         audience: "CLUB",
-        termsVersion: "2026-07-22",
-        dpaVersion: "2026-07-22",
-        privacyVersion: "2026-07-22",
+        termsVersion: "2026-08-20",
+        dpaVersion: "2026-08-20",
+        privacyVersion: "2026-08-20",
         acceptedByEmail: "ana@club.test",
         userId: "user-legal",
         clubId: "club-legal",

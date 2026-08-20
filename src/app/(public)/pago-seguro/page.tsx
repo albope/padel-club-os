@@ -53,7 +53,8 @@ export default function PagoSeguroPage() {
           Los precios SaaS publicados son importes netos, salvo que se indique expresamente lo contrario. En el
           Checkout se solicitan la razón social, el domicilio de facturación y, cuando esté disponible para el país,
           el identificador fiscal. Los impuestos aplicables se muestran antes de confirmar el pago. Las facturas de
-          suscripción quedan disponibles mediante el portal de facturación de Stripe.
+          suscripción quedan disponibles mediante el portal de facturación de Stripe. El Proveedor emite esas facturas,
+          verifica su contenido y las entrega mensualmente a su gestoría para su contabilización.
         </p>
         <p className="mt-3">
           El club es responsable de facilitar datos fiscales correctos antes de que se emita la factura. Para corregir
@@ -67,6 +68,10 @@ export default function PagoSeguroPage() {
           Las cancelaciones de la suscripción se rigen por las <a href="/terminos">Condiciones del servicio SaaS</a>.
           Las devoluciones de importes cobrados presencialmente por una reserva se solicitan y resuelven directamente
           con el club conforme a su política publicada.
+        </p>
+        <p className="mt-3">
+          Las subidas de plan se aplican inmediatamente y se cobra la diferencia proporcional por el tiempo restante.
+          Las bajadas se aplican al comenzar el siguiente periodo mensual, sin devolución del periodo ya pagado.
         </p>
       </section>
     </LegalPage>

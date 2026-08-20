@@ -14,9 +14,11 @@ export function LegalIdentityWarning({ provider }: { provider: LegalProvider }) 
 export function LegalIdentityDetails({ provider }: { provider: LegalProvider }) {
   return (
     <dl className="mt-4 grid gap-3 rounded-lg border bg-muted/30 p-5 sm:grid-cols-[12rem_1fr]">
-      <dt className="font-medium text-foreground">Titular</dt>
+      <dt className="font-medium text-foreground">
+        {provider.entityType === "company" ? "Razón social" : "Titular"}
+      </dt>
       <dd>{provider.legalName || "Pendiente de configurar"}</dd>
-      <dt className="font-medium text-foreground">NIF/CIF</dt>
+      <dt className="font-medium text-foreground">NIF</dt>
       <dd>{provider.taxId || "Pendiente de configurar"}</dd>
       <dt className="font-medium text-foreground">Domicilio</dt>
       <dd>{provider.address || "Pendiente de configurar"}</dd>

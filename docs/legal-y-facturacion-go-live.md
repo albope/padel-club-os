@@ -1,10 +1,10 @@
 # Legal y facturación: checklist para empezar a cobrar
 
-Actualizado: 24 de julio de 2026.
+Actualizado: 20 de agosto de 2026.
 
 Este documento separa lo que ya queda resuelto en la aplicación de las decisiones y
 altas que pertenecen al titular del negocio. Los textos publicados son una base
-operativa adaptada al producto; no sustituyen el alta fiscal ni pueden inventar la
+operativa adaptada al producto. No sustituyen el alta fiscal ni pueden inventar la
 identidad de quien factura.
 
 ## 1. Implementado en la aplicación
@@ -26,40 +26,31 @@ identidad de quien factura.
 No existe página de «Envío» porque no se venden bienes físicos. La activación y
 prestación electrónica están reguladas en las condiciones SaaS.
 
-## 2. Empezar como persona física
+## 2. Sociedad emisora
 
-El prestador puede identificarse en la aplicación como persona física
-(`LEGAL_ENTITY_TYPE=individual`) y facturar con su nombre y apellidos. Esto no
-equivale a poder cobrar sin altas: no tener sociedad es distinto de no estar dado
-de alta para ejercer la actividad.
+La suscripción SaaS la factura BORT PEREZ MULTI GESTION SOCIEDAD LIMITADA,
+NIF B98629470. La marca «Padel Club OS» identifica el producto, pero no sustituye
+la identidad de la sociedad en el contrato, Checkout ni las facturas.
 
-- La AEAT indica que el alta en el censo de empresarios y profesionales mediante
-  modelo 036 debe presentarse antes del inicio de la actividad. A estos efectos,
-  el inicio puede producirse al prestar servicios, cobrar/pagar o adquirir bienes
-  y servicios destinados a la actividad.
-- La Seguridad Social incluye en RETA a quien realiza de forma habitual, personal
-  y directa una actividad económica lucrativa. No se documenta aquí ninguna
-  excepción automática por facturar por debajo del SMI.
-- Antes del primer contrato/cobro, confirmar el caso concreto con una asesoría o
-  con las administraciones competentes y conservar la evidencia del alta.
+La sociedad está inscrita en el Registro Mercantil de Valencia, tomo 9786,
+libro 7068, folio 52, sección 8, hoja V-159244. Su domicilio público es Avenida
+Carlos Marx, 1, 12 E, 46920 Mislata, Valencia, España. El email legal y de soporte
+es `albertobort@gmail.com`.
 
-Referencias oficiales:
-
-- https://sede.agenciatributaria.gob.es/Sede/procedimientoini/G322.shtml
-- https://sede.agenciatributaria.gob.es/Sede/ayuda/manuales-videos-folletos/manuales-practicos/folleto-actividades-economicas.html
-- https://www.seg-social.es/wps/portal/wss/internet/Trabajadores/Afiliacion/10548/32825/625?changeLanguage=es
+La sociedad emitirá las facturas de suscripción y las entregará mensualmente a
+su gestoría junto con los abonos o facturas rectificativas que correspondan.
 
 ## 3. Bloqueantes antes del primer cobro real
 
-- [ ] El titular está dado de alta para desarrollar la actividad y emitir facturas.
-- [ ] Se ha decidido quién factura: en el arranque descrito, la persona física
-  titular. La marca «Padel Club OS» no sustituye su nombre completo ni su NIF.
+- [x] Sociedad emisora, NIF, domicilio público, registro y email confirmados.
+- [x] Flujo contable confirmado: la sociedad emite las facturas y las entrega
+  mensualmente a la gestoría.
 - [ ] Configurar en Vercel Production y Preview, según corresponda:
   - `LEGAL_NAME`
   - `LEGAL_TAX_ID`
-  - `LEGAL_PUBLIC_ADDRESS` (se muestra en el Aviso legal; no usar aquí un
+  - `LEGAL_PUBLIC_ADDRESS` (se muestra en el Aviso legal, no usar aquí un
     domicilio privado que no se quiera publicar)
-  - `LEGAL_REGISTRY_DETAILS` (solo si corresponde)
+  - `LEGAL_REGISTRY_DETAILS`
   - `LEGAL_EMAIL`
 - [ ] Hacer redeploy y comprobar que `/aviso-legal`, `/privacidad`, `/terminos` y el
   DPA no muestran el aviso ámbar de datos pendientes.
@@ -67,11 +58,11 @@ Referencias oficiales:
   las páginas legales y en el alta fiscal.
 - [ ] Aplicar todas las migraciones hasta
   `20260725000000_presential_bookings_and_database_rate_limit` antes de desplegar.
-- [ ] Establecer `TAX_HANDLING_CONFIRMED=true` solo después de confirmar alta,
-  facturación e impuestos con el criterio real que se vaya a usar.
+- [ ] Establecer `TAX_HANDLING_CONFIRMED=true` en Vercel cuando la configuración
+  fiscal de Stripe se haya probado y la primera factura de muestra esté validada.
 
 Referencias: el artículo 10 LSSI exige que la identidad y el contacto sean accesibles
-de forma permanente, fácil, directa y gratuita; los artículos 27 y 28 regulan la
+de forma permanente, fácil, directa y gratuita. Los artículos 27 y 28 regulan la
 información y confirmación de la contratación electrónica:
 https://www.boe.es/buscar/act.php?id=BOE-A-2002-13758
 
@@ -84,28 +75,28 @@ verificado para calcular impuestos y emitir/conservar facturas. Si se usa Stripe
 Tax:
 
 1. Stripe TEST → Tax → Settings:
-   - indicar como origen la dirección fiscal real;
-   - añadir el registro de IVA de España con la fecha real de efecto;
+   - indicar como origen la dirección fiscal real
+   - añadir el registro de IVA de España con la fecha real de efecto
    - seleccionar precios exclusivos de impuestos.
 2. En cada producto Starter, Pro y Enterprise, asignar el código fiscal
    `txcd_10103001` («Software as a service (SaaS) - business use»).
 3. En los prices, usar `tax_behavior=exclusive`. Si un price existente no permite
    corregirlo, crear uno nuevo y actualizar la variable `STRIPE_PRICE_*`.
 4. Stripe → Settings → Billing → Invoices:
-   - añadir el NIF del emisor como identificador fiscal predeterminado;
-   - completar nombre legal, domicilio, email/web de soporte y branding;
-   - elegir numeración de cuenta y un prefijo adecuado;
-   - añadir al pie los datos registrales que correspondan;
+   - añadir el NIF del emisor como identificador fiscal predeterminado
+   - completar nombre legal, domicilio, email/web de soporte y branding
+   - elegir numeración de cuenta y un prefijo adecuado
+   - añadir al pie los datos registrales que correspondan
    - previsualizar el PDF en A4.
 5. Customer Portal:
-   - permitir actualizar dirección de facturación, NIF y método de pago;
+   - permitir actualizar dirección de facturación, NIF y método de pago
    - configurar las URLs públicas de términos y privacidad.
 6. Poner `STRIPE_TAX_ENABLED=true` solo en TEST y redeploy.
 7. Probar como mínimo:
-   - club español con NIF y dirección peninsular;
-   - club de otro país de la UE con VAT ID válido;
+   - club español con NIF y dirección peninsular
+   - club de otro país de la UE con VAT ID válido
    - Canarias, Ceuta o Melilla, que Stripe trata fuera del cálculo estándar de IVA
-     español;
+     español
    - factura, abono/reembolso y renovación mensual.
 8. Verificar en cada PDF: numeración, fecha, emisor y destinatario completos, NIF,
    domicilios, descripción, base, tipo, cuota e importe total.
@@ -123,25 +114,25 @@ https://sede.agenciatributaria.gob.es/Sede/iva/facturacion-registro/facturacion-
 
 ## 5. Paso a LIVE
 
-- [ ] Repetir en LIVE la configuración validada en TEST; TEST y LIVE tienen
+- [ ] Repetir en LIVE la configuración validada en TEST. TEST y LIVE tienen
   productos, prices, registros fiscales e invoice settings separados.
 - [ ] Confirmar que `STRIPE_TAX_ENABLED=true` solo se despliega después de crear el
   registro fiscal LIVE y revisar los tres productos LIVE.
 - [ ] Crear un Checkout real autorizado y descargar su primera factura.
 - [ ] No abrir ventas hasta que esa factura se haya cotejado campo por campo con la
   sección anterior.
-- [ ] Conservar las facturas y abonos en el sistema contable del titular. Stripe es
-  el medio material de emisión, pero el responsable de la factura sigue siendo el
-  empresario o profesional que presta el SaaS.
+- [ ] Exportar cada mes las facturas y abonos de Stripe y entregarlos a la gestoría.
+  Stripe es el medio material de emisión, pero la responsable de la factura sigue
+  siendo la sociedad que presta el SaaS.
 
 ## 6. Facturas y cobros de reservas
 
 La plataforma no procesa pagos de reservas. Todas las reservas nuevas se cobran
 directamente en el club y Padel Club OS solo registra su estado:
 
-- el club presta el servicio deportivo y fija sus condiciones;
-- el club debe emitir al jugador el documento fiscal que corresponda;
-- Padel Club OS factura al club únicamente la suscripción SaaS;
+- el club presta el servicio deportivo y fija sus condiciones
+- el club debe emitir al jugador el documento fiscal que corresponda
+- Padel Club OS factura al club únicamente la suscripción SaaS
 - el club decide y gestiona el efectivo, TPV u otros medios presenciales que acepte.
 
 El onboarding debe recordar al club su responsabilidad sobre precios,
@@ -149,13 +140,13 @@ cancelaciones, devoluciones, impuestos y facturación a jugadores.
 
 ## 7. RGPD operativo que las páginas no resuelven por sí solas
 
-- [ ] Firmar/aceptar el DPA con cada club; el clickwrap y `LegalAcceptance` aportan
+- [ ] Firmar o aceptar el DPA con cada club. El clickwrap y `LegalAcceptance` aportan
   evidencia, pero una orden de servicio firmada puede usarse para clientes grandes.
 - [ ] Mantener actualizada la tabla de subencargados y avisar cambios con antelación.
 - [ ] Documentar internamente el registro de actividades de tratamiento.
 - [ ] Definir y probar un procedimiento de brechas: responsable, evaluación,
   comunicación al club sin dilación indebida y, cuando proceda, notificación a AEPD.
-- [ ] Verificar región y garantías internacionales de Vercel, Neon, Resend, Stripe,
+- [ ] Verificar región y garantías internacionales de Vercel, Supabase, Resend, Stripe,
   Sentry y Upstash según la configuración realmente contratada.
 - [ ] No permitir datos de salud o categorías especiales en notas libres sin una
   evaluación y medidas adicionales.

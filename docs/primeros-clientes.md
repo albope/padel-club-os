@@ -140,10 +140,10 @@ clubes antes que peticiones aisladas de personalización.
 
 ## 9. Límites legales y fiscales
 
-Antes del primer cobro se necesitan razón social, NIF, domicilio público, datos
-registrales y email de la sociedad en producción. La sociedad debe confirmar con
-AEAT o una asesoría su situación censal y el tratamiento de IVA y facturación. La
-aplicación y esta checklist no sustituyen esa validación.
+La sociedad emisora, NIF, domicilio público, datos registrales y email ya están
+definidos. Antes del primer cobro deben copiarse a Vercel y comprobarse en las
+páginas públicas. La sociedad emitirá las facturas SaaS y entregará mensualmente
+las facturas y abonos a su gestoría.
 
 El Aviso legal necesita un domicilio accesible públicamente. Si no se desea
 publicar el domicilio fiscal, debe existir antes del cobro un domicilio

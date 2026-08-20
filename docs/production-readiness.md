@@ -124,12 +124,12 @@ crítico terminan en verde. Un lanzamiento comercial exige además:
 
 Estos puntos no se pueden completar desde el repositorio ni deben inventarse:
 
-- [ ] Razón social, NIF, email, domicilio público y datos registrales de la
-  sociedad configurados como variables de entorno, sin incorporarlos al repositorio.
-- [ ] Situación censal de la sociedad confirmada antes de iniciar la actividad
-  comercial.
-- [ ] Tratamiento de IVA, facturas y registros confirmado con asesoría,
-  entonces `TAX_HANDLING_CONFIRMED=true`.
+- [x] Sociedad emisora, NIF, domicilio público, datos registrales y email
+  confirmados y reflejados en `.env.example`.
+- [x] Flujo contable confirmado: la sociedad emite las facturas SaaS y las entrega
+  mensualmente a su gestoría.
+- [ ] Identidad legal configurada en Vercel y primera factura Stripe de muestra
+  validada. Después establecer `TAX_HANDLING_CONFIRMED=true`.
 - [x] Landing y condiciones alineadas con una periodicidad exclusivamente mensual.
 - [ ] Stripe Live mensual: cuenta verificada, productos/prices, webhook,
   impuestos y prueba controlada.

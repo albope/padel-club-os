@@ -56,7 +56,7 @@ export default function DpaPage() {
               <tr className="border-b"><td className="p-3">Administradores y personal</td><td className="p-3">Identidad, contacto, rol, credenciales con hash, actividad y auditoría</td></tr>
               <tr className="border-b"><td className="p-3">Socios, jugadores e invitados</td><td className="p-3">Identidad, contacto, fecha de nacimiento opcional, nivel, posición, imagen y notas administrativas</td></tr>
               <tr className="border-b"><td className="p-3">Participantes en actividades</td><td className="p-3">Reservas, asistencia, equipos, resultados, estadísticas, chats, valoraciones y lista de espera</td></tr>
-              <tr><td className="p-3">Personas pagadoras</td><td className="p-3">Importes, estado, método y referencias de Stripe; no datos completos de tarjeta</td></tr>
+              <tr><td className="p-3">Personas pagadoras</td><td className="p-3">Importes, estado y método de cobro registrado. Los pagos online históricos pueden incluir referencias de Stripe, nunca datos completos de tarjeta</td></tr>
             </tbody>
           </table>
         </div>
@@ -90,13 +90,13 @@ export default function DpaPage() {
       <section>
         <h2>6. Medidas técnicas y organizativas</h2>
         <ul className="mt-3 list-disc space-y-2 pl-6">
-          <li>HTTPS para comunicaciones y cifrado gestionado por los proveedores de infraestructura cuando corresponda;</li>
-          <li>contraseñas almacenadas mediante funciones de hash y secretos fuera del código fuente;</li>
-          <li>autenticación, permisos por rol y aislamiento lógico por club;</li>
-          <li>registro de acciones administrativas relevantes y monitorización de errores;</li>
-          <li>limitación de solicitudes, validación de entradas y cabeceras de seguridad;</li>
-          <li>mecanismos de recuperación y restauración disponibles en la infraestructura contratada;</li>
-          <li>gestión de vulnerabilidades, actualizaciones y revisión de accesos conforme al riesgo;</li>
+          <li>HTTPS para comunicaciones y cifrado gestionado por los proveedores de infraestructura cuando corresponda.</li>
+          <li>contraseñas almacenadas mediante funciones de hash y secretos fuera del código fuente.</li>
+          <li>autenticación, permisos por rol y aislamiento lógico por club.</li>
+          <li>registro de acciones administrativas relevantes y monitorización de errores.</li>
+          <li>limitación de solicitudes, validación de entradas y cabeceras de seguridad.</li>
+          <li>mecanismos de recuperación y restauración disponibles en la infraestructura contratada.</li>
+          <li>gestión de vulnerabilidades, actualizaciones y revisión de accesos conforme al riesgo.</li>
           <li>procedimientos de respuesta ante incidentes y minimización de datos en registros técnicos.</li>
         </ul>
         <p className="mt-3">
@@ -116,9 +116,9 @@ export default function DpaPage() {
             <thead><tr className="border-b"><th className="p-3">Proveedor</th><th className="p-3">Servicio</th><th className="p-3">Datos afectados</th><th className="p-3">Información</th></tr></thead>
             <tbody>
               <tr className="border-b"><td className="p-3">Vercel Inc.</td><td className="p-3">Alojamiento, ejecución y archivos</td><td className="p-3">Datos y registros procesados por la aplicación</td><td className="p-3"><a href="https://vercel.com/legal/dpa" target="_blank" rel="noopener noreferrer">DPA</a></td></tr>
-              <tr className="border-b"><td className="p-3">Neon, Inc.</td><td className="p-3">Base de datos PostgreSQL</td><td className="p-3">Datos persistentes de la plataforma</td><td className="p-3"><a href="https://neon.com/privacy-policy" target="_blank" rel="noopener noreferrer">Privacidad</a></td></tr>
+              <tr className="border-b"><td className="p-3">Supabase Pte. Ltd</td><td className="p-3">Base de datos PostgreSQL</td><td className="p-3">Datos persistentes de la plataforma</td><td className="p-3"><a href="https://supabase.com/legal/dpa" target="_blank" rel="noopener noreferrer">DPA</a></td></tr>
               <tr className="border-b"><td className="p-3">Resend, Inc.</td><td className="p-3">Correo transaccional</td><td className="p-3">Email, nombre y contenido del mensaje</td><td className="p-3"><a href="https://resend.com/legal/dpa" target="_blank" rel="noopener noreferrer">DPA</a></td></tr>
-              <tr className="border-b"><td className="p-3">Stripe</td><td className="p-3">Suscripciones y pagos Connect</td><td className="p-3">Identidad, contacto, datos fiscales, importes e identificadores de pago</td><td className="p-3"><a href="https://stripe.com/es/legal/privacy-center" target="_blank" rel="noopener noreferrer">Centro de privacidad</a></td></tr>
+              <tr className="border-b"><td className="p-3">Stripe</td><td className="p-3">Suscripciones SaaS y facturación</td><td className="p-3">Identidad, contacto, datos fiscales, importes e identificadores de pago</td><td className="p-3"><a href="https://stripe.com/es/legal/privacy-center" target="_blank" rel="noopener noreferrer">Centro de privacidad</a></td></tr>
               <tr className="border-b"><td className="p-3">Functional Software, Inc. (Sentry)</td><td className="p-3">Diagnóstico de errores</td><td className="p-3">Datos técnicos y contexto minimizado del error</td><td className="p-3"><a href="https://sentry.io/legal/dpa/" target="_blank" rel="noopener noreferrer">DPA</a></td></tr>
               <tr><td className="p-3">Upstash, Inc.</td><td className="p-3">Control distribuido de abuso, si se activa</td><td className="p-3">Identificador técnico o IP usado para limitar solicitudes</td><td className="p-3"><a href="https://upstash.com/trust/dpa.pdf" target="_blank" rel="noopener noreferrer">DPA</a></td></tr>
             </tbody>
@@ -126,7 +126,7 @@ export default function DpaPage() {
         </div>
         <p className="mt-3">
           Los cambios en esta lista se comunicarán con antelación razonable. El Responsable podrá oponerse por motivos
-          fundados de protección de datos; las partes buscarán una alternativa viable. Si no existe, cualquiera podrá
+          fundados de protección de datos. Las partes buscarán una alternativa viable. Si no existe, cualquiera podrá
           terminar la función afectada o el contrato sin penalización adicional.
         </p>
       </section>
@@ -164,7 +164,7 @@ export default function DpaPage() {
         <p className="mt-3">
           El Encargado proporcionará información razonablemente necesaria para demostrar el cumplimiento y ayudará,
           atendiendo a la naturaleza del tratamiento y la información disponible, en evaluaciones de impacto y consultas
-          previas. Cada parte asumirá sus costes ordinarios; trabajos extraordinarios solicitados por el Responsable podrán presupuestarse.
+          previas. Cada parte asumirá sus costes ordinarios. Los trabajos extraordinarios solicitados por el Responsable podrán presupuestarse.
         </p>
       </section>
 

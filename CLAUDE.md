@@ -673,3 +673,13 @@ Analisis competitivo realizado contra: Playtomic (87% clubs Espana, B2B2C), TPC 
 - [x] Checklist y runbook LIVE: `docs/stripe-go-live.md`; LIVE/Connect LIVE siguen pendientes hasta el primer cliente
 - [x] Decision de producto: trial una sola vez por club; caducado, <48 h o suscripcion previa/cancelada cobra inmediatamente
 
+**Sesión de preparación comercial y Supabase - 20/08/2026** `[x]`
+- [x] Producción preparada para migrar de Neon a Supabase Pro con conexión agrupada, `DIRECT_URL`, preflight y runbook de migración y restauración
+- [x] Prestador actualizado a BORT PEREZ MULTI GESTION SOCIEDAD LIMITADA con NIF, domicilio público, Registro Mercantil y email legal confirmados
+- [x] Textos legales y DPA versionados a 20/08/2026, con Supabase como subencargado y Stripe limitado a suscripciones SaaS y facturación
+- [x] Flujo contable confirmado: la sociedad emite las facturas y las entrega mensualmente a la gestoría
+- [x] Política de planes confirmada: subidas inmediatas con diferencia proporcional y bajadas al finalizar el periodo mensual pagado
+- [x] Customer Portal fijado por `STRIPE_PORTAL_CONFIGURATION_ID` y protegido por preflight para evitar una configuración LIVE distinta de la validada
+- [x] Stripe LIVE queda aplazado a una sesión guiada previa al primer cobro real
+- [x] Regresión: lint, typecheck y 608 tests en verde
+

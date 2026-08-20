@@ -21,9 +21,11 @@ export async function POST() {
     }
 
     const baseUrl = process.env.NEXTAUTH_URL || "http://localhost:3000"
+    const configuration = process.env.STRIPE_PORTAL_CONFIGURATION_ID?.trim()
     const session = await stripe.billingPortal.sessions.create({
       customer: club.stripeCustomerId,
       return_url: `${baseUrl}/dashboard/facturacion`,
+      ...(configuration ? { configuration } : {}),
     })
 
     return NextResponse.json({ url: session.url })

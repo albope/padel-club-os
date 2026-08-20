@@ -27,7 +27,7 @@ export default function PrivacidadPage() {
         <LegalIdentityDetails provider={provider} />
         <p className="mt-3">
           El contacto de privacidad es <a href={`mailto:${provider.email}`}>{provider.email}</a>. No se ha designado
-          delegado de protección de datos al no haberse determinado que resulte obligatorio; si esta situación cambia,
+          delegado de protección de datos al no haberse determinado que resulte obligatorio. Si esta situación cambia,
           sus datos se publicarán aquí.
         </p>
       </section>
@@ -79,7 +79,7 @@ export default function PrivacidadPage() {
         <p className="mt-3">
           Los datos proceden de la persona interesada, del administrador del club, de otros usuarios cuando organizan
           una actividad y de proveedores de pago o autenticación. Los campos marcados como obligatorios son necesarios
-          para crear una cuenta o ejecutar la función solicitada; sin ellos no podremos prestarla.
+          para crear una cuenta o ejecutar la función solicitada. Sin ellos no podremos prestarla.
         </p>
       </section>
 
@@ -122,7 +122,7 @@ export default function PrivacidadPage() {
         <p className="mt-3">
           No adoptamos decisiones exclusivamente automatizadas con efectos jurídicos o similares sobre las personas.
           Las cuentas de administración son para mayores de 18 años con capacidad para representar al club. Las cuentas
-          de jugador requieren al menos 16 años; el club debe gestionar los requisitos adicionales que correspondan a menores.
+          de jugador requieren al menos 16 años. El club debe gestionar los requisitos adicionales que correspondan a menores.
         </p>
       </section>
 
@@ -131,7 +131,7 @@ export default function PrivacidadPage() {
         <p className="mt-3">
           Aplicamos controles de acceso por roles, aislamiento lógico entre clubes, comunicaciones cifradas, contraseñas
           con hash, registros de auditoría y medidas de prevención y recuperación acordes con el riesgo. Ningún sistema es
-          infalible; gestionaremos las incidencias conforme a la normativa y al DPA.
+          infalible. Gestionaremos las incidencias conforme a la normativa y al DPA.
         </p>
         <p className="mt-3">
           Publicaremos aquí las actualizaciones. Los cambios materiales se comunicarán por un canal adecuado antes de

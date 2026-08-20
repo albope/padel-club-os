@@ -25,11 +25,10 @@ recordatorios y las tareas históricas de reembolso pueden demorarse hasta 24 ho
 ## Puesta en marcha inicial
 
 - [ ] Completar todas las variables de `.env.example` en Production.
-- [ ] Establecer `LEGAL_ENTITY_TYPE=company`, los datos reales de la sociedad y
-  un `LEGAL_PUBLIC_ADDRESS` apto para aparecer en el Aviso legal.
-- [ ] Confirmar con asesoría el alta censal, Seguridad Social, IVA/IRPF,
-  facturación y conservación de registros; después establecer
-  `TAX_HANDLING_CONFIRMED=true`.
+- [ ] Copiar a Vercel la identidad pública de la sociedad incluida en
+  `.env.example` y comprobar las seis páginas legales tras el redeploy.
+- [ ] Validar una factura Stripe de muestra y la exportación mensual para la
+  gestoría. Después establecer `TAX_HANDLING_CONFIRMED=true`.
 - [ ] Configurar Stripe Live y probar una suscripción SaaS completa antes de copiar
   las claves live.
 - [ ] Configurar los tres heartbeats y alertas de Sentry.

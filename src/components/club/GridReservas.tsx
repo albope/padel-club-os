@@ -9,7 +9,6 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
 import { toast } from '@/hooks/use-toast';
 import { calcularPrecioTotal, type BandaPrecio } from '@/lib/pricing-client';
-import { temaMarcadorActivo } from '@/lib/feature-flags';
 import { formatearFechaLocal } from '@/lib/fechas';
 import ConfirmacionReserva from './ConfirmacionReserva';
 
@@ -124,7 +123,6 @@ export default function GridReservas({
   const hoy = useMemo(() => formatearFechaLocal(new Date()), []);
   const franjas = useMemo(() => generarFranjas(openingTime, closingTime), [openingTime, closingTime]);
   const totalFilas = franjas.length;
-  const temaMarcador = temaMarcadorActivo();
   const filasSeleccionadas = Math.ceil(duracion / 30);
   const filaInicioSeleccionada = slotSeleccionado
     ? indiceFila(slotSeleccionado.horaInicio, aperturaMinutos)
@@ -132,7 +130,6 @@ export default function GridReservas({
 
   // <<Marcador>> 2b: chips de dia (proximos 7 dias)
   const proximosDias = useMemo(() => {
-    if (!temaMarcador) return [];
     return Array.from({ length: 7 }, (_, i) => {
       const d = new Date(`${hoy}T12:00:00`);
       d.setDate(d.getDate() + i);
@@ -142,7 +139,7 @@ export default function GridReservas({
         diaMes: d.getDate(),
       };
     });
-  }, [temaMarcador, hoy, localeCode]);
+  }, [hoy, localeCode]);
 
   // Cargar disponibilidad y precios cuando cambia la fecha
   const cargarDatos = useCallback(async () => {
@@ -272,8 +269,7 @@ export default function GridReservas({
       horaInicio: franja,
       precio: precioTotal,
     });
-    if (!temaMarcador) setSheetOpen(true);
-  }, [bandasPrecio, duracion, slotLibre, temaMarcador]);
+  }, [bandasPrecio, duracion, slotLibre]);
 
   useEffect(() => {
     if (preseleccionAplicada.current || isLoading || !pistaInicialId || !horaInicial) return;
@@ -388,51 +384,49 @@ export default function GridReservas({
       </div>
 
       {/* <<Marcador>> 2b: chips de dia */}
-      {temaMarcador && (
-        <div className="flex gap-2 overflow-x-auto pb-1" role="group" aria-label={t('date')}>
-          {proximosDias.map((dia) => {
-            const seleccionado = fecha === dia.iso;
-            return (
-              <button
-                type="button"
-                key={dia.iso}
-                onClick={() => cambiarFecha(dia.iso)}
-                aria-pressed={seleccionado}
-                className={cn(
-                  'flex flex-col items-center justify-center min-w-[52px] h-14 rounded-[10px] border text-xs transition-colors shrink-0',
-                  seleccionado
-                    ? 'bg-foreground text-background border-foreground font-semibold'
-                    : 'bg-card border-border hover:border-border-strong text-foreground'
-                )}
-              >
-                <span className="text-[10px] uppercase tracking-[0.06em] opacity-70">{dia.diaSemana}</span>
-                <span className="text-sm font-semibold tabular-nums">{dia.diaMes}</span>
-              </button>
-            );
-          })}
-        </div>
-      )}
+      <div className="flex gap-2 overflow-x-auto pb-1" role="group" aria-label={t('date')}>
+        {proximosDias.map((dia) => {
+          const seleccionado = fecha === dia.iso;
+          return (
+            <button
+              type="button"
+              key={dia.iso}
+              onClick={() => cambiarFecha(dia.iso)}
+              aria-pressed={seleccionado}
+              className={cn(
+                'flex h-14 min-w-[52px] shrink-0 flex-col items-center justify-center rounded-[10px] border text-xs transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring',
+                seleccionado
+                  ? 'border-foreground bg-foreground font-semibold text-background'
+                  : 'border-border bg-card text-foreground hover:border-border-strong'
+              )}
+            >
+              <span className="text-[10px] uppercase tracking-[0.06em] opacity-70">{dia.diaSemana}</span>
+              <span className="text-sm font-semibold tabular-nums">{dia.diaMes}</span>
+            </button>
+          );
+        })}
+      </div>
 
       {/* Leyenda */}
       <div className="flex gap-3 sm:gap-4 text-xs flex-wrap">
         <div className="flex items-center gap-1.5">
-          <div className={cn('w-3 h-3 rounded-sm', temaMarcador ? 'border border-dashed border-border-strong bg-card' : 'bg-background border border-border')} />
+          <div className="h-3 w-3 rounded-sm border border-dashed border-border-strong bg-card" />
           <span className="text-muted-foreground">{t('available')}</span>
         </div>
         <div className="flex items-center gap-1.5">
-          <div className={cn('w-3 h-3 rounded-sm', temaMarcador ? 'celda-ocupada border border-border' : 'bg-red-100 border border-red-200')} />
+          <div className="celda-ocupada h-3 w-3 rounded-sm border border-border" />
           <span className="text-muted-foreground">{t('occupied')}</span>
         </div>
         <div className="flex items-center gap-1.5">
-          <div className={cn('w-3 h-3 rounded-sm', temaMarcador ? 'bg-foreground border border-foreground' : 'bg-blue-100 border border-blue-200')} />
+          <div className="h-3 w-3 rounded-sm border border-foreground bg-foreground" />
           <span className="text-muted-foreground">{t('yourBooking')}</span>
         </div>
         <div className="flex items-center gap-1.5">
-          <div className={cn('w-3 h-3 rounded-sm', temaMarcador ? 'bg-primary/5 border-[1.5px] border-primary' : 'bg-green-100 border border-green-200')} />
+          <div className="h-3 w-3 rounded-sm border-[1.5px] border-primary bg-primary/5" />
           <span className="text-muted-foreground">{t('openMatch')}</span>
         </div>
         <div className="flex items-center gap-1.5">
-          <div className={cn('w-3 h-3 rounded-sm', temaMarcador ? 'bg-secondary border border-border' : 'bg-gray-200 border border-gray-300')} />
+          <div className="h-3 w-3 rounded-sm border border-border bg-secondary" />
           <span className="text-muted-foreground">{t('blocked')}</span>
         </div>
       </div>
@@ -455,7 +449,7 @@ export default function GridReservas({
             className="grid"
             style={{
               gridTemplateColumns: `60px repeat(${pistas.length}, minmax(100px, 1fr))`,
-              gridTemplateRows: `auto repeat(${totalFilas}, ${temaMarcador ? '2.75rem' : '2rem'})`,
+              gridTemplateRows: `auto repeat(${totalFilas}, 2.75rem)`,
               minWidth: `${60 + pistas.length * 100}px`,
             }}
           >
@@ -497,8 +491,7 @@ export default function GridReservas({
                     const celdaKey = `${pista.id}-${filaIdx}`;
                     const bloqueInicial = bloquesIniciales.get(celdaKey);
                     const estaOcupada = celdasOcupadas.has(celdaKey);
-                    const esParteSeleccion = temaMarcador
-                      && slotSeleccionado?.pista.id === pista.id
+                    const esParteSeleccion = slotSeleccionado?.pista.id === pista.id
                       && filaInicioSeleccionada !== null
                       && filaIdx >= filaInicioSeleccionada
                       && filaIdx < filaInicioSeleccionada + filasSeleccionadas;
@@ -525,12 +518,7 @@ export default function GridReservas({
                             type="button"
                             key={celdaKey}
                             style={gridStyle}
-                            className={cn(
-                              'w-full text-left mx-0.5 my-px flex flex-col items-center justify-center text-[10px] font-medium overflow-hidden select-none cursor-pointer',
-                              temaMarcador
-                                ? 'rounded-[6px] bg-primary/5 text-primary border-[1.5px] border-primary hover:bg-primary/10'
-                                : 'rounded-sm bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 border border-green-200 dark:border-green-800 hover:bg-green-200 dark:hover:bg-green-900/50'
-                            )}
+                            className="mx-0.5 my-px flex w-full cursor-pointer select-none flex-col items-center justify-center overflow-hidden rounded-[6px] border-[1.5px] border-primary bg-primary/5 text-left text-[10px] font-medium text-primary hover:bg-primary/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
                             onClick={() => handlePartidaAbierta(bloque.openMatchId!)}
                             aria-label={`Ver partida abierta de ${horaInicioStr} a ${horaFinStr}, ${bloque.plazasLibres} plazas libres`}
                           >
@@ -563,12 +551,7 @@ export default function GridReservas({
                           <div
                             key={celdaKey}
                             style={gridStyle}
-                            className={cn(
-                              'mx-0.5 my-px flex flex-col items-center justify-center text-[10px] font-medium overflow-hidden select-none',
-                              temaMarcador
-                                ? 'rounded-[6px] bg-secondary text-muted-foreground border border-border'
-                                : 'rounded-sm bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400 border border-gray-300 dark:border-gray-600'
-                            )}
+                            className="mx-0.5 my-px flex select-none flex-col items-center justify-center overflow-hidden rounded-[6px] border border-border bg-secondary text-[10px] font-medium text-muted-foreground"
                             title={bloque.note || motivoTexto}
                           >
                             <span className="flex items-center gap-0.5 leading-tight">
@@ -589,14 +572,9 @@ export default function GridReservas({
                           key={celdaKey}
                           style={gridStyle}
                           className={cn(
-                            'mx-0.5 my-px flex flex-col items-center justify-center text-[10px] font-medium overflow-hidden select-none relative',
-                            temaMarcador ? 'rounded-[6px]' : 'rounded-sm',
-                            propia && (temaMarcador
-                              ? 'bg-foreground text-background border border-foreground'
-                              : 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800'),
-                            !propia && (temaMarcador
-                              ? 'celda-ocupada text-muted-foreground border border-border'
-                              : 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 border border-red-200 dark:border-red-800'),
+                            'relative mx-0.5 my-px flex select-none flex-col items-center justify-center overflow-hidden rounded-[6px] border text-[10px] font-medium',
+                            propia && 'border-foreground bg-foreground text-background',
+                            !propia && 'celda-ocupada border-border text-muted-foreground',
                           )}
                         >
                           <span className="font-semibold leading-tight">
@@ -609,14 +587,10 @@ export default function GridReservas({
                             <button
                               type="button"
                               className={cn(
-                                'absolute bottom-0.5 right-0.5 p-0.5 rounded-sm transition-colors',
-                                temaMarcador
-                                  ? (enWaitlist
-                                      ? 'text-warning-foreground hover:bg-warning-bg'
-                                      : 'text-muted-foreground hover:bg-secondary')
-                                  : (enWaitlist
-                                      ? 'text-amber-600 dark:text-amber-400 hover:bg-amber-200/50 dark:hover:bg-amber-800/30'
-                                      : 'text-red-400 dark:text-red-500 hover:bg-red-200/50 dark:hover:bg-red-800/30'),
+                                'absolute bottom-0 right-0 flex h-11 w-11 items-end justify-end rounded-sm p-1.5 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring',
+                                enWaitlist
+                                  ? 'text-warning-foreground hover:bg-warning-bg'
+                                  : 'text-muted-foreground hover:bg-secondary',
                               )}
                               onClick={(e) => {
                                 e.stopPropagation();
@@ -627,11 +601,11 @@ export default function GridReservas({
                               title={enWaitlist ? tw('leave') : tw('join')}
                             >
                               {waitlistCargando ? (
-                                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                                <Loader2 className="h-4 w-4 animate-spin" />
                               ) : enWaitlist ? (
-                                <BellOff className="h-3.5 w-3.5" />
+                                <BellOff className="h-4 w-4" />
                               ) : (
-                                <Bell className="h-3.5 w-3.5" />
+                                <Bell className="h-4 w-4" />
                               )}
                             </button>
                           )}
@@ -670,12 +644,7 @@ export default function GridReservas({
                           key={celdaKey}
                           style={gridStyle}
                           className={cn(
-                            temaMarcador
-                              ? 'w-full m-0.5 rounded-[6px] border border-dashed border-border-strong flex items-center justify-center transition-colors cursor-pointer hover:border-primary hover:bg-primary/5 active:bg-primary/10'
-                              : cn(
-                                  'w-full text-left border-r border-b border-border/20 transition-colors cursor-pointer hover:bg-primary/5 active:bg-primary/10',
-                                  esHoraEnPunto && 'border-t border-t-border/40',
-                                ),
+                            'm-0.5 flex w-full cursor-pointer items-center justify-center rounded-[6px] border border-dashed border-border-strong transition-colors hover:border-primary hover:bg-primary/5 active:bg-primary/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring',
                             esParteSeleccion && 'border-solid border-foreground bg-foreground text-background hover:border-foreground hover:bg-foreground',
                           )}
                           onClick={() => handleClickSlot(pista, franja, filaIdx)}
@@ -709,7 +678,7 @@ export default function GridReservas({
         </div>
       )}
 
-      {temaMarcador && slotSeleccionado && (
+      {slotSeleccionado && (
         <div
           className="sticky bottom-[calc(4rem+env(safe-area-inset-bottom))] z-30 flex items-center gap-3 rounded-[14px] bg-foreground p-3.5 text-background shadow-xl md:bottom-4"
           role="region"

@@ -56,10 +56,10 @@ interface LeaderboardProps {
   clubId: string;
 }
 
-const MEDAL_COLORS = [
-  { bg: 'bg-yellow-100 dark:bg-yellow-900/30', text: 'text-yellow-700 dark:text-yellow-400', border: 'border-yellow-300 dark:border-yellow-700', emoji: '🥇' },
-  { bg: 'bg-gray-100 dark:bg-gray-800/50', text: 'text-gray-600 dark:text-gray-300', border: 'border-gray-300 dark:border-gray-600', emoji: '🥈' },
-  { bg: 'bg-orange-100 dark:bg-orange-900/30', text: 'text-orange-700 dark:text-orange-400', border: 'border-orange-300 dark:border-orange-700', emoji: '🥉' },
+const MEDAL_STYLES = [
+  { text: 'text-warning-foreground', border: 'border-warning-border', emoji: '🥇' },
+  { text: 'text-foreground', border: 'border-border-strong', emoji: '🥈' },
+  { text: 'text-muted-foreground', border: 'border-border', emoji: '🥉' },
 ];
 
 function AvatarInicial({ nombre, imagen, size = 'sm' }: { nombre: string; imagen: string | null; size?: 'sm' | 'lg' }) {
@@ -141,22 +141,26 @@ export default function Leaderboard({ rankings, slug, clubId }: LeaderboardProps
         {/* Podio top 3 */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           {top3.map((jugador, i) => (
-            <Link key={jugador.userId} href={`/club/${slug}/jugadores/${jugador.userId}`}>
+            <Link
+              key={jugador.userId}
+              href={`/club/${slug}/jugadores/${jugador.userId}`}
+              className="block rounded-lg focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+            >
             <Card
               className={cn(
-                'border-2 transition-colors hover:border-primary/30',
-                MEDAL_COLORS[i].border,
+                'h-full border-2 transition-colors hover:border-primary/30',
+                MEDAL_STYLES[i].border,
                 currentUserId === jugador.userId && 'ring-2 ring-primary'
               )}
             >
               <CardContent className="flex flex-col items-center py-4 px-3">
-                <span className="text-2xl mb-1">{MEDAL_COLORS[i].emoji}</span>
+                <span className="text-2xl mb-1" aria-label={`${t('rank')} ${i + 1}`}>{MEDAL_STYLES[i].emoji}</span>
                 <AvatarInicial nombre={jugador.nombre} imagen={jugador.imagen} size="lg" />
                 <p className="font-semibold mt-2 text-center truncate w-full">{jugador.nombre}</p>
                 {jugador.nivel && (
                   <Badge variant="secondary" className="mt-1 text-xs">{jugador.nivel}</Badge>
                 )}
-                <p className={cn('text-2xl font-bold mt-2', MEDAL_COLORS[i].text)}>
+                <p className={cn('text-2xl font-bold mt-2 tabular-nums', MEDAL_STYLES[i].text)}>
                   {(jugador.nivelPadel ?? 4.0).toFixed(1)}
                 </p>
                 <p className="text-xs text-muted-foreground">
@@ -191,7 +195,7 @@ export default function Leaderboard({ rankings, slug, clubId }: LeaderboardProps
                   >
                     <TableCell className="font-medium">
                       {jugador.posicion <= 3 ? (
-                        <span className="text-lg">{MEDAL_COLORS[jugador.posicion - 1].emoji}</span>
+                        <span className="text-lg" aria-label={`${t('rank')} ${jugador.posicion}`}>{MEDAL_STYLES[jugador.posicion - 1].emoji}</span>
                       ) : (
                         jugador.posicion
                       )}
@@ -212,7 +216,7 @@ export default function Leaderboard({ rankings, slug, clubId }: LeaderboardProps
                     <TableCell className="text-right hidden sm:table-cell">{jugador.porcentajeVictorias}%</TableCell>
                     <TableCell className="text-right">
                       {jugador.rachaActual > 0 ? (
-                        <Badge variant="secondary" className="bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">
+                        <Badge variant="success">
                           <Flame className="h-3 w-3 mr-0.5" />
                           {jugador.rachaActual}
                         </Badge>
@@ -342,11 +346,11 @@ export default function Leaderboard({ rankings, slug, clubId }: LeaderboardProps
                 <h4 className="font-medium">{t('howLevelChanges')}</h4>
                 <div className="space-y-2 text-sm">
                   <div className="flex items-start gap-2">
-                    <ArrowUp className="h-4 w-4 mt-0.5 text-green-600 shrink-0" />
+                    <ArrowUp className="h-4 w-4 mt-0.5 text-success shrink-0" />
                     <span>{t('goUpLot')}</span>
                   </div>
                   <div className="flex items-start gap-2">
-                    <ArrowDown className="h-4 w-4 mt-0.5 text-red-500 shrink-0" />
+                    <ArrowDown className="h-4 w-4 mt-0.5 text-error shrink-0" />
                     <span>{t('goDownLot')}</span>
                   </div>
                 </div>
@@ -355,17 +359,17 @@ export default function Leaderboard({ rankings, slug, clubId }: LeaderboardProps
               <div className="rounded-lg border p-4 space-y-3">
                 <h4 className="font-medium">{t('keyFactor')}</h4>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
-                  <div className="rounded-md bg-green-50 dark:bg-green-950/30 p-3">
-                    <p className="font-medium text-green-700 dark:text-green-400">{t('goUpLot')}</p>
+                  <div className="rounded-md border border-success-border bg-success-bg p-3">
+                    <p className="font-medium text-success-foreground">{t('goUpLot')}</p>
                   </div>
-                  <div className="rounded-md bg-orange-50 dark:bg-orange-950/30 p-3">
-                    <p className="font-medium text-orange-700 dark:text-orange-400">{t('goUpLittle')}</p>
+                  <div className="rounded-md border border-info-border bg-info-bg p-3">
+                    <p className="font-medium text-info-foreground">{t('goUpLittle')}</p>
                   </div>
-                  <div className="rounded-md bg-red-50 dark:bg-red-950/30 p-3">
-                    <p className="font-medium text-red-700 dark:text-red-400">{t('goDownLot')}</p>
+                  <div className="rounded-md border border-error-border bg-error-bg p-3">
+                    <p className="font-medium text-error-foreground">{t('goDownLot')}</p>
                   </div>
-                  <div className="rounded-md bg-blue-50 dark:bg-blue-950/30 p-3">
-                    <p className="font-medium text-blue-700 dark:text-blue-400">{t('goDownLittle')}</p>
+                  <div className="rounded-md border border-warning-border bg-warning-bg p-3">
+                    <p className="font-medium text-warning-foreground">{t('goDownLittle')}</p>
                   </div>
                 </div>
               </div>

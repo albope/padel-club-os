@@ -70,8 +70,8 @@ export default function ClubForgotPasswordPage() {
         <CardContent>
           {enviado ? (
             <div className="text-center space-y-4 py-4">
-              <div className="mx-auto w-12 h-12 rounded-full bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center">
-                <Mail className="h-6 w-6 text-emerald-600" />
+              <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full border border-success-border bg-success-bg">
+                <Mail className="h-6 w-6 text-success-foreground" />
               </div>
               <p className="text-sm text-muted-foreground">
                 Revisa tu bandeja de entrada (y la carpeta de spam).
@@ -95,15 +95,17 @@ export default function ClubForgotPasswordPage() {
                     {...form.register('email')}
                     placeholder="tu@email.com"
                     autoComplete="email"
+                    aria-invalid={Boolean(form.formState.errors.email)}
+                    aria-describedby={form.formState.errors.email ? 'email-error' : undefined}
                     className={cn(form.formState.errors.email && 'border-destructive')}
                   />
                   {form.formState.errors.email && (
-                    <p className="text-xs text-destructive">{form.formState.errors.email.message}</p>
+                    <p id="email-error" role="alert" className="text-xs text-destructive">{form.formState.errors.email.message}</p>
                   )}
                 </div>
 
                 {error && (
-                  <div className="flex items-center gap-2 p-3 rounded-lg bg-destructive/10 border border-destructive/20">
+                  <div role="alert" className="flex items-center gap-2 p-3 rounded-lg bg-destructive/10 border border-destructive/20">
                     <AlertCircle className="h-4 w-4 text-destructive shrink-0" />
                     <p className="text-sm text-destructive">{error}</p>
                   </div>

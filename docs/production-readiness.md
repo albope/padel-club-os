@@ -16,6 +16,11 @@ cobros exige también cerrar la puerta D de `docs/checklist-lanzamiento.md`:
 - smoke de las tres vistas demo;
 - todos los bloqueos de cobro del bloque 10 cerrados.
 
+`LAUNCH_STAGE=pilot` permite validar la puerta C con Stripe TEST y
+`TAX_HANDLING_CONFIRMED=false`. `LAUNCH_STAGE=commercial` es el modo seguro por
+defecto y exige Stripe LIVE y la confirmación fiscal. El script local y
+`/api/ready` comparten exactamente estas reglas.
+
 ## Bloque 1 — Base de datos y multi-tenant
 
 - [x] Consolidar un baseline reproducible desde una base vacía.

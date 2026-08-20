@@ -20,7 +20,7 @@
     "db:test-migrations": "node scripts/test-migrations.mjs",
     "db:deploy": "npm run db:preflight && prisma migrate deploy",
     "db:seed-demo": "tsx prisma/seed.ts",
-    "production:preflight": "node scripts/production-readiness.mjs",
+    "production:preflight": "tsx scripts/production-readiness.ts",
     "security:audit": "npm audit --omit=dev --audit-level=high",
     "security:secrets": "node scripts/secret-scan.mjs",
     "release:verify": "npm run security:audit && npm run security:secrets && npm run lint && npm run typecheck && npm test && npm run build && npm run db:test-migrations"

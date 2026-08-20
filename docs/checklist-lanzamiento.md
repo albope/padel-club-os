@@ -48,6 +48,8 @@ Seguir `docs/supabase-go-live.md`. Estas tareas requieren acceso de Alberto a Su
 
 ## Puerta C: piloto desplegado sin cobros reales
 
+- [ ] Establecer `LAUNCH_STAGE=pilot`, mantener Stripe en TEST y
+  `TAX_HANDLING_CONFIRMED=false`.
 - [ ] Copiar a Vercel las variables de Supabase y las variables obligatorias de producción.
 - [ ] Desplegar el commit final solo después de que la nueva base esté inicializada.
 - [ ] Comprobar `https://padelclubos.com/api/health` y `/api/ready` con respuesta 200.
@@ -65,6 +67,7 @@ operación comercial con automatizaciones frecuentes.
 
 Seguir `docs/stripe-go-live.md` en una sesión guiada.
 
+- [ ] Cambiar a `LAUNCH_STAGE=commercial` solo al iniciar la validación final de cobros.
 - [ ] Activar y verificar la cuenta Stripe LIVE de la sociedad.
 - [ ] Crear los tres precios mensuales LIVE y configurar Customer Portal.
 - [ ] Aplicar prorrateo inmediato a subidas y cambio al renovar a bajadas.

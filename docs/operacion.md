@@ -36,7 +36,7 @@ recordatorios y las tareas históricas de reembolso pueden demorarse hasta 24 ho
   o configurar Upstash si se elige ese backend.
 - [ ] Contratar Vercel Pro antes de depender de automatizaciones frecuentes y
   fijar alertas/límite de gasto.
-- [ ] Completar el corte Neon → Supabase y el simulacro de restauración descritos
+- [ ] Completar la inicialización limpia de Supabase y el simulacro de restauración descritos
   en `docs/supabase-go-live.md`.
 - [ ] Ejecutar el procedimiento de despliegue de la sección siguiente.
 

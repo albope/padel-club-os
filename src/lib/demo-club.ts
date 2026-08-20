@@ -39,6 +39,7 @@ export interface ResultadoClubDemo {
     socios: number
     reservas: number
     partidas: number
+    competiciones: number
     noticias: number
     pagos: number
   }
@@ -307,7 +308,103 @@ export async function crearClubDemo(
     skipDuplicates: true,
   })
 
-  // --- 5. Clase fija (recurrente) los miercoles 18:00-19:30 en la pista 1 ---
+  // --- 5. Torneo finalizado para enseñar cuadro, resultados y campeón ---
+  const copaDemo = await prisma.competition.create({
+    data: {
+      name: "Copa Marcador de verano",
+      clubId: club.id,
+      format: "KNOCKOUT",
+      rounds: socios.length >= 8 ? 2 : 1,
+      status: "FINISHED",
+    },
+  })
+  const [equipoNorte, equipoSur] = await Promise.all([
+    prisma.team.create({
+      data: {
+        name: "Globo Norte",
+        player1Id: socios[0].id,
+        player2Id: socios[1].id,
+        competitionId: copaDemo.id,
+      },
+    }),
+    prisma.team.create({
+      data: {
+        name: "Víbora Sur",
+        player1Id: socios[2].id,
+        player2Id: socios[3].id,
+        competitionId: copaDemo.id,
+      },
+    }),
+  ])
+  if (socios.length >= 8) {
+    const [equipoEste, equipoOeste] = await Promise.all([
+      prisma.team.create({
+        data: {
+          name: "Bandeja Este",
+          player1Id: socios[4].id,
+          player2Id: socios[5].id,
+          competitionId: copaDemo.id,
+        },
+      }),
+      prisma.team.create({
+        data: {
+          name: "Remate Oeste",
+          player1Id: socios[6].id,
+          player2Id: socios[7].id,
+          competitionId: copaDemo.id,
+        },
+      }),
+    ])
+    await prisma.match.createMany({
+      data: [
+        {
+          competitionId: copaDemo.id,
+          roundNumber: 1,
+          roundName: "Semifinales",
+          team1Id: equipoNorte.id,
+          team2Id: equipoSur.id,
+          winnerId: equipoNorte.id,
+          result: "6-3 6-4",
+          matchDate: fecha(-8, 18, 0),
+        },
+        {
+          competitionId: copaDemo.id,
+          roundNumber: 1,
+          roundName: "Semifinales",
+          team1Id: equipoEste.id,
+          team2Id: equipoOeste.id,
+          winnerId: equipoEste.id,
+          result: "4-6 6-2 6-3",
+          matchDate: fecha(-8, 19, 30),
+        },
+        {
+          competitionId: copaDemo.id,
+          roundNumber: 2,
+          roundName: "Final",
+          team1Id: equipoNorte.id,
+          team2Id: equipoEste.id,
+          winnerId: equipoNorte.id,
+          result: "7-5 6-4",
+          matchDate: fecha(-6, 19, 30),
+        },
+      ],
+    })
+  } else {
+    await prisma.match.create({
+      data: {
+        competitionId: copaDemo.id,
+        roundNumber: 1,
+        roundName: "Final",
+        team1Id: equipoNorte.id,
+        team2Id: equipoSur.id,
+        winnerId: equipoNorte.id,
+        result: "7-5 6-4",
+        matchDate: fecha(-6, 19, 30),
+      },
+    })
+  }
+
+  // --- 6. Clase fija (recurrente) los miércoles 18:00-19:30 en la pista 1 ---
   const recurrente = await prisma.recurringBooking.create({
     data: {
       description: "Escuela de pádel - miércoles 18:00",
@@ -325,7 +422,7 @@ export async function crearClubDemo(
     },
   })
 
-  // --- 6. Reservas ---
+  // --- 7. Reservas ---
   const reservaKeys = new Set<string>()
   function reservarSlot(courtId: string, inicio: Date): boolean {
     const key = `${courtId}-${inicio.toISOString()}`
@@ -469,7 +566,7 @@ export async function crearClubDemo(
 
   const reservas = await prisma.booking.createMany({ data: reservasData, skipDuplicates: true })
 
-  // --- 7. Partidas abiertas (hoy: falta 1 jugador) ---
+  // --- 8. Partidas abiertas (hoy: falta 1 jugador) ---
   const partidaHoy = await prisma.openMatch.create({
     data: {
       matchTime: inicioPartidaHoy,
@@ -501,7 +598,7 @@ export async function crearClubDemo(
     skipDuplicates: true,
   })
 
-  // --- 8. Noticias ---
+  // --- 9. Noticias ---
   const noticias = [
     {
       title: "Ya puedes reservar pista online",
@@ -530,7 +627,7 @@ export async function crearClubDemo(
   ]
   await prisma.news.createMany({ data: noticias })
 
-  // --- 9. Pagos de reservas pasadas pagadas ---
+  // --- 10. Pagos de reservas pasadas pagadas ---
   const reservasPagadas = await prisma.booking.findMany({
     where: { clubId: club.id, paymentStatus: "paid", status: "confirmed" },
     select: { id: true, totalPrice: true, userId: true },
@@ -562,6 +659,7 @@ export async function crearClubDemo(
       socios: socios.length,
       reservas: reservas.count,
       partidas: 2,
+      competiciones: 1,
       noticias: noticias.length,
       pagos: reservasPagadas.length,
     },

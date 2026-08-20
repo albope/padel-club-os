@@ -182,7 +182,7 @@ async function main() {
   console.log(`Socio ejemplo: ${resultado.playerEmail} (${resultado.playerName})`)
   console.log(`  Password:    ${resultado.playerPassword}`)
   console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
-  console.log(`Datos: ${resultado.contadores.pistas} pistas, ${resultado.contadores.socios} socios, ${resultado.contadores.reservas} reservas, ${resultado.contadores.partidas} partidas, ${resultado.contadores.noticias} noticias, ${resultado.contadores.pagos} pagos`)
+  console.log(`Datos: ${resultado.contadores.pistas} pistas, ${resultado.contadores.socios} socios, ${resultado.contadores.reservas} reservas, ${resultado.contadores.partidas} partidas, ${resultado.contadores.competiciones} competiciones, ${resultado.contadores.noticias} noticias, ${resultado.contadores.pagos} pagos`)
   console.log("⚠️  Guarda estas credenciales: las passwords no se pueden recuperar del hash.")
 }
 

@@ -1,8 +1,9 @@
-# Supabase Pro: migración desde Neon y salida a producción
+# Supabase Pro: arranque limpio y salida a producción
 
 Decisión adoptada el 20 de agosto de 2026: PostgreSQL de producción se alojará
-en un único proyecto de Supabase Pro. No se contratará Neon Launch ni el
-complemento IPv4 de Supabase.
+en un único proyecto de Supabase Pro y arrancará desde cero con un club demo.
+No se migrarán datos de Neon ni se contratarán Neon Launch o el complemento IPv4
+de Supabase.
 
 La aplicación seguirá usando Prisma y PostgreSQL. No usará Supabase Auth, Storage
 ni Data API. Esta última debe quedar desactivada para que las tablas de Prisma no
@@ -11,7 +12,6 @@ se expongan mediante PostgREST.
 Referencias oficiales:
 
 - [Prisma con Supabase](https://supabase.com/docs/guides/database/prisma)
-- [Migración desde Neon](https://supabase.com/docs/guides/platform/migrating-to-supabase/neon)
 - [Conexiones a PostgreSQL](https://supabase.com/docs/guides/database/connecting-to-postgres)
 - [Copias de seguridad](https://supabase.com/docs/guides/platform/backups)
 
@@ -72,49 +72,48 @@ El modo sesión soporta IPv4 compartida y evita contratar el complemento IPv4.
 Prisma usa `DIRECT_URL` para migraciones. Los scripts administrativos prefieren
 también esa conexión y mantienen `DATABASE_URL` como compatibilidad local.
 
-## 4. Ensayo de migración
+## 4. Inicialización limpia
 
-El ensayo es obligatorio y se hace contra el proyecto nuevo, antes de cambiar
-variables en Vercel.
+La inicialización se hace contra el proyecto nuevo antes de cambiar variables en
+Vercel. No se usa `prisma db push`, no se importa ningún volcado de Neon y no se
+copian datos personales antiguos.
 
-- [ ] Confirmar que destino es el proyecto Supabase nuevo y que no contiene datos
-  que deban conservarse.
-- [ ] Obtener de Neon una conexión directa sin pool y de Supabase el pool de sesión
-  del usuario `postgres`.
-- [ ] Guardar ambas URL solo como variables temporales de la terminal.
-- [ ] Ejecutar `npm run db:preflight` contra Neon.
-- [ ] Exportar únicamente el esquema `public` con `pg_dump`, usando
-  `--format=custom --no-owner --no-privileges`.
-- [ ] Restaurar el archivo en Supabase con `pg_restore`, sin usar `--clean`.
-- [ ] Volver a conceder al usuario `prisma` los permisos del apartado 2.
-- [ ] Configurar `DATABASE_URL` y `DIRECT_URL` localmente contra Supabase y ejecutar:
+- [ ] Confirmar que el proyecto Supabase está vacío y que es el destino correcto.
+- [ ] Cargar `DATABASE_URL` y `DIRECT_URL` de Supabase solo como variables
+  temporales de la terminal.
+- [ ] Ejecutar las migraciones versionadas y comprobar el esquema:
 
   ```bash
-  npm run db:preflight
+  npm run db:deploy
   npx prisma migrate status
-  npm run production:preflight
+  npm run db:preflight
   ```
 
-- [ ] Comparar por tabla los recuentos de Neon y Supabase.
-- [ ] Desplegar una Preview y comprobar login, reservas, competiciones, Stripe,
-  correo y `/api/ready`.
+- [ ] Generar y guardar en el gestor de contraseñas tres claves distintas para
+  `BOOTSTRAP_SUPERADMIN_PASSWORD`, `DEMO_ADMIN_PASSWORD` y
+  `DEMO_PLAYER_PASSWORD`.
+- [ ] Cargar temporalmente esas claves, `BOOTSTRAP_SUPERADMIN_EMAIL` y
+  `NODE_ENV=production`, y ejecutar `npm run db:seed-demo`.
+- [ ] Retirar de la terminal las cuatro variables de credenciales después del seed.
+- [ ] Comprobar que existen el superadministrador y `Club Pádel Demo`, con pistas,
+  socios, reservas, pagos, partidas, noticias y una competición finalizada.
+- [ ] Entrar con los tres perfiles y guardar sus credenciales únicamente en el
+  gestor de contraseñas.
+- [ ] Ejecutar `npm run production:preflight` con la configuración de producción.
 
-El volcado contiene datos personales. Debe guardarse cifrado, excluirse de Git y
-eliminarse de forma segura tras validar la migración y el rollback.
+El seed es idempotente para el club demo. Si se repite, restaura sus datos, rota
+las contraseñas configuradas y revoca las sesiones anteriores del superadministrador.
 
 ## 5. Corte de producción
 
-1. Anunciar una ventana breve de mantenimiento e impedir escrituras.
-2. Ejecutar un último preflight y volcado desde la conexión directa de Neon.
-3. Restaurar en el proyecto Supabase ya ensayado.
-4. Comparar recuentos y ejecutar `npm run db:preflight`.
-5. Actualizar `DATABASE_URL` y `DIRECT_URL` en Vercel sin mostrar sus valores.
-6. Desplegar el commit validado y comprobar `/api/health` y `/api/ready`.
-7. Ejecutar el smoke de administrador y jugador y una suscripción Stripe TEST o
+1. Confirmar que la inicialización limpia y el smoke local están en verde.
+2. Actualizar `DATABASE_URL` y `DIRECT_URL` en Vercel sin mostrar sus valores.
+3. Desplegar el commit validado y comprobar `/api/health` y `/api/ready`.
+4. Ejecutar el smoke de superadministrador, administrador y jugador.
+5. Probar una suscripción Stripe TEST o
    una operación LIVE controlada según el runbook de pagos.
-8. Reabrir escrituras.
-9. Mantener Neon sin escrituras durante siete días como rollback y cancelarlo
-   después de superar la primera copia y el simulacro de restauración.
+6. Confirmar la primera copia diaria y ejecutar el simulacro de restauración.
+7. Eliminar las variables antiguas de Neon después de validar el nuevo despliegue.
 
 ## 6. Copias y restauración sin PITR
 
@@ -124,6 +123,9 @@ eliminarse de forma segura tras validar la migración y el rollback.
   importación masiva.
 - [ ] Ensayar trimestralmente una restauración en un proyecto aislado y registrar
   el tiempo real de recuperación.
+- [ ] Después de restaurar una copia, restablecer la contraseña del usuario
+  personalizado `prisma` y volver a comprobar ambas conexiones. Las copias diarias
+  no conservan contraseñas de roles personalizados.
 - [ ] Documentar comercialmente RPO de 24 horas. No prometer PITR ni un RPO menor.
 
 La restauración nunca se prueba sobre producción.

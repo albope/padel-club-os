@@ -138,8 +138,8 @@ Estos puntos no se pueden completar desde el repositorio ni deben inventarse:
 - [ ] Vercel Pro activo antes de depender de crons frecuentes para la operación
   comercial.
 - [ ] Tres checks de healthchecks.io, alertas Sentry y monitor de uptime activos.
-- [ ] Migración Neon → Supabase, copia diaria y simulacro de restauración
-  completados. RPO inicial de 24 horas aceptado sin PITR.
+- [ ] Inicialización limpia de Supabase con migraciones y demo, copia diaria y
+  simulacro de restauración completados. RPO inicial de 24 horas aceptado sin PITR.
 - [ ] Variables y DNS de producción verificados; migración y despliegue del
   commit final realizados.
 

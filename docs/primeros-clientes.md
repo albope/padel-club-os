@@ -25,6 +25,10 @@ suscripciones de pago será Stripe cuando se active LIVE.
 - Restaurar el club demo desde Plataforma → Clubes → Restaurar datos demo.
 - Guardar las nuevas credenciales en el gestor de contraseñas; no enviarlas junto
   con enlaces internos ni reutilizarlas para clientes reales.
+- Las credenciales del arranque limpio son las configuradas temporalmente como
+  `BOOTSTRAP_SUPERADMIN_PASSWORD`, `DEMO_ADMIN_PASSWORD` y
+  `DEMO_PLAYER_PASSWORD`. No se guardan en el repositorio ni se pueden recuperar
+  desde la base porque solo se conserva su hash.
 - Probar `/login`, el dashboard administrador, el portal del jugador y
   `/dashboard/accesos`.
 - Confirmar que la demo está marcada como demo, no envía correo real y no permite

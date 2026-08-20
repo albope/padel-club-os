@@ -16,6 +16,8 @@ import { useTranslations } from 'next-intl';
 import { normalizarNombre } from '@/lib/import-courts';
 import { parsearFecha, parsearHora, esEstadoPagoValido } from '@/lib/import-bookings';
 import type { ImportError } from '@/lib/import-courts';
+import { generarCSV, parsearCSV } from '@/lib/csv';
+import { toast } from '@/hooks/use-toast';
 
 interface ReservaPreview {
   pista: string;
@@ -61,18 +63,21 @@ const ImportReservasClient = () => {
     const reader = new FileReader();
     reader.onload = (e) => {
       const text = e.target?.result as string;
-      const lines = text.split(/\r?\n/).filter(line => line.trim() !== '');
-      if (lines.length < 2) {
-        alert(t('errorMinLines'));
+      const csv = parsearCSV(text);
+      if (csv.rows.length < 2) {
+        toast({ title: t('errorMinLines'), variant: 'destructive' });
         return;
       }
 
-      const headers = lines[0].split(',').map(h => h.trim().toLowerCase());
+      const headers = csv.rows[0].values.map(h => h.trim().toLowerCase());
 
       const required = ['pista', 'fecha', 'horainicio', 'horafin'];
       const missing = required.filter(h => !headers.includes(h));
       if (missing.length > 0) {
-        alert(t('errorHeaders', { headers: missing.join(', ') }));
+        toast({
+          title: t('errorHeaders', { headers: missing.join(', ') }),
+          variant: 'destructive',
+        });
         return;
       }
 
@@ -88,13 +93,15 @@ const ImportReservasClient = () => {
         precio: headers.indexOf('precio'),
       };
 
-      const errors: string[] = [];
+      const errors: string[] = csv.errors.map(
+        error => `${t('row')} ${error.line}: ${error.message}`,
+      );
       const reservas: ReservaPreview[] = [];
       const vistos = new Map<string, number>();
 
-      for (let i = 1; i < lines.length; i++) {
-        const values = lines[i].split(',');
-        const fila = i + 1;
+      for (const row of csv.rows.slice(1)) {
+        const values = row.values;
+        const fila = row.line;
 
         const pista = values[idx.pista]?.trim() || '';
         const fecha = values[idx.fecha]?.trim() || '';
@@ -125,7 +132,7 @@ const ImportReservasClient = () => {
         }
 
         if (rowErrors.length > 0) {
-          errors.push(`${t('row')} ${fila}: ${rowErrors.join('; ')}`);
+          errors.push(`${t('row')} ${fila}: ${rowErrors.join(' · ')}`);
         }
 
         const key = `${normalizarNombre(pista)}|${fecha}|${horaInicio}`;
@@ -144,13 +151,16 @@ const ImportReservasClient = () => {
       setParseErrors(errors);
       setParsedData(reservas);
     };
+    reader.onerror = () => {
+      toast({ title: t('errorImport'), description: t('errorServer'), variant: 'destructive' });
+    };
     reader.readAsText(fileToParse);
   };
 
   const handleImport = async () => {
     const reservasValidas = parsedData.filter(p => !p.duplicado && p.errores.length === 0);
     if (reservasValidas.length === 0) {
-      alert(t('errorNoData'));
+      toast({ title: t('errorNoData'), variant: 'destructive' });
       return;
     }
 
@@ -182,18 +192,32 @@ const ImportReservasClient = () => {
       setImportResult(result);
     } catch (error: unknown) {
       const msg = error instanceof Error ? error.message : t('errorServer');
-      alert(`${t('errorImport')}: ${msg}`);
+      toast({ title: t('errorImport'), description: msg, variant: 'destructive' });
     } finally {
       setIsLoading(false);
     }
   };
 
   const downloadTemplate = () => {
-    const headers = "pista,fecha,horaInicio,horaFin,email,nombreInvitado,estadoPago,numJugadores,precio\n";
-    const row1 = "Pista 1,15/04/2026,09:00,10:30,juan@email.com,,pagado,4,\n";
-    const row2 = "Pista 2,15/04/2026,10:00,11:30,,Carlos Garcia,pendiente,4,20\n";
-    const row3 = "Pista 1,16/04/2026,18:00,19:30,maria@email.com,,exento,2,\n";
-    const content = headers + row1 + row2 + row3;
+    const content = generarCSV(
+      [
+        'pista',
+        'fecha',
+        'horaInicio',
+        'horaFin',
+        'email',
+        'nombreInvitado',
+        'estadoPago',
+        'numJugadores',
+        'precio',
+      ],
+      [
+        ['Pista 1', '15/04/2026', '09:00', '10:30', 'juan@email.com', '', 'pagado', '4', ''],
+        ['Pista 2', '15/04/2026', '10:00', '11:30', '', 'Carlos Garcia', 'pendiente', '4', '20,50'],
+        ['Pista 1', '16/04/2026', '18:00', '19:30', 'maria@email.com', '', 'exento', '2', ''],
+      ],
+      ';',
+    );
     const blob = new Blob([content], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement("a");
     const url = URL.createObjectURL(blob);
@@ -202,6 +226,7 @@ const ImportReservasClient = () => {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+    URL.revokeObjectURL(url);
   };
 
   const reservasValidas = parsedData.filter(p => !p.duplicado && p.errores.length === 0);

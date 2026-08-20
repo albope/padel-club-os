@@ -15,6 +15,8 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { useTranslations } from 'next-intl';
+import { generarCSV, parsearCSV } from '@/lib/csv';
+import { toast } from '@/hooks/use-toast';
 
 type SocioData = {
   name: string;
@@ -55,37 +57,57 @@ const ImportSociosClient = () => {
     const reader = new FileReader();
     reader.onload = (e) => {
       const text = e.target?.result as string;
-      const lines = text.split(/\r?\n/).filter(line => line.trim() !== '');
-      if (lines.length < 2) {
-        alert(t('errorMinLines'));
+      const { rows, errors } = parsearCSV(text);
+      if (errors.length > 0) {
+        toast({
+          title: t('errorImport'),
+          description: `Fila ${errors[0].line}: ${errors[0].message}`,
+          variant: 'destructive',
+        });
+        return;
+      }
+      if (rows.length < 2) {
+        toast({ title: t('errorMinLines'), variant: 'destructive' });
         return;
       }
 
-      const headers = lines[0].split(',').map(h => h.trim());
+      const aliases: Record<string, keyof SocioData> = {
+        name: 'name',
+        email: 'email',
+        phone: 'phone',
+        position: 'position',
+        level: 'level',
+        birthdate: 'birthDate',
+      };
+      const headers = rows[0].values.map(h => h.trim().toLowerCase());
       const requiredHeaders = ['name', 'email'];
       if (!requiredHeaders.every(h => headers.includes(h))) {
-        alert(t('errorHeaders', { headers: requiredHeaders.join(', ') }));
+        toast({
+          title: t('errorHeaders', { headers: requiredHeaders.join(', ') }),
+          variant: 'destructive',
+        });
         return;
       }
 
-      const data = lines.slice(1).map(line => {
-        const values = line.split(',');
+      const data = rows.slice(1).map(row => {
         const socio: SocioData = { name: '', email: '' };
         headers.forEach((header, index) => {
-          if (header !== 'password') {
-            (socio as any)[header] = values[index]?.trim() || '';
-          }
+          const key = aliases[header];
+          if (key) socio[key] = row.values[index]?.trim() || '';
         });
         return socio;
       });
       setParsedData(data);
+    };
+    reader.onerror = () => {
+      toast({ title: t('errorImport'), description: t('errorServer'), variant: 'destructive' });
     };
     reader.readAsText(fileToParse);
   };
 
   const handleImport = async () => {
     if (parsedData.length === 0) {
-      alert(t('errorNoData'));
+      toast({ title: t('errorNoData'), variant: 'destructive' });
       return;
     }
     setIsLoading(true);
@@ -101,17 +123,20 @@ const ImportSociosClient = () => {
         throw new Error(result.message || t('errorServer'));
       }
       setImportResult(result);
-    } catch (error: any) {
-      alert(`${t('errorImport')}: ${error.message}`);
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : t('errorServer');
+      toast({ title: t('errorImport'), description: message, variant: 'destructive' });
     } finally {
       setIsLoading(false);
     }
   };
 
   const downloadTemplate = () => {
-    const headers = "name,email,phone,position,level,birthDate\n";
-    const example = "Juan Ejemplo,juan@ejemplo.com,600123123,Derecha,3.5,1990-05-15\n";
-    const content = headers + example;
+    const content = generarCSV(
+      ['name', 'email', 'phone', 'position', 'level', 'birthDate'],
+      [['Juan Ejemplo', 'juan@ejemplo.com', '600123123', 'Derecha', '3,5', '1990-05-15']],
+      ';',
+    );
     const blob = new Blob([content], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement("a");
     const url = URL.createObjectURL(blob);
@@ -120,6 +145,7 @@ const ImportSociosClient = () => {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+    URL.revokeObjectURL(url);
   };
 
   return (

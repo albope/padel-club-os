@@ -21,6 +21,8 @@ import {
   type PricingRule,
   type ImportError,
 } from '@/lib/import-courts';
+import { generarCSV, parsearCSV } from '@/lib/csv';
+import { toast } from '@/hooks/use-toast';
 
 interface PistaPreview {
   nombre: string;
@@ -59,18 +61,18 @@ const ImportPistasClient = () => {
     const reader = new FileReader();
     reader.onload = (e) => {
       const text = e.target?.result as string;
-      const lines = text.split(/\r?\n/).filter(line => line.trim() !== '');
-      if (lines.length < 2) {
-        alert(t('errorMinLines'));
+      const csv = parsearCSV(text);
+      if (csv.rows.length < 2) {
+        toast({ title: t('errorMinLines'), variant: 'destructive' });
         return;
       }
 
-      const headers = lines[0].split(',').map(h => h.trim());
+      const headers = csv.rows[0].values.map(h => h.trim());
 
       // Verificar columna obligatoria
       const headersLower = headers.map(h => h.toLowerCase());
       if (!headersLower.includes('nombre')) {
-        alert(t('errorHeaders', { headers: 'nombre' }));
+        toast({ title: t('errorHeaders', { headers: 'nombre' }), variant: 'destructive' });
         return;
       }
 
@@ -79,15 +81,18 @@ const ImportPistasClient = () => {
 
       // Parsear columnas de pricing
       const { mappings: pricingMappings, errors: headerErrors } = parsearHeadersPricing(headers);
-      const errors: string[] = [...headerErrors];
+      const errors: string[] = [
+        ...csv.errors.map(error => `Fila ${error.line}: ${error.message}`),
+        ...headerErrors,
+      ];
 
       // Parsear filas
       const pistas: PistaPreview[] = [];
       const nombresVistos = new Map<string, number>();
 
-      for (let i = 1; i < lines.length; i++) {
-        const values = lines[i].split(',');
-        const fila = i + 1; // fila 1-indexed (header es fila 1)
+      for (const row of csv.rows.slice(1)) {
+        const values = row.values;
+        const fila = row.line;
 
         const nombre = values[nombreIdx]?.trim() || '';
         if (!nombre) {
@@ -137,6 +142,9 @@ const ImportPistasClient = () => {
       setParseErrors(errors);
       setParsedData(pistas);
     };
+    reader.onerror = () => {
+      toast({ title: t('errorImport'), description: t('errorServer'), variant: 'destructive' });
+    };
     reader.readAsText(fileToParse);
   };
 
@@ -144,7 +152,7 @@ const ImportPistasClient = () => {
     // Filtrar duplicados intra-CSV (solo enviar las no duplicadas)
     const pistasValidas = parsedData.filter(p => !p.duplicado);
     if (pistasValidas.length === 0) {
-      alert(t('errorNoData'));
+      toast({ title: t('errorNoData'), variant: 'destructive' });
       return;
     }
 
@@ -170,17 +178,21 @@ const ImportPistasClient = () => {
       setImportResult(result);
     } catch (error: unknown) {
       const msg = error instanceof Error ? error.message : t('errorServer');
-      alert(`${t('errorImport')}: ${msg}`);
+      toast({ title: t('errorImport'), description: msg, variant: 'destructive' });
     } finally {
       setIsLoading(false);
     }
   };
 
   const downloadTemplate = () => {
-    const headers = "nombre,tipo,lunes_9-14,lunes_14-21,sabado_9-14,sabado_14-21\n";
-    const row1 = "Pista 1,Cristal,20,30,25,35\n";
-    const row2 = "Pista 2,Outdoor,18,25,22,30\n";
-    const content = headers + row1 + row2;
+    const content = generarCSV(
+      ['nombre', 'tipo', 'lunes_9-14', 'lunes_14-21', 'sabado_9-14', 'sabado_14-21'],
+      [
+        ['Pista 1', 'Cristal', '20,50', '30', '25', '35'],
+        ['Pista 2', 'Outdoor', '18', '25', '22', '30'],
+      ],
+      ';',
+    );
     const blob = new Blob([content], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement("a");
     const url = URL.createObjectURL(blob);
@@ -189,6 +201,7 @@ const ImportPistasClient = () => {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+    URL.revokeObjectURL(url);
   };
 
   const pistasNoDuplicadas = parsedData.filter(p => !p.duplicado);

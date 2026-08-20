@@ -1,5 +1,44 @@
 import { describe, it, expect } from "vitest"
-import { escaparCSV, generarCSV, formatearFechaCSV, formatearHoraCSV } from "./csv"
+import {
+  escaparCSV,
+  generarCSV,
+  formatearFechaCSV,
+  formatearHoraCSV,
+  parsearCSV,
+} from "./csv"
+
+describe("parsearCSV", () => {
+  it("detecta el punto y coma de Excel y conserva la coma decimal", () => {
+    const result = parsearCSV("nombre;precio\nPista 1;20,50")
+    expect(result.delimiter).toBe(";")
+    expect(result.rows[1]).toEqual({ values: ["Pista 1", "20,50"], line: 2 })
+  })
+
+  it("admite BOM, directiva sep, comillas, separadores y saltos internos", () => {
+    const result = parsearCSV(
+      '\uFEFFsep=;\r\nnombre;nota\r\n"Club; Norte";"Linea 1\nLinea ""dos"""',
+    )
+    expect(result.delimiter).toBe(";")
+    expect(result.rows).toEqual([
+      { values: ["nombre", "nota"], line: 2 },
+      { values: ["Club; Norte", 'Linea 1\nLinea "dos"'], line: 3 },
+    ])
+    expect(result.errors).toEqual([])
+  })
+
+  it("mantiene compatibilidad con CSV separado por comas", () => {
+    const result = parsearCSV('name,email\n"Garcia, Ana",ana@example.com')
+    expect(result.delimiter).toBe(",")
+    expect(result.rows[1].values).toEqual(["Garcia, Ana", "ana@example.com"])
+  })
+
+  it("informa de la fila con comillas sin cerrar", () => {
+    const result = parsearCSV('name,email\n"Ana,ana@example.com')
+    expect(result.errors).toEqual([
+      { line: 2, message: "La fila contiene comillas sin cerrar" },
+    ])
+  })
+})
 
 describe("escaparCSV", () => {
   it("retorna valor sin cambios si no tiene caracteres especiales", () => {
@@ -63,6 +102,11 @@ describe("generarCSV", () => {
   it("escapa cabeceras con caracteres especiales", () => {
     const csv = generarCSV(['Nombre "completo"'], [["test"]])
     expect(csv).toBe('\uFEFF"Nombre ""completo"""\ntest')
+  })
+
+  it("genera CSV de Excel con punto y coma y coma decimal", () => {
+    const csv = generarCSV(["Nombre", "Precio"], [["Pista 1", "20,50"]], ";")
+    expect(csv).toBe("\uFEFFNombre;Precio\nPista 1;20,50")
   })
 })
 

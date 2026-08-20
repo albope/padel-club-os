@@ -45,15 +45,17 @@ su gestoría junto con los abonos o facturas rectificativas que correspondan.
 - [x] Sociedad emisora, NIF, domicilio público, registro y email confirmados.
 - [x] Flujo contable confirmado: la sociedad emite las facturas y las entrega
   mensualmente a la gestoría.
-- [ ] Configurar en Vercel Production y Preview, según corresponda:
+- [x] Identidad legal pública incorporada por defecto a la aplicación:
   - `LEGAL_NAME`
   - `LEGAL_TAX_ID`
   - `LEGAL_PUBLIC_ADDRESS` (se muestra en el Aviso legal, no usar aquí un
     domicilio privado que no se quiera publicar)
   - `LEGAL_REGISTRY_DETAILS`
   - `LEGAL_EMAIL`
-- [ ] Hacer redeploy y comprobar que `/aviso-legal`, `/privacidad`, `/terminos` y el
-  DPA no muestran el aviso ámbar de datos pendientes.
+  Las variables de Vercel quedan como sobrescrituras opcionales si cambia la
+  sociedad.
+- [ ] Tras el próximo deploy, comprobar que `/aviso-legal`, `/privacidad`,
+  `/terminos` y el DPA muestran esos datos y no el aviso ámbar.
 - [ ] Revisar que la entidad, domicilio y NIF coinciden exactamente en Stripe, en
   las páginas legales y en el alta fiscal.
 - [ ] Aplicar todas las migraciones hasta

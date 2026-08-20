@@ -12,6 +12,15 @@ export interface LegalProvider {
   incompleteFields: string[]
 }
 
+const DEFAULT_LEGAL_PROVIDER = {
+  entityType: "company",
+  legalName: "BORT PEREZ MULTI GESTION SOCIEDAD LIMITADA",
+  taxId: "B98629470",
+  address: "Avenida Carlos Marx, 1, 12 E, 46920 Mislata, Valencia, España",
+  registry: "Inscrita en el Registro Mercantil de Valencia, tomo 9786, libro 7068, folio 52, sección 8, hoja V-159244",
+  email: "albertobort@gmail.com",
+} as const
+
 function optionalEnv(name: string): string | null {
   const value = process.env[name]?.trim()
   return value || null
@@ -21,15 +30,15 @@ export function getLegalProvider(): LegalProvider {
   const rawEntityType = optionalEnv("LEGAL_ENTITY_TYPE")
   const entityType = rawEntityType === "individual" || rawEntityType === "company"
     ? rawEntityType
-    : null
-  const legalName = optionalEnv("LEGAL_NAME")
-  const taxId = optionalEnv("LEGAL_TAX_ID")
+    : DEFAULT_LEGAL_PROVIDER.entityType
+  const legalName = optionalEnv("LEGAL_NAME") || DEFAULT_LEGAL_PROVIDER.legalName
+  const taxId = optionalEnv("LEGAL_TAX_ID") || DEFAULT_LEGAL_PROVIDER.taxId
   // Esta variable se muestra en el Aviso legal. Debe contener únicamente un
   // domicilio apto para publicación, nunca una dirección privada introducida
   // como dato interno de facturación.
-  const address = optionalEnv("LEGAL_PUBLIC_ADDRESS")
-  const registry = optionalEnv("LEGAL_REGISTRY_DETAILS")
-  const email = optionalEnv("LEGAL_EMAIL") || process.env.CONTACT_EMAIL?.trim() || "contacto@padelclubos.com"
+  const address = optionalEnv("LEGAL_PUBLIC_ADDRESS") || DEFAULT_LEGAL_PROVIDER.address
+  const registry = optionalEnv("LEGAL_REGISTRY_DETAILS") || DEFAULT_LEGAL_PROVIDER.registry
+  const email = optionalEnv("LEGAL_EMAIL") || DEFAULT_LEGAL_PROVIDER.email
   const website = process.env.NEXT_PUBLIC_APP_URL?.trim() || "https://padelclubos.com"
 
   const incompleteFields = [

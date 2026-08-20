@@ -24,8 +24,9 @@ externa como terminada sin comprobarla en el servicio correspondiente.
   partidas, noticias y una competición finalizada.
 - [x] Identidad legal, fiscal y política de cambios de plan reflejadas en código y textos.
 - [x] Portal de jugador y flujos Marcador principales migrados a tokens semánticos.
-- [ ] `npm run lint`, `npm run typecheck`, `npm test` y `npm run build` en verde
-  sobre el commit final.
+- [x] `npm run lint`, `npm run typecheck`, `npm test` y `npm run build` en verde
+  sobre el commit final. Resultado del 20 de agosto de 2026: 612 tests, 125
+  rutas generadas y 0 vulnerabilidades en `npm audit`.
 - [ ] Gate visual manual en 360, 768, 1024 y 1440 píxeles, en claro y oscuro.
 
 ## Puerta B: Supabase y demo local

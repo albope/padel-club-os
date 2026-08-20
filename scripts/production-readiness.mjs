@@ -5,6 +5,7 @@ loadEnvConfig(process.cwd())
 
 const required = [
   'DATABASE_URL',
+  'DIRECT_URL',
   'AUTH_SECRET',
   'NEXTAUTH_URL',
   'NEXT_PUBLIC_APP_URL',

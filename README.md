@@ -100,25 +100,27 @@ npx prisma db seed
 La fuente buena es `.env.example`. Como minimo necesitaras:
 
 - `DATABASE_URL`
+- `DIRECT_URL`
 - `AUTH_SECRET`
 
 ### Base de datos de desarrollo (IMPORTANTE)
 
-El `DATABASE_URL` del `.env` local debe apuntar a una base de datos de
-DESARROLLO, nunca a la de produccion. Con Neon la forma recomendada es una
-branch de la base principal:
+`DATABASE_URL` y `DIRECT_URL` del entorno local deben apuntar a una base de
+DESARROLLO, nunca a producción. Se admite PostgreSQL local o un proyecto gratuito
+de Supabase alojado en una organización distinta de la organización Pro de
+producción. Un segundo proyecto dentro de la organización Pro genera cómputo
+adicional.
 
-1. Neon Console → proyecto → **Branches** → **Create branch** (nombre: `dev`,
-   partiendo de `main`). La branch nace con una copia de los datos y es
-   independiente: lo que toques ahi no afecta a produccion.
-2. Copia el connection string de la branch `dev` al `DATABASE_URL` de tu `.env`.
-3. La URL de produccion vive SOLO en las variables de entorno de Vercel.
+La URL de producción vive solo en las variables de entorno de Vercel. Consulta
+`docs/supabase-go-live.md` para elegir el pool correcto y ejecutar migraciones.
 
 Para scripts puntuales contra produccion (seeds de demos, etc.), pasa la URL
 explicitamente en el comando y usa las guardas de los scripts (`--confirm`):
 
 ```powershell
-$env:DATABASE_URL = "<url-produccion>"; npx tsx scripts/seed-demo-club.ts --confirm
+$env:DATABASE_URL = "<url-produccion>"
+$env:DIRECT_URL = "<url-directa-produccion>"
+npx tsx scripts/seed-demo-club.ts --confirm
 ```
 
 Nota operativa: para crear demos comerciales no hace falta nada de esto — usa

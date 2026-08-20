@@ -26,11 +26,12 @@ function cargarEnvLocal() {
 
 cargarEnvLocal()
 
-if (!process.env.DATABASE_URL) {
-  throw new Error("DATABASE_URL es obligatorio para el preflight")
+const directUrl = process.env.DIRECT_URL || process.env.DATABASE_URL
+if (!directUrl) {
+  throw new Error("DIRECT_URL o DATABASE_URL es obligatorio para el preflight")
 }
 
-const databaseUrl = new URL(process.env.DATABASE_URL)
+const databaseUrl = new URL(directUrl)
 if (!databaseUrl.searchParams.has("schema")) {
   databaseUrl.searchParams.set("schema", "public")
 }

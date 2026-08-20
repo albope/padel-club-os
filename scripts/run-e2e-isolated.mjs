@@ -37,18 +37,20 @@ function run(command, args, env) {
 }
 
 loadLocalEnv()
-if (!process.env.DATABASE_URL) throw new Error("DATABASE_URL es obligatorio")
+const directUrl = process.env.DIRECT_URL || process.env.DATABASE_URL
+if (!directUrl) throw new Error("DIRECT_URL o DATABASE_URL es obligatorio")
 
 const schema = `pcos_e2e_local_${Date.now()}`
 if (!/^pcos_e2e_local_\d+$/.test(schema)) throw new Error("Schema E2E invalido")
 
-const baseUrl = new URL(process.env.DATABASE_URL)
+const baseUrl = new URL(directUrl)
 baseUrl.searchParams.delete("schema")
 const testUrl = new URL(baseUrl)
 testUrl.searchParams.set("schema", schema)
 const testEnv = {
   ...process.env,
   DATABASE_URL: testUrl.toString(),
+  DIRECT_URL: testUrl.toString(),
   RATE_LIMIT_BACKEND: "memory",
   RATE_LIMIT_ALLOW_MEMORY: "true",
   NEXTAUTH_URL: "http://localhost:3000",

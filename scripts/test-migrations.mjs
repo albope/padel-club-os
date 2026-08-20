@@ -30,7 +30,7 @@ function ejecutarPrisma(argumentos, databaseUrl) {
   const prismaCli = fileURLToPath(new URL("../node_modules/prisma/build/index.js", import.meta.url))
   const resultado = spawnSync(process.execPath, [prismaCli, ...argumentos], {
     cwd: process.cwd(),
-    env: { ...process.env, DATABASE_URL: databaseUrl },
+    env: { ...process.env, DATABASE_URL: databaseUrl, DIRECT_URL: databaseUrl },
     encoding: "utf8",
     stdio: "pipe",
   })
@@ -44,8 +44,9 @@ function ejecutarPrisma(argumentos, databaseUrl) {
 
 cargarEnvLocal()
 
-if (!process.env.DATABASE_URL) {
-  throw new Error("DATABASE_URL es obligatorio para probar las migraciones")
+const directUrl = process.env.DIRECT_URL || process.env.DATABASE_URL
+if (!directUrl) {
+  throw new Error("DIRECT_URL o DATABASE_URL es obligatorio para probar las migraciones")
 }
 
 const schemaPrueba = `pcos_migration_test_${Date.now()}`
@@ -53,8 +54,8 @@ if (!/^pcos_migration_test_\d+$/.test(schemaPrueba)) {
   throw new Error("Nombre de schema de prueba invalido")
 }
 
-const urlBase = new URL(process.env.DATABASE_URL)
-const urlPrueba = new URL(process.env.DATABASE_URL)
+const urlBase = new URL(directUrl)
+const urlPrueba = new URL(directUrl)
 urlPrueba.searchParams.set("schema", schemaPrueba)
 
 const admin = new PrismaClient({

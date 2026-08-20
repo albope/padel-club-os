@@ -108,20 +108,20 @@ Política operativa inicial para validar con asesoría:
 - auditoría de seguridad/operación: 24 meses;
 - reportes de producto: 12 meses tras su cierre;
 - leads no convertidos: 12 meses desde la última interacción;
-- copias: según la ventana PITR contratada, sin usarlas como archivo permanente;
+- copias: siete días de copias diarias incluidas, sin usarlas como archivo permanente;
 - evidencias contractuales y facturas: plazo legal aplicable.
 
 ## 7. Continuidad e incidentes
 
 - Objetivo inicial RPO: 24 horas; objetivo RTO: 8 horas laborables.
-- Antes de cada migración/importación: snapshot recuperable.
-- Trimestralmente: restaurar una copia en una rama aislada, validar usuarios,
+- Antes de cada migración/importación: volcado lógico cifrado recuperable.
+- Trimestralmente: restaurar una copia en un proyecto aislado, validar usuarios,
   membresías, reservas y auditoría, y medir el tiempo real.
 - Para P0: contener, conservar evidencia, comunicar al responsable, recuperar,
   validar aislamiento de dos clubes y redactar retrospectiva.
 
-No anunciar RPO/RTO contractuales mejores que la capacidad real del plan de Neon,
-Vercel y el equipo de soporte.
+No anunciar RPO/RTO contractuales mejores que la capacidad real de Supabase Pro
+sin PITR, Vercel y el equipo de soporte.
 
 ## 8. Métricas de los dos primeros clubes
 
@@ -140,13 +140,12 @@ clubes antes que peticiones aisladas de personalización.
 
 ## 9. Límites legales y fiscales
 
-Antes del primer cobro se necesitan nombre legal, NIF, domicilio fiscal y email
-del prestador en producción. La persona física debe confirmar con AEAT, Seguridad
-Social o una asesoría el alta y el tratamiento de IVA/IRPF. La aplicación y esta
-checklist no sustituyen esa validación.
+Antes del primer cobro se necesitan razón social, NIF, domicilio público, datos
+registrales y email de la sociedad en producción. La sociedad debe confirmar con
+AEAT o una asesoría su situación censal y el tratamiento de IVA y facturación. La
+aplicación y esta checklist no sustituyen esa validación.
 
 El Aviso legal necesita un domicilio accesible públicamente. Si no se desea
-publicar el domicilio particular, debe obtenerse antes del cobro un domicilio
+publicar el domicilio fiscal, debe existir antes del cobro un domicilio
 profesional o servicio de domiciliación válido y configurar
-`LEGAL_PUBLIC_ADDRESS`. El domicilio privado no se guarda en Git ni se reutiliza
-automáticamente como dirección pública.
+`LEGAL_PUBLIC_ADDRESS`. El dato no se guarda en Git.

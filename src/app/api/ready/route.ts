@@ -7,6 +7,7 @@ export const dynamic = 'force-dynamic'
 const LATEST_MIGRATION = '20260725000000_presential_bookings_and_database_rate_limit'
 const REQUIRED_PRODUCTION_ENV = [
   'DATABASE_URL',
+  'DIRECT_URL',
   'AUTH_SECRET',
   'NEXTAUTH_URL',
   'NEXT_PUBLIC_APP_URL',

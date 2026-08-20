@@ -124,13 +124,11 @@ crítico terminan en verde. Un lanzamiento comercial exige además:
 
 Estos puntos no se pueden completar desde el repositorio ni deben inventarse:
 
-- [x] Nombre, NIF y email del prestador persona física recibidos y configurados
-  como secretos de entorno, sin incorporarlos al repositorio.
-- [ ] `LEGAL_PUBLIC_ADDRESS` apto para mostrarse en el Aviso legal. El domicilio
-  particular comunicado no se almacena ni se publica.
-- [ ] Alta censal y situación en Seguridad Social confirmadas antes de iniciar
-  la actividad comercial.
-- [ ] Tratamiento de IVA/IRPF, facturas y registros confirmado con asesoría;
+- [ ] Razón social, NIF, email, domicilio público y datos registrales de la
+  sociedad configurados como variables de entorno, sin incorporarlos al repositorio.
+- [ ] Situación censal de la sociedad confirmada antes de iniciar la actividad
+  comercial.
+- [ ] Tratamiento de IVA, facturas y registros confirmado con asesoría,
   entonces `TAX_HANDLING_CONFIRMED=true`.
 - [x] Landing y condiciones alineadas con una periodicidad exclusivamente mensual.
 - [ ] Stripe Live mensual: cuenta verificada, productos/prices, webhook,
@@ -140,7 +138,8 @@ Estos puntos no se pueden completar desde el repositorio ni deben inventarse:
 - [ ] Vercel Pro activo antes de depender de crons frecuentes para la operación
   comercial.
 - [ ] Tres checks de healthchecks.io, alertas Sentry y monitor de uptime activos.
-- [ ] Snapshot/restore drill de Neon completado y ventana PITR aceptada.
+- [ ] Migración Neon → Supabase, copia diaria y simulacro de restauración
+  completados. RPO inicial de 24 horas aceptado sin PITR.
 - [ ] Variables y DNS de producción verificados; migración y despliegue del
   commit final realizados.
 

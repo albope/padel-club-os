@@ -60,7 +60,7 @@ Todo el bloque de migracion esta cerrado. Las 4 tareas originales estan resuelta
 
 | Tarea | Descripcion | Esfuerzo |
 |-------|-------------|----------|
-| Gate visual del portal jugador | Validar los flujos principales en 4 breakpoints x 2 temas y corregir incidencias verificadas; requiere entorno con `DATABASE_URL` de la rama `dev` | S |
+| Gate visual del portal jugador | Validar los flujos principales en 4 breakpoints x 2 temas y corregir incidencias verificadas, requiere PostgreSQL de desarrollo aislado de producción | S |
 
 ## Indicadores a mirar cada 2 semanas
 - Demos de switch realizadas.

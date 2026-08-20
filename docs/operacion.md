@@ -8,7 +8,7 @@ que `npm run production:preflight`, la migración y `/api/ready` estén en verde
 | Servicio | Uso | Condición de lanzamiento |
 |---|---|---|
 | Vercel Hobby | Hosting, funciones y tres crons diarios | Válido para demo y arranque limitado; revisar manualmente impagos y reembolsos urgentes |
-| Neon PostgreSQL | Datos multi-tenant | Producción separada de desarrollo, snapshot previo a migrar |
+| Supabase Pro PostgreSQL | Datos multi-tenant | Un proyecto Micro de producción, Data API desactivada y copias verificadas |
 | Stripe Live | Suscripciones SaaS | Productos, prices, webhook y tratamiento fiscal verificados |
 | Resend | Emails transaccionales | Dominio verificado y remitente probado |
 | Vercel Blob | Imágenes subidas por clubes | Store enlazado y token Read/Write |
@@ -25,9 +25,8 @@ recordatorios y las tareas históricas de reembolso pueden demorarse hasta 24 ho
 ## Puesta en marcha inicial
 
 - [ ] Completar todas las variables de `.env.example` en Production.
-- [ ] Establecer `LEGAL_ENTITY_TYPE=individual`, los datos reales del
-  prestador (nombre, NIF y email) y un `LEGAL_PUBLIC_ADDRESS` apto para aparecer
-  en el Aviso legal.
+- [ ] Establecer `LEGAL_ENTITY_TYPE=company`, los datos reales de la sociedad y
+  un `LEGAL_PUBLIC_ADDRESS` apto para aparecer en el Aviso legal.
 - [ ] Confirmar con asesoría el alta censal, Seguridad Social, IVA/IRPF,
   facturación y conservación de registros; después establecer
   `TAX_HANDLING_CONFIRMED=true`.
@@ -38,13 +37,13 @@ recordatorios y las tareas históricas de reembolso pueden demorarse hasta 24 ho
   o configurar Upstash si se elige ese backend.
 - [ ] Contratar Vercel Pro antes de depender de automatizaciones frecuentes y
   fijar alertas/límite de gasto.
-- [ ] Crear snapshot de Neon y ejecutar un simulacro de restauración en una
-  rama aislada.
+- [ ] Completar el corte Neon → Supabase y el simulacro de restauración descritos
+  en `docs/supabase-go-live.md`.
 - [ ] Ejecutar el procedimiento de despliegue de la sección siguiente.
 
 ## Despliegue seguro
 
-1. Crear snapshot de la rama de producción en Neon.
+1. Crear un volcado lógico cifrado de Supabase mediante `DIRECT_URL`.
 2. Ejecutar sobre el código exacto que se va a desplegar:
 
    ```bash
@@ -53,8 +52,8 @@ recordatorios y las tareas históricas de reembolso pueden demorarse hasta 24 ho
    npm run release:verify
    ```
 
-3. Exportar temporalmente la `DATABASE_URL` de producción solo en la terminal
-   controlada y ejecutar:
+3. Exportar temporalmente `DATABASE_URL` y `DIRECT_URL` de producción solo en la
+   terminal controlada y ejecutar:
 
    ```bash
    npm run db:deploy
@@ -121,12 +120,12 @@ Si `/api/ready` muestra `refunds: attention`:
 
 1. Consultar monitor externo, `/api/health` y `/api/ready`.
 2. Revisar el último deployment y los logs de Vercel.
-3. Revisar Sentry y el estado de Neon/Stripe/Resend.
+3. Revisar Sentry y el estado de Supabase, Stripe y Resend.
 4. Si el despliegue es la causa, promover el último deployment bueno.
 
 Un rollback de Vercel no revierte la base de datos. Las migraciones deben ser
 aditivas y compatibles con el código anterior. Si no lo son, recuperar primero
-en una rama de Neon y validar antes de tocar producción.
+en un proyecto Supabase aislado y validar antes de tocar producción.
 
 ### Fuga o mezcla entre clubes
 
@@ -146,9 +145,10 @@ en una rama de Neon y validar antes de tocar producción.
 
 ## Copias y restauración
 
-- Crear snapshot manual antes de cada migración o importación masiva.
-- Mantener una ventana PITR suficiente para el SLA comercial.
-- Trimestralmente, crear una rama desde snapshot/PITR, ejecutar
+- Crear un volcado lógico cifrado antes de cada migración o importación masiva.
+- Verificar la copia diaria incluida y aceptar un RPO inicial de 24 horas. No
+  prometer PITR mientras no esté contratado.
+- Trimestralmente, restaurar en un proyecto aislado, ejecutar
   `prisma migrate status`, consultar datos críticos y documentar tiempo de
   recuperación.
 - Nunca probar una restauración directamente sobre la rama de producción.
@@ -162,4 +162,4 @@ en una rama de Neon y validar antes de tocar producción.
 - revisión diaria de reportes de usuario durante los primeros clientes;
 - revisión semanal de reembolsos fallidos, webhooks y crecimiento de la base.
 
-Última actualización: 2026-07-24.
+Última actualización: 2026-08-20.

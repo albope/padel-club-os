@@ -25,6 +25,7 @@ jobs:
           --health-retries 10
     env:
       DATABASE_URL: "postgresql://postgres:postgres@localhost:5432/padel_club_os_test"
+      DIRECT_URL: "postgresql://postgres:postgres@localhost:5432/padel_club_os_test"
       AUTH_SECRET: "ci-secret-not-real"
     steps:
       - uses: actions/checkout@v5
@@ -62,6 +63,7 @@ jobs:
           --health-retries 10
     env:
       DATABASE_URL: "postgresql://postgres:postgres@localhost:5432/padel_club_os_e2e"
+      DIRECT_URL: "postgresql://postgres:postgres@localhost:5432/padel_club_os_e2e"
       AUTH_SECRET: "ci-e2e-secret-not-real"
       NEXTAUTH_URL: "http://localhost:3000"
       NEXT_PUBLIC_APP_URL: "http://localhost:3000"

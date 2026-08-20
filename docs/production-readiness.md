@@ -1,18 +1,20 @@
 # Auditoría y hoja de ejecución production-ready
 
-Estado auditado a 2026-07-26. Este documento es la memoria operativa de lo
+Estado auditado a 2026-08-20. Este documento es la memoria operativa de lo
 implementado y de lo que depende de cuentas o decisiones externas.
 
 ## Criterio de salida
 
-El código queda listo para piloto cuando `npm run release:verify` y el E2E
-crítico terminan en verde. Un lanzamiento comercial exige además:
+El código queda listo para piloto cuando las comprobaciones locales y el E2E
+crítico terminan en verde. Una demo desplegada exige además Supabase inicializado,
+`/api/ready` en 200 y el smoke de los tres perfiles. Un lanzamiento comercial con
+cobros exige también cerrar la puerta D de `docs/checklist-lanzamiento.md`:
 
 - `npm run production:preflight` en verde con variables reales;
 - migraciones aplicadas después de snapshot;
 - `/api/ready` en 200;
 - smoke de las tres vistas demo;
-- todos los puntos externos del bloque 10 cerrados.
+- todos los bloqueos de cobro del bloque 10 cerrados.
 
 ## Bloque 1 — Base de datos y multi-tenant
 
@@ -133,10 +135,13 @@ Estos puntos no se pueden completar desde el repositorio ni deben inventarse:
 - [x] Landing y condiciones alineadas con una periodicidad exclusivamente mensual.
 - [ ] Stripe Live mensual: cuenta verificada, productos/prices, webhook,
   impuestos y prueba controlada.
-- [ ] Resend: dominio/remitente verificado.
+- [x] Resend: registros públicos MX, SPF, DKIM y DMARC presentes en DNS.
+- [ ] Resend: estado `Verified` confirmado en el panel y envío real con
+  SPF, DKIM y DMARC válidos.
 - [ ] Vercel Blob, VAPID y Sentry configurados con claves reales.
-- [ ] Vercel Pro activo antes de depender de crons frecuentes para la operación
-  comercial.
+- [x] Frecuencia diaria de Vercel Hobby aceptada para demo y piloto limitado.
+- [ ] Vercel Pro activo antes de recuperar crons de 10 o 15 minutos o depender de
+  automatizaciones frecuentes para la operación comercial.
 - [ ] Tres checks de healthchecks.io, alertas Sentry y monitor de uptime activos.
 - [ ] Inicialización limpia de Supabase con migraciones y demo, copia diaria y
   simulacro de restauración completados. RPO inicial de 24 horas aceptado sin PITR.
@@ -144,4 +149,5 @@ Estos puntos no se pueden completar desde el repositorio ni deben inventarse:
   commit final realizados.
 
 No marcar el producto como comercialmente lanzado mientras este bloque tenga
-casillas abiertas. Sí puede utilizarse localmente y en entornos demo aislados.
+casillas abiertas. El orden operativo y la separación entre demo, piloto y cobro
+están en `docs/checklist-lanzamiento.md`.

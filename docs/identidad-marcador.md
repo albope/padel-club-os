@@ -31,7 +31,8 @@ sin modificar la lógica de negocio, APIs ni autenticación.
 ## Lint anti clases de color crudas
 
 `npm run lint` ejecuta `scripts/lint-colores-crudos.mjs`: ratchet contra
-`scripts/colores-crudos-baseline.json` (61 ficheros / 518 usos legados al crearla).
+`scripts/colores-crudos-baseline.json` (61 ficheros y 518 usos legados al crearla,
+44 ficheros y 311 usos en el estado actual).
 Falla si un fichero supera su baseline o un fichero nuevo usa paleta cruda de
 Tailwind (`bg-blue-500`, `text-[#hex]`, …). En código nuevo usar siempre tokens
 semánticos (`bg-primary`, `text-muted-foreground`, `text-info`, `bg-warning-bg`…).
@@ -107,10 +108,10 @@ Tras migrar una pantalla, fijar el avance con:
 
 ## Pendiente post-gate
 
-1. Retirar ramas legacy de componentes y clases
-   `auth-*`/`landing-*` de globals.css (hoy solo neutralizadas), fuentes
-   Inter/Sora, y bajar la baseline del ratchet migrando los ~518 usos crudos
-   restantes (sobre todo marketing).
+1. Retirar las ramas legacy y las clases `auth-*` y `landing-*` de
+   `globals.css` que siguen neutralizadas, retirar las fuentes Inter/Sora y
+   continuar bajando la baseline de 311 usos crudos en 44 ficheros. Reservas,
+   ranking y recuperación de contraseña del portal jugador ya están migrados.
 2. Flujo aplazado: banda tinta de plataforma (3e). El borrado y la restauración
    destructiva de clubes demo ya
    exigen escribir el nombre exacto del club.

@@ -4,7 +4,7 @@ Guía para que los emails transaccionales de Padel Club OS (bienvenidas, recuper
 contraseña, confirmaciones de reserva, leads de demo, broadcasts) lleguen a la bandeja de
 entrada y no a spam. Tiempo estimado: **15-20 minutos** + espera de propagación DNS.
 
-## Estado actual en el código (verificado)
+## Estado actual verificado el 20 de agosto de 2026
 
 - Todos los envíos salen de `src/lib/email.ts` con un único remitente:
   `Padel Club OS <no-reply@padelclubos.com>` (constante `EMAIL_FROM`).
@@ -13,6 +13,10 @@ entrada y no a spam. Tiempo estimado: **15-20 minutos** + espera de propagación
   - Auto-respuesta de demo → reply-to `CONTACT_EMAIL` (fallback `contacto@padelclubos.com`).
   - Broadcasts de club → reply-to al email del club (si el club lo tiene configurado en Ajustes).
 - `RESEND_API_KEY` vive solo en Vercel (no está en el `.env` local).
+- Los DNS están gestionados por Cloudflare.
+- Los registros públicos MX, SPF y DKIM de Resend están publicados.
+- Existe DMARC en modo observación con `p=none`. El registro público actual no
+  incluye un buzón `rua` para recibir informes agregados.
 
 No hay remitentes fuera del dominio `padelclubos.com`, así que **basta con verificar un
 único dominio en Resend**.
@@ -100,9 +104,9 @@ Mientras el dominio no esté verificado, Resend rechaza envíos desde
 
 ## Checklist resumen para el dueño
 
-- [ ] Resend → Domains → Add Domain `padelclubos.com` (región eu-west-1)
-- [ ] Crear los 3 registros DNS que muestra Resend (MX `send`, TXT SPF `send`, TXT DKIM `resend._domainkey`)
-- [ ] Crear TXT `_dmarc` con `v=DMARC1; p=none; rua=mailto:albertobort@gmail.com; fo=1`
+- [x] Publicar MX `send`, TXT SPF `send` y TXT DKIM `resend._domainkey`.
+- [x] Publicar TXT `_dmarc` con política inicial `p=none`.
+- [ ] Añadir `rua=mailto:albertobort@gmail.com` si se quieren recibir informes DMARC.
 - [ ] Resend → Verify DNS Records → estado **Verified**
 - [ ] Test con mail-tester.com → nota ≥ 9/10
 - [ ] Anotar recordatorio: en ~1 mes, revisar informes DMARC y subir a `p=quarantine`

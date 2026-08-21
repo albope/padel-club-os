@@ -44,20 +44,21 @@ Seguir `docs/supabase-go-live.md`. Estas tareas requieren acceso de Alberto a Su
   Padel Club OS en una región de la UE.
 - [ ] Confirmar MFA en las cuentas con acceso. Las contraseñas ya están en el
   gestor y Data API está desactivada.
-- [ ] Generar una contraseña nueva para el usuario `prisma`, guardarla solo en
-  el gestor y reconstruir `DATABASE_URL` y `DIRECT_URL`. La contraseña anterior
-  está desactivada y no debe reutilizarse.
-- [x] Aplicar las cinco migraciones de producto y la migración de hardening, con
-  sus checksums en `_prisma_migrations`. Resultado: 38 tablas de aplicación y
-  seis migraciones Prisma finalizadas.
+- [ ] Activar en PostgreSQL la contraseña nueva del usuario `prisma` y reconstruir
+  `DATABASE_URL` y `DIRECT_URL`. Alberto confirma que la nueva contraseña ya fue
+  generada y guardada sin compartirla, pero la comprobación del 21 de agosto de
+  2026 aún devuelve `rolpassword IS NULL`; la contraseña anterior no debe reutilizarse.
+- [x] Aplicar las cinco migraciones de producto y las dos migraciones de
+  hardening, con sus checksums en `_prisma_migrations`. Resultado: 38 tablas de
+  aplicación y siete migraciones Prisma finalizadas.
 - [x] Mover `btree_gist` a `extensions` y añadir los 20 índices de claves
-  foráneas que faltaban. El advisor de seguridad queda sin hallazgos y no quedan
-  foreign keys sin índice.
-- [ ] Autorizar y aplicar
-  `20260821120000_rls_and_data_api_role_lockdown`. La migración ya está
-  preparada, pero no se ha ejecutado: RLS continúa desactivado y `anon` y
-  `authenticated` conservan privilegios sobre las tablas, aunque Data API esté
-  desactivada.
+  foráneas que faltaban. El advisor de seguridad queda sin avisos `WARN` o
+  `ERROR` y no quedan foreign keys sin índice.
+- [x] Aplicar `20260821120000_rls_and_data_api_role_lockdown`: las 39 tablas
+  públicas tienen RLS habilitado sin políticas y `anon` y `authenticated` no
+  conservan privilegios efectivos sobre tablas, secuencias ni funciones. También
+  se revocaron sus privilegios por defecto para objetos creados por `postgres` y
+  `prisma`.
 - [ ] Ejecutar preflight y seed contra el proyecto nuevo.
 - [ ] Guardar las tres contraseñas demo en el gestor y retirarlas de la terminal.
 - [ ] Levantar la aplicación local y probar superadministrador, administrador y jugador.

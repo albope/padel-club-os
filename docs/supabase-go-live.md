@@ -3,13 +3,15 @@
 **Estado verificado:** 21 de agosto de 2026
 
 El proyecto Pro está activo y las migraciones se aplicaron sobre una base
-vacía. Hay 38 tablas de aplicación y seis registros finalizados en
+vacía. Hay 38 tablas de aplicación y siete registros finalizados en
 `_prisma_migrations`. El seed todavía no se ha ejecutado.
 
 El 21 de agosto de 2026 se detectó una contraseña del rol `prisma` en un archivo
 versionado. La contraseña quedó desactivada, el archivo fue retirado y el
-historial de las ramas publicadas fue reescrito. Antes de conectar Prisma debe
-generarse una contraseña distinta y guardarse únicamente en el gestor.
+historial de las ramas publicadas fue reescrito. Alberto confirma que generó y
+guardó una contraseña distinta sin compartirla, pero la comprobación directa del
+rol sigue devolviendo `rolpassword IS NULL`; falta activarla antes de conectar
+Prisma.
 
 Decisión adoptada el 20 de agosto de 2026: PostgreSQL de producción se alojará
 en un proyecto propio dentro de una organización Supabase Pro compartida con
@@ -46,8 +48,8 @@ Referencias oficiales:
 - [x] Pasar a Pro la organización que alojará los dos proyectos Micro y crear en
   ella el proyecto de Padel Club OS en una región de la Unión Europea próxima a
   Vercel.
-- [ ] Generar y guardar la nueva contraseña de la base en el gestor. No compartirla
-  por chat, tickets, documentación ni Git.
+- [ ] Activar en el rol `prisma` la contraseña nueva ya generada y guardada. No
+  compartirla por chat, tickets, documentación ni Git.
 - [ ] Activar MFA para las cuentas con acceso a Supabase.
 - [x] Desactivar Data API en `Project Settings > API`, ya que la aplicación accede
   exclusivamente mediante Prisma.
@@ -59,15 +61,18 @@ Referencias oficiales:
 ## 2. Usuario de Prisma
 
 El rol `prisma` ya existe con `LOGIN`, `CREATEDB`, `BYPASSRLS` y permisos sobre
-`public`. Su autenticación por contraseña está desactivada como contención de la
-credencial publicada.
+`public`. El 21 de agosto de 2026 su autenticación por contraseña seguía
+desactivada (`rolpassword IS NULL`) pese a que la nueva contraseña ya se había
+generado y guardado fuera del repositorio.
 
 Antes del seed:
 
 1. generar una contraseña nueva en el gestor
 2. ejecutar `ALTER ROLE prisma PASSWORD '<NUEVA_CONTRASEÑA>'` desde el SQL Editor
 3. construir de nuevo las dos URLs de Supavisor
-4. comprobar la conexión y no copiar la contraseña a archivos versionados.
+4. comprobar que `SELECT rolpassword IS NOT NULL FROM pg_authid WHERE
+   rolname = 'prisma';` devuelve `true`
+5. comprobar la conexión y no copiar la contraseña a archivos versionados.
 
 La receta siguiente se conserva solo para reconstruir el rol si fuera necesario.
 
@@ -111,7 +116,7 @@ copian datos personales antiguos.
   aplicar las migraciones.
 - [ ] Cargar las nuevas `DATABASE_URL` y `DIRECT_URL` de Supabase solo como variables
   temporales de la terminal.
-- [x] Ejecutar las cinco migraciones de producto y la migración de hardening. Se
+- [x] Ejecutar las cinco migraciones de producto y las dos migraciones de hardening. Se
   aplicaron mediante el conector oficial y se registraron los checksums reales
   en `_prisma_migrations`:
 
@@ -165,23 +170,24 @@ las contraseñas configuradas y revoca las sesiones anteriores del superadminist
 
 La restauración nunca se prueba sobre producción.
 
-## 7. Hardening pendiente de decisión
-
-El advisor de Supabase detecta RLS desactivado y las comprobaciones SQL confirman
-que `anon` y `authenticated` conservan privilegios sobre las 39 tablas públicas,
-incluida `_prisma_migrations`. Data API está desactivada, pero esa configuración
-no sustituye una defensa en profundidad.
-
-La recomendación es habilitar RLS sin políticas en todas las tablas y revocar
-privilegios a `anon` y `authenticated`. La aplicación no debería verse afectada
-porque usa exclusivamente el rol `prisma` con `BYPASSRLS`. Esta decisión debe
-aprobarse y probarse antes del seed.
+## 7. Hardening de Data API completado
 
 La migración reproducible
-`20260821120000_rls_and_data_api_role_lockdown` está preparada en el repositorio,
-pero no se ha aplicado. Supabase requiere una autorización explícita que nombre
-el alcance de las 39 tablas y la revocación de ambos roles.
+`20260821120000_rls_and_data_api_role_lockdown` se aplicó el 21 de agosto de
+2026 con autorización explícita. El resultado verificado es:
+
+- 39 de 39 tablas públicas con RLS habilitado y ninguna política.
+- Cero tablas, secuencias o funciones públicas con privilegios efectivos para
+  `anon` o `authenticated`.
+- Cero grants por defecto de `postgres` o `prisma` hacia esos dos roles en
+  `public`.
+- El rol `prisma` conserva `BYPASSRLS` y permisos DML sobre las 39 tablas.
+- Siete migraciones Prisma finalizadas y checksum de la migración RLS correcto.
+
+Los 39 avisos de seguridad `rls_enabled_no_policy` son informativos e
+intencionados: la aplicación no usa la Data API y el acceso se realiza mediante
+Prisma. No hay avisos de seguridad de nivel `WARN` o `ERROR`.
 
 `btree_gist` ya está en el esquema `extensions` y las 20 claves foráneas que no
-tenían índice cuentan ahora con uno. El advisor de seguridad no devuelve
-hallazgos. Los avisos de índices sin uso se ignoran mientras la base esté vacía.
+tenían índice cuentan ahora con uno. Los avisos de índices sin uso se ignoran
+mientras la base esté vacía.

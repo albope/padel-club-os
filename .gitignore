@@ -69,3 +69,6 @@ contexto-actual.md
 ~$*.pptx
 entregables/manual-extract.txt
 entregables/originales-backup/
+
+# Credenciales locales de infraestructura. Nunca versionar.
+docs/supabase.txt

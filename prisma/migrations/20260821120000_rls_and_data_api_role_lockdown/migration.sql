@@ -17,31 +17,52 @@ BEGIN
 END
 $rls$;
 
-REVOKE ALL PRIVILEGES ON ALL TABLES IN SCHEMA public
-FROM anon, authenticated;
+-- Los roles de Supabase no existen en un PostgreSQL genérico (por ejemplo, el
+-- servicio efímero de CI). Aplicar los revokes solo cuando el rol esté presente.
+DO $privileges$
+DECLARE
+  data_api_role text;
+  owner_role text;
+BEGIN
+  FOREACH data_api_role IN ARRAY ARRAY['anon', 'authenticated']
+  LOOP
+    IF EXISTS (SELECT 1 FROM pg_roles WHERE rolname = data_api_role) THEN
+      EXECUTE format(
+        'REVOKE ALL PRIVILEGES ON ALL TABLES IN SCHEMA public FROM %I',
+        data_api_role
+      );
+      EXECUTE format(
+        'REVOKE ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public FROM %I',
+        data_api_role
+      );
+      EXECUTE format(
+        'REVOKE ALL PRIVILEGES ON ALL FUNCTIONS IN SCHEMA public FROM %I',
+        data_api_role
+      );
 
-REVOKE ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public
-FROM anon, authenticated;
-
-REVOKE ALL PRIVILEGES ON ALL ROUTINES IN SCHEMA public
-FROM anon, authenticated;
-
--- Evitar que objetos creados por migraciones futuras recuperen los grants
--- automáticos que Supabase define para los roles de la Data API.
-ALTER DEFAULT PRIVILEGES FOR ROLE postgres IN SCHEMA public
-REVOKE ALL PRIVILEGES ON TABLES FROM anon, authenticated;
-
-ALTER DEFAULT PRIVILEGES FOR ROLE postgres IN SCHEMA public
-REVOKE ALL PRIVILEGES ON SEQUENCES FROM anon, authenticated;
-
-ALTER DEFAULT PRIVILEGES FOR ROLE postgres IN SCHEMA public
-REVOKE ALL PRIVILEGES ON ROUTINES FROM anon, authenticated;
-
-ALTER DEFAULT PRIVILEGES FOR ROLE prisma IN SCHEMA public
-REVOKE ALL PRIVILEGES ON TABLES FROM anon, authenticated;
-
-ALTER DEFAULT PRIVILEGES FOR ROLE prisma IN SCHEMA public
-REVOKE ALL PRIVILEGES ON SEQUENCES FROM anon, authenticated;
-
-ALTER DEFAULT PRIVILEGES FOR ROLE prisma IN SCHEMA public
-REVOKE ALL PRIVILEGES ON ROUTINES FROM anon, authenticated;
+      -- Evitar que objetos creados por migraciones futuras recuperen los
+      -- grants automáticos de Supabase para los roles de la Data API.
+      FOREACH owner_role IN ARRAY ARRAY['postgres', 'prisma']
+      LOOP
+        IF EXISTS (SELECT 1 FROM pg_roles WHERE rolname = owner_role) THEN
+          EXECUTE format(
+            'ALTER DEFAULT PRIVILEGES FOR ROLE %I IN SCHEMA public REVOKE ALL PRIVILEGES ON TABLES FROM %I',
+            owner_role,
+            data_api_role
+          );
+          EXECUTE format(
+            'ALTER DEFAULT PRIVILEGES FOR ROLE %I IN SCHEMA public REVOKE ALL PRIVILEGES ON SEQUENCES FROM %I',
+            owner_role,
+            data_api_role
+          );
+          EXECUTE format(
+            'ALTER DEFAULT PRIVILEGES FOR ROLE %I IN SCHEMA public REVOKE ALL PRIVILEGES ON FUNCTIONS FROM %I',
+            owner_role,
+            data_api_role
+          );
+        END IF;
+      END LOOP;
+    END IF;
+  END LOOP;
+END
+$privileges$;

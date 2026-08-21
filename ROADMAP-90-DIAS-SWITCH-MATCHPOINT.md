@@ -1,7 +1,7 @@
 # Roadmap 90 Dias
 
 Fecha de referencia original: 2026-03-05
-Ultima actualizacion: 2026-08-20
+Ultima actualizacion: 2026-08-21
 
 ## Punto de partida real
 El producto ya no esta en fase cero. Hoy el workspace ya cubre:
@@ -15,7 +15,7 @@ El producto ya no esta en fase cero. Hoy el workspace ya cubre:
 - base de seguridad, RGPD, PWA e i18n,
 - CI/CD (lint + typecheck + test + build en PR),
 - rate limit distribuido (Upstash Redis con fallback local),
-- 612 tests (unitarios + integracion), 0 errores TS.
+- 629 tests (unitarios + integracion), 0 errores TS.
 
 El roadmap de 90 dias debe partir de esta base y no rehacer trabajo ya hecho.
 

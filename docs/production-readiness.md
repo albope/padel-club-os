@@ -1,6 +1,6 @@
 # Auditoría y hoja de ejecución production-ready
 
-Estado auditado a 2026-08-20. Este documento es la memoria operativa de lo
+Estado auditado a 2026-08-21. Este documento es la memoria operativa de lo
 implementado y de lo que depende de cuentas o decisiones externas.
 
 ## Criterio de salida

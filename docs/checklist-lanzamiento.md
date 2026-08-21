@@ -1,6 +1,6 @@
 # Checklist maestro de lanzamiento
 
-Estado comprobado el 20 de agosto de 2026. Este documento separa la salida de una
+Estado comprobado el 21 de agosto de 2026. Este documento separa la salida de una
 demo o piloto controlado de la activación de cobros reales. No se marca una tarea
 externa como terminada sin comprobarla en el servicio correspondiente.
 
@@ -28,18 +28,20 @@ externa como terminada sin comprobarla en el servicio correspondiente.
 - [x] Identidad legal, fiscal y política de cambios de plan reflejadas en código y textos.
 - [x] Portal de jugador y flujos Marcador principales migrados a tokens semánticos.
 - [x] `npm run lint`, `npm run typecheck`, `npm test` y `npm run build` en verde
-  sobre el commit final. Resultado del 20 de agosto de 2026: 612 tests, 125
-  rutas generadas y 0 vulnerabilidades en `npm audit`.
+  sobre el commit final. Resultado del 21 de agosto de 2026: 629 tests y 125
+  rutas generadas. Último `npm audit`, ejecutado el 20 de agosto de 2026: 0
+  vulnerabilidades.
 - [ ] Gate visual manual en 360, 768, 1024 y 1440 píxeles, en claro y oscuro.
 
 ## Puerta B: Supabase y demo local
 
 Seguir `docs/supabase-go-live.md`. Estas tareas requieren acceso de Alberto a Supabase.
 
-- [ ] Pasar a Pro la organización elegida y crear en ella el proyecto vacío de
+- [x] Pasar a Pro la organización elegida y crear en ella el proyecto vacío de
   Padel Club OS en una región de la UE.
-- [ ] Activar MFA, guardar las contraseñas en el gestor y desactivar Data API.
-- [ ] Crear el usuario `prisma` y obtener `DATABASE_URL` y `DIRECT_URL` de Supavisor.
+- [ ] Confirmar MFA en las cuentas con acceso. Las contraseñas ya están en el
+  gestor y Data API está desactivada.
+- [x] Crear el usuario `prisma` y obtener `DATABASE_URL` y `DIRECT_URL` de Supavisor.
 - [ ] Aplicar migraciones, preflight y seed contra el proyecto nuevo.
 - [ ] Guardar las tres contraseñas demo en el gestor y retirarlas de la terminal.
 - [ ] Levantar la aplicación local y probar superadministrador, administrador y jugador.

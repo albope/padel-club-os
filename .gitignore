@@ -64,3 +64,8 @@ CREDENCIALES.local.html
 # claude code
 .claude/
 contexto-actual.md
+# Archivos temporales de Microsoft Office y extracciones de revisión
+~$*.docx
+~$*.pptx
+entregables/manual-extract.txt
+entregables/originales-backup/

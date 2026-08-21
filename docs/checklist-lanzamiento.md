@@ -53,9 +53,11 @@ Seguir `docs/supabase-go-live.md`. Estas tareas requieren acceso de Alberto a Su
 - [x] Mover `btree_gist` a `extensions` y añadir los 20 índices de claves
   foráneas que faltaban. El advisor de seguridad queda sin hallazgos y no quedan
   foreign keys sin índice.
-- [ ] Decidir y aplicar el cierre de acceso de `anon` y `authenticated`. El
-  advisor detecta RLS desactivado y ambos roles conservan privilegios sobre las
-  tablas, aunque Data API esté desactivada.
+- [ ] Autorizar y aplicar
+  `20260821120000_rls_and_data_api_role_lockdown`. La migración ya está
+  preparada, pero no se ha ejecutado: RLS continúa desactivado y `anon` y
+  `authenticated` conservan privilegios sobre las tablas, aunque Data API esté
+  desactivada.
 - [ ] Ejecutar preflight y seed contra el proyecto nuevo.
 - [ ] Guardar las tres contraseñas demo en el gestor y retirarlas de la terminal.
 - [ ] Levantar la aplicación local y probar superadministrador, administrador y jugador.

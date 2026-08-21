@@ -177,6 +177,11 @@ privilegios a `anon` y `authenticated`. La aplicación no debería verse afectad
 porque usa exclusivamente el rol `prisma` con `BYPASSRLS`. Esta decisión debe
 aprobarse y probarse antes del seed.
 
+La migración reproducible
+`20260821120000_rls_and_data_api_role_lockdown` está preparada en el repositorio,
+pero no se ha aplicado. Supabase requiere una autorización explícita que nombre
+el alcance de las 39 tablas y la revocación de ambos roles.
+
 `btree_gist` ya está en el esquema `extensions` y las 20 claves foráneas que no
 tenían índice cuentan ahora con uno. El advisor de seguridad no devuelve
 hallazgos. Los avisos de índices sin uso se ignoran mientras la base esté vacía.

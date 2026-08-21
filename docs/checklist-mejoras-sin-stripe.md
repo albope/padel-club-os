@@ -8,7 +8,8 @@
 - [ ] Activar y comprobar MFA en todas las cuentas con acceso a producción.
 - [x] Ejecutar las migraciones de Supabase, registrar el historial Prisma y
   corregir extensión e índices de claves foráneas.
-- [ ] Cerrar el hardening de RLS y privilegios de los roles de Data API.
+- [ ] Autorizar y aplicar la migración ya preparada de RLS y privilegios de los
+  roles de Data API.
 - [ ] Generar una credencial nueva del rol `prisma` después de invalidar la filtrada.
 - [ ] Ejecutar el preflight y la carga de datos iniciales contra producción.
 - [ ] Guardar las credenciales demo en el gestor seguro acordado.

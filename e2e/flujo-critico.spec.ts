@@ -186,10 +186,25 @@ test.describe.serial("Flujo critico: alta de club, configuracion y reservas", ()
     await gotoStable(page, `/club/${clubSlug}/registro`)
     const registroJugador = page.locator("main:visible")
     await expect(registroJugador.locator("#name")).toBeVisible({ timeout: 20_000 })
-    await registroJugador.locator("#name").fill("E2E Jugador")
-    await registroJugador.locator("#email").fill(playerEmail)
-    await registroJugador.locator("#password").fill(password)
+    // WebKit puede pintar el HTML antes de hidratar React. Esperar la red y
+    // cerrar el banner confirma que los handlers cliente ya están conectados.
+    await page.waitForLoadState("networkidle")
+    const cookiesJugador = page.getByRole("button", { name: "Entendido" })
+    if (await cookiesJugador.isVisible().catch(() => false)) {
+      await cookiesJugador.click()
+      await expect(cookiesJugador).toBeHidden()
+    }
+
+    const nombreJugador = registroJugador.locator("#name")
+    const emailJugador = registroJugador.locator("#email")
+    const passwordJugador = registroJugador.locator("#password")
+    await nombreJugador.fill("E2E Jugador")
+    await emailJugador.fill(playerEmail)
+    await passwordJugador.fill(password)
     await registroJugador.getByRole("checkbox", { name: /política de privacidad/i }).check()
+    await expect(nombreJugador).toHaveValue("E2E Jugador")
+    await expect(emailJugador).toHaveValue(playerEmail)
+    await expect(passwordJugador).toHaveValue(password)
     const [registroResponse] = await Promise.all([
       page.waitForResponse(
         (response) => response.url().endsWith("/api/register/player")

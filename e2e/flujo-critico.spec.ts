@@ -190,10 +190,18 @@ test.describe.serial("Flujo critico: alta de club, configuracion y reservas", ()
     await registroJugador.locator("#email").fill(playerEmail)
     await registroJugador.locator("#password").fill(password)
     await registroJugador.getByRole("checkbox", { name: /política de privacidad/i }).check()
-    await registroJugador.getByRole("button", { name: "Crear cuenta" }).click()
+    const [registroResponse] = await Promise.all([
+      page.waitForResponse(
+        (response) => response.url().endsWith("/api/register/player")
+          && response.request().method() === "POST",
+        { timeout: 60_000 },
+      ),
+      registroJugador.getByRole("button", { name: "Crear cuenta" }).click(),
+    ])
+    expect(registroResponse.ok()).toBeTruthy()
     await expect(
       registroJugador.getByText(/^(Solicitud enviada|Cuenta creada)$/i),
-    ).toBeVisible({ timeout: 30_000 })
+    ).toBeVisible({ timeout: 15_000 })
 
     // Simula verificación de email + aprobación por el club (modo APPROVAL).
     const club = await prisma.club.findUniqueOrThrow({ where: { slug: clubSlug } })
@@ -237,7 +245,15 @@ test.describe.serial("Flujo critico: alta de club, configuracion y reservas", ()
     ).toBeVisible({ timeout: 20_000 })
     await expect(reservasJugador.getByText("Hoy", { exact: true })).toBeVisible()
     await expect(reservasJugador.getByRole("button", { name: "Volver a hoy" })).toHaveCount(0)
-    await reservasJugador.getByRole("button", { name: "Día siguiente" }).click()
+    const [availabilityResponse] = await Promise.all([
+      page.waitForResponse(
+        (response) => response.url().includes(`/api/club/${clubSlug}/availability?date=`)
+          && response.request().method() === "GET",
+        { timeout: 30_000 },
+      ),
+      reservasJugador.getByRole("button", { name: "Día siguiente" }).click(),
+    ])
+    expect(availabilityResponse.ok()).toBeTruthy()
     await expect(
       reservasJugador.getByRole("button", { name: "Volver a hoy" }),
     ).toBeVisible()
@@ -247,7 +263,11 @@ test.describe.serial("Flujo critico: alta de club, configuracion y reservas", ()
       .getByRole("button", { name: new RegExp(`^Reservar ${PISTA_JUGADOR} a las ${slot}`) })
       .click()
 
-    // Sheet de confirmacion (modo presencial)
+    // Resumen de la selección y sheet de confirmación (modo presencial)
+    await expect(
+      reservasJugador.getByRole("region", { name: "Resumen de la selección" }),
+    ).toContainText(`${PISTA_JUGADOR} · ${slot}`)
+    await reservasJugador.getByRole("button", { name: "Continuar" }).click()
     await expect(page.getByText("Revisa los detalles antes de confirmar")).toBeVisible()
     await page.getByRole("button", { name: "Confirmar reserva", exact: true }).click()
 

@@ -6,7 +6,10 @@
 ## P0 · Dejar el piloto listo y protegido
 
 - [ ] Activar y comprobar MFA en todas las cuentas con acceso a producción.
-- [ ] Ejecutar las cinco migraciones pendientes de Supabase desde una red sin Zscaler.
+- [x] Ejecutar las migraciones de Supabase, registrar el historial Prisma y
+  corregir extensión e índices de claves foráneas.
+- [ ] Cerrar el hardening de RLS y privilegios de los roles de Data API.
+- [ ] Generar una credencial nueva del rol `prisma` después de invalidar la filtrada.
 - [ ] Ejecutar el preflight y la carga de datos iniciales contra producción.
 - [ ] Guardar las credenciales demo en el gestor seguro acordado.
 - [ ] Completar el smoke test de los perfiles superadmin, administrador de club y jugador.

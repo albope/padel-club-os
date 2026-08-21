@@ -1,5 +1,16 @@
 # Supabase Pro: arranque limpio y salida a producción
 
+**Estado verificado:** 21 de agosto de 2026
+
+El proyecto Pro está activo y las migraciones se aplicaron sobre una base
+vacía. Hay 38 tablas de aplicación y seis registros finalizados en
+`_prisma_migrations`. El seed todavía no se ha ejecutado.
+
+El 21 de agosto de 2026 se detectó una contraseña del rol `prisma` en un archivo
+versionado. La contraseña quedó desactivada, el archivo fue retirado y el
+historial de las ramas publicadas fue reescrito. Antes de conectar Prisma debe
+generarse una contraseña distinta y guardarse únicamente en el gestor.
+
 Decisión adoptada el 20 de agosto de 2026: PostgreSQL de producción se alojará
 en un proyecto propio dentro de una organización Supabase Pro compartida con
 otro proyecto Micro. Arrancará desde cero con un club demo. No se migrarán datos
@@ -32,20 +43,33 @@ Referencias oficiales:
 
 ## 1. Crear y asegurar el proyecto
 
-- [ ] Pasar a Pro la organización que alojará los dos proyectos Micro y crear en
+- [x] Pasar a Pro la organización que alojará los dos proyectos Micro y crear en
   ella el proyecto de Padel Club OS en una región de la Unión Europea próxima a
   Vercel.
-- [ ] Guardar la contraseña de la base en el gestor de contraseñas. No compartirla
+- [ ] Generar y guardar la nueva contraseña de la base en el gestor. No compartirla
   por chat, tickets, documentación ni Git.
 - [ ] Activar MFA para las cuentas con acceso a Supabase.
-- [ ] Desactivar Data API en `Project Settings > API`, ya que la aplicación accede
+- [x] Desactivar Data API en `Project Settings > API`, ya que la aplicación accede
   exclusivamente mediante Prisma.
 - [ ] Descargar y conservar el DPA vigente de Supabase para el registro de
   subencargados.
 - [ ] Configurar alertas de presupuesto y revisar el Spend Cap. El cómputo no está
   cubierto por todos los límites del Spend Cap.
 
-## 2. Crear el usuario de Prisma
+## 2. Usuario de Prisma
+
+El rol `prisma` ya existe con `LOGIN`, `CREATEDB`, `BYPASSRLS` y permisos sobre
+`public`. Su autenticación por contraseña está desactivada como contención de la
+credencial publicada.
+
+Antes del seed:
+
+1. generar una contraseña nueva en el gestor
+2. ejecutar `ALTER ROLE prisma PASSWORD '<NUEVA_CONTRASEÑA>'` desde el SQL Editor
+3. construir de nuevo las dos URLs de Supavisor
+4. comprobar la conexión y no copiar la contraseña a archivos versionados.
+
+La receta siguiente se conserva solo para reconstruir el rol si fuera necesario.
 
 Ejecutar en el SQL Editor la receta actual de la guía oficial de Prisma. Sustituir
 la contraseña de ejemplo por una generada y guardada en el gestor:
@@ -83,16 +107,22 @@ La inicialización se hace contra el proyecto nuevo antes de cambiar variables e
 Vercel. No se usa `prisma db push`, no se importa ningún volcado de Neon y no se
 copian datos personales antiguos.
 
-- [ ] Confirmar que el proyecto Supabase está vacío y que es el destino correcto.
-- [ ] Cargar `DATABASE_URL` y `DIRECT_URL` de Supabase solo como variables
+- [x] Confirmar que el proyecto estaba vacío y era el destino correcto antes de
+  aplicar las migraciones.
+- [ ] Cargar las nuevas `DATABASE_URL` y `DIRECT_URL` de Supabase solo como variables
   temporales de la terminal.
-- [ ] Ejecutar las migraciones versionadas y comprobar el esquema:
+- [x] Ejecutar las cinco migraciones de producto y la migración de hardening. Se
+  aplicaron mediante el conector oficial y se registraron los checksums reales
+  en `_prisma_migrations`:
 
   ```bash
   npm run db:deploy
   npx prisma migrate status
   npm run db:preflight
   ```
+
+  Los comandos quedan pendientes de repetirse mediante la conexión `prisma`
+  nueva para validar el recorrido exacto que usará la aplicación.
 
 - [ ] Generar y guardar en el gestor de contraseñas tres claves distintas para
   `BOOTSTRAP_SUPERADMIN_PASSWORD`, `DEMO_ADMIN_PASSWORD` y
@@ -115,8 +145,8 @@ las contraseñas configuradas y revoca las sesiones anteriores del superadminist
 2. Actualizar `DATABASE_URL` y `DIRECT_URL` en Vercel sin mostrar sus valores.
 3. Desplegar el commit validado y comprobar `/api/health` y `/api/ready`.
 4. Ejecutar el smoke de superadministrador, administrador y jugador.
-5. Probar una suscripción Stripe TEST o
-   una operación LIVE controlada según el runbook de pagos.
+5. Dejar la prueba Stripe fuera de este corte. Se ejecutará en la fase final de
+   cobros LIVE.
 6. Confirmar la primera copia diaria y ejecutar el simulacro de restauración.
 7. Eliminar las variables antiguas de Neon después de validar el nuevo despliegue.
 
@@ -134,3 +164,19 @@ las contraseñas configuradas y revoca las sesiones anteriores del superadminist
 - [ ] Documentar comercialmente RPO de 24 horas. No prometer PITR ni un RPO menor.
 
 La restauración nunca se prueba sobre producción.
+
+## 7. Hardening pendiente de decisión
+
+El advisor de Supabase detecta RLS desactivado y las comprobaciones SQL confirman
+que `anon` y `authenticated` conservan privilegios sobre las 39 tablas públicas,
+incluida `_prisma_migrations`. Data API está desactivada, pero esa configuración
+no sustituye una defensa en profundidad.
+
+La recomendación es habilitar RLS sin políticas en todas las tablas y revocar
+privilegios a `anon` y `authenticated`. La aplicación no debería verse afectada
+porque usa exclusivamente el rol `prisma` con `BYPASSRLS`. Esta decisión debe
+aprobarse y probarse antes del seed.
+
+`btree_gist` ya está en el esquema `extensions` y las 20 claves foráneas que no
+tenían índice cuentan ahora con uno. El advisor de seguridad no devuelve
+hallazgos. Los avisos de índices sin uso se ignoran mientras la base esté vacía.

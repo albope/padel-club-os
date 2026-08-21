@@ -58,7 +58,7 @@ su gestoría junto con los abonos o facturas rectificativas que correspondan.
   `/terminos` y el DPA muestran esos datos y no el aviso ámbar.
 - [ ] Revisar que la entidad, domicilio y NIF coinciden exactamente en Stripe, en
   las páginas legales y en el alta fiscal.
-- [ ] Aplicar todas las migraciones hasta
+- [x] Aplicar todas las migraciones hasta
   `20260725000000_presential_bookings_and_database_rate_limit` antes de desplegar.
 - [ ] Establecer `TAX_HANDLING_CONFIRMED=true` en Vercel cuando la configuración
   fiscal de Stripe se haya probado y la primera factura de muestra esté validada.

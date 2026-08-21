@@ -1,14 +1,15 @@
 # Operación en producción
 
-Runbook de Padel Club OS. La aplicación no debe aceptar clientes de pago hasta
-que `npm run production:preflight`, la migración y `/api/ready` estén en verde.
+Runbook de Padel Club OS. El piloto sin cobros requiere que
+`npm run production:preflight`, la migración y `/api/ready` estén en verde. Los
+clientes de pago requieren además cerrar la fase Stripe documentada por separado.
 
 ## Servicios y responsabilidad
 
 | Servicio | Uso | Condición de lanzamiento |
 |---|---|---|
 | Vercel Hobby | Hosting, funciones y tres crons diarios | Válido para demo y arranque limitado; revisar manualmente impagos y reembolsos urgentes |
-| Supabase Pro PostgreSQL | Datos multi-tenant | Proyecto Micro en una organización Pro con dos proyectos, Data API desactivada y copias verificadas |
+| Supabase Pro PostgreSQL | Datos multi-tenant | Proyecto Micro en una organización Pro, Data API desactivada, migraciones aplicadas y copias aún pendientes de verificar |
 | Stripe Live | Suscripciones SaaS | Productos, prices, webhook y tratamiento fiscal verificados |
 | Resend | Emails transaccionales | Dominio verificado y remitente probado |
 | Vercel Blob | Imágenes subidas por clubes | Store enlazado y token Read/Write |
@@ -161,4 +162,4 @@ en un proyecto Supabase aislado y validar antes de tocar producción.
 - revisión diaria de reportes de usuario durante los primeros clientes;
 - revisión semanal de reembolsos fallidos, webhooks y crecimiento de la base.
 
-Última actualización: 2026-08-20.
+Última actualización: 2026-08-21.

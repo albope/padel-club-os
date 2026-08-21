@@ -18,6 +18,9 @@ externa como terminada sin comprobarla en el servicio correspondiente.
 - [x] Un tercer MVP permanecerá en una organización Free y se acepta que Supabase
   lo pause si no registra actividad durante una semana.
 - [x] Prisma usará Supavisor compartido y no necesita el complemento IPv4 de Supabase.
+- [x] El historial publicado se saneó tras detectar una credencial en
+  `docs/supabase.txt`. La contraseña expuesta quedó desactivada y el archivo fue
+  purgado de las tres ramas publicadas el 21 de agosto de 2026.
 
 ## Puerta A: código preparado
 
@@ -41,8 +44,19 @@ Seguir `docs/supabase-go-live.md`. Estas tareas requieren acceso de Alberto a Su
   Padel Club OS en una región de la UE.
 - [ ] Confirmar MFA en las cuentas con acceso. Las contraseñas ya están en el
   gestor y Data API está desactivada.
-- [x] Crear el usuario `prisma` y obtener `DATABASE_URL` y `DIRECT_URL` de Supavisor.
-- [ ] Aplicar migraciones, preflight y seed contra el proyecto nuevo.
+- [ ] Generar una contraseña nueva para el usuario `prisma`, guardarla solo en
+  el gestor y reconstruir `DATABASE_URL` y `DIRECT_URL`. La contraseña anterior
+  está desactivada y no debe reutilizarse.
+- [x] Aplicar las cinco migraciones de producto y la migración de hardening, con
+  sus checksums en `_prisma_migrations`. Resultado: 38 tablas de aplicación y
+  seis migraciones Prisma finalizadas.
+- [x] Mover `btree_gist` a `extensions` y añadir los 20 índices de claves
+  foráneas que faltaban. El advisor de seguridad queda sin hallazgos y no quedan
+  foreign keys sin índice.
+- [ ] Decidir y aplicar el cierre de acceso de `anon` y `authenticated`. El
+  advisor detecta RLS desactivado y ambos roles conservan privilegios sobre las
+  tablas, aunque Data API esté desactivada.
+- [ ] Ejecutar preflight y seed contra el proyecto nuevo.
 - [ ] Guardar las tres contraseñas demo en el gestor y retirarlas de la terminal.
 - [ ] Levantar la aplicación local y probar superadministrador, administrador y jugador.
 - [ ] Completar el gate visual y corregir cualquier incidencia reproducible.
@@ -80,5 +94,5 @@ Seguir `docs/stripe-go-live.md` en una sesión guiada.
 - [ ] Ejecutar una compra controlada, una renovación, un impago y una cancelación.
 - [ ] Activar alertas Sentry, monitor de uptime y los tres heartbeats operativos.
 
-No aceptar un pago real hasta cerrar la puerta D. Las puertas A, B y C bastan para
-una demo o un piloto controlado sin cobros LIVE.
+No aceptar un pago real hasta cerrar la puerta D. El objetivo actual termina al
+cerrar A, B y C. La puerta D se mantiene como tarea final separada.

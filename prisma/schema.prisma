@@ -262,6 +262,7 @@ model Account {
   user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([provider, providerAccountId])
+  @@index([userId])
 }
 
 model Session {
@@ -270,6 +271,8 @@ model Session {
   userId       String
   expires      DateTime
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
 }
 
 model VerificationToken {
@@ -306,6 +309,7 @@ model AdminInvitation {
 
   @@unique([email, clubId])
   @@index([clubId])
+  @@index([invitedById])
 }
 
 // --- BOOKING AND COURTS MODULE ---
@@ -366,6 +370,7 @@ model Booking {
   @@index([userId])
   @@index([status, startTime])
   @@index([paymentMethod, paymentStatus, status])
+  @@index([recurringBookingId])
 }
 
 // --- UNIFIED COMPETITION MODULE ---
@@ -419,6 +424,8 @@ model Team {
   matchesAsTeam2 Match[]     @relation("MatchesAsTeam2")
 
   @@unique([competitionId, player1Id, player2Id])
+  @@index([player1Id])
+  @@index([player2Id])
 }
 
 model Match {
@@ -434,6 +441,10 @@ model Match {
   team2         Team?       @relation("MatchesAsTeam2", fields: [team2Id], references: [id], onDelete: NoAction)
   competitionId String
   competition   Competition @relation(fields: [competitionId], references: [id], onDelete: Cascade)
+
+  @@index([competitionId])
+  @@index([team1Id])
+  @@index([team2Id])
 }
 
 // --- MÓDULO DE PARTIDAS ABIERTAS (PLAY!) ---
@@ -468,6 +479,7 @@ model OpenMatch {
 
   @@index([clubId])
   @@index([clubId, status])
+  @@index([courtId])
 }
 
 model OpenMatchPlayer {
@@ -480,6 +492,7 @@ model OpenMatchPlayer {
   createdAt DateTime @default(now())
 
   @@id([openMatchId, userId])
+  @@index([userId])
 }
 
 // --- NOTICIAS DEL CLUB ---
@@ -678,6 +691,7 @@ model PushSubscription {
   createdAt DateTime @default(now())
 
   @@unique([endpoint])
+  @@index([userId])
 }
 
 // --- REGISTRO DE CONSENTIMIENTO RGPD ---
@@ -720,6 +734,8 @@ model RecurringBooking {
 
   @@index([clubId])
   @@index([clubId, isActive])
+  @@index([courtId])
+  @@index([userId])
 }
 
 // --- COMUNICACIONES MASIVAS ---
@@ -739,6 +755,7 @@ model Broadcast {
   createdAt DateTime @default(now())
 
   @@index([clubId])
+  @@index([sentById])
 }
 
 // --- PAGOS POR JUGADOR (tracking recepcion) ---
@@ -760,6 +777,8 @@ model BookingPayment {
 
   @@index([bookingId])
   @@index([clubId, status])
+  @@index([userId])
+  @@index([collectedById])
 }
 
 // --- VALORACIONES POST-PARTIDO ---
@@ -797,6 +816,7 @@ model ChatMessage {
 
   @@index([openMatchId, createdAt])
   @@index([clubId])
+  @@index([authorId])
 }
 
 // --- LISTA DE ESPERA DE RESERVAS ---
@@ -817,6 +837,7 @@ model BookingWaitlist {
   @@unique([courtId, startTime, userId])
   @@index([courtId, startTime, status])
   @@index([clubId, userId])
+  @@index([userId])
 }
 
 // --- BLOQUEOS DE PISTA ---
@@ -844,6 +865,7 @@ model CourtBlock {
 
   @@index([clubId, startTime])
   @@index([courtId, startTime])
+  @@index([createdById])
 }
 
 // --- AUDIT LOG ---

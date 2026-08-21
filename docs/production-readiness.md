@@ -5,7 +5,8 @@ implementado y de lo que depende de cuentas o decisiones externas.
 
 ## Criterio de salida
 
-El código queda listo para piloto cuando las comprobaciones locales y el E2E
+El objetivo actual es producción técnica y piloto sin Stripe LIVE. El código
+queda listo para piloto cuando las comprobaciones locales y el E2E
 crítico terminan en verde. Una demo desplegada exige además Supabase inicializado,
 `/api/ready` en 200 y el smoke de los tres perfiles. Un lanzamiento comercial con
 cobros exige también cerrar la puerta D de `docs/checklist-lanzamiento.md`:
@@ -14,7 +15,7 @@ cobros exige también cerrar la puerta D de `docs/checklist-lanzamiento.md`:
 - migraciones aplicadas después de snapshot;
 - `/api/ready` en 200;
 - smoke de las tres vistas demo;
-- todos los bloqueos de cobro del bloque 10 cerrados.
+- todos los bloqueos no Stripe del bloque 10 cerrados.
 
 `LAUNCH_STAGE=pilot` permite validar la puerta C con Stripe TEST y
 `TAX_HANDLING_CONFIRMED=false`. `LAUNCH_STAGE=commercial` es el modo seguro por
@@ -127,7 +128,7 @@ defecto y exige Stripe LIVE y la confirmación fiscal. El script local y
 - [x] Preflight estricto sin mostrar secretos.
 - [x] Runbook de deploy, rollback, crons, reembolsos y restauración.
 
-## Bloque 10 — Bloqueos externos antes de cobrar
+## Bloque 10 — Servicios externos y fase final de cobro
 
 Estos puntos no se pueden completar desde el repositorio ni deben inventarse:
 
@@ -135,11 +136,10 @@ Estos puntos no se pueden completar desde el repositorio ni deben inventarse:
   confirmados y reflejados en `.env.example`.
 - [x] Flujo contable confirmado: la sociedad emite las facturas SaaS y las entrega
   mensualmente a su gestoría.
-- [ ] Identidad legal configurada en Vercel y primera factura Stripe de muestra
-  validada. Después establecer `TAX_HANDLING_CONFIRMED=true`.
+- [ ] Identidad legal configurada en Vercel y páginas públicas verificadas.
 - [x] Landing y condiciones alineadas con una periodicidad exclusivamente mensual.
-- [ ] Stripe Live mensual: cuenta verificada, productos/prices, webhook,
-  impuestos y prueba controlada.
+- [ ] Fase final Stripe: cuenta LIVE, productos, webhook, impuestos, factura y
+  prueba controlada. No bloquea el piloto sin cobros, pero sí el primer cobro.
 - [x] Resend: registros públicos MX, SPF, DKIM y DMARC presentes en DNS.
 - [ ] Resend: estado `Verified` confirmado en el panel y envío real con
   SPF, DKIM y DMARC válidos.
@@ -148,8 +148,9 @@ Estos puntos no se pueden completar desde el repositorio ni deben inventarse:
 - [ ] Vercel Pro activo antes de recuperar crons de 10 o 15 minutos o depender de
   automatizaciones frecuentes para la operación comercial.
 - [ ] Tres checks de healthchecks.io, alertas Sentry y monitor de uptime activos.
-- [ ] Inicialización limpia de Supabase con migraciones y demo, copia diaria y
-  simulacro de restauración completados. RPO inicial de 24 horas aceptado sin PITR.
+- [ ] Inicialización limpia de Supabase. Las migraciones y el historial Prisma ya
+  están aplicados. Faltan hardening, credencial nueva, demo, copia diaria y
+  simulacro de restauración. RPO inicial de 24 horas aceptado sin PITR.
 - [ ] Variables y DNS de producción verificados; migración y despliegue del
   commit final realizados.
 

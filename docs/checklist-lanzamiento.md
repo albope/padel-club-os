@@ -1,6 +1,6 @@
 # Checklist maestro de lanzamiento
 
-Estado comprobado el 21 de agosto de 2026. Este documento separa la salida de una
+Estado comprobado el 22 de agosto de 2026. Este documento separa la salida de una
 demo o piloto controlado de la activación de cobros reales. No se marca una tarea
 externa como terminada sin comprobarla en el servicio correspondiente.
 
@@ -44,13 +44,14 @@ Seguir `docs/supabase-go-live.md`. Estas tareas requieren acceso de Alberto a Su
   Padel Club OS en una región de la UE.
 - [ ] Confirmar MFA en las cuentas con acceso. Las contraseñas ya están en el
   gestor y Data API está desactivada.
-- [ ] Activar en PostgreSQL la contraseña nueva del usuario `prisma` y reconstruir
-  `DATABASE_URL` y `DIRECT_URL`. Alberto confirma que la nueva contraseña ya fue
-  generada y guardada sin compartirla, pero la comprobación del 21 de agosto de
-  2026 aún devuelve `rolpassword IS NULL`; la contraseña anterior no debe reutilizarse.
-- [x] Aplicar las cinco migraciones de producto y las dos migraciones de
+- [x] Activar en PostgreSQL la contraseña nueva del usuario `prisma`. Alberto la
+  generó y guardó sin compartirla; el 22 de agosto de 2026 se verificó
+  `rolpassword IS NOT NULL`. La contraseña anterior no debe reutilizarse.
+- [ ] Reconstruir `DATABASE_URL` y `DIRECT_URL` con la nueva credencial y
+  cargarlas temporalmente para ejecutar preflight y seed.
+- [x] Aplicar las cinco migraciones de producto y las cuatro migraciones de
   hardening, con sus checksums en `_prisma_migrations`. Resultado: 38 tablas de
-  aplicación y siete migraciones Prisma finalizadas.
+  aplicación y nueve migraciones Prisma finalizadas.
 - [x] Mover `btree_gist` a `extensions` y añadir los 20 índices de claves
   foráneas que faltaban. El advisor de seguridad queda sin avisos `WARN` o
   `ERROR` y no quedan foreign keys sin índice.
@@ -59,6 +60,9 @@ Seguir `docs/supabase-go-live.md`. Estas tareas requieren acceso de Alberto a Su
   conservan privilegios efectivos sobre tablas, secuencias ni funciones. También
   se revocaron sus privilegios por defecto para objetos creados por `postgres` y
   `prisma`.
+- [x] Revocar los privilegios actuales y futuros de `PUBLIC`, incluida la
+  concesión global de `EXECUTE` sobre funciones nuevas. Una prueba transaccional
+  confirmó el bloqueo para objetos creados por `postgres` y `prisma`.
 - [ ] Ejecutar preflight y seed contra el proyecto nuevo.
 - [ ] Guardar las tres contraseñas demo en el gestor y retirarlas de la terminal.
 - [ ] Levantar la aplicación local y probar superadministrador, administrador y jugador.

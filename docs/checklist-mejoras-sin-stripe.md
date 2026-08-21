@@ -1,6 +1,6 @@
 # Checklist de mejoras de PadelClub OS sin Stripe
 
-**Fecha de revisión:** 21 de agosto de 2026
+**Fecha de revisión:** 22 de agosto de 2026
 **Alcance:** trabajo pendiente de producto, operación y lanzamiento. Quedan fuera Stripe, los cobros online y las automatizaciones que dependan de Stripe.
 
 ## P0 · Dejar el piloto listo y protegido
@@ -10,8 +10,12 @@
   corregir extensión e índices de claves foráneas.
 - [x] Aplicar la migración de RLS y privilegios de los roles de Data API: 39/39
   tablas protegidas y cero privilegios efectivos para `anon` y `authenticated`.
-- [ ] Activar en PostgreSQL la nueva credencial del rol `prisma`. Alberto confirma
-  que ya la generó y guardó, pero el rol aún devuelve `rolpassword IS NULL`.
+- [x] Activar en PostgreSQL la nueva credencial del rol `prisma`; verificada con
+  `rolpassword IS NOT NULL` sin exponer su valor.
+- [x] Revocar privilegios actuales y futuros de `PUBLIC` para impedir herencia
+  indirecta por `anon` y `authenticated`, también en funciones nuevas.
+- [ ] Reconstruir y cargar de forma segura `DATABASE_URL` y `DIRECT_URL` con la
+  credencial nueva.
 - [ ] Ejecutar el preflight y la carga de datos iniciales contra producción.
 - [ ] Guardar las credenciales demo en el gestor seguro acordado.
 - [ ] Completar el smoke test de los perfiles superadmin, administrador de club y jugador.

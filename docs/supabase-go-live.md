@@ -1,17 +1,16 @@
 # Supabase Pro: arranque limpio y salida a producción
 
-**Estado verificado:** 21 de agosto de 2026
+**Estado verificado:** 22 de agosto de 2026
 
 El proyecto Pro está activo y las migraciones se aplicaron sobre una base
-vacía. Hay 38 tablas de aplicación y siete registros finalizados en
+vacía. Hay 38 tablas de aplicación y nueve registros finalizados en
 `_prisma_migrations`. El seed todavía no se ha ejecutado.
 
 El 21 de agosto de 2026 se detectó una contraseña del rol `prisma` en un archivo
 versionado. La contraseña quedó desactivada, el archivo fue retirado y el
-historial de las ramas publicadas fue reescrito. Alberto confirma que generó y
-guardó una contraseña distinta sin compartirla, pero la comprobación directa del
-rol sigue devolviendo `rolpassword IS NULL`; falta activarla antes de conectar
-Prisma.
+historial de las ramas publicadas fue reescrito. Alberto generó, guardó y aplicó
+una contraseña distinta sin compartirla. El 22 de agosto de 2026 se verificó
+directamente que el rol devuelve `rolpassword IS NOT NULL`.
 
 Decisión adoptada el 20 de agosto de 2026: PostgreSQL de producción se alojará
 en un proyecto propio dentro de una organización Supabase Pro compartida con
@@ -48,7 +47,7 @@ Referencias oficiales:
 - [x] Pasar a Pro la organización que alojará los dos proyectos Micro y crear en
   ella el proyecto de Padel Club OS en una región de la Unión Europea próxima a
   Vercel.
-- [ ] Activar en el rol `prisma` la contraseña nueva ya generada y guardada. No
+- [x] Activar en el rol `prisma` la contraseña nueva ya generada y guardada. No
   compartirla por chat, tickets, documentación ni Git.
 - [ ] Activar MFA para las cuentas con acceso a Supabase.
 - [x] Desactivar Data API en `Project Settings > API`, ya que la aplicación accede
@@ -61,11 +60,10 @@ Referencias oficiales:
 ## 2. Usuario de Prisma
 
 El rol `prisma` ya existe con `LOGIN`, `CREATEDB`, `BYPASSRLS` y permisos sobre
-`public`. El 21 de agosto de 2026 su autenticación por contraseña seguía
-desactivada (`rolpassword IS NULL`) pese a que la nueva contraseña ya se había
-generado y guardado fuera del repositorio.
+`public`. Su autenticación por contraseña está activa y verificada desde el 22
+de agosto de 2026; el valor solo se conserva fuera del repositorio.
 
-Antes del seed:
+Para futuras rotaciones:
 
 1. generar una contraseña nueva en el gestor
 2. ejecutar `ALTER ROLE prisma PASSWORD '<NUEVA_CONTRASEÑA>'` desde el SQL Editor
@@ -116,7 +114,7 @@ copian datos personales antiguos.
   aplicar las migraciones.
 - [ ] Cargar las nuevas `DATABASE_URL` y `DIRECT_URL` de Supabase solo como variables
   temporales de la terminal.
-- [x] Ejecutar las cinco migraciones de producto y las dos migraciones de hardening. Se
+- [x] Ejecutar las cinco migraciones de producto y las cuatro migraciones de hardening. Se
   aplicaron mediante el conector oficial y se registraron los checksums reales
   en `_prisma_migrations`:
 
@@ -181,8 +179,13 @@ La migración reproducible
   `anon` o `authenticated`.
 - Cero grants por defecto de `postgres` o `prisma` hacia esos dos roles en
   `public`.
+- Cero privilegios actuales de `PUBLIC` sobre tablas, secuencias o funciones
+  públicas, y defaults de `PUBLIC` revocados para ambos roles creadores.
+- Prueba transaccional satisfactoria con objetos nuevos creados por `postgres` y
+  `prisma`; `anon` y `authenticated` no heredaron acceso y no quedaron objetos
+  de prueba.
 - El rol `prisma` conserva `BYPASSRLS` y permisos DML sobre las 39 tablas.
-- Siete migraciones Prisma finalizadas y checksum de la migración RLS correcto.
+- Nueve migraciones Prisma finalizadas y checksums de hardening correctos.
 
 Los 39 avisos de seguridad `rls_enabled_no_policy` son informativos e
 intencionados: la aplicación no usa la Data API y el acceso se realiza mediante

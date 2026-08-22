@@ -5,7 +5,7 @@ import { evaluateLaunchReadiness } from '@/lib/launch-readiness'
 
 export const dynamic = 'force-dynamic'
 
-const LATEST_MIGRATION = '20260725000000_presential_bookings_and_database_rate_limit'
+const LATEST_MIGRATION = '20260822100000_global_function_default_privilege_lockdown'
 export async function GET() {
   try {
     const [migrationRows, stuckRefunds] = await Promise.all([
